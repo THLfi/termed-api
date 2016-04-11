@@ -42,8 +42,7 @@ spring.datasource.username=termed
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-spring.jpa.properties.hibernate.search.default.directory_provider=filesystem
-spring.jpa.properties.hibernate.search.default.indexBase=index
+fi.thl.termed.index=/var/lib/termed/index
 ```
 
 and run:
@@ -55,7 +54,7 @@ mvn spring-boot:run -Dspring.profiles.active=dev
 
 ### Creating a war file
 
-After running `mvn install`, a war file can be found at `/termed-war/target/termed.war`.
+Run `mvn install` at project root. A war file can be found at `/termed-war/target/termed.war`.
 
 External properties can be configured using standard mechanisms provided by spring boot:
 http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
