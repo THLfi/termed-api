@@ -1,0 +1,10 @@
+<div ng-repeat="textAttr in textAttrs">
+    <dl ng-if="resource.properties[textAttr.id]">
+        <dt>{{textAttr.properties.prefLabel | localizeValue | capitalize}}</dt>
+        <dd>
+            <div ng-repeat="langValue in resource.properties[textAttr.id]">
+                <code class="text-muted">{{langValue.lang}}</code> {{langValue.value}}
+            </div>
+        </dd>
+    </dl>
+</div>

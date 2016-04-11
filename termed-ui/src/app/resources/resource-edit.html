@@ -1,0 +1,75 @@
+<ol class="breadcrumb">
+    <li><a ng-href="#/">{{'termed' | translate}}</a></li>
+    <li><a ng-href="#/schemes/{{resource.scheme.id}}/resources">
+        {{resource.scheme.properties.prefLabel | localizeValue}}
+    </a></li>
+    <li>
+        <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
+            {{resource.properties.prefLabel | localizeValue}}
+        </a>
+    </li>
+    <li class="active">{{'edit' | translate}}</li>
+</ol>
+
+<div class="row">
+    <div class="col-xs-8">
+        <button class="btn btn-sm btn-success" ng-click="save()">
+            <span class="glyphicon glyphicon-floppy-disk"></span>
+            {{'save' | translate | capitalize}}
+        </button>
+    </div>
+
+    <div class="col-xs-4 text-right">
+        <button class="btn btn-sm btn-danger" ng-click="remove()">
+            <span class="glyphicon glyphicon-trash"></span>
+            {{'remove' | translate | capitalize}}
+        </button>
+    </div>
+</div>
+
+<div class="alert alert-danger" role="alert" ng-show="error">
+    <span class="glyphicon glyphicon-alert"></span> {{error}}
+</div>
+
+<h1 class="page-header">
+    {{resource.properties.prefLabel | localizeValue}}
+</h1>
+
+<div class="row text-muted page-header-info">
+    <div class="col-sm-6">
+        <small>
+            {{'updated' | translate | capitalize}}
+            {{resource.lastModifiedDate | date:'d.M.yyyy HH:mm:ss'}} /
+            {{resource.lastModifiedBy}}
+        </small>
+    </div>
+    <div class="col-sm-6 text-right">
+        <small>
+            {{'added' | translate | capitalize}}
+            {{resource.createdDate | date:'d.M.yyyy HH:mm:ss'}} /
+            {{resource.createdBy}}
+        </small>
+    </div>
+</div>
+
+<form role="form">
+
+    <div class="form-group">
+        <label>URI</label>
+
+        <input type="text" class="form-control" ng-model="resource.uri">
+    </div>
+
+    <thl-resource-properties-edit resource="resource"></thl-resource-properties-edit>
+
+    <thl-resource-references-edit resource="resource"></thl-resource-references-edit>
+
+</form>
+
+<hr>
+
+<span class="label label-default" ng-click="showJson = !showJson">json</span>
+
+<div ng-show="showJson">
+    <pre>{{resource | json}}</pre>
+</div>

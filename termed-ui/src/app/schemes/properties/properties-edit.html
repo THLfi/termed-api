@@ -1,0 +1,16 @@
+<div class="form-group" ng-repeat="property in properties">
+    <label>{{property.properties.prefLabel | localizeValue | capitalize}}</label>
+
+    <div ng-repeat="lang in languages">
+        <div ng-repeat="value in schemeProperties[property.id][lang] track by $index">
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <code class="text-muted">{{lang}}</code>
+                </span>
+
+                <input type="text" class="form-control"
+                       ng-model="schemeProperties[property.id][lang][$index]">
+            </div>
+        </div>
+    </div>
+</div>

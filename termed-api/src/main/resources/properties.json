@@ -1,0 +1,78 @@
+[
+  {
+    "id": "prefLabel",
+    "uri": "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "nimike"
+        },
+        {
+          "lang": "en",
+          "value": "label"
+        }
+      ]
+    }
+  },
+  {
+    "id": "description",
+    "uri": "http://purl.org/dc/elements/1.1/description",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "kuvaus"
+        },
+        {
+          "lang": "en",
+          "value": "description"
+        }
+      ]
+    }
+  },
+  {
+    "id": "creator",
+    "uri": "http://purl.org/dc/elements/1.1/creator",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "tekijä"
+        },
+        {
+          "lang": "en",
+          "value": "creator"
+        }
+      ]
+    }
+  },
+  {
+    "id": "language",
+    "uri": "http://purl.org/dc/elements/1.1/language",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "kieli"
+        },
+        {
+          "lang": "en",
+          "value": "language"
+        }
+      ]
+    }
+  },
+  {
+    "id": "inversePropertyPrefLabel"
+  },
+  {
+    "id": "configTreeAttributeId"
+  },
+  {
+    "id": "configTreeInverted"
+  },
+  {
+    "id": "configTreeSort"
+  }
+]

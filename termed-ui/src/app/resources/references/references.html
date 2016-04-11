@@ -1,0 +1,13 @@
+<div ng-repeat="refAttr in refAttrs">
+    <dl ng-if="resource.references[refAttr.id]">
+        <dt>{{refAttr.properties.prefLabel | localizeValue | capitalize}}</dt>
+        <dd>
+            <div ng-repeat="r in resource.references[refAttr.id]">
+                <a ng-href="#/schemes/{{r.scheme.id}}/classes/{{r.type.id}}/resources/{{r.id}}">
+                    &rarr;
+                    {{r.properties.prefLabel | localizeValue}}
+                </a>
+            </div>
+        </dd>
+    </dl>
+</div>

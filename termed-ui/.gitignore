@@ -1,0 +1,17 @@
+.classpath
+.project
+.settings
+.DS_Store
+.idea
+.sonar
+*.iml
+*.log
+application-*.properties
+sonar-project.properties
+/src/lib
+/node_modules
+/node
+/dist
+/etc
+/target
+npm-debug.log

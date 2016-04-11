@@ -1,0 +1,30 @@
+dd {
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.page-header-info {
+    margin-top: -18px;
+    margin-bottom: 18px;
+}
+
+ul.no-bullet {
+    list-style-type: none;
+}
+
+h1 small {
+    font-size: 60%;
+}
+
+.lang-input {
+    background: #f8f8f8;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 0;
+    color: #777;
+    font-family: monospace;
+    text-align: center;
+}

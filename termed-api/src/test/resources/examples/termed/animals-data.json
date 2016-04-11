@@ -1,0 +1,247 @@
+[
+  {
+    "code": "animals",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Animals"
+        },
+        {
+          "lang": "fi",
+          "value": "Eläimet"
+        }
+      ]
+    }
+  },
+  {
+    "code": "invertebrates",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Invertebrates"
+        },
+        {
+          "lang": "fi",
+          "value": "Selkärangattomat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "animals"
+        }
+      ]
+    }
+  },
+  {
+    "code": "vertebrates",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Vertebrates"
+        },
+        {
+          "lang": "fi",
+          "value": "Selkärankaiset"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "animals"
+        }
+      ]
+    }
+  },
+  {
+    "code": "birds",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Birds"
+        },
+        {
+          "lang": "fi",
+          "value": "Linnut"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "vertebrates"
+        }
+      ]
+    }
+  },
+  {
+    "code": "mammals",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Mammals"
+        },
+        {
+          "lang": "fi",
+          "value": "Nisäkkäät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "vertebrates"
+        }
+      ]
+    }
+  },
+  {
+    "code": "reptiles",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Reptiles"
+        },
+        {
+          "lang": "fi",
+          "value": "Matelijat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "vertebrates"
+        }
+      ]
+    }
+  },
+  {
+    "code": "rodents",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Rodents"
+        },
+        {
+          "lang": "fi",
+          "value": "Jyrsijät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "mammals"
+        }
+      ]
+    }
+  },
+  {
+    "code": "beavers",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Beavers"
+        },
+        {
+          "lang": "fi",
+          "value": "Majavat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "rodents"
+        }
+      ]
+    }
+  },
+  {
+    "code": "voles",
+    "type": {
+      "id": "Concept"
+    },
+    "scheme": {
+      "code": "animals-example"
+    },
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Voles"
+        },
+        {
+          "lang": "fi",
+          "value": "Myyrät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "code": "rodents"
+        }
+      ]
+    }
+  }
+]

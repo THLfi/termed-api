@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="no-js" ng-app="termed">
+<head>
+    <meta charset="utf-8">
+
+    <!-- bower:css -->
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="lib/select2/select2.css" />
+    <link rel="stylesheet" href="lib/jstree/dist/themes/default/style.css" />
+    <link rel="stylesheet" href="lib/select2-bootstrap-css/select2-bootstrap.css" />
+    <!-- endbower -->
+
+    <link rel="stylesheet" href="css/app.css" type="text/css">
+</head>
+<body>
+
+<div ng-include="'app/header.html'"></div>
+<div class="container" ng-view></div>
+
+<!-- bower:js -->
+<script src="lib/jquery/dist/jquery.js"></script>
+<script src="lib/angular/angular.js"></script>
+<script src="lib/bootstrap/dist/js/bootstrap.js"></script>
+<script src="lib/angular-resource/angular-resource.js"></script>
+<script src="lib/angular-route/angular-route.js"></script>
+<script src="lib/angular-sanitize/angular-sanitize.js"></script>
+<script src="lib/select2/select2.js"></script>
+<script src="lib/jstree/dist/jstree.js"></script>
+<script src="lib/angular-translate/angular-translate.js"></script>
+<script src="lib/jquery-ui/jquery-ui.js"></script>
+<!-- endbower -->
+
+<script src="app/app.js"></script>
+<script src="app/common/filters.js"></script>
+<script src="app/common/rest.js"></script>
+<script src="app/common/directives.js"></script>
+<script src="app/common/translations.js"></script>
+<script src="app/schemes/schemes.js"></script>
+<script src="app/schemes/properties/properties.js"></script>
+<script src="app/resources/resources.js"></script>
+<script src="app/resources/properties/properties.js"></script>
+<script src="app/resources/references/references.js"></script>
+<script src="app/resources/referrers/referrers.js"></script>
+
+</body>
+</html>

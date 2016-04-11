@@ -1,0 +1,203 @@
+<ol class="breadcrumb">
+    <li><a ng-href="#/">{{'termed' | translate}}</a></li>
+    <li class="active">
+        {{scheme.properties.prefLabel | localizeValue}}
+    </li>
+</ol>
+
+<div class="row">
+    <div class="col-sm-6">
+        <a class="btn btn-sm btn-default" ng-href="#/schemes/{{scheme.id}}/edit">
+            <span class="glyphicon glyphicon-edit"></span>
+            {{'edit' | translate | capitalize}}
+        </a>
+
+        <div class="btn-group" role="group">
+            <div class="btn-group">
+                <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="add-menu"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    {{'addNew' | translate | capitalize}}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="add-menu">
+                    <li ng-repeat="cls in scheme.classes">
+                        <a ng-click="newResource(cls)">
+                            {{cls.properties.prefLabel | localizeValue}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 text-right">
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="export-menu"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <span class="glyphicon glyphicon-download-alt"></span>
+                {{'download' | translate | capitalize}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="export-menu">
+                <li><a ng-href="api/schemes/{{scheme.id}}/resources"
+                       type="application/json">JSON</a></li>
+                <li><a ng-href="api/schemes/{{scheme.id}}/resources" type="text/turtle">RDF</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h1 class="page-header">
+    {{scheme.properties.prefLabel | localizeValue}}
+</h1>
+
+<div class="text-muted" style="margin:-18px 0 18px">
+    <small>{{scheme.uri || '-'}}</small>
+</div>
+
+<div class="input-group input-group-sm">
+    <div class="input-group-addon">
+        <span class="glyphicon glyphicon-search"></span>
+    </div>
+    <input class="form-control" ng-model="query"
+           ng-change="searchResources(query)" ng-model-options="{debounce: 50}"
+           placeholder="{{'searchResources' | translate | capitalize}}"
+           type="text">
+</div>
+
+<p class="text-right">
+    <small>
+        <a ng-click="showExampleQueries=!showExampleQueries" class="text-muted">
+            {{'searchHelp' | translate | capitalize}}
+        </a>
+    </small>
+</p>
+
+<div class="panel panel-default" ng-show="showExampleQueries">
+    <div class="panel-body">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th>{{'example' | translate | capitalize}}</th>
+                <th>{{'description' | translate | capitalize}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><a ng-click="searchResources('koira kissa')">koira kissa</a></td>
+                <td>Haetaan käsitteitä, joiden ominaisuuksissa esiintyy sana koira tai kissa</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('+työsuhde +ajanjakso')">+työsuhde +ajanjakso</a>
+                </td>
+                <td>Haetaan käsitteitä, joissa esiintyy molemmat sanat työsuhde ja ajanjakso</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('+työsuhde -ajanjakso')">+työsuhde -ajanjakso</a>
+                </td>
+                <td>Haetaan käsitteitä, joissa esiintyy sana työsuhde, mutta ei sanaa ajanjakso</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('koir*')">koir*</a></td>
+                <td>Haetaan sanan alkuosan perusteella</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('prefLabel:kissa')">prefLabel:kissa</a></td>
+                <td>Haetaan ensisijaisesta termistä</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('prefLabel.fi:kissa')">prefLabel.fi:kissa</a></td>
+                <td>Haetaan suomenkielisestä ensisijaisesta termistä</td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('prefLabel.fi.sortable:A*')">prefLabel.fi.sortable:A*</a>
+                </td>
+                <td>Haetaan käsitteet, joiden suomenkielinen ensisijainen termi alkaa
+                    A-kirjaimella
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('definition:[* TO *]')">definition:[* TO *]</a>
+                </td>
+                <td>Haetaan käsitteet, joiden määritelmäkentässä on jokin arvo.
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('*:* -definition:[* TO *]')">*:* -definition:[* TO
+                    *]</a>
+                </td>
+                <td>Haetaan käsitteet, joiden määritelmäkentässä ei ole arvoja (haetaan kaikki
+                    paitsi ne, joilla on määritelmät).
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('*:* -broader.id:[* TO *]')">*:* -broader.id:[* TO
+                    *]</a></td>
+                <td>Haetaan käsitteet, joilla ei ole yläkäsitteitä (ts. ovat hierarkkisen sanaston
+                    juurikäsitteitä)
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('*:* -partOf.id:[* TO *]')">*:* -partOf.id:[* TO
+                    *]</a></td>
+                <td>Haetaan käsitteet, jotka eivät ole osa mitään kokonaisuutta (ts. ovat
+                    kokonaisuuksien juurikäsitteitä)
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('-partOf.id:[* TO *] +aika')">-partOf.id:[* TO
+                    *] +aika</a></td>
+                <td>Haetaan käsitteet, jotka eivät ole osa mitään kokonaisuutta ja joissa esiintyy
+                    sana aika.
+                </td>
+            </tr>
+            <tr>
+                <td><a ng-click="searchResources('-partOf.id:[* TO *] prefLabel.fi.sortable:A*')">
+                    -partOf.id:[* TO *] prefLabel.fi.sortable:A*</a></td>
+                <td>Haetaan käsitteet, jotka eivät ole osa mitään kokonaisuutta ja jotka alkavat
+                    A-kirjaimella.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>{{'label' | translate | capitalize}}</th>
+        <th width="30%">{{'type' | translate | capitalize}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="resource in resources">
+        <td>
+            <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
+                {{resource.properties.prefLabel | localizeValue}}
+            </a>
+        </td>
+        <td>
+            <small>
+                <a ng-click="searchResources('type.id:' + resource.type.id)" class="text-muted">
+                    {{resource.type.properties.prefLabel | localizeValue}}
+                </a>
+            </small>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<button class="btn btn-default btn-sm {{resources.length == max || 'disabled'}}"
+        ng-click="loadMoreResults()">
+    {{'showMoreResults' | translate | capitalize}}
+</button>
+
+<hr>
+
+<span class="label label-default" ng-click="showJson = !showJson">json</span>
+
+<div ng-show="showJson">
+    <pre>{{resources | json}}</pre>
+</div>

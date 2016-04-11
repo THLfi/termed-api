@@ -1,0 +1,59 @@
+<ol class="breadcrumb">
+    <li><a ng-href="#/">{{'termed' | translate}}</a></li>
+    <li><a ng-href="#/schemes/{{resource.scheme.id}}/resources">
+        {{resource.scheme.properties.prefLabel | localizeValue}}
+    </a></li>
+    <li class="active">
+        {{resource.properties.prefLabel | localizeValue}}
+    </li>
+</ol>
+
+<div class="row">
+    <div class="col-sm-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" style="padding-top: 5px; padding-bottom: 5px">
+                {{'hierarchy' | translate | capitalize}}
+            </div>
+            <div style="overflow:hidden" class="panel-body">
+                <thl-resource-tree resource="resource" type="type"></thl-resource-tree>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-8">
+
+        <div>
+            <a class="btn btn-sm btn-default"
+               ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}/edit">
+                <span class="glyphicon glyphicon-edit"></span>
+                {{'edit' | translate | capitalize}}
+            </a>
+        </div>
+
+        <h1 class="page-header">
+            <small>{{resource.type.properties.prefLabel | localizeValue}}</small>
+            <br>
+            {{resource.properties.prefLabel | localizeValue}}
+        </h1>
+
+        <div class="text-muted page-header-info">
+            <small>{{resource.uri || '-'}}</small>
+        </div>
+
+
+        <thl-resource-properties resource="resource"></thl-resource-properties>
+
+        <thl-resource-references resource="resource"></thl-resource-references>
+
+        <thl-resource-referrers resource="resource"></thl-resource-referrers>
+
+    </div>
+</div>
+
+<hr>
+
+<span class="label label-default" ng-click="showJson = !showJson">json</span>
+
+<div ng-show="showJson">
+    <pre>{{resource | json}}</pre>
+</div>
+

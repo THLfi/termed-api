@@ -1,0 +1,13 @@
+<div class="form-group" ng-repeat="textAttr in textAttrs">
+    <label>{{textAttr.properties.prefLabel | localizeValue | capitalize}}</label>
+
+    <div ng-repeat="langValue in resource.properties[textAttr.id]">
+        <input type="text" class="form-control pull-left lang-input"
+               ng-model="langValue.lang" style="width:5%;">
+        <textarea type="text" class="form-control" rows="1"
+                  ng-model="langValue.value"
+                  style="width:95%;border-top-left-radius:0;border-bottom-left-radius:0;">
+        </textarea>
+    </div>
+
+</div>

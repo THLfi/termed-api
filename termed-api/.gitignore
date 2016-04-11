@@ -1,0 +1,12 @@
+.classpath
+.project
+.settings
+.DS_Store
+.idea
+.sonar
+*.iml
+*.log
+application-*.properties
+/target
+/index
+sonar-project.properties
