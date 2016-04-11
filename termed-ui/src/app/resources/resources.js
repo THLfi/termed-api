@@ -139,8 +139,8 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
     link: function(scope, elem, attrs) {
 
       function propVal(props, propertyId, defaultValue) {
-        if (props[propertyId] && props[propertyId][""] && props[propertyId][""].length > 0) {
-          return props[propertyId][""][0];
+        if (props[propertyId] && props[propertyId].length > 0) {
+          return props[propertyId][0].value;
         }
         return defaultValue;
       }
@@ -192,7 +192,7 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
               }
             }
           },
-          plugins: [treeSort ? "sort" : ""]
+          plugins: [treeSort == "true" ? "sort" : ""]
         });
       });
 
