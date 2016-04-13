@@ -113,11 +113,12 @@ public class ResourceServiceImpl
       prepareResource(resource, lastModifiedBy, lastModifiedDate);
     }
 
+    long startTime = System.nanoTime();
     log.info("Saving {} resources", resources.size());
 
     resourceRepository.save(resources);
 
-    log.info("Done.");
+    log.info("Done in {} ms", (System.nanoTime() - startTime) / 1000000);
 
     reindexAfterCommit(resources);
 
