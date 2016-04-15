@@ -49,9 +49,12 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
   $scope.newScheme = function() {
     SchemeList.save({
       properties: {
-        prefLabel: {
-          fi: ['Uusi aineisto']
-        }
+        prefLabel: [
+          {
+            lang: "fi",
+            value: "Uusi aineisto"
+          }
+        ]
       }
     }, function(scheme) {
       $location.path('/schemes/' + scheme.id + '/edit');
@@ -62,13 +65,15 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
 
 })
 
-.controller('SchemeEditCtrl', function($scope, $routeParams, $location, $translate, Scheme) {
+.controller('SchemeEditCtrl', function($scope, $routeParams, $location, $translate, Scheme, PropertyList) {
 
   $scope.lang = $translate.use();
 
   $scope.scheme = Scheme.get({
     schemeId: $routeParams.schemeId
   });
+
+  $scope.properties = PropertyList.query();
 
   $scope.save = function() {
     $scope.scheme.$save(function() {
@@ -87,6 +92,97 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
       $scope.error = error;
     });
   };
+
+  $scope.newClass = function() {
+    if (!$scope.scheme.classes) {
+      $scope.scheme.classes = [];
+    }
+    $scope.scheme.classes.unshift({
+      id: "newClass",
+      properties: {
+        prefLabel: [
+          {
+            lang: "fi",
+            value: "Uusi luokka"
+          }
+        ]
+      },
+      textAttributes: [
+        {
+          id: "prefLabel",
+          properties: {
+            prefLabel: [
+              {
+                lang: "fi",
+                value: "Nimike"
+              }
+            ]
+          }
+        }
+      ]
+    });
+  }
+
+  $scope.selectClass = function(cls) {
+    $scope.cls = cls;
+  }
+
+  $scope.removeClass = function(cls) {
+    var i = $scope.scheme.classes.indexOf(cls)
+    $scope.scheme.classes.splice(i, 1);
+  }
+
+  $scope.newTextAttribute = function(cls) {
+    if (!cls.textAttributes) {
+      cls.textAttributes = [];
+    }
+    cls.textAttributes.push({
+      id: "newTextAttribute",
+      properties: {
+        prefLabel: [
+          {
+            lang: "fi",
+            value: "Uusi tekstiattribuutti"
+          }
+        ]
+      }
+    });
+  }
+
+  $scope.selectTextAttribute = function(textAttribute) {
+    $scope.textAttribute = textAttribute;
+  }
+
+  $scope.removeTextAttribute = function(cls, textAttribute) {
+    var i = cls.textAttributes.indexOf(textAttribute)
+    cls.textAttributes.splice(i, 1);
+  }
+
+  $scope.newReferenceAttribute = function(cls) {
+    if (!cls.referenceAttributes) {
+      cls.referenceAttributes = [];
+    }
+    cls.referenceAttributes.push({
+      id: "newReferenceAttribute",
+      properties: {
+        prefLabel: [
+          {
+            lang: "fi",
+            value: "Uusi viiteattribuutit"
+          }
+        ]
+      }
+    });
+  }
+
+  $scope.selectReferenceAttribute = function(referenceAttribute) {
+    $scope.referenceAttribute = referenceAttribute;
+  }
+
+  $scope.removeReferenceAttribute = function(cls, referenceAttribute) {
+    var i = cls.referenceAttributes.indexOf(referenceAttribute)
+    cls.referenceAttributes.splice(i, 1);
+  }
 
 });
 

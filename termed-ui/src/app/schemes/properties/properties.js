@@ -6,57 +6,36 @@ angular.module('termed.schemes.properties', ['pascalprecht.translate', 'termed.r
   return {
     restrict: 'E',
     scope: {
-      schemeProperties: '='
+      propertyMap: '='
     },
     templateUrl: 'app/schemes/properties/properties-edit.html',
     controller: function($scope) {
-      $scope.languages = ['fi', 'sv', 'en'];
-      $scope.lang = $translate.use();
 
-      $scope.properties = PropertyList.query(function() {
-        ensureProperties();
-      });
+      $scope.properties = PropertyList.query();
 
-      $scope.$watch('schemeProperties', function() {
-        ensureProperties();
-      }, true);
-
-      function ensureProperties() {
-        $scope.properties.forEach(function(prop) {
-          $scope.languages.forEach(function(lang) {
-            ensureProperty($scope.schemeProperties, prop.id, lang);
-          });
-        });
-      }
-
-      function ensureProperty(schemeProperties, propertyId, lang) {
-        // not yet loaded
-        if (!schemeProperties) {
-          return;
+      $scope.ensureProperty = function(properties, propertyId) {
+        if (!properties[propertyId]) {
+          properties[propertyId] = [];
         }
 
-        if (!schemeProperties[propertyId]) {
-          schemeProperties[propertyId] = {};
-        }
-        if (!schemeProperties[propertyId][lang]) {
-          schemeProperties[propertyId][lang] = [""];
-        }
-
-        var values = schemeProperties[propertyId][lang];
+        var values = properties[propertyId];
 
         // remove all empty values (not including the last one)
         for (var i = 0; i < values.length - 1; i++) {
-          if (values[i] === "") {
+          if (values[i].lang === "" && values[i].value === "") {
             values.splice(i, 1);
             i--;
           }
         }
 
         // ensure that last value is empty
-        if (values.length === 0 || values[values.length - 1] !== "") {
-          values.push("");
+        if (values.length === 0 || values[values.length - 1].value !== "") {
+          values.push({ lang:'', value:'' });
         }
+
+        return true;
       }
+
     }
   };
 });

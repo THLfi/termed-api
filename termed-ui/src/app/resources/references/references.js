@@ -129,8 +129,6 @@
         });
 
         scope.$watch('ngModel', function(ngModel) {
-          console.log("ngModel updated");
-
           if (!ngModel) {
             if (elem.select2('data')) {
               // defer clean to avoid element change inside $watch
