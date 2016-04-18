@@ -163,7 +163,8 @@
     <thead>
     <tr>
         <th>{{'label' | translate | capitalize}}</th>
-        <th width="30%">{{'type' | translate | capitalize}}</th>
+        <th width="15%">{{'code' | translate | capitalize}}</th>
+        <th width="15%">{{'type' | translate | capitalize}}</th>
     </tr>
     </thead>
     <tbody>
@@ -172,6 +173,14 @@
             <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
                 {{resource.properties.prefLabel | localizeValue}}
             </a>
+        </td>
+        <td>
+            <small>
+                <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}"
+                   class="text-muted">
+                    {{resource.code}}
+                </a>
+            </small>
         </td>
         <td>
             <small>

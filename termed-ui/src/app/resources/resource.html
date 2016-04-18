@@ -36,7 +36,9 @@
         </h1>
 
         <div class="text-muted page-header-info">
-            <small>{{resource.uri || '-'}}</small>
+            <small>{{resource.uri}}</small>
+            <small>{{resource.code}}</small>
+            <small ng-if="!resource.code && !resource.uri">-</small>
         </div>
 
 

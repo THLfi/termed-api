@@ -44,7 +44,7 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
       schemeId: $routeParams.schemeId,
       query: query,
       max: $scope.max,
-      orderBy: 'prefLabel.' + $scope.lang + '.sortable'
+      orderBy: ['code', 'prefLabel.' + $scope.lang + '.sortable']
     }, function(resources) {
       $scope.resources = resources;
       $location.search({
