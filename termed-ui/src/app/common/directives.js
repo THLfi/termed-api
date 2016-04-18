@@ -44,7 +44,7 @@ angular.module('termed.directives', [])
         }
       });
     }
-  }
+  };
 });
 
 })(window.angular);

@@ -34,7 +34,7 @@ angular.module('termed.schemes.properties', ['pascalprecht.translate', 'termed.r
         }
 
         return true;
-      }
+      };
 
     }
   };

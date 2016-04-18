@@ -121,16 +121,16 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
         }
       ]
     });
-  }
+  };
 
   $scope.selectClass = function(cls) {
     $scope.cls = cls;
-  }
+  };
 
   $scope.removeClass = function(cls) {
-    var i = $scope.scheme.classes.indexOf(cls)
+    var i = $scope.scheme.classes.indexOf(cls);
     $scope.scheme.classes.splice(i, 1);
-  }
+  };
 
   $scope.newTextAttribute = function(cls) {
     if (!cls.textAttributes) {
@@ -147,16 +147,16 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
         ]
       }
     });
-  }
+  };
 
   $scope.selectTextAttribute = function(textAttribute) {
     $scope.textAttribute = textAttribute;
-  }
+  };
 
   $scope.removeTextAttribute = function(cls, textAttribute) {
-    var i = cls.textAttributes.indexOf(textAttribute)
+    var i = cls.textAttributes.indexOf(textAttribute);
     cls.textAttributes.splice(i, 1);
-  }
+  };
 
   $scope.newReferenceAttribute = function(cls) {
     if (!cls.referenceAttributes) {
@@ -173,16 +173,16 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
         ]
       }
     });
-  }
+  };
 
   $scope.selectReferenceAttribute = function(referenceAttribute) {
     $scope.referenceAttribute = referenceAttribute;
-  }
+  };
 
   $scope.removeReferenceAttribute = function(cls, referenceAttribute) {
-    var i = cls.referenceAttributes.indexOf(referenceAttribute)
+    var i = cls.referenceAttributes.indexOf(referenceAttribute);
     cls.referenceAttributes.splice(i, 1);
-  }
+  };
 
 });
 
