@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,7 +53,7 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     jsTree.setId(DigestUtils.sha1Hex(
         Joiner.on('.').join(Iterables.transform(resourceTree.getPath(), getResourceId))));
     jsTree.setIcon(false);
-    jsTree.setText(getLocalizedLabel(resource) + smallMuted(localName(resource)));
+    jsTree.setText(getLocalizedLabel(resource) + smallMuted(getCode(resource)));
 
     jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(resource.getId()),
                                     "selected", selectedId.equals(resource.getId())));
@@ -81,26 +82,39 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
   }
 
   private String getLocalizedLabel(Resource resource) {
-    List<String> localizedLabels = Lists.newArrayList();
+    Collection<LangValue> langValues = resource.getProperties().get(labelAttributeId);
 
-    for (LangValue langValue : resource.getProperties().get(labelAttributeId)) {
+    for (LangValue langValue : langValues) {
       if (Objects.equal(lang, langValue.getLang())) {
-        localizedLabels.add(langValue.getValue());
+        return langValue.getValue();
       }
     }
 
-    return Joiner.on(", ").join(localizedLabels);
+    LangValue langValue = Iterables.getFirst(langValues, null);
+
+    if (langValue != null) {
+      String langInfo = langValue.getLang().isEmpty() ? "" : " (" + langValue.getLang() + ")";
+      return langValue.getValue() + langInfo;
+    }
+
+    return "-";
   }
 
   private String smallMuted(String text) {
     return " <small class='text-muted'>" + text + "</small>";
   }
 
-  private String localName(Resource resource) {
-    return resource.getUri() != null ? localName(resource.getUri()) : "";
+  private String getCode(Resource resource) {
+    if (resource.getCode() != null) {
+      return resource.getCode();
+    }
+    if (resource.getUri() != null) {
+      return getLocalName(resource.getUri());
+    }
+    return "";
   }
 
-  private String localName(String uri) {
+  private String getLocalName(String uri) {
     int i = uri.lastIndexOf("#");
     i = i == -1 ? uri.lastIndexOf("/") : -1;
     return uri.substring(i + 1);
