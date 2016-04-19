@@ -14,21 +14,21 @@ public class User implements UserDetails {
 
   private String username;
   private String password;
-  private String role;
+  private String appRole;
 
-  public User(String username, String password, String role) {
+  public User(String username, String password, String appRole) {
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
-    Preconditions.checkNotNull(role);
+    Preconditions.checkNotNull(appRole);
 
     this.username = username;
     this.password = password;
-    this.role = role;
+    this.appRole = appRole;
   }
 
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
-    return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(role));
+    return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(appRole));
   }
 
   @Override
@@ -41,8 +41,8 @@ public class User implements UserDetails {
     return password;
   }
 
-  public String getRole() {
-    return role;
+  public String getAppRole() {
+    return appRole;
   }
 
   @Override

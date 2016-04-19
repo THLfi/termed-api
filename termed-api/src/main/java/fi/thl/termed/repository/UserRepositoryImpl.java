@@ -35,14 +35,14 @@ public class UserRepositoryImpl extends UserRepository {
 
   @Override
   protected void insert(String username, User user) {
-    jdbcTemplate.update("insert into users (username, password, role) values (?, ?, ?)",
-                        username, user.getPassword(), user.getRole());
+    jdbcTemplate.update("insert into users (username, password, app_role) values (?, ?, ?)",
+                        username, user.getPassword(), user.getAppRole());
   }
 
   @Override
   protected void update(String username, User newUser, User oldUser) {
-    jdbcTemplate.update("update users set password = ?, role = ? where username = ?",
-                        newUser.getPassword(), newUser.getRole(), username);
+    jdbcTemplate.update("update users set password = ?, app_role = ? where username = ?",
+                        newUser.getPassword(), newUser.getAppRole(), username);
   }
 
   @Override
@@ -88,8 +88,8 @@ public class UserRepositoryImpl extends UserRepository {
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
       String username = rs.getString("username");
       String password = rs.getString("password");
-      String role = rs.getString("role");
-      return new User(username, password, role);
+      String appRole = rs.getString("app_role");
+      return new User(username, password, appRole);
     }
   }
 

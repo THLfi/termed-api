@@ -7,16 +7,17 @@
 --
 
 CREATE TABLE lang (
-  lang varchar(2) PRIMARY KEY,
-  CHECK (lang ~ '^[a-z]*$')
+  lang varchar(2),
+  CONSTRAINT lang_pkey PRIMARY KEY (lang),
+  CONSTRAINT lang_lang_check CHECK (lang ~ '^[a-z]*$')
 );
 
 CREATE TABLE users (
   username varchar(255),
   password varchar(255),
-  role varchar(20),
-  PRIMARY KEY (username),
-  CHECK (role IN ('USER', 'ADMIN', 'SUPERUSER'))
+  app_role varchar(20),
+  CONSTRAINT users_pkey PRIMARY KEY (username),
+  CONSTRAINT users_app_role_check CHECK (app_role IN ('USER', 'ADMIN', 'SUPERUSER'))
 );
 
 --
