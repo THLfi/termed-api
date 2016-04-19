@@ -28,7 +28,7 @@ angular.module('termed.filters', ['pascalprecht.translate'])
       }
     }
 
-    var langInfo = propertyValues[0].lang ? " (" + propertyValues[0].lang + ")" : ""
+    var langInfo = propertyValues[0].lang ? " (" + propertyValues[0].lang + ")" : "";
 
     return propertyValues[0].value + langInfo;
   };
