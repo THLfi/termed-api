@@ -47,10 +47,19 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
                             CompressionTools.compressString(gson.toJson(cachedResource))));
 
     doc.add(new LowerCaseCodeField("id", r.getId()));
+    doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getId()));
+
     doc.add(new LowerCaseCodeField("type.id", r.getTypeId()));
+    doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getTypeId()));
+
     doc.add(new LowerCaseCodeField("scheme.id", r.getSchemeId()));
+    doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getSchemeId()));
+
     doc.add(new LowerCaseCodeField("code", r.getCode()));
+    doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getCode()));
+
     doc.add(new LowerCaseCodeField("uri", r.getUri()));
+    doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getUri()));
 
     for (Map.Entry<String, LangValue> entry : r.getProperties().entries()) {
       String property = entry.getKey();
