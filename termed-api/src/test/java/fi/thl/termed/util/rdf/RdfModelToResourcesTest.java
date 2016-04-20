@@ -45,10 +45,10 @@ public class RdfModelToResourcesTest {
     // compare as json for easy checking that returned data contains at least expected fields
     String resourcesAsJson = gson.toJson(parser.apply(rdfModel));
     String expected =
-        "[{'uri':'http://ex.org/bob','type':{'id':'Person'},'properties':{'name':{'':['Bob']}}}," +
-        " {'uri':'http://ex.org/tim','type':{'id':'Person'},'properties':{'name':{'':['Tim']}}}," +
+        "[{'uri':'http://ex.org/bob','type':{'id':'Person'},'properties':{'name':[{'value':'Bob'}]}}," +
+        " {'uri':'http://ex.org/tim','type':{'id':'Person'},'properties':{'name':[{'value':'Tim'}]}}," +
         " {'uri':'http://ex.org/admins','type':{'id':'Group'}," +
-        "  'properties':{'name':{'':['Admins group']}}," +
+        "  'properties':{'name':[{'value':'Admins group'}]}," +
         "  'references':{'member':[{'uri':'http://ex.org/bob'},{'uri':'http://ex.org/tim'}]}}]";
 
     JSONAssert.assertEquals(expected, resourcesAsJson, JSONCompareMode.LENIENT);

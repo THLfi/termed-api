@@ -8,10 +8,11 @@ import java.util.Map;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.StrictLangValue;
 
 public class ResourceTextAttributeValueDtoToModel
-    implements Function<Multimap<String, LangValue>, Map<ResourceAttributeValueId, LangValue>> {
+    implements
+    Function<Multimap<String, StrictLangValue>, Map<ResourceAttributeValueId, StrictLangValue>> {
 
   private ResourceId resourceId;
 
@@ -24,16 +25,20 @@ public class ResourceTextAttributeValueDtoToModel
   }
 
   @Override
-  public Map<ResourceAttributeValueId, LangValue> apply(Multimap<String, LangValue> input) {
+  public Map<ResourceAttributeValueId, StrictLangValue> apply(
+      Multimap<String, StrictLangValue> input) {
 
-    Map<ResourceAttributeValueId, LangValue> values = Maps.newLinkedHashMap();
+    Map<ResourceAttributeValueId, StrictLangValue> values = Maps.newLinkedHashMap();
 
     int index = 0;
 
-    for (Map.Entry<String, LangValue> attrLangValues : input.entries()) {
-      if (!attrLangValues.getValue().getValue().isEmpty()) {
+    for (Map.Entry<String, StrictLangValue> attrLangValues : input.entries()) {
+      StrictLangValue value = attrLangValues.getValue();
+      if (!value.getValue().isEmpty()) {
         values.put(new ResourceAttributeValueId(resourceId, attrLangValues.getKey(), index++),
-                   attrLangValues.getValue());
+                   value.getRegex() != null ?
+                   new StrictLangValue(value.getLang(), value.getValue(), value.getRegex()) :
+                   new StrictLangValue(value.getLang(), value.getValue()));
       }
     }
 

@@ -4,10 +4,10 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.StrictLangValue;
 
 public class ResourceTextAttributeValueSpecificationByResourceId
-    extends SqlSpecification<ResourceAttributeValueId, LangValue> {
+    extends SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
 
   private ResourceId resourceId;
 
@@ -16,7 +16,7 @@ public class ResourceTextAttributeValueSpecificationByResourceId
   }
 
   @Override
-  public boolean accept(ResourceAttributeValueId attributeValueId, LangValue langValue) {
+  public boolean accept(ResourceAttributeValueId attributeValueId, StrictLangValue langValue) {
     return Objects.equal(attributeValueId.getResourceId(), resourceId);
   }
 

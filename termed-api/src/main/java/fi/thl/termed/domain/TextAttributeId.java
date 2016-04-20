@@ -41,14 +41,14 @@ public class TextAttributeId implements Serializable {
       return false;
     }
     TextAttributeId that = (TextAttributeId) o;
+    // regex is ignored here and in hashCode as it's kind of updatable extra part of the identity
     return Objects.equal(domainId, that.domainId) &&
-           Objects.equal(regex, that.regex) &&
            Objects.equal(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(domainId, regex, id);
+    return Objects.hashCode(domainId, id);
   }
 
 }

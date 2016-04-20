@@ -43,9 +43,9 @@ import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToReferrerDto;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueModelToDto;
-import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 import fi.thl.termed.util.SimpleValueDifference;
+import fi.thl.termed.util.StrictLangValue;
 
 import static com.google.common.collect.Maps.difference;
 import static fi.thl.termed.util.FunctionUtils.memoize;
@@ -150,16 +150,17 @@ public class ResourceRepositoryImpl extends ResourceRepository {
   }
 
   private void updateTextAttrValues(ResourceId resourceId,
-                                    Multimap<String, LangValue> newProperties,
-                                    Multimap<String, LangValue> oldProperties) {
+                                    Multimap<String, StrictLangValue> newProperties,
+                                    Multimap<String, StrictLangValue> oldProperties) {
 
-    Map<ResourceAttributeValueId, LangValue> newMappedProperties =
+    Map<ResourceAttributeValueId, StrictLangValue> newMappedProperties =
         ResourceTextAttributeValueDtoToModel.create(resourceId).apply(newProperties);
-    Map<ResourceAttributeValueId, LangValue> oldMappedProperties =
+    Map<ResourceAttributeValueId, StrictLangValue> oldMappedProperties =
         ResourceTextAttributeValueDtoToModel.create(resourceId).apply(oldProperties);
 
-    MapDifference<ResourceAttributeValueId, LangValue> diff = difference(newMappedProperties,
-                                                                         oldMappedProperties);
+    MapDifference<ResourceAttributeValueId, StrictLangValue> diff =
+        difference(newMappedProperties,
+                   oldMappedProperties);
 
     textAttributeValueDao.insert(diff.entriesOnlyOnLeft());
     textAttributeValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));

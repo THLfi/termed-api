@@ -71,7 +71,8 @@ public class RdfModelToResources implements Function<RdfModel, List<Resource>> {
       for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri())) {
         resource.addProperty(textAttribute.getId(),
                              Ascii.truncate(langValues.getLang(), 2, ""),
-                             langValues.getValue());
+                             langValues.getValue(),
+                             textAttribute.getRegex());
       }
     }
   }

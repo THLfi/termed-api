@@ -30,6 +30,7 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
+import fi.thl.termed.util.RegularExpressions;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Maps.difference;
@@ -266,8 +267,10 @@ public class ClassRepositoryImpl extends ClassRepository {
 
     @Override
     public Map.Entry<TextAttributeId, TextAttribute> apply(TextAttribute input) {
-      return MapUtils
-          .simpleEntry(new TextAttributeId(domainId, input.getRegex(), input.getId()), input);
+      return MapUtils.simpleEntry(
+          new TextAttributeId(domainId,
+                              firstNonNull(input.getRegex(), RegularExpressions.MATCH_ALL),
+                              input.getId()), input);
     }
   }
 

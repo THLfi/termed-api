@@ -25,7 +25,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.repository.dao.ResourceBulkInsertDao;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.StrictLangValue;
 
 @Repository
 public class PostgresResourceBulkInsertDao implements ResourceBulkInsertDao {
@@ -123,9 +123,9 @@ public class PostgresResourceBulkInsertDao implements ResourceBulkInsertDao {
 
   private void addTextAttrValuesToBatch(Multimap<String, Object[]> batch,
                                         ResourceId resourceId,
-                                        Multimap<String, LangValue> properties) {
+                                        Multimap<String, StrictLangValue> properties) {
     int index = 0;
-    for (Map.Entry<String, LangValue> entry : properties.entries()) {
+    for (Map.Entry<String, StrictLangValue> entry : properties.entries()) {
       addTextAttrValueToBatch(batch,
                               new ResourceAttributeValueId(resourceId, entry.getKey(), index++),
                               entry.getValue());
@@ -134,16 +134,17 @@ public class PostgresResourceBulkInsertDao implements ResourceBulkInsertDao {
 
   private void addTextAttrValueToBatch(Multimap<String, Object[]> batch,
                                        ResourceAttributeValueId resourceAttributeValueId,
-                                       LangValue langValue) {
+                                       StrictLangValue langValue) {
     addToBatch(batch,
-               "COPY resource_text_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, lang, value) FROM stdin",
+               "COPY resource_text_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, lang, value, regex) FROM stdin",
                resourceAttributeValueId.getResourceId().getSchemeId(),
                resourceAttributeValueId.getResourceId().getTypeId(),
                resourceAttributeValueId.getResourceId().getId(),
                resourceAttributeValueId.getAttributeId(),
                resourceAttributeValueId.getIndex(),
                langValue.getLang(),
-               escapeTsv(langValue.getValue()));
+               escapeTsv(langValue.getValue()),
+               langValue.getRegex());
   }
 
   private String escapeTsv(String value) {

@@ -31,6 +31,8 @@ import static org.junit.Assert.assertEquals;
 @IntegrationTest
 public class ResourceRepositoryTest {
 
+  private static final String FOAF = "http://xmlns.com/foaf/0.1/";
+
   @Autowired
   private SchemeRepository schemeRepo;
 
@@ -51,7 +53,8 @@ public class ResourceRepositoryTest {
   public void setUp() {
     personClass = new Class("Person");
     personClass.setTextAttributes(newArrayList(
-        new TextAttribute("firstName"), new TextAttribute("lastName")));
+        new TextAttribute("firstName", FOAF + "firstName", "^\\w*$"),
+        new TextAttribute("lastName", FOAF + "lastName", "^\\w*$")));
     personClass.setReferenceAttributes(newArrayList(
         new ReferenceAttribute("knows", personClass)));
 
@@ -75,7 +78,7 @@ public class ResourceRepositoryTest {
     Resource bob = new Resource(UUID.randomUUID(), user.getUsername(), date);
     bob.setScheme(personScheme);
     bob.setType(personClass);
-    bob.addProperty("firstName", "", "Bob");
+    bob.addProperty("firstName", "", "Bob", "^\\w*$");
     ResourceId bobId = new ResourceId(personScheme.getId(), personClass.getId(), bob.getId());
 
     repo.save(bobId, bob);
@@ -83,7 +86,7 @@ public class ResourceRepositoryTest {
     Resource tim = new Resource(UUID.randomUUID(), user.getUsername(), date);
     tim.setScheme(personScheme);
     tim.setType(personClass);
-    tim.addProperty("firstName", "", "Tim");
+    tim.addProperty("firstName", "", "Tim", "^\\w*$");
     tim.addReference("knows", bob);
     ResourceId timId = new ResourceId(personScheme.getId(), personClass.getId(), tim.getId());
 

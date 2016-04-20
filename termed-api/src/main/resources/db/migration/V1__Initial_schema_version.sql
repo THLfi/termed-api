@@ -123,7 +123,7 @@ CREATE TABLE text_attribute_property_value (
   lang varchar(2) NOT NULL,
   value text NOT NULL,
   CONSTRAINT text_attribute_property_value_pkey PRIMARY KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id, property_id, index),
-  CONSTRAINT text_attribute_property_value_subject_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON DELETE CASCADE,
+  CONSTRAINT text_attribute_property_value_subject_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT text_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
   CONSTRAINT text_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
@@ -198,7 +198,7 @@ CREATE TABLE resource_text_attribute_value (
   regex varchar(2000) NOT NULL,
   CONSTRAINT resource_text_attribute_value_pkey PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
   CONSTRAINT resource_text_attribute_value_resource_fkey FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  CONSTRAINT resource_text_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, regex, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id),
+  CONSTRAINT resource_text_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, regex, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON UPDATE CASCADE,
   CONSTRAINT resource_text_attribute_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang),
   CONSTRAINT resource_text_attribute_value_value_check CHECK (value ~ regex)
 );

@@ -49,16 +49,16 @@
 
         function ensureProperties() {
           $scope.textAttrs.forEach(function(textAttr) {
-            ensureProperty($scope.resource.properties, textAttr.id);
+            ensureProperty($scope.resource.properties, textAttr.id, textAttr.regex);
           });
         }
 
-        function ensureProperty(resourceProperties, propertyId) {
-          if (!resourceProperties[propertyId]) {
-            resourceProperties[propertyId] = [];
+        function ensureProperty(resourceProperties, textAttrId, textAttrRegex) {
+          if (!resourceProperties[textAttrId]) {
+            resourceProperties[textAttrId] = [];
           }
 
-          var values = resourceProperties[propertyId];
+          var values = resourceProperties[textAttrId];
 
           // remove all empty values (not including the last one)
           for (var i = 0; i < values.length - 1; i++) {
@@ -70,7 +70,7 @@
 
           // ensure that last value is empty
           if (values.length === 0 || values[values.length - 1].value !== "") {
-            values.push({ lang:'', value:'' });
+            values.push({ lang:'', value:'', regex: textAttrRegex });
           }
         }
       }

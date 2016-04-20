@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapUtils;
+import fi.thl.termed.util.RegularExpressions;
 
 public class TextAttribute implements PropertyEntity {
 
@@ -25,11 +26,19 @@ public class TextAttribute implements PropertyEntity {
 
   public TextAttribute(String id) {
     this.id = id;
+    this.regex = RegularExpressions.MATCH_ALL;
   }
 
   public TextAttribute(String id, String uri) {
     this.id = id;
     this.uri = uri;
+    this.regex = RegularExpressions.MATCH_ALL;
+  }
+
+  public TextAttribute(String id, String uri, String regex) {
+    this.id = id;
+    this.uri = uri;
+    this.regex = regex;
   }
 
   public String getId() {

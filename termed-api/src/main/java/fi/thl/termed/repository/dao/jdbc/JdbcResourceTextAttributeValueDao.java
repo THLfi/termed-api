@@ -16,12 +16,12 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.repository.dao.ResourceTextAttributeValueDao;
 import fi.thl.termed.repository.spesification.SqlSpecification;
-import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.StrictLangValue;
 
 @Repository
 public class JdbcResourceTextAttributeValueDao
-    extends AbstractJdbcDao<ResourceAttributeValueId, LangValue>
+    extends AbstractJdbcDao<ResourceAttributeValueId, StrictLangValue>
     implements ResourceTextAttributeValueDao {
 
   @Autowired
@@ -30,28 +30,30 @@ public class JdbcResourceTextAttributeValueDao
   }
 
   @Override
-  public void insert(ResourceAttributeValueId id, LangValue langValue) {
+  public void insert(ResourceAttributeValueId id, StrictLangValue langValue) {
     ResourceId resourceId = id.getResourceId();
 
     jdbcTemplate.update(
-        "insert into resource_text_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into resource_text_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, lang, value, regex) values (?, ?, ?, ?, ?, ?, ?, ?)",
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
         id.getIndex(),
         langValue.getLang(),
-        langValue.getValue());
+        langValue.getValue(),
+        langValue.getRegex());
   }
 
   @Override
-  public void update(ResourceAttributeValueId id, LangValue langValue) {
+  public void update(ResourceAttributeValueId id, StrictLangValue langValue) {
     ResourceId resourceId = id.getResourceId();
 
     jdbcTemplate.update(
-        "update resource_text_attribute_value set lang = ?, value = ? where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
+        "update resource_text_attribute_value set lang = ?, value = ?, regex = ? where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
+        langValue.getRegex(),
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
@@ -78,8 +80,9 @@ public class JdbcResourceTextAttributeValueDao
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<ResourceAttributeValueId, LangValue> specification,
-                            RowMapper<E> mapper) {
+  protected <E> List<E> get(
+      SqlSpecification<ResourceAttributeValueId, StrictLangValue> specification,
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from resource_text_attribute_value where %s order by index",
                       specification.sqlQueryTemplate()),
@@ -106,7 +109,7 @@ public class JdbcResourceTextAttributeValueDao
     ResourceId resourceId = id.getResourceId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from resource_text_attribute_value scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
+        "select * from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         mapper,
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
@@ -131,8 +134,8 @@ public class JdbcResourceTextAttributeValueDao
   }
 
   @Override
-  protected RowMapper<LangValue> buildValueMapper() {
-    return new LangValueRowMapper();
+  protected RowMapper<StrictLangValue> buildValueMapper() {
+    return new StrictLangValueRowMapper();
   }
 
 }

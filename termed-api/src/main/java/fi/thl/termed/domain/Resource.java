@@ -11,8 +11,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapUtils;
+import fi.thl.termed.util.StrictLangValue;
 
 public class Resource {
 
@@ -28,7 +28,7 @@ public class Resource {
   private Scheme scheme;
   private Class type;
 
-  private Multimap<String, LangValue> properties;
+  private Multimap<String, StrictLangValue> properties;
   private Multimap<String, Resource> references;
   private Multimap<String, Resource> referrers;
 
@@ -160,19 +160,23 @@ public class Resource {
     return type != null ? type.getId() : null;
   }
 
-  public Multimap<String, LangValue> getProperties() {
+  public Multimap<String, StrictLangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
 
-  public void setProperties(Multimap<String, LangValue> properties) {
+  public void setProperties(Multimap<String, StrictLangValue> properties) {
     this.properties = properties;
   }
 
   public void addProperty(String attributeId, String lang, String value) {
-    addProperty(attributeId, new LangValue(lang, value));
+    addProperty(attributeId, new StrictLangValue(lang, value));
   }
 
-  public void addProperty(String attributeId, LangValue langValue) {
+  public void addProperty(String attributeId, String lang, String value, String regex) {
+    addProperty(attributeId, new StrictLangValue(lang, value, regex));
+  }
+
+  public void addProperty(String attributeId, StrictLangValue langValue) {
     if (properties == null) {
       properties = LinkedHashMultimap.create();
     }

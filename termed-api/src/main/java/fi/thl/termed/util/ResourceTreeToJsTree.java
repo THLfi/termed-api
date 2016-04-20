@@ -82,15 +82,15 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
   }
 
   private String getLocalizedLabel(Resource resource) {
-    Collection<LangValue> langValues = resource.getProperties().get(labelAttributeId);
+    Collection<StrictLangValue> langValues = resource.getProperties().get(labelAttributeId);
 
-    for (LangValue langValue : langValues) {
+    for (StrictLangValue langValue : langValues) {
       if (Objects.equal(lang, langValue.getLang())) {
         return langValue.getValue();
       }
     }
 
-    LangValue langValue = Iterables.getFirst(langValues, null);
+    StrictLangValue langValue = Iterables.getFirst(langValues, null);
 
     if (langValue != null) {
       String langInfo = langValue.getLang().isEmpty() ? "" : " (" + langValue.getLang() + ")";

@@ -22,7 +22,7 @@ import java.util.zip.DataFormatException;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.StrictLangValue;
 
 import static fi.thl.termed.repository.lucene.LuceneConstants.DEFAULT_SEARCH_FIELD;
 
@@ -61,7 +61,7 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
     doc.add(new LowerCaseCodeField("uri", r.getUri()));
     doc.add(new LowerCaseCodeField(DEFAULT_SEARCH_FIELD, r.getUri()));
 
-    for (Map.Entry<String, LangValue> entry : r.getProperties().entries()) {
+    for (Map.Entry<String, StrictLangValue> entry : r.getProperties().entries()) {
       String property = entry.getKey();
       String lang = entry.getValue().getLang();
       String value = entry.getValue().getValue();

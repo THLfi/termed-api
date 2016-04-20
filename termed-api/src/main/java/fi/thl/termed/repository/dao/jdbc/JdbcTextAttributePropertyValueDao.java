@@ -14,7 +14,6 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.repository.dao.TextAttributePropertyValueDao;
 import fi.thl.termed.repository.spesification.SqlSpecification;
@@ -37,9 +36,10 @@ public class JdbcTextAttributePropertyValueDao
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into text_attribute_property_value (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into text_attribute_property_value (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?, ?)",
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex(),
@@ -53,11 +53,12 @@ public class JdbcTextAttributePropertyValueDao
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update text_attribute_property_value set lang = ?, value = ? where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "update text_attribute_property_value set lang = ?, value = ? where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_regex = ? and text_attribute_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex());
@@ -69,9 +70,10 @@ public class JdbcTextAttributePropertyValueDao
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "delete from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_regex = ? and text_attribute_id = ? and property_id = ? and index = ?",
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex());
@@ -93,17 +95,17 @@ public class JdbcTextAttributePropertyValueDao
   }
 
 
-
   @Override
   public boolean exists(PropertyValueId<TextAttributeId> id) {
     TextAttributeId textAttributeId = id.getSubjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select count(*) from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_regex = ? and text_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex()) > 0;
@@ -115,10 +117,11 @@ public class JdbcTextAttributePropertyValueDao
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select * from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_regex = ? and text_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex()), null);
@@ -133,7 +136,9 @@ public class JdbcTextAttributePropertyValueDao
                                        rs.getString("text_attribute_domain_id"));
 
         TextAttributeId textAttributeId =
-            new TextAttributeId(domainId, rs.getString("text_attribute_regex"), rs.getString("text_attribute_id"));
+            new TextAttributeId(domainId,
+                                rs.getString("text_attribute_regex"),
+                                rs.getString("text_attribute_id"));
 
         return new PropertyValueId<TextAttributeId>(
             textAttributeId,

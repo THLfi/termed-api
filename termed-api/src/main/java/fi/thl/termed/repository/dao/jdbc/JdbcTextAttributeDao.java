@@ -38,8 +38,8 @@ public class JdbcTextAttributeDao
         "insert into text_attribute (scheme_id, domain_id, regex, id, uri, index) values (?, ?, ?, ?, ?, ?)",
         domainId.getSchemeId(),
         domainId.getId(),
-        textAttribute.getRegex(),
-        textAttribute.getId(),
+        textAttributeId.getRegex(),
+        textAttributeId.getId(),
         textAttribute.getUri(),
         textAttribute.getIndex());
   }
@@ -48,12 +48,12 @@ public class JdbcTextAttributeDao
   public void update(TextAttributeId textAttributeId, TextAttribute textAttribute) {
     ClassId domainId = textAttributeId.getDomainId();
 
-    // update part of the key (regex), update is expected to cascade
+    // updates part of the key (regex), update is expected to cascade into referring tables
     jdbcTemplate.update(
         "update text_attribute set uri = ?, index = ?, regex = ? where scheme_id = ? and domain_id = ? and id = ?",
         textAttribute.getUri(),
         textAttribute.getIndex(),
-        textAttribute.getRegex(),
+        textAttributeId.getRegex(),
         domainId.getSchemeId(),
         domainId.getId(),
         textAttributeId.getId());
