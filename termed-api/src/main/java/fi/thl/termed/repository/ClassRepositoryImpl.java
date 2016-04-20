@@ -266,7 +266,8 @@ public class ClassRepositoryImpl extends ClassRepository {
 
     @Override
     public Map.Entry<TextAttributeId, TextAttribute> apply(TextAttribute input) {
-      return MapUtils.simpleEntry(new TextAttributeId(domainId, input.getId()), input);
+      return MapUtils
+          .simpleEntry(new TextAttributeId(domainId, input.getRegex(), input.getId()), input);
     }
   }
 

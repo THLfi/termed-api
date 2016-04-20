@@ -19,6 +19,8 @@ public class TextAttribute implements PropertyEntity {
 
   private Class domain;
 
+  private String regex;
+
   private Multimap<String, LangValue> properties;
 
   public TextAttribute(String id) {
@@ -70,6 +72,14 @@ public class TextAttribute implements PropertyEntity {
     return domain != null ? domain.getId() : null;
   }
 
+  public String getRegex() {
+    return regex;
+  }
+
+  public void setRegex(String regex) {
+    this.regex = regex;
+  }
+
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
@@ -85,6 +95,7 @@ public class TextAttribute implements PropertyEntity {
         .add("uri", uri)
         .add("index", index)
         .add("domainId", getDomainId())
+        .add("regex", regex)
         .add("properties", properties)
         .toString();
   }
@@ -102,12 +113,13 @@ public class TextAttribute implements PropertyEntity {
            Objects.equal(uri, that.uri) &&
            Objects.equal(index, that.index) &&
            Objects.equal(getDomainId(), that.getDomainId()) &&
+           Objects.equal(regex, that.regex) &&
            Objects.equal(properties, that.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, getDomainId(), properties);
+    return Objects.hashCode(id, uri, index, getDomainId(), regex, properties);
   }
 
 }

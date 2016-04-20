@@ -40,6 +40,7 @@ public class TextAttributeRepositoryImpl extends TextAttributeRepository {
   private TextAttributeId getTextAttributeId(TextAttribute textAttribute) {
     return new TextAttributeId(new ClassId(textAttribute.getDomainSchemeId(),
                                            textAttribute.getDomainId()),
+                               textAttribute.getRegex(),
                                textAttribute.getId());
   }
 

@@ -133,7 +133,7 @@ public class JdbcTextAttributePropertyValueDao
                                        rs.getString("text_attribute_domain_id"));
 
         TextAttributeId textAttributeId =
-            new TextAttributeId(domainId, rs.getString("text_attribute_id"));
+            new TextAttributeId(domainId, rs.getString("text_attribute_regex"), rs.getString("text_attribute_id"));
 
         return new PropertyValueId<TextAttributeId>(
             textAttributeId,

@@ -35,9 +35,10 @@ public class JdbcTextAttributeDao
     ClassId domainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into text_attribute (scheme_id, domain_id, id, uri, index) values (?, ?, ?, ?, ?)",
+        "insert into text_attribute (scheme_id, domain_id, regex, id, uri, index) values (?, ?, ?, ?, ?, ?)",
         domainId.getSchemeId(),
         domainId.getId(),
+        textAttribute.getRegex(),
         textAttribute.getId(),
         textAttribute.getUri(),
         textAttribute.getIndex());
@@ -47,10 +48,12 @@ public class JdbcTextAttributeDao
   public void update(TextAttributeId textAttributeId, TextAttribute textAttribute) {
     ClassId domainId = textAttributeId.getDomainId();
 
+    // update part of the key (regex), update is expected to cascade
     jdbcTemplate.update(
-        "update text_attribute set uri = ?, index = ? where scheme_id = ? and domain_id = ? and id = ?",
+        "update text_attribute set uri = ?, index = ?, regex = ? where scheme_id = ? and domain_id = ? and id = ?",
         textAttribute.getUri(),
         textAttribute.getIndex(),
+        textAttribute.getRegex(),
         domainId.getSchemeId(),
         domainId.getId(),
         textAttributeId.getId());
@@ -61,9 +64,10 @@ public class JdbcTextAttributeDao
     ClassId domainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from text_attribute where scheme_id = ? and domain_id = ? and id = ?",
+        "delete from text_attribute where scheme_id = ? and domain_id = ? and regex = ? and id = ?",
         domainId.getSchemeId(),
         domainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId());
   }
 
@@ -86,10 +90,11 @@ public class JdbcTextAttributeDao
     ClassId domainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute where scheme_id = ? and domain_id = ? and id = ?",
+        "select count(*) from text_attribute where scheme_id = ? and domain_id = ? and regex = ? and id = ?",
         Long.class,
         domainId.getSchemeId(),
         domainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId()) > 0;
   }
 
@@ -98,10 +103,11 @@ public class JdbcTextAttributeDao
     ClassId domainId = textAttributeId.getDomainId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from text_attribute where scheme_id = ? and domain_id = ? and id = ?",
+        "select * from text_attribute where scheme_id = ? and domain_id = ? and regex = ? and id = ?",
         mapper,
         domainId.getSchemeId(),
         domainId.getId(),
+        textAttributeId.getRegex(),
         textAttributeId.getId()), null);
   }
 
@@ -111,7 +117,7 @@ public class JdbcTextAttributeDao
       public TextAttributeId mapRow(ResultSet rs, int rowNum) throws SQLException {
         ClassId domainId =
             new ClassId(UUIDs.fromString(rs.getString("scheme_id")), rs.getString("domain_id"));
-        return new TextAttributeId(domainId, rs.getString("id"));
+        return new TextAttributeId(domainId, rs.getString("regex"), rs.getString("id"));
       }
     };
   }
@@ -125,6 +131,7 @@ public class JdbcTextAttributeDao
 
         TextAttribute textAttribute = new TextAttribute(rs.getString("id"), rs.getString("uri"));
         textAttribute.setDomain(domain);
+        textAttribute.setRegex(rs.getString("regex"));
         textAttribute.setIndex(rs.getInt("index"));
 
         return textAttribute;

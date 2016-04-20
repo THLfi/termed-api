@@ -28,7 +28,8 @@ CREATE TABLE property (
   id varchar(255) PRIMARY KEY,
   uri varchar(2000),
   index integer,
-  CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
+  CONSTRAINT property_pkey PRIMARY KEY (id),
+  CONSTRAINT property_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
 CREATE TABLE property_property_value (
@@ -37,22 +38,23 @@ CREATE TABLE property_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (subject_id, property_id, index),
-  FOREIGN KEY (subject_id) REFERENCES property(id),
-  FOREIGN KEY (property_id) REFERENCES property(id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT property_property_value_pkey PRIMARY KEY (subject_id, property_id, index),
+  CONSTRAINT property_property_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES property(id),
+  CONSTRAINT property_property_property_id_fkey FOREIGN KEY (property_id) REFERENCES property(id),
+  CONSTRAINT property_property_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX ON property_property_value(subject_id);
+CREATE INDEX property_property_value_subject_id_idx ON property_property_value(subject_id);
 
 CREATE TABLE scheme (
-  id uuid PRIMARY KEY,
+  id uuid,
   code varchar(255),
   uri varchar(2000),
-  CHECK (code ~ '^[A-Za-z0-9_\\-]+$')
+  CONSTRAINT scheme_pkey PRIMARY KEY (id),
+  CONSTRAINT scheme_code_check CHECK (code ~ '^[A-Za-z0-9_\\-]+$')
 );
 
-CREATE UNIQUE INDEX ON scheme(code);
+CREATE UNIQUE INDEX scheme_code_idx ON scheme(code);
 
 CREATE TABLE scheme_property_value (
   scheme_id uuid,
@@ -60,26 +62,26 @@ CREATE TABLE scheme_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (scheme_id, property_id, index),
-  FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
-  FOREIGN KEY (property_id) REFERENCES property(id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT scheme_property_value_pkey PRIMARY KEY (scheme_id, property_id, index),
+  CONSTRAINT scheme_property_value_scheme_id_fkey FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
+  CONSTRAINT scheme_property_value_property_id_fkey FOREIGN KEY (property_id) REFERENCES property(id),
+  CONSTRAINT scheme_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX ON scheme_property_value(scheme_id);
+CREATE INDEX scheme_property_value_scheme_id_idx ON scheme_property_value(scheme_id);
 
 CREATE TABLE class (
   scheme_id uuid,
   id varchar(255),
   uri varchar(2000),
   index integer,
-  PRIMARY KEY (scheme_id, id),
-  FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
-  CHECK (id ~ '^[A-Za-z0-9_\\-]*$')
+  CONSTRAINT class_pkey PRIMARY KEY (scheme_id, id),
+  CONSTRAINT class_scheme_id_fkey FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
+  CONSTRAINT class_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]*$')
 );
 
-CREATE INDEX ON class(scheme_id);
-CREATE UNIQUE INDEX ON class(scheme_id, uri);
+CREATE INDEX class_scheme_id_idx ON class(scheme_id);
+CREATE UNIQUE INDEX class_scheme_id_uri_idx ON class(scheme_id, uri);
 
 CREATE TABLE class_property_value (
   class_scheme_id uuid,
@@ -88,39 +90,42 @@ CREATE TABLE class_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (class_scheme_id, class_id, property_id, index),
-  FOREIGN KEY (class_scheme_id, class_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (property_id) REFERENCES property(id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT class_property_value_pkey PRIMARY KEY (class_scheme_id, class_id, property_id, index),
+  CONSTRAINT class_property_value_class_scheme_id_class_id_fkey FOREIGN KEY (class_scheme_id, class_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT class_property_value_property_id_fkey FOREIGN KEY (property_id) REFERENCES property(id),
+  CONSTRAINT class_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX ON class_property_value(class_scheme_id, class_id);
+CREATE INDEX class_property_value_class_scheme_id_class_id_idx ON class_property_value(class_scheme_id, class_id);
 
 CREATE TABLE text_attribute (
   scheme_id uuid,
   domain_id varchar(255),
+  regex varchar(2000),
   id varchar(255),
   uri varchar(2000),
   index integer,
-  PRIMARY KEY (scheme_id, domain_id, id),
-  FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
-  CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
+  CONSTRAINT text_attribute_pkey PRIMARY KEY (scheme_id, domain_id, regex, id),
+  CONSTRAINT text_attribute_domain_fkey FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT text_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
-CREATE UNIQUE INDEX ON text_attribute(scheme_id, domain_id, uri);
+CREATE UNIQUE INDEX text_attribute_id_unique ON text_attribute(scheme_id, domain_id, id);
+CREATE UNIQUE INDEX text_attribute_uri_unique ON text_attribute(scheme_id, domain_id, uri);
 
 CREATE TABLE text_attribute_property_value (
   text_attribute_scheme_id uuid,
   text_attribute_domain_id varchar(255),
+  text_attribute_regex varchar(2000),
   text_attribute_id varchar(255),
   property_id varchar(255),
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id, property_id, index),
-  FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (property_id) REFERENCES property(id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT text_attribute_property_value_pkey PRIMARY KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id, property_id, index),
+  CONSTRAINT text_attribute_property_value_subject_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_regex, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON DELETE CASCADE,
+  CONSTRAINT text_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
+  CONSTRAINT text_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
 CREATE TABLE reference_attribute (
@@ -131,13 +136,13 @@ CREATE TABLE reference_attribute (
   id varchar(255),
   uri varchar(2000),
   index integer,
-  PRIMARY KEY (scheme_id, domain_id, range_scheme_id, range_id, id),
-  FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (range_scheme_id, range_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
-  CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
+  CONSTRAINT reference_attribute_pkey PRIMARY KEY (scheme_id, domain_id, range_scheme_id, range_id, id),
+  CONSTRAINT reference_attribute_domain_fkey FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_range_fkey FOREIGN KEY (range_scheme_id, range_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
-CREATE UNIQUE INDEX ON reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, uri);
+CREATE UNIQUE INDEX reference_attribute_uri_unique ON reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, uri);
 
 CREATE TABLE reference_attribute_property_value (
   reference_attribute_scheme_id uuid,
@@ -149,10 +154,10 @@ CREATE TABLE reference_attribute_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id, property_id, index),
-  FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (property_id) REFERENCES property(id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT reference_attribute_property_value_pkey PRIMARY KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id, property_id, index),
+  CONSTRAINT reference_attribute_property_value_subject_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
+  CONSTRAINT reference_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
 --
@@ -169,18 +174,18 @@ CREATE TABLE resource (
   created_date timestamp NOT NULL,
   last_modified_by varchar(255) NOT NULL,
   last_modified_date timestamp NOT NULL,
-  PRIMARY KEY (scheme_id, type_id, id),
-  FOREIGN KEY (scheme_id, type_id) REFERENCES class(scheme_id, id),
-  FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
-  FOREIGN KEY (created_by) REFERENCES users(username),
-  FOREIGN KEY (last_modified_by) REFERENCES users(username),
-  CHECK (code ~ '^[A-Za-z0-9_\\-]+$')
+  CONSTRAINT resource_pkey PRIMARY KEY (scheme_id, type_id, id),
+  CONSTRAINT resource_type_fkey FOREIGN KEY (scheme_id, type_id) REFERENCES class(scheme_id, id),
+  CONSTRAINT resource_scheme_id_fkey FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
+  CONSTRAINT resource_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(username),
+  CONSTRAINT resource_last_modified_by_fkey FOREIGN KEY (last_modified_by) REFERENCES users(username),
+  CONSTRAINT resource_code_check CHECK (code ~ '^[A-Za-z0-9_\\-]+$')
 );
 
-CREATE INDEX ON resource(scheme_id);
-CREATE INDEX ON resource(scheme_id, type_id);
-CREATE UNIQUE INDEX ON resource(scheme_id, type_id, code);
-CREATE UNIQUE INDEX ON resource(scheme_id, uri);
+CREATE INDEX resource_scheme_id_idx ON resource(scheme_id);
+CREATE INDEX resource_scheme_id_type_id_idx ON resource(scheme_id, type_id);
+CREATE UNIQUE INDEX resource_scheme_id_type_id_code_unique ON resource(scheme_id, type_id, code);
+CREATE UNIQUE INDEX resource_scheme_id_uri_unique ON resource(scheme_id, uri);
 
 CREATE TABLE resource_text_attribute_value (
   scheme_id uuid,
@@ -190,13 +195,15 @@ CREATE TABLE resource_text_attribute_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
-  FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (scheme_id, resource_type_id, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, id),
-  FOREIGN KEY (lang) REFERENCES lang(lang)
+  regex varchar(2000) NOT NULL,
+  CONSTRAINT resource_text_attribute_value_pkey PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
+  CONSTRAINT resource_text_attribute_value_resource_fkey FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
+  CONSTRAINT resource_text_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, regex, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id),
+  CONSTRAINT resource_text_attribute_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang),
+  CONSTRAINT resource_text_attribute_value_value_check CHECK (value ~ regex)
 );
 
-CREATE INDEX ON resource_text_attribute_value(scheme_id, resource_type_id, resource_id);
+CREATE INDEX resource_text_attribute_value_resource_idx ON resource_text_attribute_value(scheme_id, resource_type_id, resource_id);
 
 CREATE TABLE resource_reference_attribute_value (
   scheme_id uuid,
@@ -207,11 +214,11 @@ CREATE TABLE resource_reference_attribute_value (
   value_scheme_id uuid NOT NULL,
   value_type_id varchar(255) NOT NULL,
   value_id uuid NOT NULL,
-  PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
-  FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (value_scheme_id, value_type_id, value_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  FOREIGN KEY (scheme_id, resource_type_id, value_scheme_id, value_type_id, attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id)
+  CONSTRAINT resource_reference_attribute_value_pkey PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
+  CONSTRAINT resource_reference_attribute_value_resource_fkey FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
+  CONSTRAINT resource_reference_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, value_scheme_id, value_type_id, attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id),
+  CONSTRAINT resource_reference_attribute_value_value_fkey FOREIGN KEY (value_scheme_id, value_type_id, value_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE
 );
 
-CREATE INDEX ON resource_reference_attribute_value(scheme_id, resource_type_id, resource_id);
-CREATE INDEX ON resource_reference_attribute_value(value_scheme_id, value_type_id, value_id);
+CREATE INDEX resource_reference_attribute_value_resource_idx ON resource_reference_attribute_value(scheme_id, resource_type_id, resource_id);
+CREATE INDEX resource_reference_attribute_value_value_idx ON resource_reference_attribute_value(value_scheme_id, value_type_id, value_id);
