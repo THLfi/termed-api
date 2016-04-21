@@ -171,7 +171,7 @@ CREATE TABLE resource (
   last_modified_by varchar(255) NOT NULL,
   last_modified_date timestamp NOT NULL,
   CONSTRAINT resource_pkey PRIMARY KEY (scheme_id, type_id, id),
-  CONSTRAINT resource_type_fkey FOREIGN KEY (scheme_id, type_id) REFERENCES class(scheme_id, id),
+  CONSTRAINT resource_type_fkey FOREIGN KEY (scheme_id, type_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
   CONSTRAINT resource_scheme_id_fkey FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
   CONSTRAINT resource_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(username),
   CONSTRAINT resource_last_modified_by_fkey FOREIGN KEY (last_modified_by) REFERENCES users(username),
@@ -194,7 +194,7 @@ CREATE TABLE resource_text_attribute_value (
   regex varchar(255) NOT NULL,
   CONSTRAINT resource_text_attribute_value_pkey PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
   CONSTRAINT resource_text_attribute_value_resource_fkey FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  CONSTRAINT resource_text_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, regex, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON UPDATE CASCADE,
+  CONSTRAINT resource_text_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, regex, attribute_id) REFERENCES text_attribute(scheme_id, domain_id, regex, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT resource_text_attribute_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang),
   CONSTRAINT resource_text_attribute_value_value_check CHECK (value ~ regex)
 );
@@ -212,7 +212,7 @@ CREATE TABLE resource_reference_attribute_value (
   value_id uuid NOT NULL,
   CONSTRAINT resource_reference_attribute_value_pkey PRIMARY KEY (scheme_id, resource_type_id, resource_id, attribute_id, index),
   CONSTRAINT resource_reference_attribute_value_resource_fkey FOREIGN KEY (scheme_id, resource_type_id, resource_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE,
-  CONSTRAINT resource_reference_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, value_scheme_id, value_type_id, attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id),
+  CONSTRAINT resource_reference_attribute_value_attribute_fkey FOREIGN KEY (scheme_id, resource_type_id, value_scheme_id, value_type_id, attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id) ON DELETE CASCADE,
   CONSTRAINT resource_reference_attribute_value_value_fkey FOREIGN KEY (value_scheme_id, value_type_id, value_id) REFERENCES resource(scheme_id, type_id, id) ON DELETE CASCADE
 );
 
