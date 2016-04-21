@@ -8,7 +8,10 @@ import java.util.Map;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.StrictLangValue;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 public class ResourceTextAttributeValueDtoToModel
     implements
@@ -36,9 +39,10 @@ public class ResourceTextAttributeValueDtoToModel
       StrictLangValue value = attrLangValues.getValue();
       if (!value.getValue().isEmpty()) {
         values.put(new ResourceAttributeValueId(resourceId, attrLangValues.getKey(), index++),
-                   value.getRegex() != null ?
-                   new StrictLangValue(value.getLang(), value.getValue(), value.getRegex()) :
-                   new StrictLangValue(value.getLang(), value.getValue()));
+                   new StrictLangValue(value.getLang(),
+                                       value.getValue(),
+                                       firstNonNull(value.getRegex(),
+                                                    RegularExpressions.MATCH_ALL)));
       }
     }
 

@@ -2,11 +2,10 @@ package fi.thl.termed.util;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
- * Class to represent localized string.
+ * Class to represent localized string with pattern.
  */
 public class StrictLangValue {
 
@@ -21,8 +20,6 @@ public class StrictLangValue {
   }
 
   public StrictLangValue(String lang, String value, String regex) {
-    Preconditions.checkArgument(value.matches(regex), "%s must match %s", value, regex);
-
     this.lang = lang;
     this.value = value;
     this.regex = regex;

@@ -26,13 +26,11 @@ public class TextAttribute implements PropertyEntity {
 
   public TextAttribute(String id) {
     this.id = id;
-    this.regex = RegularExpressions.MATCH_ALL;
   }
 
   public TextAttribute(String id, String uri) {
     this.id = id;
     this.uri = uri;
-    this.regex = RegularExpressions.MATCH_ALL;
   }
 
   public TextAttribute(String id, String uri, String regex) {
@@ -82,7 +80,7 @@ public class TextAttribute implements PropertyEntity {
   }
 
   public String getRegex() {
-    return regex;
+    return MoreObjects.firstNonNull(regex, RegularExpressions.MATCH_ALL);
   }
 
   public void setRegex(String regex) {

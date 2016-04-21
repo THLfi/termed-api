@@ -10,22 +10,15 @@ public class TextAttributeId implements Serializable {
 
   private final ClassId domainId;
 
-  private final String regex;
-
   private final String id;
 
-  public TextAttributeId(ClassId domainId, String regex, String id) {
+  public TextAttributeId(ClassId domainId, String id) {
     this.domainId = checkNotNull(domainId, "domainId can't be null in %s", getClass());
-    this.regex = checkNotNull(regex, "regex can't be null in %s", getClass());
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
   }
 
   public ClassId getDomainId() {
     return domainId;
-  }
-
-  public String getRegex() {
-    return regex;
   }
 
   public String getId() {
@@ -41,7 +34,6 @@ public class TextAttributeId implements Serializable {
       return false;
     }
     TextAttributeId that = (TextAttributeId) o;
-    // regex is ignored here and in hashCode as it's kind of updatable extra part of the identity
     return Objects.equal(domainId, that.domainId) &&
            Objects.equal(id, that.id);
   }
