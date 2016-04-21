@@ -110,7 +110,7 @@ public class SchemeServiceImpl implements SchemeService {
   }
 
   @Override
-  @PreAuthorize("hasRole('SUPERUSER')")
+  @PreAuthorize("hasRole('ADMIN')")
   public void delete(UUID schemeId, User currentUser) {
     List<ResourceId> ids = resourceDao.getKeys(new ResourceSpecificationBySchemeId(schemeId));
 
