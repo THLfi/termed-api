@@ -171,7 +171,7 @@
     <tr ng-repeat="resource in resources">
         <td>
             <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
-                {{resource.properties.prefLabel | localizeValue}}
+                {{resource.properties.prefLabel | localizeValue:('unnamed' | translate) }}
             </a>
         </td>
         <td>

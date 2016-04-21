@@ -5,7 +5,7 @@
     </a></li>
     <li>
         <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
-            {{resource.properties.prefLabel | localizeValue}}
+            {{resource.properties.prefLabel | localizeValue:('unnamed' | translate)}}
         </a>
     </li>
     <li class="active">{{'edit' | translate}}</li>
@@ -34,7 +34,7 @@
 <h1 class="page-header">
     <small>{{resource.type.properties.prefLabel | localizeValue}}</small>
     <br>
-    {{resource.properties.prefLabel | localizeValue}}
+    {{resource.properties.prefLabel | localizeValue:('unnamed' | translate)}}
 </h1>
 
 <div class="row text-muted page-header-info">

@@ -57,6 +57,7 @@ angular.module('termed.translations', ['pascalprecht.translate', 'ngSanitize'])
     download: 'lataa',
     updated: 'muokkattu',
     added: 'lisätty',
+    unnamed: 'Nimetön',
     warnSlowAllResourcesView: 'Huom. näkymän avautuminen voi aineiston koosta riippuen kestää useita minuutteja.'
   })
 
@@ -108,6 +109,7 @@ angular.module('termed.translations', ['pascalprecht.translate', 'ngSanitize'])
     download: 'download',
     updated: 'updated',
     added: 'added',
+    unnamed: 'Unnamed',
     warnSlowAllResourcesView: 'Note that opening all resources view might take several minutes.'
   });
 

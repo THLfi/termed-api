@@ -4,7 +4,7 @@
         {{resource.scheme.properties.prefLabel | localizeValue}}
     </a></li>
     <li class="active">
-        {{resource.properties.prefLabel | localizeValue}}
+        {{resource.properties.prefLabel | localizeValue:('unnamed' | translate)}}
     </li>
 </ol>
 
@@ -32,7 +32,7 @@
         <h1 class="page-header">
             <small>{{resource.type.properties.prefLabel | localizeValue}}</small>
             <br>
-            {{resource.properties.prefLabel | localizeValue}}
+            {{resource.properties.prefLabel | localizeValue:('unnamed' | translate)}}
         </h1>
 
         <div class="text-muted page-header-info">

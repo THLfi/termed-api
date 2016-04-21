@@ -9,7 +9,7 @@
                 <div ng-repeat="r in rs">
                     <a ng-href="#/schemes/{{r.scheme.id}}/classes/{{r.type.id}}/resources/{{r.id}}">
                         &larr;
-                        {{r.properties.prefLabel | localizeValue}}
+                        {{r.properties.prefLabel | localizeValue:('unnamed' | translate)}}
                         <small class="text-muted">({{r.type.properties.prefLabel | localizeValue}})</small>
                     </a>
                 </div>

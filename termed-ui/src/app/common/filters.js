@@ -15,22 +15,25 @@ angular.module('termed.filters', ['pascalprecht.translate'])
 })
 
 .filter('localizeValue', function($translate) {
-  return function(propertyValues) {
+  return function(propertyValues, defaultValue) {
     if (!propertyValues || propertyValues.length === 0) {
-      return "-";
+      return defaultValue || '-';
     }
 
     var lang = $translate.use();
 
     for (var i=0;i<propertyValues.length;i++) {
-      if (propertyValues[i].lang == lang) {
+      if (propertyValues[i].lang == lang && propertyValues[i].value.length > 0) {
         return propertyValues[i].value;
       }
     }
 
-    var langInfo = propertyValues[0].lang ? " (" + propertyValues[0].lang + ")" : "";
+    if (propertyValues[0].value.length > 0) {
+      var langInfo = propertyValues[0].lang ? " (" + propertyValues[0].lang + ")" : "";
+      return propertyValues[0].value + langInfo;
+    }
 
-    return propertyValues[0].value + langInfo;
+    return defaultValue || '-';
   };
 });
 
