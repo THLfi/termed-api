@@ -110,6 +110,7 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
       textAttributes: [
         {
           id: "prefLabel",
+          regex: "(?s)^.*$",
           properties: {
             prefLabel: [
               {
@@ -138,6 +139,7 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
     }
     cls.textAttributes.push({
       id: "newTextAttribute",
+      regex: "(?s)^.*$",
       properties: {
         prefLabel: [
           {
