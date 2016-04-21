@@ -1,6 +1,7 @@
 package fi.thl.termed.service;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Sets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ import fi.thl.termed.repository.dao.ResourceDao;
 import fi.thl.termed.repository.spesification.ResourceSpecificationBySchemeId;
 import fi.thl.termed.repository.spesification.Specification;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static fi.thl.termed.util.ObjectUtils.coalesce;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.UUID.randomUUID;
@@ -88,18 +90,29 @@ public class SchemeServiceImpl implements SchemeService {
                           nameUUIDFromString(scheme.getCode()),
                           nameUUIDFromString(scheme.getUri()),
                           randomUUID()));
+
+    List<ResourceId> oldResourceIds =
+        resourceDao.getKeys(new ResourceSpecificationBySchemeId(scheme.getId()));
+
     schemeRepository.save(scheme);
-    reindexSchemeResourcesAfterCommit(scheme.getId());
+
+    List<ResourceId> newResourceIds =
+        resourceDao.getKeys(new ResourceSpecificationBySchemeId(scheme.getId()));
+    reindexSchemeResourcesAfterCommit(oldResourceIds, newResourceIds);
+
     return get(scheme.getId(), currentUser);
   }
 
-  private void reindexSchemeResourcesAfterCommit(final UUID schemeId) {
+  private void reindexSchemeResourcesAfterCommit(final List<ResourceId> oldResourceIds,
+                                                 final List<ResourceId> newResourceIds) {
     registerSynchronization(new TransactionSynchronizationAdapter() {
       public void afterCommit() {
-        List<ResourceId> ids = resourceDao.getKeys(new ResourceSpecificationBySchemeId(schemeId));
-
-        if (!ids.isEmpty()) {
-          resourceIndex.reindex(ids, new Function<List<ResourceId>, List<Resource>>() {
+        for (ResourceId removedId : Sets.difference(newHashSet(oldResourceIds),
+                                                    newHashSet(newResourceIds))) {
+          resourceIndex.deleteFromIndex(removedId);
+        }
+        if (!newResourceIds.isEmpty()) {
+          resourceIndex.reindex(newResourceIds, new Function<List<ResourceId>, List<Resource>>() {
             public List<Resource> apply(List<ResourceId> ids) {
               return resourceRepository.get(ids);
             }
