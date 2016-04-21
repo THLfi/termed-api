@@ -56,17 +56,7 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
   $scope.newResource = function(type) {
     ResourceList.save({
       scheme: $scope.scheme,
-      type: {
-        id: type.id
-      },
-      properties: {
-        prefLabel: [
-          {
-            lang: 'fi',
-            value: 'Uusi käsite'
-          }
-        ]
-      }
+      type: type
     }, function(resource) {
       $location.path('/schemes/' + resource.scheme.id + '/classes/' + resource.type.id + '/resources/' + resource.id + '/edit');
     }, function(error) {
