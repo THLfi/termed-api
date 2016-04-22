@@ -42,7 +42,7 @@
                     <tr ng-repeat="resource in resources">
                         <td>
                             <a ng-href="#/schemes/{{resource.scheme.id}}/classes/{{resource.type.id}}/resources/{{resource.id}}">
-                                {{resource.properties.prefLabel | localizeValue:('unnamed' | translate)}}
+                                {{resource.properties.prefLabel | localizeValue}}
                             </a>
                         </td>
                         <td>

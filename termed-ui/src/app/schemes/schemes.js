@@ -98,7 +98,7 @@ angular.module('termed.schemes', ['ngRoute', 'termed.rest', 'termed.schemes.prop
       $scope.scheme.classes = [];
     }
     $scope.scheme.classes.unshift({
-      id: "newClass",
+      id: "NewClass",
       properties: {
         prefLabel: [
           {

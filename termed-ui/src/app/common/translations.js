@@ -58,7 +58,8 @@ angular.module('termed.translations', ['pascalprecht.translate', 'ngSanitize'])
     updated: 'muokkattu',
     added: 'lisätty',
     unnamed: 'Nimetön',
-    warnSlowAllResourcesView: 'Huom. näkymän avautuminen voi aineiston koosta riippuen kestää useita minuutteja.'
+    warnSlowAllResourcesView: 'Huom. näkymän avautuminen voi aineiston koosta riippuen kestää useita minuutteja.',
+    warnIdChange: 'Varoitus: ID:n muuttaminen tuhoaa siihen viittaavat tiedot (esim. luokan ilmentymät tai attribuuttien arvot). On suositeltavaa ettei tunnuksia muuteta aineiston tietomallin määrittelyvaiheen jälkeen.'
   })
 
   .translations('en', {
@@ -110,7 +111,8 @@ angular.module('termed.translations', ['pascalprecht.translate', 'ngSanitize'])
     updated: 'updated',
     added: 'added',
     unnamed: 'Unnamed',
-    warnSlowAllResourcesView: 'Note that opening all resources view might take several minutes.'
+    warnSlowAllResourcesView: 'Note that opening all resources view might take several minutes.',
+    warnIdChange: 'Warning: Changing ID deletes all data referring to the ID (e.g. instances of a class or values of an attribute). It\'s recommended that ID values are not changed after initial scheme definition.'
   });
 
 });

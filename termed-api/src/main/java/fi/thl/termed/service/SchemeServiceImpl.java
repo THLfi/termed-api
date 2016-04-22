@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import fi.thl.termed.aspect.Profile;
 import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
@@ -83,6 +84,7 @@ public class SchemeServiceImpl implements SchemeService {
     return save(scheme, currentUser);
   }
 
+  @Profile
   @Override
   @PreAuthorize("hasRole('ADMIN')")
   public Scheme save(Scheme scheme, User currentUser) {
