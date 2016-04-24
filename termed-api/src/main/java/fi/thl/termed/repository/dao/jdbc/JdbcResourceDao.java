@@ -76,8 +76,7 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> imple
   protected <E> List<E> get(SqlSpecification<ResourceId, Resource> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        String.format("select * from resource where %s",
-                      specification.sqlQueryTemplate()),
+        String.format("select * from resource where %s", specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
