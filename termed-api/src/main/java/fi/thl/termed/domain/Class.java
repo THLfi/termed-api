@@ -41,6 +41,16 @@ public class Class implements PropertyEntity {
     this.properties = properties;
   }
 
+  public Class(Class cls) {
+    this.id = cls.id;
+    this.uri = cls.uri;
+    this.index = cls.index;
+    this.scheme = cls.scheme;
+    this.properties = cls.properties;
+    this.textAttributes = cls.textAttributes;
+    this.referenceAttributes = cls.referenceAttributes;
+  }
+
   public String getId() {
     return id;
   }

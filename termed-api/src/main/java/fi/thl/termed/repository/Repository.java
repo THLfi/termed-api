@@ -3,7 +3,7 @@ package fi.thl.termed.repository;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.repository.spesification.Specification;
+import fi.thl.termed.spesification.Specification;
 
 public interface Repository<K extends Serializable, V> {
 

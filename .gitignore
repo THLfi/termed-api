@@ -1,7 +1,7 @@
 application-*.properties
-bin
-target
-index
+/bin
+/target
+/index
 .classpath
 .project
 .settings

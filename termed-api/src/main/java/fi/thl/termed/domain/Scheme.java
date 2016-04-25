@@ -38,6 +38,14 @@ public class Scheme implements PropertyEntity {
     this.properties = properties;
   }
 
+  public Scheme(Scheme scheme) {
+    this.id = scheme.id;
+    this.code = scheme.code;
+    this.uri = scheme.uri;
+    this.properties = scheme.properties;
+    this.classes = scheme.classes;
+  }
+
   public UUID getId() {
     return id;
   }

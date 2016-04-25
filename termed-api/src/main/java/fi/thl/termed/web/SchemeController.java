@@ -4,7 +4,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,12 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Resource;
+
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.SchemeService;
+import fi.thl.termed.service.Service;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -33,8 +34,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
 public class SchemeController {
 
-  @Autowired
-  private SchemeService schemeService;
+  @Resource
+  private Service<UUID, Scheme> schemeService;
 
   @RequestMapping(method = GET, value = "/schemes")
   public List<Scheme> get(@AuthenticationPrincipal User user) {

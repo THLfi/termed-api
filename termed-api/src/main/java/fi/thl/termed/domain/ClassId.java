@@ -16,6 +16,10 @@ public class ClassId implements Serializable {
 
   private final String id;
 
+  public ClassId(ResourceId resourceId) {
+    this(resourceId.getSchemeId(), resourceId.getTypeId());
+  }
+
   public ClassId(String schemeId, String id) {
     this(UUIDs.fromString(schemeId), id);
   }

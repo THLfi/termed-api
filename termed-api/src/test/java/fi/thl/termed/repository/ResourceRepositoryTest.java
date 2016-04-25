@@ -3,7 +3,6 @@ package fi.thl.termed.repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,14 +32,14 @@ public class ResourceRepositoryTest {
 
   private static final String FOAF = "http://xmlns.com/foaf/0.1/";
 
-  @Autowired
-  private SchemeRepository schemeRepo;
+  @javax.annotation.Resource
+  private Repository<UUID, Scheme> schemeRepository;
 
-  @Autowired
-  private ResourceRepository repo;
+  @javax.annotation.Resource
+  private Repository<ResourceId, Resource> resourceRepository;
 
-  @Autowired
-  private UserRepository userRepository;
+  @javax.annotation.Resource
+  private Repository<String, User> userRepository;
 
   private Scheme personScheme;
   private Class personClass;
@@ -66,11 +65,11 @@ public class ResourceRepositoryTest {
     personScheme = new Scheme(UUID.randomUUID());
     personScheme.setClasses(newArrayList(personClass, groupClass));
 
-    schemeRepo.save(personScheme.getId(), personScheme);
+    schemeRepository.save(personScheme);
 
     date = new Date();
     user = new User("test", new BCryptPasswordEncoder().encode(UUIDs.randomUUIDString()), "ADMIN");
-    userRepository.save(user.getUsername(), user);
+    userRepository.save(user);
   }
 
   @Test
@@ -81,7 +80,7 @@ public class ResourceRepositoryTest {
     bob.addProperty("firstName", "", "Bob", "^\\w*$");
     ResourceId bobId = new ResourceId(personScheme.getId(), personClass.getId(), bob.getId());
 
-    repo.save(bobId, bob);
+    resourceRepository.save(bob);
 
     Resource tim = new Resource(UUID.randomUUID(), user.getUsername(), date);
     tim.setScheme(personScheme);
@@ -90,7 +89,7 @@ public class ResourceRepositoryTest {
     tim.addReference("knows", bob);
     ResourceId timId = new ResourceId(personScheme.getId(), personClass.getId(), tim.getId());
 
-    repo.save(timId, tim);
+    resourceRepository.save(tim);
 
     Resource adminGroup = new Resource(UUID.randomUUID(), user.getUsername(), date);
     adminGroup.setScheme(personScheme);
@@ -102,14 +101,16 @@ public class ResourceRepositoryTest {
                                              groupClass.getId(),
                                              adminGroup.getId());
 
-    repo.save(adminGroupId, adminGroup);
+    resourceRepository.save(adminGroup);
 
-    assertEquals(bob.getId(), repo.get(bobId).getId());
+    assertEquals(bob.getId(), resourceRepository.get(bobId).getId());
 
-    List<Resource> timFriends = newArrayList(repo.get(timId).getReferences().get("knows"));
+    List<Resource> timFriends = newArrayList(
+        resourceRepository.get(timId).getReferences().get("knows"));
     assertEquals(bob.getId(), timFriends.get(0).getId());
 
-    List<Resource> admins = newArrayList(repo.get(adminGroupId).getReferences().get("member"));
+    List<Resource> admins = newArrayList(
+        resourceRepository.get(adminGroupId).getReferences().get("member"));
     assertEquals(tim.getId(), admins.get(0).getId());
     assertEquals(bob.getId(), admins.get(1).getId());
   }

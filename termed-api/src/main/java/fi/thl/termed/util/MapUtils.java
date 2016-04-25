@@ -2,20 +2,20 @@ package fi.thl.termed.util;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 
 import java.util.AbstractMap;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public final class MapUtils {
 
   private MapUtils() {
+  }
+
+  public static <K, V> Map<K, V> nullToEmpty(Map<K, V> map) {
+    return map == null ? Collections.<K, V>emptyMap() : map;
   }
 
   public static <K, V> Map<K, V> toMap(Iterable<V> values, final Function<V, K> keyExtractor) {
@@ -26,21 +26,12 @@ public final class MapUtils {
     }));
   }
 
-  public static <K, V> Map<K, V> nullToEmpty(Map<K, V> map) {
-    return map == null ? Collections.<K, V>emptyMap() : map;
-  }
-
-  public static <K, V> Map<K, V> newLinkedHashMap(Iterable<Map.Entry<K, V>> entries) {
-    return putEntries(Maps.<K, V>newLinkedHashMap(), entries);
-  }
-
   public static <K, V> Map.Entry<K, V> simpleEntry(K key, V value) {
     return new AbstractMap.SimpleEntry<K, V>(key, value);
   }
 
-  public static <K, V> Map<K, V> putEntry(Map<K, V> map, Map.Entry<K, V> entry) {
-    map.put(entry.getKey(), entry.getValue());
-    return map;
+  public static <K, V> Map<K, V> newLinkedHashMap(Iterable<Map.Entry<K, V>> entries) {
+    return putEntries(Maps.<K, V>newLinkedHashMap(), entries);
   }
 
   public static <K, V> Map<K, V> putEntries(Map<K, V> map, Iterable<Map.Entry<K, V>> entries) {
@@ -48,19 +39,6 @@ public final class MapUtils {
       map.put(entry.getKey(), entry.getValue());
     }
     return map;
-  }
-
-  public static <K, V> List<V> getEntryValues(Iterable<Map.Entry<K, V>> entries) {
-    return Lists.newArrayList(newLinkedHashMap(entries).values());
-  }
-
-  public static <K, V> Map<K, List<V>> asListMap(Multimap<K, V> multimap) {
-    return Maps.transformValues(multimap.asMap(), new Function<Collection<V>, List<V>>() {
-      @Override
-      public List<V> apply(Collection<V> input) {
-        return Lists.newArrayList(input);
-      }
-    });
   }
 
   public static <K, V> Map<K, V> leftValues(Map<K, MapDifference.ValueDifference<V>> diff) {

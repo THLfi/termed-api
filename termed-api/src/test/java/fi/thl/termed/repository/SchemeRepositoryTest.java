@@ -5,13 +5,14 @@ import com.google.common.collect.Lists;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Resource;
 
 import fi.thl.termed.Application;
 import fi.thl.termed.domain.Scheme;
@@ -24,8 +25,8 @@ import static org.junit.Assert.assertEquals;
 @IntegrationTest
 public class SchemeRepositoryTest {
 
-  @Autowired
-  private SchemeRepository schemeRepository;
+  @Resource
+  private Repository<UUID, Scheme> schemeRepository;
 
   @Test
   public void shouldSaveSchemeWithProperties() {
@@ -35,7 +36,7 @@ public class SchemeRepositoryTest {
         "prefLabel", new LangValue("en", "Scheme label 1"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme.getId(), scheme);
+    schemeRepository.save(scheme);
 
     Scheme savedScheme = schemeRepository.get(scheme.getId());
 
@@ -55,13 +56,13 @@ public class SchemeRepositoryTest {
         "prefLabel", new LangValue("en", "Scheme label 1"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme.getId(), scheme);
+    schemeRepository.save(scheme);
 
     scheme.setProperties(ImmutableMultimap.of(
         "prefLabel", new LangValue("en", "Scheme label 0 updated"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme.getId(), scheme);
+    schemeRepository.save(scheme);
 
     Scheme updated = schemeRepository.get(scheme.getId());
 

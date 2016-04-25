@@ -1,6 +1,5 @@
 package fi.thl.termed.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +23,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
 public class ResourceGraphController {
 
-  @Autowired
+  @javax.annotation.Resource
   private ResourceGraphService resourceGraphService;
 
   @RequestMapping(method = GET,

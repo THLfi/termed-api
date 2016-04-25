@@ -88,6 +88,12 @@ public class Resource {
     this.id = id;
   }
 
+  public void ensureId() {
+    if (id == null) {
+      id = UUID.randomUUID();
+    }
+  }
+
   public String getCode() {
     return code;
   }

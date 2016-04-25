@@ -1,6 +1,7 @@
 package fi.thl.termed.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,9 +20,9 @@ import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.ResourceKey;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.repository.spesification.ResourceSpecificationBySchemeAndTypeId;
-import fi.thl.termed.repository.spesification.ResourceSpecificationBySchemeId;
-import fi.thl.termed.service.ResourceService;
+import fi.thl.termed.service.Service;
+import fi.thl.termed.spesification.sql.ResourcesBySchemeId;
+import fi.thl.termed.spesification.sql.ResourcesBySchemeIdAndTypeId;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -32,8 +33,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
 public class ResourceController {
 
-  @Autowired
-  private ResourceService resourceService;
+  @SuppressWarnings("all")
+  private Logger log = LoggerFactory.getLogger(getClass());
+
+  @javax.annotation.Resource
+  private Service<ResourceId, Resource> resourceService;
 
   @RequestMapping(method = GET, value = "/resources")
   public List<Resource> get(@ModelAttribute Query query,
@@ -50,7 +54,7 @@ public class ResourceController {
                                       @AuthenticationPrincipal User currentUser) {
     query.setQuery("+(" + emptyToMatchAll(query.getQuery()) + ") +scheme.id:" + schemeId);
     return !bypassIndex ? resourceService.get(query, currentUser)
-                        : resourceService.get(new ResourceSpecificationBySchemeId(schemeId),
+                        : resourceService.get(new ResourcesBySchemeId(schemeId),
                                               currentUser);
   }
 
@@ -72,7 +76,7 @@ public class ResourceController {
                    "+scheme.id:" + schemeId + " +type.id:" + typeId);
     return !bypassIndex ? resourceService.get(query, currentUser)
                         : resourceService.get(
-                            new ResourceSpecificationBySchemeAndTypeId(schemeId, typeId),
+                            new ResourcesBySchemeIdAndTypeId(schemeId, typeId),
                             currentUser);
   }
 
@@ -158,7 +162,10 @@ public class ResourceController {
   public Resource save(@ModelAttribute ResourceKey key,
                        @RequestBody Resource resource,
                        @AuthenticationPrincipal User currentUser) {
-    return resourceService.save(new ResourceId(key), resource, currentUser);
+    resource.setScheme(new Scheme(key.getSchemeId()));
+    resource.setType(new Class(key.getTypeId()));
+    resource.setId(key.getId());
+    return resourceService.save(resource, currentUser);
   }
 
   @RequestMapping(method = DELETE, value = "/schemes/{schemeId}/classes/{typeId}/resources/{id}")
