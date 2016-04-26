@@ -165,10 +165,14 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     String queryString = query.getQuery().isEmpty() ? "*:*" : query.getQuery();
     QueryParser parser = new QueryParser(LUCENE_47, DEFAULT_SEARCH_FIELD, analyzer);
     ScoreDoc[] hits = searcher
-        .search(parser.parse(queryString), query.getMax(), sort(query.getOrderBy())).scoreDocs;
+        .search(parser.parse(queryString), max(query.getMax()), sort(query.getOrderBy())).scoreDocs;
     // wrap into new array list to fully run transform before returning the list
     return newArrayList(transform(asList(hits), compose(documentConverter.reverse(),
                                                         new ScoreDocLoader(searcher))));
+  }
+
+  private int max(int max) {
+    return max < 0 ? Integer.MAX_VALUE : max;
   }
 
   private Sort sort(List<String> orderBy) {
