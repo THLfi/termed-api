@@ -230,18 +230,18 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
 
     @Override
     public Resource apply(ResourceId resourceId) {
-      Resource resource = new Resource(resourceDao.get(resourceId));
+      Resource resource = resourceDao.get(resourceId);
       resource.setProperties(
           ResourceTextAttributeValueModelToDto.create().apply(textAttributeValueDao.getMap(
               new ResourceTextAttributeValuesByResourceId(resourceId))));
 
-      Scheme scheme = new Scheme(schemeDao.get(resourceId.getSchemeId()));
+      Scheme scheme = schemeDao.get(resourceId.getSchemeId());
       scheme.setProperties(
           PropertyValueModelToDto.<UUID>create().apply(schemePropertyValueDao.getMap(
               new SchemePropertiesBySchemeId(scheme.getId()))));
       resource.setScheme(scheme);
 
-      Class type = new Class(classDao.get(new ClassId(resourceId)));
+      Class type = classDao.get(new ClassId(resourceId));
       type.setProperties(
           PropertyValueModelToDto.<ClassId>create().apply(classPropertyValueDao.getMap(
               new ClassPropertiesByClassId(new ClassId(resourceId)))));
