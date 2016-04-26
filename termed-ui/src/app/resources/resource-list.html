@@ -35,7 +35,7 @@
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="export-menu">
-                <li><a ng-href="api/schemes/{{scheme.id}}/resources"
+                <li><a ng-href="api/schemes/{{scheme.id}}/resources?max=-1"
                        type="application/json">JSON</a></li>
                 <li><a ng-href="api/schemes/{{scheme.id}}/resources" type="text/turtle">RDF</a></li>
             </ul>
