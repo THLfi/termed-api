@@ -42,7 +42,7 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
     $scope.query = query;
     SchemeResourceList.query({
       schemeId: $routeParams.schemeId,
-      query: query ? query.split(' ').map(function(q) { return q + "*" }).join(' ') : query,
+      query: query ? query.split(' ').map(function(q) { return q + "*"; }).join(' ') : query,
       max: $scope.max,
       orderBy: query ? [''] : ['code', 'prefLabel.' + $scope.lang + '.sortable']
     }, function(resources) {
