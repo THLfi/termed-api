@@ -1,8 +1,10 @@
 package fi.thl.termed.repository.transform;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 import java.util.Map;
 
@@ -33,16 +35,17 @@ public class ResourceTextAttributeValueDtoToModel
 
     Map<ResourceAttributeValueId, StrictLangValue> values = Maps.newLinkedHashMap();
 
-    int index = 0;
+    for (String attributeId : input.keySet()) {
+      int index = 0;
 
-    for (Map.Entry<String, StrictLangValue> attrLangValues : input.entries()) {
-      StrictLangValue value = attrLangValues.getValue();
-      if (!value.getValue().isEmpty()) {
-        values.put(new ResourceAttributeValueId(resourceId, attrLangValues.getKey(), index++),
-                   new StrictLangValue(value.getLang(),
-                                       value.getValue(),
-                                       firstNonNull(value.getRegex(),
-                                                    RegularExpressions.MATCH_ALL)));
+      for (StrictLangValue value : Sets.newLinkedHashSet(input.get(attributeId))) {
+        if (!Strings.isNullOrEmpty(value.getValue())) {
+          values.put(new ResourceAttributeValueId(resourceId, attributeId, index++),
+                     new StrictLangValue(value.getLang(),
+                                         value.getValue(),
+                                         firstNonNull(value.getRegex(),
+                                                      RegularExpressions.MATCH_ALL)));
+        }
       }
     }
 

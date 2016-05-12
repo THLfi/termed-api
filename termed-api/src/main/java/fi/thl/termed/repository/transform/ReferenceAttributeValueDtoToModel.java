@@ -3,6 +3,7 @@ package fi.thl.termed.repository.transform;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 import java.util.Map;
 
@@ -28,11 +29,13 @@ public class ReferenceAttributeValueDtoToModel
 
     Map<ResourceAttributeValueId, ResourceId> result = Maps.newLinkedHashMap();
 
-    int i = 0;
+    for (String attributeId : input.keySet()) {
+      int index = 0;
 
-    for (Map.Entry<String, Resource> entry : input.entries()) {
-      result.put(new ResourceAttributeValueId(resourceId, entry.getKey(), i++),
-                 new ResourceId(entry.getValue()));
+      for (Resource value : Sets.newLinkedHashSet(input.get(attributeId))) {
+        result.put(new ResourceAttributeValueId(resourceId, attributeId, index++),
+                   new ResourceId(value));
+      }
     }
 
     return result;

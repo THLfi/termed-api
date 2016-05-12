@@ -1,8 +1,10 @@
 package fi.thl.termed.repository.transform;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -27,11 +29,14 @@ public class PropertyValueDtoToModel<K extends Serializable>
   public Map<PropertyValueId<K>, LangValue> apply(Multimap<String, LangValue> input) {
     Map<PropertyValueId<K>, LangValue> values = Maps.newLinkedHashMap();
 
-    int index = 0;
+    for (String propertyId : input.keySet()) {
+      int index = 0;
 
-    for (Map.Entry<String, LangValue> propertyLangValues : input.entries()) {
-      values.put(new PropertyValueId<K>(subjectId, propertyLangValues.getKey(), index++),
-                 propertyLangValues.getValue());
+      for (LangValue value : Sets.newLinkedHashSet(input.get(propertyId))) {
+        if (!Strings.isNullOrEmpty(value.getValue())) {
+          values.put(new PropertyValueId<K>(subjectId, propertyId, index++), value);
+        }
+      }
     }
 
     return values;
