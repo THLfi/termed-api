@@ -92,8 +92,6 @@ public class ApplicationBeans {
     return new SchemeServiceImpl(schemeRepository, resourceRepository, resourceIndex, resourceDao);
   }
 
-  // Indices
-
   @Bean
   public Service<ResourceId, Resource> resourceService(
       Repository<UUID, Scheme> schemeRepository,
@@ -108,18 +106,20 @@ public class ApplicationBeans {
                                    referenceAttributeValueDao);
   }
 
-  // Repositories
-
   @Bean
   public ResourceGraphService resourceGraphService(Service<ResourceId, Resource> resourceService) {
     return new ResourceGraphServiceImpl(resourceService);
   }
+
+  // Indices
 
   @Bean
   public Index<ResourceId, Resource> resourceIndex(
       @Value("${fi.thl.termed.index:}") String indexPath, Gson gson) {
     return new LuceneIndex<ResourceId, Resource>(indexPath, new ResourceDocumentConverter(gson));
   }
+
+  // Repositories
 
   @Bean
   public Repository<String, User> userRepository(DataSource dataSource) {
