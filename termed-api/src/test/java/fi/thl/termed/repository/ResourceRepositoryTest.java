@@ -52,8 +52,8 @@ public class ResourceRepositoryTest {
   public void setUp() {
     personClass = new Class("Person");
     personClass.setTextAttributes(newArrayList(
-        new TextAttribute("firstName", FOAF + "firstName", "^\\w*$"),
-        new TextAttribute("lastName", FOAF + "lastName", "^\\w*$")));
+        new TextAttribute("firstName", FOAF + "firstName"),
+        new TextAttribute("lastName", FOAF + "lastName")));
     personClass.setReferenceAttributes(newArrayList(
         new ReferenceAttribute("knows", personClass)));
 
@@ -75,36 +75,40 @@ public class ResourceRepositoryTest {
   @Test
   public void shouldSaveResource() {
     Resource bob = new Resource(personScheme, personClass, UUID.randomUUID());
-    bob.addProperty("firstName", "", "Bob", "^\\w*$");
-    ResourceId bobId = new ResourceId(personScheme.getId(), personClass.getId(), bob.getId());
-
+    bob.setCreatedDate(date);
+    bob.setCreatedBy(user.getUsername());
+    bob.setLastModifiedDate(date);
+    bob.setLastModifiedBy(user.getUsername());
+    bob.addProperty("firstName", "", "Bob");
     resourceRepository.save(bob);
 
     Resource tim = new Resource(personScheme, personClass, UUID.randomUUID());
-    tim.addProperty("firstName", "", "Tim", "^\\w*$");
+    tim.setCreatedDate(date);
+    tim.setCreatedBy(user.getUsername());
+    tim.setLastModifiedDate(date);
+    tim.setLastModifiedBy(user.getUsername());
+    tim.addProperty("firstName", "", "Tim");
     tim.addReference("knows", bob);
-    ResourceId timId = new ResourceId(personScheme.getId(), personClass.getId(), tim.getId());
-
     resourceRepository.save(tim);
 
-    Resource adminGroup = new Resource(personScheme, personClass, UUID.randomUUID());
+    Resource adminGroup = new Resource(personScheme, groupClass, UUID.randomUUID());
+    adminGroup.setCreatedDate(date);
+    adminGroup.setCreatedBy(user.getUsername());
+    adminGroup.setLastModifiedDate(date);
+    adminGroup.setLastModifiedBy(user.getUsername());
     adminGroup.addProperty("name", "", "Admins");
     adminGroup.addReference("member", tim);
     adminGroup.addReference("member", bob);
-    ResourceId adminGroupId = new ResourceId(personScheme.getId(),
-                                             groupClass.getId(),
-                                             adminGroup.getId());
-
     resourceRepository.save(adminGroup);
 
-    assertEquals(bob.getId(), resourceRepository.get(bobId).getId());
+    assertEquals(bob.getId(), resourceRepository.get(new ResourceId(bob)).getId());
 
     List<Resource> timFriends = newArrayList(
-        resourceRepository.get(timId).getReferences().get("knows"));
+        resourceRepository.get(new ResourceId(tim)).getReferences().get("knows"));
     assertEquals(bob.getId(), timFriends.get(0).getId());
 
     List<Resource> admins = newArrayList(
-        resourceRepository.get(adminGroupId).getReferences().get("member"));
+        resourceRepository.get(new ResourceId(adminGroup)).getReferences().get("member"));
     assertEquals(tim.getId(), admins.get(0).getId());
     assertEquals(bob.getId(), admins.get(1).getId());
   }

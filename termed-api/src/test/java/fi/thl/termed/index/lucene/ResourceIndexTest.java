@@ -56,19 +56,20 @@ public class ResourceIndexTest {
 
   @Test
   public void shouldFindResourceById() {
-    UUID schemeId = UUID.randomUUID();
-    String classId = "Document";
-
-    Class cls = new Class(classId);
-    Scheme scheme = new Scheme(schemeId);
+    Class cls = new Class("Document");
+    Scheme scheme = new Scheme(UUID.randomUUID());
     scheme.setClasses(Lists.newArrayList(cls));
     schemeRepository.save(scheme);
 
-    ResourceId resourceId = new ResourceId(schemeId, classId, UUID.randomUUID());
-    Resource resource = new Resource(scheme, cls, resourceId.getId());
+    Resource resource = new Resource(scheme, cls, UUID.randomUUID());
+    resource.setCreatedBy(user.getUsername());
+    resource.setCreatedDate(date);
+    resource.setLastModifiedBy(user.getUsername());
+    resource.setLastModifiedDate(date);
 
     resourceRepository.save(resource);
-    resourceIndex.reindex(resourceId, resourceRepository.get(resourceId));
+    resourceIndex.reindex(new ResourceId(resource),
+                          resourceRepository.get(new ResourceId(resource)));
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();
@@ -79,21 +80,22 @@ public class ResourceIndexTest {
 
   @Test
   public void shouldFindResourceByPropertyValue() {
-    UUID schemeId = UUID.randomUUID();
-    String classId = "Document";
-
-    Class cls = new Class(classId);
+    Class cls = new Class("Document");
     cls.setTextAttributes(Lists.newArrayList(new TextAttribute("prefLabel")));
-    Scheme scheme = new Scheme(schemeId);
+    Scheme scheme = new Scheme(UUID.randomUUID());
     scheme.setClasses(Lists.newArrayList(cls));
     schemeRepository.save(scheme);
 
-    ResourceId resourceId = new ResourceId(schemeId, classId, UUID.randomUUID());
-    Resource resource = new Resource(scheme, cls, resourceId.getId());
+    Resource resource = new Resource(scheme, cls, UUID.randomUUID());
+    resource.setCreatedBy(user.getUsername());
+    resource.setCreatedDate(date);
+    resource.setLastModifiedBy(user.getUsername());
+    resource.setLastModifiedDate(date);
     resource.addProperty("prefLabel", "en", "Example Resource");
 
     resourceRepository.save(resource);
-    resourceIndex.reindex(resourceId, resourceRepository.get(resourceId));
+    resourceIndex.reindex(new ResourceId(resource),
+                          resourceRepository.get(new ResourceId(resource)));
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();
