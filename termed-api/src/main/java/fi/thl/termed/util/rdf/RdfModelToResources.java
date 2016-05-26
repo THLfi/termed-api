@@ -43,8 +43,12 @@ public class RdfModelToResources implements Function<RdfModel, List<Resource>> {
     // init resources
     for (Class type : scheme.getClasses()) {
       for (RdfResource r : rdfModel.find(RDF.type.getURI(), type.getUri())) {
-        resources.put(r.getUri(), new Resource(
-            removeDiacritics(URIs.localName(r.getUri())), r.getUri(), scheme, type));
+        Resource resource = new Resource();
+        resource.setCode(removeDiacritics(URIs.localName(r.getUri())));
+        resource.setUri(r.getUri());
+        resource.setScheme(scheme);
+        resource.setType(type);
+        resources.put(r.getUri(), resource);
       }
     }
 

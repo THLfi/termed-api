@@ -39,30 +39,16 @@ public class Resource {
     this.id = id;
   }
 
-  public Resource(UUID id, String createdBy, Date createdDate) {
-    this.id = id;
-    this.createdBy = createdBy;
-    this.createdDate = createdDate;
-    this.lastModifiedBy = createdBy;
-    this.lastModifiedDate = createdDate;
+  public Resource(ResourceId resourceId) {
+    this.scheme = new Scheme(resourceId.getSchemeId());
+    this.type = new Class(resourceId.getTypeId());
+    this.id = resourceId.getId();
   }
 
-  public Resource(UUID id, String code) {
-    this.id = id;
-    this.code = code;
-  }
-
-  public Resource(UUID id, String code, String uri) {
-    this.id = id;
-    this.code = code;
-    this.uri = uri;
-  }
-
-  public Resource(String code, String uri, Scheme scheme, Class type) {
-    this.code = code;
-    this.uri = uri;
+  public Resource(Scheme scheme, Class type, UUID id) {
     this.scheme = scheme;
     this.type = type;
+    this.id = id;
   }
 
   public Resource(Resource resource) {

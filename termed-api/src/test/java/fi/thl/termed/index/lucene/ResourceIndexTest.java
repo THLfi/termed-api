@@ -65,9 +65,7 @@ public class ResourceIndexTest {
     schemeRepository.save(scheme);
 
     ResourceId resourceId = new ResourceId(schemeId, classId, UUID.randomUUID());
-    Resource resource = new Resource(resourceId.getId(), user.getUsername(), date);
-    resource.setScheme(scheme);
-    resource.setType(cls);
+    Resource resource = new Resource(scheme, cls, resourceId.getId());
 
     resourceRepository.save(resource);
     resourceIndex.reindex(resourceId, resourceRepository.get(resourceId));
@@ -91,9 +89,7 @@ public class ResourceIndexTest {
     schemeRepository.save(scheme);
 
     ResourceId resourceId = new ResourceId(schemeId, classId, UUID.randomUUID());
-    Resource resource = new Resource(resourceId.getId(), user.getUsername(), date);
-    resource.setScheme(scheme);
-    resource.setType(cls);
+    Resource resource = new Resource(scheme, cls, resourceId.getId());
     resource.addProperty("prefLabel", "en", "Example Resource");
 
     resourceRepository.save(resource);

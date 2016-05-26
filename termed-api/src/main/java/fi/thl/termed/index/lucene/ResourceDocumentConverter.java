@@ -1,9 +1,10 @@
 package fi.thl.termed.index.lucene;
 
 import com.google.common.base.Converter;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -19,9 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
-import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.Resource;
-import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.util.StrictLangValue;
 
 import static fi.thl.termed.index.lucene.LuceneConstants.DEFAULT_SEARCH_FIELD;
@@ -41,7 +41,7 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
     Document doc = new Document();
 
     Resource cachedResource = new Resource(r);
-    cachedResource.setReferences(truncateReferences(r.getReferences()));
+    cachedResource.setReferences(truncateValues(r.getReferences()));
     cachedResource.setReferrers(ImmutableMultimap.<String, Resource>of());
     doc.add(new StoredField(LuceneConstants.CACHED_RESULT_FIELD,
                             CompressionTools.compressString(gson.toJson(cachedResource))));
@@ -101,21 +101,12 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
     return doc;
   }
 
-  private Multimap<String, Resource> truncateReferences(Multimap<String, Resource> references) {
-    Multimap<String, Resource> refs = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-
-    for (Map.Entry<String, Resource> entry : references.entries()) {
-      Resource value = entry.getValue();
-      Resource truncatedValue = new Resource();
-
-      truncatedValue.setScheme(new Scheme(value.getSchemeId()));
-      truncatedValue.setType(new Class(value.getTypeId()));
-      truncatedValue.setId(value.getId());
-
-      refs.put(entry.getKey(), truncatedValue);
-    }
-
-    return refs;
+  private Multimap<String, Resource> truncateValues(Multimap<String, Resource> multimap) {
+    return Multimaps.transformValues(multimap, new Function<Resource, Resource>() {
+      public Resource apply(Resource value) {
+        return new Resource(new ResourceId(value));
+      }
+    });
   }
 
   @Override

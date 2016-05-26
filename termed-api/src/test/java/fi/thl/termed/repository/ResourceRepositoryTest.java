@@ -74,26 +74,20 @@ public class ResourceRepositoryTest {
 
   @Test
   public void shouldSaveResource() {
-    Resource bob = new Resource(UUID.randomUUID(), user.getUsername(), date);
-    bob.setScheme(personScheme);
-    bob.setType(personClass);
+    Resource bob = new Resource(personScheme, personClass, UUID.randomUUID());
     bob.addProperty("firstName", "", "Bob", "^\\w*$");
     ResourceId bobId = new ResourceId(personScheme.getId(), personClass.getId(), bob.getId());
 
     resourceRepository.save(bob);
 
-    Resource tim = new Resource(UUID.randomUUID(), user.getUsername(), date);
-    tim.setScheme(personScheme);
-    tim.setType(personClass);
+    Resource tim = new Resource(personScheme, personClass, UUID.randomUUID());
     tim.addProperty("firstName", "", "Tim", "^\\w*$");
     tim.addReference("knows", bob);
     ResourceId timId = new ResourceId(personScheme.getId(), personClass.getId(), tim.getId());
 
     resourceRepository.save(tim);
 
-    Resource adminGroup = new Resource(UUID.randomUUID(), user.getUsername(), date);
-    adminGroup.setScheme(personScheme);
-    adminGroup.setType(groupClass);
+    Resource adminGroup = new Resource(personScheme, personClass, UUID.randomUUID());
     adminGroup.addProperty("name", "", "Admins");
     adminGroup.addReference("member", tim);
     adminGroup.addReference("member", bob);
