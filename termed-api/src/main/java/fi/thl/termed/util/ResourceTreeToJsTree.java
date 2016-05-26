@@ -17,6 +17,8 @@ import java.util.UUID;
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Resource;
 
+import static org.springframework.web.util.HtmlUtils.htmlEscape;
+
 /**
  * Recursively transforms ResourceTree to JsTree. Assumes that ResourceTree is really a tree, i.e.
  * does not contain loops.
@@ -53,7 +55,8 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     jsTree.setId(DigestUtils.sha1Hex(
         Joiner.on('.').join(Iterables.transform(resourceTree.getPath(), getResourceId))));
     jsTree.setIcon(false);
-    jsTree.setText(getLocalizedLabel(resource) + smallMuted(getCode(resource)));
+    jsTree.setText(htmlEscape(getLocalizedLabel(resource)) +
+                   smallMuted(htmlEscape(getCode(resource))));
 
     jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(resource.getId()),
                                     "selected", selectedId.equals(resource.getId())));
