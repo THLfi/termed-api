@@ -39,18 +39,6 @@
             classId: resource.type.id
           });
         });
-
-        $scope.newRefAttrValue = function(resourceRefs, refAttr) {
-          ResourceList.save({
-            scheme: refAttr.range.scheme,
-            type: refAttr.range
-          }, function(resource) {
-            resourceRefs[refAttr.id] = resourceRefs[refAttr.id] || [];
-            resourceRefs[refAttr.id].push(resource);
-          }, function(error) {
-            $scope.error = error;
-          });
-        };
       }
     };
   })

@@ -1,18 +1,8 @@
 <div class="form-group" ng-repeat="refAttr in refAttrs">
     <label>{{refAttr.properties.prefLabel | localizeValue | capitalize}}</label>
 
-    <div class="input-group">
-        <div thl-select-resource class="form-control"
-             ref-attr="refAttr" placeholder="{{'searchValue' | translate | capitalize}}"
-             ng-model="resource.references[refAttr.id]" multiple="true"></div>
-
-        <span class="input-group-btn">
-            <button class="btn btn-default" type="button"
-                    ng-click="newRefAttrValue(resource.references, refAttr)">
-                <span class="glyphicon glyphicon-plus"></span>
-                {{'addNewValue' | translate | capitalize}}
-            </button>
-        </span>
-    </div>
+    <div thl-select-resource class="form-control"
+         ref-attr="refAttr" placeholder="{{'searchValue' | translate | capitalize}}"
+         ng-model="resource.references[refAttr.id]" multiple="true"></div>
 
 </div>
