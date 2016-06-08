@@ -104,7 +104,10 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
   private Multimap<String, Resource> truncateValues(Multimap<String, Resource> multimap) {
     return Multimaps.transformValues(multimap, new Function<Resource, Resource>() {
       public Resource apply(Resource value) {
-        return new Resource(new ResourceId(value));
+        Resource truncated = new Resource(new ResourceId(value));
+        truncated.setCode(value.getCode());
+        truncated.setUri(value.getUri());
+        return truncated;
       }
     });
   }

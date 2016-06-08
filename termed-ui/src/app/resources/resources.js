@@ -172,8 +172,10 @@ angular.module('termed.resources', ['ngRoute', 'termed.rest', 'termed.resources.
                 return 'api/schemes/' + resourceSchemeId +
                        '/classes/' + resourceTypeId +
                        '/resources/' + resourceId +
-                       '/context/' + treeAttributeId +
-                       '?jstree=true' +
+                       '/trees' +
+                       '?attributeId=' + treeAttributeId +
+                       '&context=true' +
+                       '&jstree=true' +
                        '&referrers=' + treeInverted +
                        '&lang=' + lang;
               },

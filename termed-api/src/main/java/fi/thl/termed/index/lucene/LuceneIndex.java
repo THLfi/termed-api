@@ -45,9 +45,8 @@ import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.ToStringFunction;
 
-import static com.google.common.base.Functions.compose;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
 import static fi.thl.termed.index.lucene.LuceneConstants.DEFAULT_SEARCH_FIELD;
 import static fi.thl.termed.index.lucene.LuceneConstants.DOCUMENT_ID;
@@ -166,9 +165,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     QueryParser parser = new QueryParser(LUCENE_47, DEFAULT_SEARCH_FIELD, analyzer);
     ScoreDoc[] hits = searcher
         .search(parser.parse(queryString), max(query.getMax()), sort(query.getOrderBy())).scoreDocs;
-    // wrap into new array list to fully run transform before returning the list
-    return newArrayList(transform(asList(hits), compose(documentConverter.reverse(),
-                                                        new ScoreDocLoader(searcher))));
+    // copy into a new list to fully run transformation so that searcherManager can be released
+    List<Document> documents = copyOf(transform(asList(hits), new ScoreDocLoader(searcher)));
+    return transform(documents, documentConverter.reverse());
   }
 
   private int max(int max) {
