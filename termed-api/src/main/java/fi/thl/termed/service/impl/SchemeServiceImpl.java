@@ -70,17 +70,16 @@ public class SchemeServiceImpl implements Service<UUID, Scheme> {
 
   @PreAuthorize("hasRole('ADMIN')")
   @Override
-  public int save(List<Scheme> schemes, User currentUser) {
+  public void save(List<Scheme> schemes, User currentUser) {
     for (Scheme scheme : schemes) {
       save(scheme, currentUser);
     }
-    return schemes.size();
   }
 
   @Profile
   @Override
   @PreAuthorize("hasRole('ADMIN')")
-  public Scheme save(Scheme scheme, User currentUser) {
+  public void save(Scheme scheme, User currentUser) {
     scheme.setId(coalesce(scheme.getId(),
                           nameUUIDFromString(scheme.getCode()),
                           nameUUIDFromString(scheme.getUri()),
@@ -90,8 +89,6 @@ public class SchemeServiceImpl implements Service<UUID, Scheme> {
     schemeRepository.save(scheme);
 
     reindexSchemeResourcesAfterCommit(oldResourceIds, getResourceIds(scheme));
-
-    return get(scheme.getId(), currentUser);
   }
 
   private List<ResourceId> getResourceIds(Scheme scheme) {

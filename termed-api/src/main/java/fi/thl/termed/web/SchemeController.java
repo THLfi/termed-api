@@ -8,12 +8,11 @@ import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
 import java.util.UUID;
-
-import javax.annotation.Resource;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -22,6 +21,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -30,25 +30,30 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 /**
  * SchemeService published as a JSON/REST service.
  */
-@RestController
-@RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api/schemes", produces = "application/json;charset=UTF-8")
 public class SchemeController {
 
-  @Resource
   private Service<UUID, Scheme> schemeService;
 
-  @RequestMapping(method = GET, value = "/schemes")
+  public SchemeController(Service<UUID, Scheme> schemeService) {
+    this.schemeService = schemeService;
+  }
+
+  @RequestMapping(method = GET)
+  @ResponseBody
   public List<Scheme> get(@AuthenticationPrincipal User user) {
     return schemeService.get(user);
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}")
+  @RequestMapping(method = GET, value = "/{schemeId}")
+  @ResponseBody
   public Scheme get(@PathVariable("schemeId") UUID schemeId,
                     @AuthenticationPrincipal User user) {
     return schemeService.get(schemeId, user);
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{classId}")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}")
+  @ResponseBody
   public Class getClass(@PathVariable("schemeId") UUID schemeId,
                         @PathVariable("classId") String classId,
                         @AuthenticationPrincipal User user) {
@@ -56,7 +61,8 @@ public class SchemeController {
     return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId));
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{classId}/textAttributes")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/textAttributes")
+  @ResponseBody
   public List<TextAttribute> getTextAttributes(@PathVariable("schemeId") UUID schemeId,
                                                @PathVariable("classId") String classId,
                                                @AuthenticationPrincipal User user) {
@@ -64,7 +70,8 @@ public class SchemeController {
     return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId)).getTextAttributes();
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{classId}/referenceAttributes")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/referenceAttributes")
+  @ResponseBody
   public List<ReferenceAttribute> getReferenceAttributes(@PathVariable("schemeId") UUID schemeId,
                                                          @PathVariable("classId") String classId,
                                                          @AuthenticationPrincipal User user) {
@@ -73,23 +80,26 @@ public class SchemeController {
         .getReferenceAttributes();
   }
 
-  @RequestMapping(method = POST, value = "/schemes",
-      consumes = "application/json;charset=UTF-8")
+  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8")
+  @ResponseBody
   public Scheme save(@RequestBody Scheme scheme,
                      @AuthenticationPrincipal User user) {
-    return schemeService.save(scheme, user);
+    schemeService.save(scheme, user);
+    return schemeService.get(scheme.getId(), user);
   }
 
-  @RequestMapping(method = PUT, value = "/schemes/{schemeId}",
-      consumes = "application/json;charset=UTF-8")
+  @RequestMapping(method = PUT, value = "/{schemeId}", consumes = "application/json;charset=UTF-8")
+  @ResponseBody
   public Scheme save(@PathVariable("schemeId") UUID schemeId,
                      @RequestBody Scheme scheme,
                      @AuthenticationPrincipal User user) {
     scheme.setId(schemeId);
-    return schemeService.save(scheme, user);
+    schemeService.save(scheme, user);
+    return schemeService.get(schemeId, user);
   }
 
-  @RequestMapping(method = DELETE, value = "/schemes/{schemeId}")
+  @RequestMapping(method = DELETE, value = "/{schemeId}")
+  @ResponseStatus(NO_CONTENT)
   public void delete(@PathVariable("schemeId") UUID schemeId,
                      @AuthenticationPrincipal User user) {
     schemeService.delete(schemeId, user);

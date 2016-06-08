@@ -9,8 +9,12 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.graph.impl.LiteralLabel;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 import java.util.List;
+import java.util.Map;
+
+import fi.thl.termed.util.LangValue;
 
 import static com.google.common.collect.Lists.transform;
 import static com.hp.hpl.jena.graph.Node.createURI;
@@ -20,12 +24,28 @@ public class JenaRdfModel implements RdfModel {
 
   private Graph graph;
 
+  public JenaRdfModel(RdfModel rdfModel) {
+    if (rdfModel instanceof JenaRdfModel) {
+      this.graph = ((JenaRdfModel) rdfModel).getGraph();
+    } else {
+      save(rdfModel.find());
+    }
+  }
+
   public JenaRdfModel(Model model) {
     this(model.getGraph());
   }
 
   public JenaRdfModel(Graph graph) {
     this.graph = graph;
+  }
+
+  public Model getModel() {
+    return ModelFactory.createModelForGraph(graph);
+  }
+
+  public Graph getGraph() {
+    return graph;
   }
 
   @Override
@@ -39,19 +59,27 @@ public class JenaRdfModel implements RdfModel {
     return resources;
   }
 
+  @Override
+  public List<RdfResource> find() {
+    List<RdfResource> resources = Lists.newArrayList();
+
+    for (Node subject : subjects()) {
+      resources.add(toRdfResource(subject));
+    }
+
+    return resources;
+  }
+
   private RdfResource toRdfResource(Node subject) {
-    RdfResource resource = new RdfResource(subject.isURI() ? subject.getURI() :
-                                           subject.getBlankNodeLabel());
+    RdfResource resource = new RdfResource(
+        subject.isURI() ? subject.getURI() : subject.getBlankNodeLabel());
 
     for (Node predicate : predicates(subject)) {
-      for (LiteralLabel literalValue : literals(objects(subject, predicate))) {
-        resource.addLiteral(predicate.getURI(),
-                            literalValue.language(),
-                            literalValue.getLexicalForm());
+      for (LiteralLabel literal : literals(objects(subject, predicate))) {
+        resource.addLiteral(predicate.getURI(), literal.language(), literal.getLexicalForm());
       }
-      for (String uriValue : uris(objects(subject, predicate))) {
-        resource.addObject(predicate.getURI(),
-                           uriValue);
+      for (String uri : uris(objects(subject, predicate))) {
+        resource.addObject(predicate.getURI(), uri);
       }
     }
     return resource;
@@ -79,6 +107,10 @@ public class JenaRdfModel implements RdfModel {
         return input.getURI();
       }
     });
+  }
+
+  private List<Node> subjects() {
+    return subjects(graph.find(Node.ANY, Node.ANY, Node.ANY).toList());
   }
 
   private List<Node> subjects(String predicateUri, String objectUri) {
@@ -115,6 +147,28 @@ public class JenaRdfModel implements RdfModel {
         return input.getObject();
       }
     });
+  }
+
+  @Override
+  public void save(List<RdfResource> resources) {
+    for (RdfResource resource : resources) {
+      Node subject = Node.createURI(resource.getUri());
+
+      for (Map.Entry<String, LangValue> entry : resource.getLiterals().entries()) {
+        LangValue langValue = entry.getValue();
+        graph.add(Triple.create(
+            subject,
+            Node.createURI(entry.getKey()),
+            Node.createLiteral(langValue.getValue(), langValue.getLang(), false)));
+      }
+
+      for (Map.Entry<String, String> entry : resource.getObjects().entries()) {
+        graph.add(Triple.create(
+            subject,
+            Node.createURI(entry.getKey()),
+            Node.createURI(entry.getValue())));
+      }
+    }
   }
 
 }

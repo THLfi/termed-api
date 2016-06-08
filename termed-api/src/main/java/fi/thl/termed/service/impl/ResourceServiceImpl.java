@@ -113,7 +113,7 @@ public class ResourceServiceImpl
   }
 
   @Override
-  public Resource save(Resource resource, User currentUser) {
+  public void save(Resource resource, User currentUser) {
     prepareResource(resource, currentUser, new Date());
     Set<ResourceId> affectedIds = indexSet(new ResourceId(resource), resource);
 
@@ -122,12 +122,10 @@ public class ResourceServiceImpl
     for (ResourceId affectedId : affectedIds) {
       resourceIndex.reindex(affectedId, resourceRepository.get(affectedId));
     }
-
-    return get(new ResourceId(resource), currentUser);
   }
 
   @Override
-  public int save(List<Resource> resources, User user) {
+  public void save(List<Resource> resources, User user) {
     long startTime = System.nanoTime();
 
     log.info("Preparing {} resources", resources.size());
@@ -147,8 +145,6 @@ public class ResourceServiceImpl
     log.info("Done in {} ms", (System.nanoTime() - startTime) / 1000000);
 
     reindexAfterCommit(Lists.newArrayList(affectedIds));
-
-    return resources.size();
   }
 
   private Set<ResourceId> indexSet(ResourceId resourceId, Resource resource) {

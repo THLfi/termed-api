@@ -1,4 +1,4 @@
-package fi.thl.termed.util.rdf;
+package fi.thl.termed.exchange.impl;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -20,8 +20,9 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.util.LangValueMultimapTypeAdapter;
 import fi.thl.termed.util.MultimapTypeAdapterFactory;
+import fi.thl.termed.util.rdf.JenaRdfModel;
+import fi.thl.termed.util.rdf.RdfModel;
 
 import static com.hp.hpl.jena.graph.Node.createLiteral;
 import static com.hp.hpl.jena.graph.Node.createURI;
@@ -30,8 +31,6 @@ public class RdfModelToResourcesTest {
 
   private Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
-      .registerTypeAdapter(LangValueMultimapTypeAdapter.TYPE,
-                           new LangValueMultimapTypeAdapter().nullSafe())
       .create();
 
   @Test
@@ -44,9 +43,12 @@ public class RdfModelToResourcesTest {
 
     // compare as json for easy checking that returned data contains at least expected fields
     String resourcesAsJson = gson.toJson(parser.apply(rdfModel));
-    String expected =
-        "[{'uri':'http://ex.org/bob','type':{'id':'Person'},'properties':{'name':[{'value':'Bob'}]}}," +
-        " {'uri':'http://ex.org/tim','type':{'id':'Person'},'properties':{'name':[{'value':'Tim'}]}}," +
+    String
+        expected =
+        "[{'uri':'http://ex.org/bob','type':{'id':'Person'},'properties':{'name':[{'value':'Bob'}]}},"
+        +
+        " {'uri':'http://ex.org/tim','type':{'id':'Person'},'properties':{'name':[{'value':'Tim'}]}},"
+        +
         " {'uri':'http://ex.org/admins','type':{'id':'Group'}," +
         "  'properties':{'name':[{'value':'Admins group'}]}," +
         "  'references':{'member':[{'uri':'http://ex.org/bob'},{'uri':'http://ex.org/tim'}]}}]";

@@ -44,7 +44,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
         .when()
         .post("/api/schemes/" + schemeId + "/resources")
         .then()
-        .statusCode(HttpStatus.SC_OK);
+        .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
 }

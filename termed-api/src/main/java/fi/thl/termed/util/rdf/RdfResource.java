@@ -30,6 +30,10 @@ public class RdfResource {
     return uri;
   }
 
+  public Multimap<String, LangValue> getLiterals() {
+    return literals;
+  }
+
   public Iterable<LangValue> getLiterals(String predicateUri) {
     return literals.containsKey(predicateUri) ? literals.get(predicateUri)
                                               : Collections.<LangValue>emptyList();
@@ -37,6 +41,10 @@ public class RdfResource {
 
   public void addLiteral(String predicateURI, String lang, String value) {
     literals.put(predicateURI, new LangValue(lang, value));
+  }
+
+  public Multimap<String, String> getObjects() {
+    return objects;
   }
 
   public Iterable<String> getObjects(String predicateUri) {

@@ -6,8 +6,6 @@ import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.UUID;
 
-import fi.thl.termed.util.UUIDs;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ClassId implements Serializable {
@@ -16,12 +14,16 @@ public class ClassId implements Serializable {
 
   private final String id;
 
+  public ClassId(Resource resource) {
+    this(resource.getSchemeId(), resource.getTypeId());
+  }
+
   public ClassId(ResourceId resourceId) {
     this(resourceId.getSchemeId(), resourceId.getTypeId());
   }
 
-  public ClassId(String schemeId, String id) {
-    this(UUIDs.fromString(schemeId), id);
+  public ClassId(Class cls) {
+    this(cls.getSchemeId(), cls.getId());
   }
 
   public ClassId(UUID schemeId, String id) {

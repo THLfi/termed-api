@@ -35,7 +35,7 @@ public class SchemeApiIntegrationTest extends BaseApiIntegrationTest {
   public void shouldSaveAndGetScheme() throws IOException {
     String schemeId = UUID.randomUUID().toString();
 
-    JsonObject skosScheme = JsonUtils.getJsonResource("schemes/skos.json").getAsJsonObject();
+    JsonObject skosScheme = JsonUtils.getJsonResource("examples/skos/skos.json").getAsJsonObject();
     skosScheme.addProperty("id", schemeId);
 
     given()

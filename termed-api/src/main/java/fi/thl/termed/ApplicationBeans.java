@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -28,6 +29,7 @@ import fi.thl.termed.dao.jdbc.JdbcTextAttributeDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePropertyValueDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -39,6 +41,11 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.exchange.Exchange;
+import fi.thl.termed.exchange.Exporter;
+import fi.thl.termed.exchange.impl.RdfModelExchange;
+import fi.thl.termed.exchange.impl.ResourceContextJsTreeExporter;
+import fi.thl.termed.exchange.impl.ResourceTreeExporter;
 import fi.thl.termed.index.Index;
 import fi.thl.termed.index.lucene.LuceneIndex;
 import fi.thl.termed.index.lucene.ResourceDocumentConverter;
@@ -51,16 +58,21 @@ import fi.thl.termed.repository.impl.ResourceRepositoryImpl;
 import fi.thl.termed.repository.impl.SchemeRepositoryImpl;
 import fi.thl.termed.repository.impl.TextAttributeRepositoryImpl;
 import fi.thl.termed.repository.impl.UserRepositoryImpl;
-import fi.thl.termed.service.ResourceGraphService;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.impl.PropertyServiceImpl;
-import fi.thl.termed.service.impl.ResourceGraphServiceImpl;
 import fi.thl.termed.service.impl.ResourceServiceImpl;
 import fi.thl.termed.service.impl.SchemeServiceImpl;
 import fi.thl.termed.util.DateTypeAdapter;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapTypeAdapterFactory;
 import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.web.PropertyController;
+import fi.thl.termed.web.RdfController;
+import fi.thl.termed.web.ResourceContextJsTreeController;
+import fi.thl.termed.web.ResourceController;
+import fi.thl.termed.web.ResourceTreeController;
+import fi.thl.termed.web.SchemeController;
 
 @Configuration
 public class ApplicationBeans {
@@ -73,6 +85,61 @@ public class ApplicationBeans {
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
         .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
         .create();
+  }
+
+  // Controllers
+
+  @Bean
+  public ResourceController resourceController(Service<ResourceId, Resource> resourceService) {
+    return new ResourceController(resourceService);
+  }
+
+  @Bean
+  public SchemeController schemeController(Service<UUID, Scheme> schemeService) {
+    return new SchemeController(schemeService);
+  }
+
+  @Bean
+  public ResourceTreeController resourceTreeController(
+      Exporter<ResourceId, Resource, List<Resource>> resourceTreeExporter) {
+    return new ResourceTreeController(resourceTreeExporter);
+  }
+
+  @Bean
+  public ResourceContextJsTreeController resourceContextJsTreeController(
+      Exporter<ResourceId, Resource, List<JsTree>> resourceContextJsTreeExporter) {
+    return new ResourceContextJsTreeController(resourceContextJsTreeExporter);
+  }
+
+  @Bean
+  public RdfController rdfController(Exchange<ResourceId, Resource, RdfModel> rdfExchange) {
+    return new RdfController(rdfExchange);
+  }
+
+  @Bean
+  public PropertyController propertyController(Service<String, Property> propertyService) {
+    return new PropertyController(propertyService);
+  }
+
+  // Exporters
+
+  @Bean
+  public Exchange<ResourceId, Resource, RdfModel> rdfExchange(
+      Service<ResourceId, Resource> resourceService,
+      Service<UUID, Scheme> schemeService) {
+    return new RdfModelExchange(resourceService, schemeService);
+  }
+
+  @Bean
+  public Exporter<ResourceId, Resource, List<JsTree>> resourceContextJsTreeExporter(
+      Service<ResourceId, Resource> resourceService) {
+    return new ResourceContextJsTreeExporter(resourceService);
+  }
+
+  @Bean
+  public Exporter<ResourceId, Resource, List<Resource>> resourceTreeExporter(
+      Service<ResourceId, Resource> resourceService) {
+    return new ResourceTreeExporter(resourceService);
   }
 
   // Services
@@ -89,7 +156,10 @@ public class ApplicationBeans {
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
       Dao<ResourceId, Resource> resourceDao) {
-    return new SchemeServiceImpl(schemeRepository, resourceRepository, resourceIndex, resourceDao);
+    return new SchemeServiceImpl(schemeRepository,
+                                 resourceRepository,
+                                 resourceIndex,
+                                 resourceDao);
   }
 
   @Bean
@@ -101,14 +171,13 @@ public class ApplicationBeans {
       Dao<UUID, Scheme> schemeDao,
       Dao<ResourceId, Resource> resourceDao,
       Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
-    return new ResourceServiceImpl(schemeRepository, classRepository, resourceRepository,
-                                   resourceIndex, schemeDao, resourceDao,
+    return new ResourceServiceImpl(schemeRepository,
+                                   classRepository,
+                                   resourceRepository,
+                                   resourceIndex,
+                                   schemeDao,
+                                   resourceDao,
                                    referenceAttributeValueDao);
-  }
-
-  @Bean
-  public ResourceGraphService resourceGraphService(Service<ResourceId, Resource> resourceService) {
-    return new ResourceGraphServiceImpl(resourceService);
   }
 
   // Indices
@@ -130,7 +199,8 @@ public class ApplicationBeans {
   public Repository<String, Property> propertyRepository(
       Dao<String, Property> propertyDao,
       Dao<PropertyValueId<String>, LangValue> propertyPropertyValueDao) {
-    return new PropertyRepositoryImpl(propertyDao, propertyPropertyValueDao);
+    return new PropertyRepositoryImpl(propertyDao,
+                                      propertyPropertyValueDao);
   }
 
   @Bean
@@ -138,7 +208,9 @@ public class ApplicationBeans {
       Dao<UUID, Scheme> schemeDao,
       Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
       AbstractRepository<ClassId, Class> classRepository) {
-    return new SchemeRepositoryImpl(schemeDao, schemePropertyValueDao, classRepository);
+    return new SchemeRepositoryImpl(schemeDao,
+                                    schemePropertyValueDao,
+                                    classRepository);
   }
 
   @Bean
@@ -147,15 +219,18 @@ public class ApplicationBeans {
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
-    return new ClassRepositoryImpl(classDao, classPropertyValueDao,
-                                   textAttributeRepository, referenceAttributeRepository);
+    return new ClassRepositoryImpl(classDao,
+                                   classPropertyValueDao,
+                                   textAttributeRepository,
+                                   referenceAttributeRepository);
   }
 
   @Bean
   public AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
       Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao) {
-    return new TextAttributeRepositoryImpl(textAttributeDao, textAttributePropertyValueDao);
+    return new TextAttributeRepositoryImpl(textAttributeDao,
+                                           textAttributePropertyValueDao);
   }
 
   // DAOs
@@ -177,10 +252,13 @@ public class ApplicationBeans {
       Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
       Dao<ClassId, Class> classDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao) {
-    return new ResourceRepositoryImpl(resourceDao, textAttributeValueDao,
+    return new ResourceRepositoryImpl(resourceDao,
+                                      textAttributeValueDao,
                                       referenceAttributeValueDao,
-                                      schemeDao, schemePropertyValueDao,
-                                      classDao, classPropertyValueDao);
+                                      schemeDao,
+                                      schemePropertyValueDao,
+                                      classDao,
+                                      classPropertyValueDao);
   }
 
   @Bean

@@ -83,7 +83,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
         .when()
         .post("/api/schemes/" + schemeId + "/classes/Concept/resources?batch=true")
         .then()
-        .statusCode(HttpStatus.SC_OK);
+        .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // check that we get the same vocabulary information back (bypass index as its built async)
     given()

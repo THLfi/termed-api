@@ -23,16 +23,14 @@ public class PropertyServiceImpl implements Service<String, Property> {
 
   @Override
   @PreAuthorize("hasRole('SUPERUSER')")
-  public int save(List<Property> properties, User currentUser) {
+  public void save(List<Property> properties, User currentUser) {
     propertyRepository.save(properties);
-    return properties.size();
   }
 
   @Override
   @PreAuthorize("hasRole('SUPERUSER')")
-  public Property save(Property property, User currentUser) {
+  public void save(Property property, User currentUser) {
     propertyRepository.save(property);
-    return propertyRepository.get(property.getId());
   }
 
   @Override

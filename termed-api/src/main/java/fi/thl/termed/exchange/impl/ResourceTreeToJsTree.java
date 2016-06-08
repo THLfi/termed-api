@@ -1,4 +1,4 @@
-package fi.thl.termed.util;
+package fi.thl.termed.exchange.impl;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -16,6 +16,9 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Resource;
+import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.Tree;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -25,9 +28,9 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
  */
 public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
 
-  private Predicate<UUID> addChildrenPredicate;
+  private Predicate<ResourceId> addChildrenPredicate;
 
-  private UUID selectedId;
+  private Predicate<ResourceId> selectedPredicate;
 
   private String labelAttributeId;
 
@@ -39,10 +42,11 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     }
   };
 
-  public ResourceTreeToJsTree(Predicate<UUID> addChildrenPredicate, UUID selectedId,
+  public ResourceTreeToJsTree(Predicate<ResourceId> addChildrenPredicate,
+                              Predicate<ResourceId> selectedPredicate,
                               String labelAttributeId, String lang) {
     this.addChildrenPredicate = addChildrenPredicate;
-    this.selectedId = selectedId;
+    this.selectedPredicate = selectedPredicate;
     this.labelAttributeId = labelAttributeId;
     this.lang = lang;
   }
@@ -51,6 +55,7 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
   public JsTree apply(Tree<Resource> resourceTree) {
     JsTree jsTree = new JsTree();
     Resource resource = resourceTree.getData();
+    ResourceId resourceId = new ResourceId(resource);
 
     jsTree.setId(DigestUtils.sha1Hex(
         Joiner.on('.').join(Iterables.transform(resourceTree.getPath(), getResourceId))));
@@ -58,8 +63,8 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     jsTree.setText(htmlEscape(getLocalizedLabel(resource)) +
                    smallMuted(htmlEscape(getCode(resource))));
 
-    jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(resource.getId()),
-                                    "selected", selectedId.equals(resource.getId())));
+    jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(resourceId),
+                                    "selected", selectedPredicate.apply(resourceId)));
 
     String conceptUrl = "/schemes/" + resource.getSchemeId() +
                         "/classes/" + resource.getTypeId() +
@@ -75,7 +80,7 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
 
     if (children.isEmpty()) {
       jsTree.setChildren(false);
-    } else if (addChildrenPredicate.apply(resource.getId())) {
+    } else if (addChildrenPredicate.apply(resourceId)) {
       jsTree.setChildren(Lists.transform(children, this));
     } else {
       jsTree.setChildren(true);

@@ -8,17 +8,16 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.spesification.Specification;
 
 /**
- * Generic interface for services. Probably no need to use this as a base if only few methods are
- * needed.
+ * Generic interface for services.
  */
 public interface Service<K extends Serializable, V> {
 
   /**
    * Save (insert or update) values with dependencies.
    */
-  int save(List<V> values, User currentUser);
+  void save(List<V> values, User currentUser);
 
-  V save(V value, User currentUser);
+  void save(V value, User currentUser);
 
   /**
    * Delete value (with dependencies) by id.

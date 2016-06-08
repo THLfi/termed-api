@@ -12,6 +12,10 @@ public class TextAttributeId implements Serializable {
 
   private final String id;
 
+  public TextAttributeId(TextAttribute attribute) {
+    this(new ClassId(attribute.getDomain()), attribute.getId());
+  }
+
   public TextAttributeId(ClassId domainId, String id) {
     this.domainId = checkNotNull(domainId, "domainId can't be null in %s", getClass());
     this.id = checkNotNull(id, "id can't be null in %s", getClass());

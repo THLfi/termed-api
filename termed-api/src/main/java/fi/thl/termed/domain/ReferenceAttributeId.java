@@ -15,6 +15,10 @@ public class ReferenceAttributeId implements Serializable {
 
   private final String id;
 
+  public ReferenceAttributeId(ReferenceAttribute attribute) {
+    this(new ClassId(attribute.getDomain()), new ClassId(attribute.getRange()), attribute.getId());
+  }
+
   public ReferenceAttributeId(ClassId domainId, ClassId rangeId, String id) {
     this.domainId = checkNotNull(domainId, "domainId can't be null in %s", getClass());
     this.rangeId = checkNotNull(rangeId, "rangeId can't be null in %s", getClass());

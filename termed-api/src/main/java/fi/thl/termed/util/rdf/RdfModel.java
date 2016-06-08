@@ -11,4 +11,14 @@ public interface RdfModel {
    */
   List<RdfResource> find(String predicateUri, String objectUri);
 
+  /**
+   * List all subjects.
+   */
+  List<RdfResource> find();
+
+  /**
+   * Save resources with literal and object properties (i.e. all triples describing a resource).
+   */
+  void save(List<RdfResource> resources);
+
 }
