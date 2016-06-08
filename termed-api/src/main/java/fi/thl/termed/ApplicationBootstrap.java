@@ -44,8 +44,8 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
     Type propertyListType = new TypeToken<List<Property>>() {
     }.getType();
 
-    List<Property> properties = gson.fromJson(ResourceUtils.getResourceToString("properties.json"),
-                                              propertyListType);
+    List<Property> properties = gson.fromJson(ResourceUtils.getResourceToString(
+        "default/properties.json"), propertyListType);
 
     int index = 0;
     for (Property property : properties) {
