@@ -42,7 +42,18 @@ public class UserController {
     return userService.get(username, currentUser);
   }
 
-  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8")
+  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8", params = "batch=true")
+  @ResponseStatus(NO_CONTENT)
+  public void save(@RequestBody List<User> userData, @AuthenticationPrincipal User currentUser) {
+    for (User userDatum : userData) {
+      userService.save(new User(userDatum.getUsername(),
+                                passwordEncoder.encode(userDatum.getPassword()),
+                                userDatum.getAppRole()),
+                       currentUser);
+    }
+  }
+
+  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8", params = "batch!=true")
   @ResponseStatus(NO_CONTENT)
   public void save(@RequestBody User userData, @AuthenticationPrincipal User currentUser) {
     userService.save(new User(userData.getUsername(),
