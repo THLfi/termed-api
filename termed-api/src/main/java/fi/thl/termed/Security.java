@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.web.servlet.configuration.
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.annotation.Resource;
 
@@ -25,6 +25,8 @@ public class Security extends WebSecurityConfigurerAdapter {
 
   @Resource
   private Repository<String, User> userRepository;
+  @Resource
+  private PasswordEncoder passwordEncoder;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -43,7 +45,7 @@ public class Security extends WebSecurityConfigurerAdapter {
       }
     };
 
-    auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
+    auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
   }
 
 }

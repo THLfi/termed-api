@@ -20,7 +20,8 @@ import fi.thl.termed.exchange.Exporter;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@RequestMapping(value = "/api/schemes/{schemeId}/classes/{typeId}/resources/{resourceId}/trees", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api/schemes/{schemeId}/classes/{typeId}/resources/{resourceId}/trees",
+    params = {"jstree=true", "context=true"})
 public class ResourceContextJsTreeController {
 
   private Exporter<ResourceId, Resource, List<JsTree>> resourceContextJsTreeExporter;
@@ -30,7 +31,7 @@ public class ResourceContextJsTreeController {
     this.resourceContextJsTreeExporter = resourceContextJsTreeExporter;
   }
 
-  @RequestMapping(method = GET, params = {"jstree=true", "context=true"})
+  @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<JsTree> getContextJsTrees(
       @PathVariable("schemeId") UUID schemeId,

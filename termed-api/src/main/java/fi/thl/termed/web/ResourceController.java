@@ -31,7 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-@RequestMapping(value = "/api", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api")
 public class ResourceController {
 
   @SuppressWarnings("all")
@@ -43,7 +43,7 @@ public class ResourceController {
     this.resourceService = resourceService;
   }
 
-  @RequestMapping(method = GET, value = "/resources")
+  @RequestMapping(method = GET, value = "/resources", produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> get(@ModelAttribute Query query,
                             @RequestParam(value = "bypassIndex", defaultValue = "false") boolean bypassIndex,
@@ -52,7 +52,8 @@ public class ResourceController {
                         : resourceService.get(currentUser);
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/resources")
+  @RequestMapping(method = GET, value = "/schemes/{schemeId}/resources",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> getBySchemeId(@PathVariable("schemeId") UUID schemeId,
                                       @ModelAttribute Query query,
@@ -63,7 +64,8 @@ public class ResourceController {
                         : resourceService.get(new ResourcesBySchemeId(schemeId), currentUser);
   }
 
-  @RequestMapping(method = GET, value = "/resources", params = "schemeId")
+  @RequestMapping(method = GET, value = "/resources", params = "schemeId",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> getBySchemeIdAlt(@RequestParam("schemeId") UUID schemeId,
                                          @ModelAttribute Query query,
@@ -72,7 +74,8 @@ public class ResourceController {
     return getBySchemeId(schemeId, query, bypassIndex, currentUser);
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{typeId}/resources")
+  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{typeId}/resources",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> getBySchemeAndTypeId(@PathVariable("schemeId") UUID schemeId,
                                              @PathVariable("typeId") String typeId,
@@ -86,7 +89,8 @@ public class ResourceController {
                                               currentUser);
   }
 
-  @RequestMapping(method = GET, value = "/resources", params = {"schemeId", "typeId"})
+  @RequestMapping(method = GET, value = "/resources", params = {"schemeId", "typeId"},
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> getBySchemeAndTypeIdAlt(@RequestParam("schemeId") UUID schemeId,
                                                 @RequestParam("typeId") String typeId,
@@ -100,7 +104,8 @@ public class ResourceController {
     return query.isEmpty() ? "*:*" : query;
   }
 
-  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{typeId}/resources/{id}")
+  @RequestMapping(method = GET, value = "/schemes/{schemeId}/classes/{typeId}/resources/{id}",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Resource getById(@ModelAttribute ResourceKey key,
                           @AuthenticationPrincipal User currentUser) {
@@ -108,7 +113,7 @@ public class ResourceController {
   }
 
   @RequestMapping(method = POST, value = "/schemes/{schemeId}/classes/{typeId}/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch=true")
+      params = "batch=true", consumes = "application/json;charset=UTF-8")
   @ResponseStatus(NO_CONTENT)
   public void save(@PathVariable("schemeId") UUID schemeId,
                    @PathVariable("typeId") String typeId,
@@ -122,7 +127,7 @@ public class ResourceController {
   }
 
   @RequestMapping(method = POST, value = "/schemes/{schemeId}/classes/{typeId}/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch!=true")
+      params = "batch!=true", consumes = "application/json;charset=UTF-8")
   @ResponseBody
   public Resource save(@PathVariable("schemeId") UUID schemeId,
                        @PathVariable("typeId") String typeId,
@@ -134,8 +139,8 @@ public class ResourceController {
     return resourceService.get(new ResourceId(resource), currentUser);
   }
 
-  @RequestMapping(method = POST, value = "/schemes/{schemeId}/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch=true")
+  @RequestMapping(method = POST, value = "/schemes/{schemeId}/resources", params = "batch=true",
+      consumes = "application/json;charset=UTF-8")
   @ResponseStatus(NO_CONTENT)
   public void save(@PathVariable("schemeId") UUID schemeId,
                    @RequestBody List<Resource> resources,
@@ -146,8 +151,8 @@ public class ResourceController {
     resourceService.save(resources, currentUser);
   }
 
-  @RequestMapping(method = POST, value = "/schemes/{schemeId}/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch!=true")
+  @RequestMapping(method = POST, value = "/schemes/{schemeId}/resources", params = "batch!=true",
+      consumes = "application/json;charset=UTF-8")
   @ResponseBody
   public Resource save(@PathVariable("schemeId") UUID schemeId,
                        @RequestBody Resource resource,
@@ -158,16 +163,16 @@ public class ResourceController {
 
   }
 
-  @RequestMapping(method = POST, value = "/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch=true")
+  @RequestMapping(method = POST, value = "/resources", params = "batch=true",
+      consumes = "application/json;charset=UTF-8")
   @ResponseStatus(NO_CONTENT)
   public void save(@RequestBody List<Resource> resources,
                    @AuthenticationPrincipal User currentUser) {
     resourceService.save(resources, currentUser);
   }
 
-  @RequestMapping(method = POST, value = "/resources",
-      consumes = "application/json;charset=UTF-8", params = "batch!=true")
+  @RequestMapping(method = POST, value = "/resources", params = "batch!=true",
+      consumes = "application/json;charset=UTF-8")
   @ResponseBody
   public Resource save(@RequestBody Resource resource,
                        @AuthenticationPrincipal User currentUser) {

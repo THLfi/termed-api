@@ -21,7 +21,7 @@ public class SchemeApiIntegrationTest extends BaseApiIntegrationTest {
     String schemeId = UUID.randomUUID().toString();
 
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body("{'id':'" + schemeId + "'}")
         .when()
@@ -39,7 +39,7 @@ public class SchemeApiIntegrationTest extends BaseApiIntegrationTest {
     skosScheme.addProperty("id", schemeId);
 
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body(skosScheme.toString())
         .when()
@@ -50,7 +50,8 @@ public class SchemeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // get the persisted scheme and compare to original allowing extra fields such as timestamps
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json")
         .when()
         .get("/api/schemes/" + schemeId)
         .then()

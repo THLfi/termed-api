@@ -30,7 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 /**
  * SchemeService published as a JSON/REST service.
  */
-@RequestMapping(value = "/api/schemes", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api/schemes")
 public class SchemeController {
 
   private Service<UUID, Scheme> schemeService;
@@ -45,14 +45,15 @@ public class SchemeController {
     return schemeService.get(user);
   }
 
-  @RequestMapping(method = GET, value = "/{schemeId}")
+  @RequestMapping(method = GET, value = "/{schemeId}", produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Scheme get(@PathVariable("schemeId") UUID schemeId,
                     @AuthenticationPrincipal User user) {
     return schemeService.get(schemeId, user);
   }
 
-  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Class getClass(@PathVariable("schemeId") UUID schemeId,
                         @PathVariable("classId") String classId,
@@ -61,7 +62,8 @@ public class SchemeController {
     return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId));
   }
 
-  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/textAttributes")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/textAttributes",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<TextAttribute> getTextAttributes(@PathVariable("schemeId") UUID schemeId,
                                                @PathVariable("classId") String classId,
@@ -70,7 +72,8 @@ public class SchemeController {
     return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId)).getTextAttributes();
   }
 
-  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/referenceAttributes")
+  @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/referenceAttributes",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<ReferenceAttribute> getReferenceAttributes(@PathVariable("schemeId") UUID schemeId,
                                                          @PathVariable("classId") String classId,
@@ -80,7 +83,8 @@ public class SchemeController {
         .getReferenceAttributes();
   }
 
-  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8")
+  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8",
+      produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Scheme save(@RequestBody Scheme scheme,
                      @AuthenticationPrincipal User user) {

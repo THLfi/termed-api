@@ -19,7 +19,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-@RequestMapping(value = "/api/properties", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api/properties")
 public class PropertyController {
 
   private Service<String, Property> propertyService;
@@ -28,25 +28,25 @@ public class PropertyController {
     this.propertyService = propertyService;
   }
 
-  @RequestMapping(method = GET)
+  @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Property> get(@AuthenticationPrincipal User user) {
     return propertyService.get(user);
   }
 
-  @RequestMapping(method = GET, value = "/{id}")
+  @RequestMapping(method = GET, value = "/{id}", produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Property get(@PathVariable("id") String id, @AuthenticationPrincipal User user) {
     return propertyService.get(id, user);
   }
 
-  @RequestMapping(method = POST)
+  @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8")
   @ResponseStatus(NO_CONTENT)
   public void save(@RequestBody Property property, @AuthenticationPrincipal User currentUser) {
     propertyService.save(property, currentUser);
   }
 
-  @RequestMapping(method = PUT, value = "/{id}")
+  @RequestMapping(method = PUT, value = "/{id}", consumes = "application/json;charset=UTF-8")
   @ResponseStatus(NO_CONTENT)
   public void save(@PathVariable("id") String id,
                    @RequestBody Property property,

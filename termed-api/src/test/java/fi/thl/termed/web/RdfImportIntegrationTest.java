@@ -27,7 +27,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save a new skos meta scheme
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body(skosScheme.toString())
         .when()
@@ -38,7 +38,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save the rdf skos vocabulary, saves only properties defined on skos.json
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/rdf+xml")
         .body(exampleVocabulary)
         .when()

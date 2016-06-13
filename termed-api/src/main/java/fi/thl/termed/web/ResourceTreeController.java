@@ -21,7 +21,7 @@ import fi.thl.termed.exchange.Exporter;
 import static java.lang.String.format;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@RequestMapping(value = "/api/schemes/{schemeId}/trees", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/api/schemes/{schemeId}/trees")
 public class ResourceTreeController {
 
   private Exporter<ResourceId, Resource, List<Resource>> resourceTreeExporter;
@@ -31,7 +31,7 @@ public class ResourceTreeController {
     this.resourceTreeExporter = resourceTreeExporter;
   }
 
-  @RequestMapping(method = GET)
+  @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> getTrees(
       @PathVariable("schemeId") UUID schemeId,

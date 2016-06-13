@@ -24,7 +24,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save scheme
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body("{'id':'" + schemeId + "','classes':[{'id':'" + classId + "'}]}")
         .when()
@@ -35,7 +35,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save one resource
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body("{'id':'" + resourceId + "'}")
         .when()
@@ -46,7 +46,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // get one resource
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .when()
         .get("/api/schemes/" + schemeId + "/classes/" + classId + "/resources/" + resourceId)
@@ -66,7 +66,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save scheme
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body(scheme.toString())
         .when()
@@ -77,7 +77,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save vocabulary data
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .body(data.toString())
         .when()
@@ -87,7 +87,7 @@ public class ResourceApiIntegrationTest extends BaseApiIntegrationTest {
 
     // check that we get the same vocabulary information back (bypass index as its built async)
     given()
-        .auth().basic(username, password)
+        .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .when()
         .get("/api/schemes/" + schemeId + "/classes/Concept/resources?bypassIndex=true")

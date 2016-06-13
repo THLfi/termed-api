@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 import java.util.List;
@@ -62,6 +64,7 @@ import fi.thl.termed.service.Service;
 import fi.thl.termed.service.impl.PropertyServiceImpl;
 import fi.thl.termed.service.impl.ResourceServiceImpl;
 import fi.thl.termed.service.impl.SchemeServiceImpl;
+import fi.thl.termed.service.impl.UserServiceImpl;
 import fi.thl.termed.util.DateTypeAdapter;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapTypeAdapterFactory;
@@ -73,6 +76,7 @@ import fi.thl.termed.web.ResourceContextJsTreeController;
 import fi.thl.termed.web.ResourceController;
 import fi.thl.termed.web.ResourceTreeController;
 import fi.thl.termed.web.SchemeController;
+import fi.thl.termed.web.UserController;
 
 @Configuration
 public class ApplicationBeans {
@@ -85,6 +89,11 @@ public class ApplicationBeans {
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
         .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
         .create();
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 
   // Controllers
@@ -121,6 +130,12 @@ public class ApplicationBeans {
     return new PropertyController(propertyService);
   }
 
+  @Bean
+  public UserController userController(Service<String, User> userService,
+                                       PasswordEncoder passwordEncoder) {
+    return new UserController(userService, passwordEncoder);
+  }
+
   // Exporters
 
   @Bean
@@ -143,6 +158,12 @@ public class ApplicationBeans {
   }
 
   // Services
+
+  @Bean
+  public Service<String, User> userService(
+      Repository<String, User> userRepository) {
+    return new UserServiceImpl(userRepository);
+  }
 
   @Bean
   public Service<String, Property> propertyService(
@@ -233,8 +254,6 @@ public class ApplicationBeans {
                                            textAttributePropertyValueDao);
   }
 
-  // DAOs
-
   @Bean
   public AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
@@ -260,6 +279,8 @@ public class ApplicationBeans {
                                       classDao,
                                       classPropertyValueDao);
   }
+
+  // DAOs
 
   @Bean
   public Dao<String, Property> propertyDao(DataSource dataSource) {
