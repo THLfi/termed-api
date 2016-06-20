@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import fi.thl.termed.dao.Dao;
-import fi.thl.termed.domain.Class;
-import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
@@ -47,10 +45,7 @@ public class ResourceServiceImpl
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private Repository<UUID, Scheme> schemeRepository;
-  private Repository<ClassId, Class> classRepository;
   private Repository<ResourceId, Resource> resourceRepository;
-
   private Index<ResourceId, Resource> resourceIndex;
 
   private Dao<UUID, Scheme> schemeDao;
@@ -58,15 +53,11 @@ public class ResourceServiceImpl
   private Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
 
   public ResourceServiceImpl(
-      Repository<UUID, Scheme> schemeRepository,
-      Repository<ClassId, Class> classRepository,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
       Dao<UUID, Scheme> schemeDao,
       Dao<ResourceId, Resource> resourceDao,
       Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
-    this.schemeRepository = schemeRepository;
-    this.classRepository = classRepository;
     this.resourceRepository = resourceRepository;
     this.resourceIndex = resourceIndex;
     this.schemeDao = schemeDao;

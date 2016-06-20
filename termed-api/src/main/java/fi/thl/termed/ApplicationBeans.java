@@ -185,16 +185,12 @@ public class ApplicationBeans {
 
   @Bean
   public Service<ResourceId, Resource> resourceService(
-      Repository<UUID, Scheme> schemeRepository,
-      Repository<ClassId, Class> classRepository,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
       Dao<UUID, Scheme> schemeDao,
       Dao<ResourceId, Resource> resourceDao,
       Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
-    return new ResourceServiceImpl(schemeRepository,
-                                   classRepository,
-                                   resourceRepository,
+    return new ResourceServiceImpl(resourceRepository,
                                    resourceIndex,
                                    schemeDao,
                                    resourceDao,
