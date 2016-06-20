@@ -1,4 +1,4 @@
-package fi.thl.termed.exchange.impl;
+package fi.thl.termed.exchange.tree;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -13,6 +13,7 @@ import java.util.Map;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.exchange.AbstractExporter;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.util.GraphUtils;
 import fi.thl.termed.util.Tree;

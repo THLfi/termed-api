@@ -1,4 +1,4 @@
-package fi.thl.termed.exchange.impl;
+package fi.thl.termed.exchange.rdf;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;

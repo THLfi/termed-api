@@ -1,14 +1,14 @@
-package fi.thl.termed.exchange.impl;
-
-import com.google.common.base.Preconditions;
+package fi.thl.termed.exchange;
 
 import java.io.Serializable;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.exchange.Exchange;
 import fi.thl.termed.service.Service;
 
+/**
+ * Abstract Exchange (Exporter and Importer)
+ */
 public abstract class AbstractExchange<K extends Serializable, V, E>
     extends AbstractExporter<K, V, E> implements Exchange<K, V, E> {
 
@@ -17,7 +17,7 @@ public abstract class AbstractExchange<K extends Serializable, V, E>
   }
 
   public void save(E value, Map<String, Object> args, User currentUser) {
-    Preconditions.checkArgument(ArgsValidator.validate(args, requiredArgs()));
+    check(args);
     doImport(value, args, currentUser);
   }
 

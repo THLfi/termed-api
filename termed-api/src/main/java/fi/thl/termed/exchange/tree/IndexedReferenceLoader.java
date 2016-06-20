@@ -1,4 +1,4 @@
-package fi.thl.termed.exchange.impl;
+package fi.thl.termed.exchange.tree;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;

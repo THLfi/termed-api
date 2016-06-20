@@ -1,4 +1,4 @@
-package fi.thl.termed.exchange.impl;
+package fi.thl.termed.exchange.rdf;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -10,6 +10,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.exchange.AbstractExchange;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.util.rdf.RdfModel;
 
