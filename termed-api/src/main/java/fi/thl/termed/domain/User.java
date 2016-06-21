@@ -1,7 +1,6 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class User implements UserDetails {
 
   private String username;
@@ -17,13 +18,9 @@ public class User implements UserDetails {
   private String appRole;
 
   public User(String username, String password, String appRole) {
-    Preconditions.checkNotNull(username);
-    Preconditions.checkNotNull(password);
-    Preconditions.checkNotNull(appRole);
-
-    this.username = username;
-    this.password = password;
-    this.appRole = appRole;
+    this.username = checkNotNull(username, "username can't be null in %s", getClass());
+    this.password = checkNotNull(password, "password can't be null in %s", getClass());
+    this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
   }
 
   @Override
