@@ -8,12 +8,14 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Date;
 import java.util.UUID;
 
 import fi.thl.termed.Application;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
@@ -44,13 +46,16 @@ public class ResourceIndexTest {
   @javax.annotation.Resource
   private Repository<String, User> userRepository;
 
+  @javax.annotation.Resource
+  private PasswordEncoder passwordEncoder;
+
   private User user;
   private Date date;
 
   @Before
   public void setUp() {
     date = new Date();
-    user = new User("test", new BCryptPasswordEncoder().encode(UUIDs.randomUUIDString()), "ADMIN");
+    user = new User("test", passwordEncoder.encode(UUIDs.randomUUIDString()), AppRole.ADMIN);
     userRepository.save(user);
   }
 

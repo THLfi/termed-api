@@ -80,7 +80,7 @@ public class TextAttribute implements PropertyEntity {
   }
 
   public String getRegex() {
-    return MoreObjects.firstNonNull(regex, RegularExpressions.MATCH_ALL);
+    return MoreObjects.firstNonNull(regex, RegularExpressions.ALL);
   }
 
   public void setRegex(String regex) {

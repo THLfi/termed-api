@@ -9,15 +9,15 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
-import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
@@ -39,8 +39,6 @@ public class ReferenceAttributeRepositoryImpl
   private ReferenceAttributeId getReferenceAttributeId(ReferenceAttribute referenceAttribute) {
     return new ReferenceAttributeId(new ClassId(referenceAttribute.getDomainSchemeId(),
                                                 referenceAttribute.getDomainId()),
-                                    new ClassId(referenceAttribute.getRangeSchemeId(),
-                                                referenceAttribute.getRangeId()),
                                     referenceAttribute.getId());
   }
 

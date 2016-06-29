@@ -28,14 +28,11 @@ public class JdbcReferenceAttributePropertyValueDao
   public void insert(PropertyValueId<ReferenceAttributeId> id, LangValue langValue) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    ClassId referenceAttributeRangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "insert into reference_attribute_property_value (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "insert into reference_attribute_property_value (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
-        referenceAttributeRangeId.getSchemeId(),
-        referenceAttributeRangeId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex(),
@@ -47,16 +44,13 @@ public class JdbcReferenceAttributePropertyValueDao
   public void update(PropertyValueId<ReferenceAttributeId> id, LangValue langValue) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    ClassId referenceAttributeRangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "update reference_attribute_property_value set lang = ?, value = ? where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_range_scheme_id = ? and reference_attribute_range_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "update reference_attribute_property_value set lang = ?, value = ? where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
-        referenceAttributeRangeId.getSchemeId(),
-        referenceAttributeRangeId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex());
@@ -66,14 +60,11 @@ public class JdbcReferenceAttributePropertyValueDao
   public void delete(PropertyValueId<ReferenceAttributeId> id) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    ClassId referenceAttributeRangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "delete from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_range_scheme_id = ? and reference_attribute_range_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "delete from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
-        referenceAttributeRangeId.getSchemeId(),
-        referenceAttributeRangeId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex());
@@ -99,15 +90,12 @@ public class JdbcReferenceAttributePropertyValueDao
   public boolean exists(PropertyValueId<ReferenceAttributeId> id) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    ClassId referenceAttributeRangeId = referenceAttributeId.getRangeId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_range_scheme_id = ? and reference_attribute_range_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "select count(*) from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
-        referenceAttributeRangeId.getSchemeId(),
-        referenceAttributeRangeId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex()) > 0;
@@ -117,15 +105,12 @@ public class JdbcReferenceAttributePropertyValueDao
   protected <E> E get(PropertyValueId<ReferenceAttributeId> id, RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    ClassId referenceAttributeRangeId = referenceAttributeId.getRangeId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_range_scheme_id = ? and reference_attribute_range_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "select * from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
-        referenceAttributeRangeId.getSchemeId(),
-        referenceAttributeRangeId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
         id.getIndex()), null);
@@ -141,12 +126,8 @@ public class JdbcReferenceAttributePropertyValueDao
             new ClassId(UUIDs.fromString(rs.getString("reference_attribute_scheme_id")),
                         rs.getString("reference_attribute_domain_id"));
 
-        ClassId rangeId =
-            new ClassId(UUIDs.fromString(rs.getString("reference_attribute_range_scheme_id")),
-                        rs.getString("reference_attribute_range_id"));
-
         ReferenceAttributeId referenceAttributeId =
-            new ReferenceAttributeId(domainId, rangeId, rs.getString("reference_attribute_id"));
+            new ReferenceAttributeId(domainId, rs.getString("reference_attribute_id"));
 
         return new PropertyValueId<ReferenceAttributeId>(
             referenceAttributeId,

@@ -31,6 +31,11 @@ public class Class implements PropertyEntity {
     this.id = id;
   }
 
+  public Class(ClassId classId) {
+    this.id = classId.getId();
+    this.scheme = new Scheme(classId.getSchemeId());
+  }
+
   public Class(String id, String uri) {
     this.id = id;
     this.uri = uri;

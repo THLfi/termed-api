@@ -16,7 +16,7 @@ public class StrictLangValue {
   private final String regex;
 
   public StrictLangValue(String lang, String value) {
-    this(lang, value, RegularExpressions.MATCH_ALL);
+    this(lang, value, RegularExpressions.ALL);
   }
 
   public StrictLangValue(String lang, String value, String regex) {

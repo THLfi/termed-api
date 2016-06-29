@@ -4,6 +4,7 @@ import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
 
@@ -29,11 +30,11 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
   public void addTestAdminAndSuperuser() {
     userRepository.save(new User(testAdminUsername,
                                  passwordEncoder.encode(testAdminPassword),
-                                 "ADMIN"));
+                                 AppRole.ADMIN));
 
     userRepository.save(new User(testSuperuserUsername,
                                  passwordEncoder.encode(testSuperuserPassword),
-                                 "SUPERUSER"));
+                                 AppRole.SUPERUSER));
   }
 
   @Test

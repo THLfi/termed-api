@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Date;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.thl.termed.Application;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Resource;
@@ -41,6 +42,9 @@ public class ResourceRepositoryTest {
   @javax.annotation.Resource
   private Repository<String, User> userRepository;
 
+  @javax.annotation.Resource
+  private PasswordEncoder passwordEncoder;
+
   private Scheme personScheme;
   private Class personClass;
   private Class groupClass;
@@ -68,7 +72,7 @@ public class ResourceRepositoryTest {
     schemeRepository.save(personScheme);
 
     date = new Date();
-    user = new User("test", new BCryptPasswordEncoder().encode(UUIDs.randomUUIDString()), "ADMIN");
+    user = new User("test", passwordEncoder.encode(UUIDs.randomUUIDString()), AppRole.ADMIN);
     userRepository.save(user);
   }
 

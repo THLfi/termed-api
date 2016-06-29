@@ -11,26 +11,19 @@ public class ReferenceAttributeId implements Serializable {
 
   private final ClassId domainId;
 
-  private final ClassId rangeId;
-
   private final String id;
 
   public ReferenceAttributeId(ReferenceAttribute attribute) {
-    this(new ClassId(attribute.getDomain()), new ClassId(attribute.getRange()), attribute.getId());
+    this(new ClassId(attribute.getDomain()), attribute.getId());
   }
 
-  public ReferenceAttributeId(ClassId domainId, ClassId rangeId, String id) {
+  public ReferenceAttributeId(ClassId domainId, String id) {
     this.domainId = checkNotNull(domainId, "domainId can't be null in %s", getClass());
-    this.rangeId = checkNotNull(rangeId, "rangeId can't be null in %s", getClass());
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
   }
 
   public ClassId getDomainId() {
     return domainId;
-  }
-
-  public ClassId getRangeId() {
-    return rangeId;
   }
 
   public String getId() {
@@ -47,20 +40,18 @@ public class ReferenceAttributeId implements Serializable {
     }
     ReferenceAttributeId that = (ReferenceAttributeId) o;
     return Objects.equal(domainId, that.domainId) &&
-           Objects.equal(rangeId, that.rangeId) &&
            Objects.equal(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(domainId, rangeId, id);
+    return Objects.hashCode(domainId, id);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("domainId", domainId)
-        .add("rangeId", rangeId)
         .add("id", id)
         .toString();
   }

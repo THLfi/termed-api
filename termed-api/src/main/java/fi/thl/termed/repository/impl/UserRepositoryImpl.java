@@ -1,25 +1,33 @@
 package fi.thl.termed.repository.impl;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Function;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
-import javax.sql.DataSource;
-
+import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
 
 public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
-  private JdbcTemplate jdbcTemplate;
+  private Dao<String, User> userDao;
+  private Dao<UserSchemeRoleId, Void> userSchemeRoleDao;
+  private Function<User, User> addSchemeRoles;
 
-  public UserRepositoryImpl(DataSource dataSource) {
-    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  public UserRepositoryImpl(Dao<String, User> userDao,
+                            Dao<UserSchemeRoleId, Void> userSchemeRoleDao) {
+    this.userDao = userDao;
+    this.userSchemeRoleDao = userSchemeRoleDao;
+    this.addSchemeRoles = new AddSchemeRoles();
   }
 
   @Override
@@ -29,14 +37,29 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   @Override
   protected void insert(String username, User user) {
-    jdbcTemplate.update("insert into users (username, password, app_role) values (?, ?, ?)",
-                        username, user.getPassword(), user.getAppRole());
+    userDao.insert(username, user);
+
+    for (SchemeRole schemeRole : user.getSchemeRoles()) {
+      userSchemeRoleDao.insert(new UserSchemeRoleId(
+          username, schemeRole.getSchemeId(), schemeRole.getRole()), null);
+    }
   }
 
   @Override
   protected void update(String username, User newUser, User oldUser) {
-    jdbcTemplate.update("update users set password = ?, app_role = ? where username = ?",
-                        newUser.getPassword(), newUser.getAppRole(), username);
+    userDao.update(username, newUser);
+
+    Set<SchemeRole> newRoles = ImmutableSet.copyOf(newUser.getSchemeRoles());
+    Set<SchemeRole> oldRoles = ImmutableSet.copyOf(oldUser.getSchemeRoles());
+
+    for (SchemeRole removedRole : Sets.difference(oldRoles, newRoles)) {
+      userSchemeRoleDao.delete(new UserSchemeRoleId(
+          username, removedRole.getSchemeId(), removedRole.getRole()));
+    }
+    for (SchemeRole addedRole : Sets.difference(newRoles, oldRoles)) {
+      userSchemeRoleDao.insert(new UserSchemeRoleId(
+          username, addedRole.getSchemeId(), addedRole.getRole()), null);
+    }
   }
 
   @Override
@@ -46,39 +69,59 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   @Override
   public void delete(String username) {
-    jdbcTemplate.update("delete from users where username = ?", username);
+    userDao.delete(username);
   }
 
   @Override
   public boolean exists(String username) {
-    return jdbcTemplate.queryForObject("select count(*) from users where username = ?",
-                                       Long.class, username) > 0;
+    return userDao.exists(username);
   }
 
   @Override
   public List<User> get() {
-    return jdbcTemplate.query("select * from users", new UserRowMapper());
+    return Lists.transform(userDao.getValues(), addSchemeRoles);
   }
 
   @Override
   public List<User> get(Specification<String, User> specification) {
-    throw new UnsupportedOperationException();
+    return Lists.transform(userDao.getValues(specification), addSchemeRoles);
   }
 
   @Override
   public User get(String username) {
-    return Iterables.getFirst(jdbcTemplate.query("select * from users where username = ?",
-                                                 new UserRowMapper(), username), null);
+    return addSchemeRoles.apply(userDao.get(username));
   }
 
-  private class UserRowMapper implements RowMapper<User> {
+  /**
+   * Adds scheme roles to user object.
+   */
+  private class AddSchemeRoles implements Function<User, User> {
 
     @Override
-    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-      String username = rs.getString("username");
-      String password = rs.getString("password");
-      String appRole = rs.getString("app_role");
-      return new User(username, password, appRole);
+    public User apply(User user) {
+      user.setSchemeRoles(Lists.transform(
+          userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername())),
+          new ToSchemeRole(user.getUsername())));
+      return user;
+    }
+  }
+
+  /**
+   * Transforms user scheme role tuple to scheme role. Checks that username in the tuple matches to
+   * expected username.
+   */
+  private class ToSchemeRole implements Function<UserSchemeRoleId, SchemeRole> {
+
+    private String expectedUsername;
+
+    public ToSchemeRole(String expectedUsername) {
+      this.expectedUsername = expectedUsername;
+    }
+
+    @Override
+    public SchemeRole apply(UserSchemeRoleId id) {
+      Preconditions.checkArgument(Objects.equal(expectedUsername, id.getUsername()));
+      return new SchemeRole(id.getSchemeId(), id.getRole());
     }
   }
 

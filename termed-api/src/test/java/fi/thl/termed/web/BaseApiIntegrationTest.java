@@ -17,6 +17,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import javax.annotation.Resource;
 
 import fi.thl.termed.Application;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.util.UUIDs;
@@ -43,7 +44,8 @@ public abstract class BaseApiIntegrationTest {
     RestAssured.config = RestAssuredConfig.config().objectMapperConfig(
         new ObjectMapperConfig(ObjectMapperType.GSON));
 
-    userRepository.save(new User(testUsername, passwordEncoder.encode(testPassword), "ADMIN"));
+    userRepository.save(
+        new User(testUsername, passwordEncoder.encode(testPassword), AppRole.ADMIN));
   }
 
 }

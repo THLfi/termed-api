@@ -10,6 +10,7 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
@@ -17,17 +18,15 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
-import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
+import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
+import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Maps.difference;
 
 public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
@@ -285,15 +284,8 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
     }
 
     @Override
-    public Map.Entry<ReferenceAttributeId, ReferenceAttribute> apply(
-        ReferenceAttribute input) {
-
-      ClassId rangeId = new ClassId(
-          firstNonNull(input.getRangeSchemeId(), domainId.getSchemeId()),
-          firstNonNull(input.getRangeId(), domainId.getId()));
-
-      return MapUtils.simpleEntry(new ReferenceAttributeId(
-          domainId, rangeId, input.getId()), input);
+    public Map.Entry<ReferenceAttributeId, ReferenceAttribute> apply(ReferenceAttribute input) {
+      return MapUtils.simpleEntry(new ReferenceAttributeId(domainId, input.getId()), input);
     }
   }
 

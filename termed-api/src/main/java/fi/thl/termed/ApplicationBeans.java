@@ -29,6 +29,8 @@ import fi.thl.termed.dao.jdbc.JdbcSchemeDao;
 import fi.thl.termed.dao.jdbc.JdbcSchemePropertyValueDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributeDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePropertyValueDao;
+import fi.thl.termed.dao.jdbc.JdbcUserDao;
+import fi.thl.termed.dao.jdbc.JdbcUserSchemeRoleDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.JsTree;
@@ -43,6 +45,7 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.exchange.Exchange;
 import fi.thl.termed.exchange.Exporter;
 import fi.thl.termed.exchange.rdf.RdfModelExchange;
@@ -176,10 +179,12 @@ public class ApplicationBeans {
       Repository<UUID, Scheme> schemeRepository,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
+      Dao<UUID, Scheme> schemeDao,
       Dao<ResourceId, Resource> resourceDao) {
     return new SchemeServiceImpl(schemeRepository,
                                  resourceRepository,
                                  resourceIndex,
+                                 schemeDao,
                                  resourceDao);
   }
 
@@ -208,8 +213,10 @@ public class ApplicationBeans {
   // Repositories
 
   @Bean
-  public Repository<String, User> userRepository(DataSource dataSource) {
-    return new UserRepositoryImpl(dataSource);
+  public Repository<String, User> userRepository(
+      Dao<String, User> userDao,
+      Dao<UserSchemeRoleId, Void> userSchemeRoleDao) {
+    return new UserRepositoryImpl(userDao, userSchemeRoleDao);
   }
 
   @Bean
@@ -277,6 +284,16 @@ public class ApplicationBeans {
   }
 
   // DAOs
+
+  @Bean
+  public Dao<String, User> userDao(DataSource dataSource) {
+    return new JdbcUserDao(dataSource);
+  }
+
+  @Bean
+  public Dao<UserSchemeRoleId, Void> userSchemeRoleDao(DataSource dataSource) {
+    return new JdbcUserSchemeRoleDao(dataSource);
+  }
 
   @Bean
   public Dao<String, Property> propertyDao(DataSource dataSource) {

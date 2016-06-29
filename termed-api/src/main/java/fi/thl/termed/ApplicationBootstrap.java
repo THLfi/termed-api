@@ -16,6 +16,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
@@ -48,7 +49,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private void saveDefaultUser() {
     if (userRepository.get().isEmpty()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
-      userRepository.save(new User("admin", passwordEncoder.encode(password), "ADMIN"));
+      userRepository.save(new User("admin", passwordEncoder.encode(password), AppRole.ADMIN));
       log.info("Created new admin user with password: {}", password);
     }
   }

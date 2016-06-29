@@ -24,17 +24,14 @@ public class ReferenceAttributePropertiesByAttributeId
 
   @Override
   public String sqlQueryTemplate() {
-    return "reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_range_scheme_id = ? and reference_attribute_range_id = ? and reference_attribute_id = ?";
+    return "reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ?";
   }
 
   @Override
   public Object[] sqlQueryParameters() {
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
     return new Object[]{domainId.getSchemeId(),
                         domainId.getId(),
-                        rangeId.getSchemeId(),
-                        rangeId.getId(),
                         referenceAttributeId.getId()};
   }
 

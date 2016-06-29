@@ -30,16 +30,15 @@ public class JdbcReferenceAttributeDao
                      ReferenceAttribute referenceAttribute) {
 
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "insert into reference_attribute (scheme_id, domain_id, range_scheme_id, range_id, id, uri, index) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into reference_attribute (scheme_id, domain_id, id, uri, range_scheme_id, range_id, index) values (?, ?, ?, ?, ?, ?, ?)",
         domainId.getSchemeId(),
         domainId.getId(),
-        rangeId.getSchemeId(),
-        rangeId.getId(),
         referenceAttributeId.getId(),
         referenceAttribute.getUri(),
+        referenceAttribute.getRangeSchemeId(),
+        referenceAttribute.getRangeId(),
         referenceAttribute.getIndex());
   }
 
@@ -48,30 +47,26 @@ public class JdbcReferenceAttributeDao
                      ReferenceAttribute referenceAttribute) {
 
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "update reference_attribute set uri = ?, index = ? where scheme_id = ? and domain_id = ? and range_scheme_id = ? and range_id = ? and id = ?",
+        "update reference_attribute set uri = ?, index = ?, range_scheme_id = ?, range_id = ? where scheme_id = ? and domain_id = ? and and id = ?",
         referenceAttribute.getUri(),
+        referenceAttribute.getRangeSchemeId(),
+        referenceAttribute.getRangeId(),
         referenceAttribute.getIndex(),
         domainId.getSchemeId(),
         domainId.getId(),
-        rangeId.getSchemeId(),
-        rangeId.getId(),
         referenceAttributeId.getId());
   }
 
   @Override
   public void delete(ReferenceAttributeId referenceAttributeId) {
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
 
     jdbcTemplate.update(
-        "delete from reference_attribute where scheme_id = ? and domain_id = ? and range_scheme_id = ? and range_id = ? and id = ?",
+        "delete from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
         domainId.getSchemeId(),
         domainId.getId(),
-        rangeId.getSchemeId(),
-        rangeId.getId(),
         referenceAttributeId.getId());
   }
 
@@ -93,30 +88,24 @@ public class JdbcReferenceAttributeDao
   @Override
   public boolean exists(ReferenceAttributeId referenceAttributeId) {
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute where scheme_id = ? and domain_id = ? and range_scheme_id = ? and range_id = ? and id = ?",
+        "select count(*) from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
         Long.class,
         domainId.getSchemeId(),
         domainId.getId(),
-        rangeId.getSchemeId(),
-        rangeId.getId(),
         referenceAttributeId.getId()) > 0;
   }
 
   @Override
   protected <E> E get(ReferenceAttributeId referenceAttributeId, RowMapper<E> mapper) {
     ClassId domainId = referenceAttributeId.getDomainId();
-    ClassId rangeId = referenceAttributeId.getRangeId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from reference_attribute where scheme_id = ? and domain_id = ? and range_scheme_id = ? and range_id = ? and id = ?",
+        "select * from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
         mapper,
         domainId.getSchemeId(),
         domainId.getId(),
-        rangeId.getSchemeId(),
-        rangeId.getId(),
         referenceAttributeId.getId()), null);
   }
 
@@ -126,9 +115,7 @@ public class JdbcReferenceAttributeDao
       public ReferenceAttributeId mapRow(ResultSet rs, int rowNum) throws SQLException {
         ClassId domainId = new ClassId(UUIDs.fromString(rs.getString("scheme_id")),
                                        rs.getString("domain_id"));
-        ClassId rangeId = new ClassId(UUIDs.fromString(rs.getString("range_scheme_id")),
-                                      rs.getString("range_id"));
-        return new ReferenceAttributeId(domainId, rangeId, rs.getString("id"));
+        return new ReferenceAttributeId(domainId, rs.getString("id"));
       }
     };
   }

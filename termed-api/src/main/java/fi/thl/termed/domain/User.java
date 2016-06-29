@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+
+import fi.thl.termed.util.ListUtils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -15,9 +18,11 @@ public class User implements UserDetails {
 
   private String username;
   private String password;
-  private String appRole;
 
-  public User(String username, String password, String appRole) {
+  private AppRole appRole;
+  private List<SchemeRole> schemeRoles;
+
+  public User(String username, String password, AppRole appRole) {
     this.username = checkNotNull(username, "username can't be null in %s", getClass());
     this.password = checkNotNull(password, "password can't be null in %s", getClass());
     this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
@@ -25,7 +30,7 @@ public class User implements UserDetails {
 
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
-    return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(appRole));
+    return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(appRole.toString()));
   }
 
   @Override
@@ -38,8 +43,16 @@ public class User implements UserDetails {
     return password;
   }
 
-  public String getAppRole() {
+  public AppRole getAppRole() {
     return appRole;
+  }
+
+  public List<SchemeRole> getSchemeRoles() {
+    return ListUtils.nullToEmpty(schemeRoles);
+  }
+
+  public void setSchemeRoles(List<SchemeRole> schemeRoles) {
+    this.schemeRoles = schemeRoles;
   }
 
   @Override

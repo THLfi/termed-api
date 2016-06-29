@@ -44,7 +44,7 @@ public class ResourceTextAttributeValueDtoToModel
                      new StrictLangValue(value.getLang(),
                                          value.getValue(),
                                          firstNonNull(value.getRegex(),
-                                                      RegularExpressions.MATCH_ALL)));
+                                                      RegularExpressions.ALL)));
         }
       }
     }

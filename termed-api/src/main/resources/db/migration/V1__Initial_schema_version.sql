@@ -128,30 +128,29 @@ CREATE TABLE text_attribute_property_value (
 CREATE TABLE reference_attribute (
   scheme_id uuid,
   domain_id varchar(255),
-  range_scheme_id uuid,
-  range_id varchar(255),
   id varchar(255),
   uri varchar(2000),
+  range_scheme_id uuid NOT NULL,
+  range_id varchar(255) NOT NULL,
   index integer,
-  CONSTRAINT reference_attribute_pkey PRIMARY KEY (scheme_id, domain_id, range_scheme_id, range_id, id),
+  CONSTRAINT reference_attribute_pkey PRIMARY KEY (scheme_id, domain_id, id),
   CONSTRAINT reference_attribute_domain_fkey FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_uri_unique UNIQUE (scheme_id, domain_id, uri),
   CONSTRAINT reference_attribute_range_fkey FOREIGN KEY (range_scheme_id, range_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
-  CONSTRAINT reference_attribute_uri_unique UNIQUE (scheme_id, domain_id, range_scheme_id, range_id, uri),
+  CONSTRAINT reference_attribute_range_unique UNIQUE (scheme_id, domain_id, id, range_scheme_id, range_id),
   CONSTRAINT reference_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
 CREATE TABLE reference_attribute_property_value (
   reference_attribute_scheme_id uuid,
   reference_attribute_domain_id varchar(255),
-  reference_attribute_range_scheme_id uuid,
-  reference_attribute_range_id varchar(255),
   reference_attribute_id varchar(255),
   property_id varchar(255),
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT reference_attribute_property_value_pkey PRIMARY KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id, property_id, index),
-  CONSTRAINT reference_attribute_property_value_subject_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_range_scheme_id, reference_attribute_range_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, range_scheme_id, range_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_property_value_pkey PRIMARY KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id, property_id, index),
+  CONSTRAINT reference_attribute_property_value_subject_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, id) ON DELETE CASCADE,
   CONSTRAINT reference_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
   CONSTRAINT reference_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );

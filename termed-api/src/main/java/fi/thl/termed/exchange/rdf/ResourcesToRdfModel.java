@@ -79,7 +79,7 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
       for (Map.Entry<String, Resource> entry : resource.getReferences().entries()) {
         Resource value = entry.getValue();
         String attributeUri = getReferenceAttributeUri(
-            new ReferenceAttributeId(new ClassId(resource), new ClassId(value), entry.getKey()));
+            new ReferenceAttributeId(new ClassId(resource), entry.getKey()));
         rdfResource.addObject(attributeUri, getResourceUri(value));
       }
 
