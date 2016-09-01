@@ -28,13 +28,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RequestMapping(value = "/api/schemes/{schemeId}/resources")
-public class RdfController {
+public class ResourceRdfController {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private Exchange<ResourceId, Resource, RdfModel> rdfExchange;
 
-  public RdfController(Exchange<ResourceId, Resource, RdfModel> rdfExchange) {
+  public ResourceRdfController(Exchange<ResourceId, Resource, RdfModel> rdfExchange) {
     this.rdfExchange = rdfExchange;
   }
 

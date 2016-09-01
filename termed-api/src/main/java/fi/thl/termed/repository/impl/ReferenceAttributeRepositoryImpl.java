@@ -10,14 +10,19 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.dao.Dao;
-import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
+import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.ReferenceAttributePermissionsByReferenceAttributeId;
 import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
+import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
@@ -25,33 +30,43 @@ public class ReferenceAttributeRepositoryImpl
     extends AbstractRepository<ReferenceAttributeId, ReferenceAttribute> {
 
   private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
+  private Dao<ObjectRolePermission<ReferenceAttributeId>, Void> permissionDao;
   private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao;
-  private Function<ReferenceAttribute, ReferenceAttribute> addReferenceAttributeProperties;
+
+  private Function<ReferenceAttribute, ReferenceAttribute> populateAttribute;
 
   public ReferenceAttributeRepositoryImpl(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
+      Dao<ObjectRolePermission<ReferenceAttributeId>, Void> permissionDao,
       Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao) {
     this.referenceAttributeDao = referenceAttributeDao;
+    this.permissionDao = permissionDao;
     this.propertyValueDao = propertyValueDao;
-    this.addReferenceAttributeProperties = new AddReferenceAttributeProperties();
-  }
-
-  private ReferenceAttributeId getReferenceAttributeId(ReferenceAttribute referenceAttribute) {
-    return new ReferenceAttributeId(new ClassId(referenceAttribute.getDomainSchemeId(),
-                                                referenceAttribute.getDomainId()),
-                                    referenceAttribute.getId());
+    this.populateAttribute = FunctionUtils.pipe(new AddReferenceAttributePermissions(),
+                                                new AddReferenceAttributeProperties());
   }
 
   @Override
   public void save(ReferenceAttribute referenceAttribute) {
-    save(getReferenceAttributeId(referenceAttribute), referenceAttribute);
+    save(new ReferenceAttributeId(referenceAttribute), referenceAttribute);
   }
 
   @Override
   protected void insert(ReferenceAttributeId id, ReferenceAttribute referenceAttribute) {
     referenceAttributeDao.insert(id, referenceAttribute);
-    propertyValueDao.insert(PropertyValueDtoToModel
-                                .create(id).apply(referenceAttribute.getProperties()));
+
+    insertPermissions(id, referenceAttribute.getPermissions());
+    insertProperties(id, referenceAttribute.getProperties());
+  }
+
+  private void insertPermissions(ReferenceAttributeId attributeId,
+                                 Multimap<String, Permission> permissions) {
+    permissionDao.insert(RolePermissionsDtoToModel.create(attributeId).apply(permissions));
+  }
+
+  private void insertProperties(ReferenceAttributeId attributeId,
+                                Multimap<String, LangValue> properties) {
+    propertyValueDao.insert(PropertyValueDtoToModel.create(attributeId).apply(properties));
   }
 
   @Override
@@ -60,8 +75,25 @@ public class ReferenceAttributeRepositoryImpl
                         ReferenceAttribute oldReferenceAttribute) {
 
     referenceAttributeDao.update(id, newReferenceAttribute);
+    updatePermissions(id, newReferenceAttribute.getPermissions(),
+                      oldReferenceAttribute.getPermissions());
     updateProperties(id, newReferenceAttribute.getProperties(),
                      oldReferenceAttribute.getProperties());
+  }
+
+  private void updatePermissions(ReferenceAttributeId attrId,
+                                 Multimap<String, Permission> newPermissions,
+                                 Multimap<String, Permission> oldPermissions) {
+    Map<ObjectRolePermission<ReferenceAttributeId>, Void> newPermissionMap =
+        RolePermissionsDtoToModel.create(attrId).apply(newPermissions);
+    Map<ObjectRolePermission<ReferenceAttributeId>, Void> oldPermissionMap =
+        RolePermissionsDtoToModel.create(attrId).apply(oldPermissions);
+
+    MapDifference<ObjectRolePermission<ReferenceAttributeId>, Void> diff =
+        Maps.difference(newPermissionMap, oldPermissionMap);
+
+    permissionDao.insert(diff.entriesOnlyOnLeft());
+    permissionDao.delete(diff.entriesOnlyOnRight().keySet());
   }
 
   private void updateProperties(ReferenceAttributeId attributeId,
@@ -98,19 +130,33 @@ public class ReferenceAttributeRepositoryImpl
 
   @Override
   public List<ReferenceAttribute> get() {
-    return Lists.transform(referenceAttributeDao.getValues(), addReferenceAttributeProperties);
+    return Lists.transform(referenceAttributeDao.getValues(), populateAttribute);
   }
 
   @Override
   public List<ReferenceAttribute> get(
       Specification<ReferenceAttributeId, ReferenceAttribute> specification) {
-    return Lists
-        .transform(referenceAttributeDao.getValues(specification), addReferenceAttributeProperties);
+    return Lists.transform(referenceAttributeDao.getValues(specification), populateAttribute);
   }
 
   @Override
   public ReferenceAttribute get(ReferenceAttributeId id) {
-    return addReferenceAttributeProperties.apply(referenceAttributeDao.get(id));
+    return populateAttribute.apply(referenceAttributeDao.get(id));
+  }
+
+  /**
+   * Load and add permissions to a reference attribute.
+   */
+  private class AddReferenceAttributePermissions
+      implements Function<ReferenceAttribute, ReferenceAttribute> {
+
+    @Override
+    public ReferenceAttribute apply(ReferenceAttribute attribute) {
+      attribute.setPermissions(RolePermissionsModelToDto.<ReferenceAttributeId>create().apply(
+          permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
+              new ReferenceAttributeId(attribute)))));
+      return attribute;
+    }
   }
 
   /**
@@ -124,7 +170,7 @@ public class ReferenceAttributeRepositoryImpl
       referenceAttribute.setProperties(
           PropertyValueModelToDto.<ReferenceAttributeId>create().apply(propertyValueDao.getMap(
               new ReferenceAttributePropertiesByAttributeId(
-                  getReferenceAttributeId(referenceAttribute)))));
+                  new ReferenceAttributeId(referenceAttribute)))));
       return referenceAttribute;
     }
   }

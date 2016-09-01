@@ -12,15 +12,14 @@ import fi.thl.termed.util.MultimapUtils;
 public class ReferenceAttribute implements PropertyEntity {
 
   private String id;
-
   private String uri;
 
   private Integer index;
 
   private Class domain;
-
   private Class range;
 
+  private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
 
   public ReferenceAttribute(String id, String uri) {
@@ -28,13 +27,13 @@ public class ReferenceAttribute implements PropertyEntity {
     this.uri = uri;
   }
 
-  public ReferenceAttribute(String id, String uri, Class range) {
+  public ReferenceAttribute(Class range, String id, String uri) {
     this.id = id;
     this.uri = uri;
     this.range = range;
   }
 
-  public ReferenceAttribute(String id, Class range) {
+  public ReferenceAttribute(Class range, String id) {
     this.id = id;
     this.range = range;
   }
@@ -95,6 +94,14 @@ public class ReferenceAttribute implements PropertyEntity {
     return range != null ? range.getId() : null;
   }
 
+  public Multimap<String, Permission> getPermissions() {
+    return MultimapUtils.nullToEmpty(permissions);
+  }
+
+  public void setPermissions(Multimap<String, Permission> permissions) {
+    this.permissions = permissions;
+  }
+
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
@@ -111,6 +118,7 @@ public class ReferenceAttribute implements PropertyEntity {
         .add("index", index)
         .add("domainId", getDomainId())
         .add("rangeId", getRangeId())
+        .add("permissions", permissions)
         .add("properties", properties)
         .toString();
   }
@@ -129,12 +137,13 @@ public class ReferenceAttribute implements PropertyEntity {
            Objects.equal(index, that.index) &&
            Objects.equal(getDomainId(), that.getDomainId()) &&
            Objects.equal(getRangeId(), that.getRangeId()) &&
+           Objects.equal(permissions, that.permissions) &&
            Objects.equal(properties, that.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, getDomainId(), getRangeId(), properties);
+    return Objects.hashCode(id, uri, index, getDomainId(), getRangeId(), permissions, properties);
   }
 
 }

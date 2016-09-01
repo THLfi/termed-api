@@ -2,18 +2,17 @@ package fi.thl.termed.util;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 
 /**
  * Class to represent localized string with pattern.
  */
 public class StrictLangValue {
 
-  private final String lang;
+  private String lang;
 
-  private final String value;
+  private String value;
 
-  private final String regex;
+  private String regex;
 
   public StrictLangValue(String lang, String value) {
     this(lang, value, RegularExpressions.ALL);
@@ -26,15 +25,27 @@ public class StrictLangValue {
   }
 
   public String getLang() {
-    return Strings.nullToEmpty(lang);
+    return lang;
+  }
+
+  public void setLang(String lang) {
+    this.lang = lang;
   }
 
   public String getValue() {
     return value;
   }
 
+  public void setValue(String value) {
+    this.value = value;
+  }
+
   public String getRegex() {
     return regex;
+  }
+
+  public void setRegex(String regex) {
+    this.regex = regex;
   }
 
   @Override

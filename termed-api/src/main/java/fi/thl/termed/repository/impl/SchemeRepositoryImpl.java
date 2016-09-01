@@ -1,7 +1,6 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -11,39 +10,55 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.spesification.sql.ClassesBySchemeId;
-import fi.thl.termed.spesification.sql.SchemePropertiesBySchemeId;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
+import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
+import fi.thl.termed.repository.transform.SchemeRoleDtoToModel;
+import fi.thl.termed.repository.transform.SchemeRoleModelToDto;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.ClassesBySchemeId;
+import fi.thl.termed.spesification.sql.SchemePermissionsBySchemeId;
+import fi.thl.termed.spesification.sql.SchemePropertiesBySchemeId;
+import fi.thl.termed.spesification.sql.SchemeRolesBySchemeId;
+import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
-
-import static com.google.common.collect.Maps.difference;
 
 public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
   private Dao<UUID, Scheme> schemeDao;
+  private Dao<SchemeRole, Void> schemeRoleDao;
+  private Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao;
   private Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao;
 
   private AbstractRepository<ClassId, Class> classRepository;
 
-  private Function<Scheme, Scheme> addSchemeClasses;
-  private Function<Scheme, Scheme> addSchemeProperties;
+  private Function<Scheme, Scheme> populateScheme;
 
   public SchemeRepositoryImpl(Dao<UUID, Scheme> schemeDao,
+                              Dao<SchemeRole, Void> schemeRoleDao,
+                              Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao,
                               Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
                               AbstractRepository<ClassId, Class> classRepository) {
     this.schemeDao = schemeDao;
+    this.schemeRoleDao = schemeRoleDao;
+    this.schemePermissionDao = schemePermissionDao;
     this.schemePropertyValueDao = schemePropertyValueDao;
     this.classRepository = classRepository;
-    this.addSchemeClasses = new AddSchemeClasses();
-    this.addSchemeProperties = new AddSchemeProperties();
+    this.populateScheme = FunctionUtils.pipe(
+        new AddSchemeRoles(),
+        new AddSchemePermissions(),
+        new AddSchemeProperties(),
+        new AddSchemeClasses());
   }
 
   @Override
@@ -54,11 +69,28 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   @Override
   protected void insert(UUID id, Scheme scheme) {
     schemeDao.insert(id, scheme);
-    schemePropertyValueDao.insert(
-        PropertyValueDtoToModel.create(id).apply(scheme.getProperties()));
+    insertRoles(id, scheme.getRoles());
+    insertPermissions(id, scheme.getPermissions());
+    insertProperties(id, scheme.getProperties());
+    insertClasses(id, scheme.getClasses());
+  }
+
+  private void insertRoles(UUID schemeId, List<String> roles) {
+    schemeRoleDao.insert(SchemeRoleDtoToModel.create(schemeId).apply(roles));
+  }
+
+  private void insertPermissions(UUID schemeId, Multimap<String, Permission> permissions) {
+    schemePermissionDao.insert(RolePermissionsDtoToModel.create(schemeId).apply(permissions));
+  }
+
+  private void insertProperties(UUID schemeId, Multimap<String, LangValue> properties) {
+    schemePropertyValueDao.insert(PropertyValueDtoToModel.create(schemeId).apply(properties));
+  }
+
+  private void insertClasses(UUID schemeId, List<Class> classes) {
     classRepository.insert(
         MapUtils.newLinkedHashMap(Lists.transform(
-            addClassIndices(scheme.getClasses()), new ClassToIdEntry(id))));
+            addClassIndices(classes), new ClassToIdEntry(schemeId))));
   }
 
   private List<Class> addClassIndices(List<Class> classes) {
@@ -72,8 +104,36 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   @Override
   protected void update(UUID id, Scheme newScheme, Scheme oldScheme) {
     schemeDao.update(id, newScheme);
+    updateRoles(id, newScheme.getRoles(), oldScheme.getRoles());
+    updatePermissions(id, newScheme.getPermissions(), oldScheme.getPermissions());
     updateProperties(id, newScheme.getProperties(), oldScheme.getProperties());
     updateClasses(id, addClassIndices(newScheme.getClasses()), oldScheme.getClasses());
+  }
+
+  private void updateRoles(UUID schemeId, List<String> newRoles, List<String> oldRoles) {
+    Map<SchemeRole, Void> newRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(newRoles);
+    Map<SchemeRole, Void> oldRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(oldRoles);
+
+    MapDifference<SchemeRole, Void> diff = Maps.difference(newRolesMap, oldRolesMap);
+
+    schemeRoleDao.insert(diff.entriesOnlyOnLeft());
+    schemeRoleDao.delete(diff.entriesOnlyOnRight().keySet());
+  }
+
+  private void updatePermissions(UUID schemeId,
+                                 Multimap<String, Permission> newPermissions,
+                                 Multimap<String, Permission> oldPermissions) {
+
+    Map<ObjectRolePermission<UUID>, Void> newPermissionMap =
+        RolePermissionsDtoToModel.create(schemeId).apply(newPermissions);
+    Map<ObjectRolePermission<UUID>, Void> oldPermissionMap =
+        RolePermissionsDtoToModel.create(schemeId).apply(oldPermissions);
+
+    MapDifference<ObjectRolePermission<UUID>, Void> diff =
+        Maps.difference(newPermissionMap, oldPermissionMap);
+
+    schemePermissionDao.insert(diff.entriesOnlyOnLeft());
+    schemePermissionDao.delete(diff.entriesOnlyOnRight().keySet());
   }
 
   private void updateProperties(UUID schemeId,
@@ -99,7 +159,7 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
     Map<ClassId, Class> oldMappedClasses =
         MapUtils.newLinkedHashMap(Lists.transform(oldClasses, new ClassToIdEntry(schemeId)));
 
-    MapDifference<ClassId, Class> diff = difference(newMappedClasses, oldMappedClasses);
+    MapDifference<ClassId, Class> diff = Maps.difference(newMappedClasses, oldMappedClasses);
 
     classRepository.insert(diff.entriesOnlyOnLeft());
     classRepository.update(diff.entriesDiffering());
@@ -123,23 +183,39 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
   @Override
   public List<Scheme> get() {
-    return Lists.transform(schemeDao.getValues(), addSchemeProperties);
+    return Lists.transform(schemeDao.getValues(), new AddSchemeProperties());
   }
 
   @Override
   public List<Scheme> get(Specification<UUID, Scheme> specification) {
-    return Lists.transform(schemeDao.getValues(specification),
-                           Functions.compose(addSchemeClasses, addSchemeProperties));
+    return Lists.transform(schemeDao.getValues(specification), populateScheme);
   }
 
   @Override
   public Scheme get(UUID id) {
-    return addSchemeClasses.apply(addSchemeProperties.apply(schemeDao.get(id)));
+    return populateScheme.apply(schemeDao.get(id));
   }
 
-  /**
-   * Load and add properties to a scheme.
-   */
+  private class AddSchemeRoles implements Function<Scheme, Scheme> {
+
+    @Override
+    public Scheme apply(Scheme scheme) {
+      scheme.setRoles(SchemeRoleModelToDto.create().apply(schemeRoleDao.getMap(
+          new SchemeRolesBySchemeId(scheme.getId()))));
+      return scheme;
+    }
+  }
+
+  private class AddSchemePermissions implements Function<Scheme, Scheme> {
+
+    @Override
+    public Scheme apply(Scheme scheme) {
+      scheme.setPermissions(RolePermissionsModelToDto.<UUID>create().apply(
+          schemePermissionDao.getMap(new SchemePermissionsBySchemeId(scheme.getId()))));
+      return scheme;
+    }
+  }
+
   private class AddSchemeProperties implements Function<Scheme, Scheme> {
 
     @Override
@@ -151,9 +227,6 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
     }
   }
 
-  /**
-   * Load and add classes to a scheme.
-   */
   private class AddSchemeClasses implements Function<Scheme, Scheme> {
 
     @Override

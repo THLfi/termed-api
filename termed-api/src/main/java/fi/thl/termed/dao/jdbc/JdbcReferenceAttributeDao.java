@@ -49,7 +49,7 @@ public class JdbcReferenceAttributeDao
     ClassId domainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update reference_attribute set uri = ?, index = ?, range_scheme_id = ?, range_id = ? where scheme_id = ? and domain_id = ? and and id = ?",
+        "update reference_attribute set uri = ?, range_scheme_id = ?, range_id = ?, index = ? where scheme_id = ? and domain_id = ? and id = ?",
         referenceAttribute.getUri(),
         referenceAttribute.getRangeSchemeId(),
         referenceAttribute.getRangeId(),
@@ -64,7 +64,7 @@ public class JdbcReferenceAttributeDao
     ClassId domainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
+        "delete from reference_attribute where scheme_id = ? and domain_id = ? and id = ?",
         domainId.getSchemeId(),
         domainId.getId(),
         referenceAttributeId.getId());
@@ -90,7 +90,7 @@ public class JdbcReferenceAttributeDao
     ClassId domainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
+        "select count(*) from reference_attribute where scheme_id = ? and domain_id = ? and id = ?",
         Long.class,
         domainId.getSchemeId(),
         domainId.getId(),
@@ -102,7 +102,7 @@ public class JdbcReferenceAttributeDao
     ClassId domainId = referenceAttributeId.getDomainId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from reference_attribute where scheme_id = ? and domain_id = ? and and id = ?",
+        "select * from reference_attribute where scheme_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getSchemeId(),
         domainId.getId(),

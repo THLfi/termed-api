@@ -1,7 +1,6 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +8,6 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -22,7 +20,6 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.repository.Repository;
 
-import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -34,22 +31,21 @@ public class ClassRepositoryTest {
   private Repository<UUID, Scheme> schemeRepository;
 
   @Resource
-  private AbstractRepository<ClassId, Class> classRepository;
+  private Repository<ClassId, Class> classRepository;
 
   @Test
   public void shouldInsertClass() {
     Scheme testScheme = new Scheme(UUID.randomUUID());
     schemeRepository.save(testScheme);
 
-    Class testClass = new Class("TestClass1");
+    Class testClass = new Class(testScheme, "TestClass1");
     testClass.setTextAttributes(Lists.newArrayList(new TextAttribute("prefLabel"),
                                                    new TextAttribute("altLabel"),
                                                    new TextAttribute("description")));
     testClass.setReferenceAttributes(Lists.newArrayList(
-        new ReferenceAttribute("related", testClass)));
+        new ReferenceAttribute(testClass, "related")));
 
-    classRepository.insert(
-        singletonMap(new ClassId(testScheme.getId(), testClass.getId()), testClass));
+    classRepository.save(testClass);
 
     Class expectedClass = schemeRepository.get(testScheme.getId()).getClasses().get(0);
 
@@ -71,30 +67,25 @@ public class ClassRepositoryTest {
     Scheme testScheme = new Scheme(UUID.randomUUID());
     schemeRepository.save(testScheme);
 
-    Class testClass = new Class("TestClass2");
+    Class testClass = new Class(testScheme, "TestClass2");
     testClass.setTextAttributes(
         Lists.newArrayList(new TextAttribute("prefLabel"),
                            new TextAttribute("altLabel")));
     testClass.setReferenceAttributes(
-        Lists.newArrayList(new ReferenceAttribute("related", testClass),
-                           new ReferenceAttribute("broader", testClass)));
-    Map<ClassId, Class> classMap = singletonMap(
-        new ClassId(testScheme.getId(), testClass.getId()), testClass);
+        Lists.newArrayList(new ReferenceAttribute(testClass, "related"),
+                           new ReferenceAttribute(testClass, "broader")));
 
-    classRepository.insert(classMap);
+    classRepository.save(testClass);
 
-    Class updatedTestClass = new Class("TestClass2");
+    Class updatedTestClass = new Class(testScheme, "TestClass2");
     updatedTestClass.setTextAttributes(
         Lists.newArrayList(new TextAttribute("prefLabel"),
                            new TextAttribute("description")));
     updatedTestClass.setReferenceAttributes(
-        Lists.newArrayList(new ReferenceAttribute("related", testClass),
-                           new ReferenceAttribute("narrower", testClass)));
-    Map<ClassId, Class> updatedClassMap = singletonMap(
-        new ClassId(testScheme.getId(), testClass.getId()), updatedTestClass);
+        Lists.newArrayList(new ReferenceAttribute(testClass, "related"),
+                           new ReferenceAttribute(testClass, "narrower")));
 
-    classRepository.update(
-        Maps.difference(updatedClassMap, classMap).entriesDiffering());
+    classRepository.save(updatedTestClass);
 
     Class expectedClass = schemeRepository.get(testScheme.getId()).getClasses().get(0);
 

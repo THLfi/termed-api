@@ -14,11 +14,11 @@ import fi.thl.termed.util.MultimapUtils;
 public class Scheme implements PropertyEntity {
 
   private UUID id;
-
   private String code;
-
   private String uri;
 
+  private List<String> roles;
+  private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
 
   private List<Class> classes;
@@ -42,6 +42,8 @@ public class Scheme implements PropertyEntity {
     this.id = scheme.id;
     this.code = scheme.code;
     this.uri = scheme.uri;
+    this.roles = scheme.roles;
+    this.permissions = scheme.permissions;
     this.properties = scheme.properties;
     this.classes = scheme.classes;
   }
@@ -70,6 +72,22 @@ public class Scheme implements PropertyEntity {
     this.uri = uri;
   }
 
+  public List<String> getRoles() {
+    return ListUtils.nullToEmpty(roles);
+  }
+
+  public void setRoles(List<String> roles) {
+    this.roles = roles;
+  }
+
+  public Multimap<String, Permission> getPermissions() {
+    return MultimapUtils.nullToEmpty(permissions);
+  }
+
+  public void setPermissions(Multimap<String, Permission> permissions) {
+    this.permissions = permissions;
+  }
+
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
@@ -92,6 +110,8 @@ public class Scheme implements PropertyEntity {
         .add("id", id)
         .add("code", code)
         .add("uri", uri)
+        .add("roles", roles)
+        .add("permissions", permissions)
         .add("properties", properties)
         .add("classes", classes)
         .toString();
@@ -109,13 +129,15 @@ public class Scheme implements PropertyEntity {
     return Objects.equal(id, scheme.id) &&
            Objects.equal(code, scheme.code) &&
            Objects.equal(uri, scheme.uri) &&
+           Objects.equal(roles, scheme.roles) &&
+           Objects.equal(permissions, scheme.permissions) &&
            Objects.equal(properties, scheme.properties) &&
            Objects.equal(classes, scheme.classes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, code, uri, properties, classes);
+    return Objects.hashCode(id, code, uri, roles, permissions, properties, classes);
   }
 
 }

@@ -54,12 +54,6 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     given()
         .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
-        .when().get("/api/users")
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
-
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
         .when().delete("/api/users/{username}", exampleUserUsername)
         .then().statusCode(HttpStatus.SC_FORBIDDEN);
   }

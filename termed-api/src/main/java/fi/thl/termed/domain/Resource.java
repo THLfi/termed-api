@@ -28,6 +28,7 @@ public class Resource {
   private Scheme scheme;
   private Class type;
 
+  private Multimap<String, Permission> permissions;
   private Multimap<String, StrictLangValue> properties;
   private Multimap<String, Resource> references;
   private Multimap<String, Resource> referrers;
@@ -61,6 +62,7 @@ public class Resource {
     this.lastModifiedDate = resource.lastModifiedDate;
     this.scheme = resource.scheme;
     this.type = resource.type;
+    this.permissions = resource.permissions;
     this.properties = resource.properties;
     this.references = resource.references;
     this.referrers = resource.referrers;
@@ -150,6 +152,14 @@ public class Resource {
 
   public String getTypeId() {
     return type != null ? type.getId() : null;
+  }
+
+  public Multimap<String, Permission> getPermissions() {
+    return MultimapUtils.nullToEmpty(permissions);
+  }
+
+  public void setPermissions(Multimap<String, Permission> permissions) {
+    this.permissions = permissions;
   }
 
   public Multimap<String, StrictLangValue> getProperties() {
@@ -242,6 +252,7 @@ public class Resource {
         .add("lastModifiedDate", lastModifiedDate)
         .add("schemeId", getSchemeId())
         .add("typeId", getTypeId())
+        .add("permissions", permissions)
         .add("properties", properties)
         .add("references", getReferenceIds())
         .toString();
@@ -265,6 +276,7 @@ public class Resource {
            Objects.equal(lastModifiedDate, resource.lastModifiedDate) &&
            Objects.equal(getSchemeId(), resource.getSchemeId()) &&
            Objects.equal(getTypeId(), resource.getTypeId()) &&
+           Objects.equal(permissions, resource.permissions) &&
            Objects.equal(properties, resource.properties) &&
            Objects.equal(getReferenceIds(), resource.getReferenceIds());
   }
@@ -280,6 +292,7 @@ public class Resource {
                             lastModifiedDate,
                             getSchemeId(),
                             getTypeId(),
+                            permissions,
                             properties,
                             getReferenceIds());
   }

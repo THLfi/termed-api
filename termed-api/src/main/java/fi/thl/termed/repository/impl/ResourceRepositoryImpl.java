@@ -23,8 +23,8 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
-import fi.thl.termed.repository.transform.ReferenceAttributeValueDtoToModel;
-import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToDto;
+import fi.thl.termed.repository.transform.ReferenceAttributeValueIdDtoToModel;
+import fi.thl.termed.repository.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToReferrerDto;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueModelToDto;
@@ -119,24 +119,28 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   @Override
   protected void insert(Map<ResourceId, Resource> map) {
     resourceDao.insert(map);
-
     for (Map.Entry<ResourceId, Resource> entry : map.entrySet()) {
-      textAttributeValueDao.insert(
-          ResourceTextAttributeValueDtoToModel.create(entry.getKey())
-              .apply(entry.getValue().getProperties()));
-      referenceAttributeValueDao.insert(
-          ReferenceAttributeValueDtoToModel.create(entry.getKey())
-              .apply(entry.getValue().getReferences()));
+      insertTextAttrValues(entry.getKey(), entry.getValue().getProperties());
+      insertRefAttrValues(entry.getKey(), entry.getValue().getReferences());
     }
   }
 
   @Override
   protected void insert(ResourceId resourceId, Resource resource) {
     resourceDao.insert(resourceId, resource);
+    insertTextAttrValues(resourceId, resource.getProperties());
+    insertRefAttrValues(resourceId, resource.getReferences());
+  }
+
+  private void insertTextAttrValues(ResourceId resourceId,
+                                    Multimap<String, StrictLangValue> properties) {
     textAttributeValueDao.insert(
-        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(resource.getProperties()));
+        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(properties));
+  }
+
+  private void insertRefAttrValues(ResourceId resourceId, Multimap<String, Resource> references) {
     referenceAttributeValueDao.insert(
-        ReferenceAttributeValueDtoToModel.create(resourceId).apply(resource.getReferences()));
+        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(references));
   }
 
   @Override
@@ -168,9 +172,9 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
                                    Multimap<String, Resource> newRefs) {
 
     Map<ResourceAttributeValueId, ResourceId> newMappedRefs =
-        ReferenceAttributeValueDtoToModel.create(resourceId).apply(oldRefs);
+        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(oldRefs);
     Map<ResourceAttributeValueId, ResourceId> oldMappedRefs =
-        ReferenceAttributeValueDtoToModel.create(resourceId).apply(newRefs);
+        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(newRefs);
 
     MapDifference<ResourceAttributeValueId, ResourceId> diff =
         difference(newMappedRefs, oldMappedRefs);
@@ -255,7 +259,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
 
     @Override
     public Multimap<String, Resource> apply(ResourceId resourceId) {
-      Multimap<String, ResourceId> references = ReferenceAttributeValueModelToDto.create()
+      Multimap<String, ResourceId> references = ReferenceAttributeValueIdModelToDto.create()
           .apply(referenceAttributeValueDao.getMap(
               new ResourceReferenceAttributeValuesByResourceId(resourceId)));
       return Multimaps.transformValues(references, baseResourceLoader);

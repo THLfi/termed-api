@@ -21,6 +21,8 @@ public class Class implements PropertyEntity {
 
   private Scheme scheme;
 
+  private Multimap<String, Permission> permissions;
+
   private Multimap<String, LangValue> properties;
 
   private List<TextAttribute> textAttributes;
@@ -31,9 +33,9 @@ public class Class implements PropertyEntity {
     this.id = id;
   }
 
-  public Class(ClassId classId) {
-    this.id = classId.getId();
-    this.scheme = new Scheme(classId.getSchemeId());
+  public Class(Scheme scheme, String id) {
+    this.scheme = scheme;
+    this.id = id;
   }
 
   public Class(String id, String uri) {
@@ -41,9 +43,9 @@ public class Class implements PropertyEntity {
     this.uri = uri;
   }
 
-  public Class(String id, Multimap<String, LangValue> properties) {
-    this.id = id;
-    this.properties = properties;
+  public Class(ClassId classId) {
+    this.scheme = new Scheme(classId.getSchemeId());
+    this.id = classId.getId();
   }
 
   public Class(Class cls) {
@@ -51,6 +53,7 @@ public class Class implements PropertyEntity {
     this.uri = cls.uri;
     this.index = cls.index;
     this.scheme = cls.scheme;
+    this.permissions = cls.permissions;
     this.properties = cls.properties;
     this.textAttributes = cls.textAttributes;
     this.referenceAttributes = cls.referenceAttributes;
@@ -92,6 +95,14 @@ public class Class implements PropertyEntity {
     return scheme != null ? scheme.getId() : null;
   }
 
+  public Multimap<String, Permission> getPermissions() {
+    return MultimapUtils.nullToEmpty(permissions);
+  }
+
+  public void setPermissions(Multimap<String, Permission> permissions) {
+    this.permissions = permissions;
+  }
+
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
@@ -123,6 +134,7 @@ public class Class implements PropertyEntity {
         .add("uri", uri)
         .add("index", index)
         .add("schemeId", getSchemeId())
+        .add("permissions", permissions)
         .add("properties", properties)
         .add("textAttributes", textAttributes)
         .add("referenceAttributes", referenceAttributes)
@@ -142,6 +154,7 @@ public class Class implements PropertyEntity {
            Objects.equal(uri, cls.uri) &&
            Objects.equal(index, cls.index) &&
            Objects.equal(getSchemeId(), cls.getSchemeId()) &&
+           Objects.equal(permissions, cls.permissions) &&
            Objects.equal(properties, cls.properties) &&
            Objects.equal(textAttributes, cls.textAttributes) &&
            Objects.equal(referenceAttributes, cls.referenceAttributes);
@@ -149,8 +162,8 @@ public class Class implements PropertyEntity {
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(id, uri, index, getSchemeId(), properties, textAttributes, referenceAttributes);
+    return Objects.hashCode(id, uri, index, getSchemeId(), permissions, properties, textAttributes,
+                            referenceAttributes);
   }
 
 }

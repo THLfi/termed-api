@@ -66,7 +66,7 @@ public class RdfModelToResourcesTest {
     group.setTextAttributes(Lists.newArrayList(
         new TextAttribute("name", "http://xmlns.com/foaf/0.1/name")));
     group.setReferenceAttributes(Lists.newArrayList(
-        new ReferenceAttribute("member", "http://xmlns.com/foaf/0.1/member", person)));
+        new ReferenceAttribute(person, "member", "http://xmlns.com/foaf/0.1/member")));
 
     Scheme scheme = new Scheme(UUID.randomUUID());
     scheme.setClasses(Lists.newArrayList(person, group));

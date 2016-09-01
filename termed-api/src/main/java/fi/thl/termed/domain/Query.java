@@ -6,6 +6,9 @@ import java.util.List;
 
 public class Query {
 
+  public static final String MATCH_ALL_QUERY = "*:*";
+  public static final int DEFAULT_MAX_RESULTS = 100;
+
   private String query;
 
   private int max;
@@ -13,11 +16,15 @@ public class Query {
   private List<String> orderBy;
 
   public Query() {
-    this("*:*");
+    this(MATCH_ALL_QUERY);
   }
 
   public Query(String query) {
-    this(query, 100);
+    this(query, DEFAULT_MAX_RESULTS);
+  }
+
+  public Query(int max) {
+    this(MATCH_ALL_QUERY, max);
   }
 
   public Query(String query, int max) {

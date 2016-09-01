@@ -12,7 +12,7 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 
 public class ReferenceAttributeValueDtoToModel
-    implements Function<Multimap<String, Resource>, Map<ResourceAttributeValueId, ResourceId>> {
+    implements Function<Multimap<String, Resource>, Map<ResourceAttributeValueId, Resource>> {
 
   private ResourceId resourceId;
 
@@ -25,16 +25,16 @@ public class ReferenceAttributeValueDtoToModel
   }
 
   @Override
-  public Map<ResourceAttributeValueId, ResourceId> apply(Multimap<String, Resource> input) {
+  public Map<ResourceAttributeValueId, Resource> apply(Multimap<String, Resource> input) {
 
-    Map<ResourceAttributeValueId, ResourceId> result = Maps.newLinkedHashMap();
+    Map<ResourceAttributeValueId, Resource> result = Maps.newLinkedHashMap();
 
     for (String attributeId : input.keySet()) {
       int index = 0;
 
       for (Resource value : Sets.newLinkedHashSet(input.get(attributeId))) {
         result.put(new ResourceAttributeValueId(resourceId, attributeId, index++),
-                   new ResourceId(value));
+                   value);
       }
     }
 

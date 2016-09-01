@@ -1,6 +1,7 @@
 package fi.thl.termed.exchange;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
@@ -18,9 +19,9 @@ public abstract class AbstractExchange<K extends Serializable, V, E>
 
   public void save(E value, Map<String, Object> args, User currentUser) {
     check(args);
-    doImport(value, args, currentUser);
+    service.save(doImport(value, args, currentUser), currentUser);
   }
 
-  protected abstract void doImport(E value, Map<String, Object> args, User currentUser);
+  protected abstract List<V> doImport(E value, Map<String, Object> args, User currentUser);
 
 }

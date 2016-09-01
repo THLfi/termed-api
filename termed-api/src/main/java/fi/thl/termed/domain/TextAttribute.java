@@ -13,15 +13,14 @@ import fi.thl.termed.util.RegularExpressions;
 public class TextAttribute implements PropertyEntity {
 
   private String id;
-
   private String uri;
 
   private Integer index;
 
   private Class domain;
-
   private String regex;
 
+  private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
 
   public TextAttribute(String id) {
@@ -87,6 +86,14 @@ public class TextAttribute implements PropertyEntity {
     this.regex = regex;
   }
 
+  public Multimap<String, Permission> getPermissions() {
+    return MultimapUtils.nullToEmpty(permissions);
+  }
+
+  public void setPermissions(Multimap<String, Permission> permissions) {
+    this.permissions = permissions;
+  }
+
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
@@ -103,6 +110,7 @@ public class TextAttribute implements PropertyEntity {
         .add("index", index)
         .add("domainId", getDomainId())
         .add("regex", regex)
+        .add("permissions", permissions)
         .add("properties", properties)
         .toString();
   }
@@ -121,12 +129,13 @@ public class TextAttribute implements PropertyEntity {
            Objects.equal(index, that.index) &&
            Objects.equal(getDomainId(), that.getDomainId()) &&
            Objects.equal(regex, that.regex) &&
+           Objects.equal(permissions, that.permissions) &&
            Objects.equal(properties, that.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, getDomainId(), regex, properties);
+    return Objects.hashCode(id, uri, index, getDomainId(), regex, permissions, properties);
   }
 
 }

@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SchemeRole implements Serializable {
 
   private final UUID schemeId;
+
   private final String role;
 
   public SchemeRole(UUID schemeId, String role) {

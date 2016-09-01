@@ -9,15 +9,21 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.sql.TextAttributeProperiesByAttributeId;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
+import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.TextAttributePermissionsByTextAttributeId;
+import fi.thl.termed.spesification.sql.TextAttributePropertiesByAttributeId;
+import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
@@ -25,15 +31,20 @@ public class TextAttributeRepositoryImpl
     extends AbstractRepository<TextAttributeId, TextAttribute> {
 
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
-  private Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao;
-  private Function<TextAttribute, TextAttribute> addTextAttributeProperties;
+  private Dao<ObjectRolePermission<TextAttributeId>, Void> permissionDao;
+  private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao;
+
+  private Function<TextAttribute, TextAttribute> populateAttribute;
 
   public TextAttributeRepositoryImpl(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao) {
+      Dao<ObjectRolePermission<TextAttributeId>, Void> permissionDao,
+      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao) {
     this.textAttributeDao = textAttributeDao;
-    this.textAttributePropertyValueDao = textAttributePropertyValueDao;
-    this.addTextAttributeProperties = new AddTextAttributeProperties();
+    this.permissionDao = permissionDao;
+    this.propertyValueDao = propertyValueDao;
+    this.populateAttribute = FunctionUtils.pipe(new AddTextAttributePermissions(),
+                                                new AddTextAttributeProperties());
   }
 
   private TextAttributeId getTextAttributeId(TextAttribute textAttribute) {
@@ -50,8 +61,18 @@ public class TextAttributeRepositoryImpl
   @Override
   protected void insert(TextAttributeId id, TextAttribute textAttribute) {
     textAttributeDao.insert(id, textAttribute);
-    textAttributePropertyValueDao.insert(PropertyValueDtoToModel
-                                             .create(id).apply(textAttribute.getProperties()));
+
+    insertProperties(id, textAttribute.getProperties());
+    insertPermissions(id, textAttribute.getPermissions());
+  }
+
+  private void insertProperties(TextAttributeId attrId, Multimap<String, LangValue> properties) {
+    propertyValueDao.insert(PropertyValueDtoToModel.create(attrId).apply(properties));
+  }
+
+  private void insertPermissions(TextAttributeId attributeId,
+                                 Multimap<String, Permission> permissions) {
+    permissionDao.insert(RolePermissionsDtoToModel.create(attributeId).apply(permissions));
   }
 
   @Override
@@ -60,7 +81,24 @@ public class TextAttributeRepositoryImpl
                         TextAttribute oldTextAttribute) {
 
     textAttributeDao.update(id, newTextAttribute);
+
+    updatePermissions(id, newTextAttribute.getPermissions(), oldTextAttribute.getPermissions());
     updateProperties(id, newTextAttribute.getProperties(), oldTextAttribute.getProperties());
+  }
+
+  private void updatePermissions(TextAttributeId attrId,
+                                 Multimap<String, Permission> newPermissions,
+                                 Multimap<String, Permission> oldPermissions) {
+    Map<ObjectRolePermission<TextAttributeId>, Void> newPermissionMap =
+        RolePermissionsDtoToModel.create(attrId).apply(newPermissions);
+    Map<ObjectRolePermission<TextAttributeId>, Void> oldPermissionMap =
+        RolePermissionsDtoToModel.create(attrId).apply(oldPermissions);
+
+    MapDifference<ObjectRolePermission<TextAttributeId>, Void> diff =
+        Maps.difference(newPermissionMap, oldPermissionMap);
+
+    permissionDao.insert(diff.entriesOnlyOnLeft());
+    permissionDao.delete(diff.entriesOnlyOnRight().keySet());
   }
 
   private void updateProperties(TextAttributeId attributeId,
@@ -75,9 +113,9 @@ public class TextAttributeRepositoryImpl
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    textAttributePropertyValueDao.insert(diff.entriesOnlyOnLeft());
-    textAttributePropertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
-    textAttributePropertyValueDao.delete(diff.entriesOnlyOnRight().keySet());
+    propertyValueDao.insert(diff.entriesOnlyOnLeft());
+    propertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
+    propertyValueDao.delete(diff.entriesOnlyOnRight().keySet());
   }
 
   @Override
@@ -97,17 +135,31 @@ public class TextAttributeRepositoryImpl
 
   @Override
   public List<TextAttribute> get() {
-    return Lists.transform(textAttributeDao.getValues(), addTextAttributeProperties);
+    return Lists.transform(textAttributeDao.getValues(), populateAttribute);
   }
 
   @Override
   public List<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification) {
-    return Lists.transform(textAttributeDao.getValues(specification), addTextAttributeProperties);
+    return Lists.transform(textAttributeDao.getValues(specification), populateAttribute);
   }
 
   @Override
   public TextAttribute get(TextAttributeId id) {
-    return addTextAttributeProperties.apply(textAttributeDao.get(id));
+    return populateAttribute.apply(textAttributeDao.get(id));
+  }
+
+  /**
+   * Load and add permissions to a text attribute.
+   */
+  private class AddTextAttributePermissions implements Function<TextAttribute, TextAttribute> {
+
+    @Override
+    public TextAttribute apply(TextAttribute textAttribute) {
+      textAttribute.setPermissions(RolePermissionsModelToDto.<TextAttributeId>create().apply(
+          permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
+              new TextAttributeId(textAttribute)))));
+      return textAttribute;
+    }
   }
 
   /**
@@ -119,9 +171,8 @@ public class TextAttributeRepositoryImpl
     public TextAttribute apply(TextAttribute textAttribute) {
       textAttribute.setProperties(
           PropertyValueModelToDto.<TextAttributeId>create()
-              .apply(textAttributePropertyValueDao.getMap(
-                  new TextAttributeProperiesByAttributeId(
-                      getTextAttributeId(textAttribute)))));
+              .apply(propertyValueDao.getMap(new TextAttributePropertiesByAttributeId(
+                  getTextAttributeId(textAttribute)))));
       return textAttribute;
     }
   }

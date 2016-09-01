@@ -1,7 +1,6 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -13,6 +12,8 @@ import java.util.Map;
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -20,10 +21,14 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
+import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.sql.ClassPermissionsByClassId;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
+import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
@@ -32,26 +37,30 @@ import static com.google.common.collect.Maps.difference;
 public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   private Dao<ClassId, Class> classDao;
+  private Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao;
   private Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao;
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
   private AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
 
-  private Function<Class, Class> addClassProperties;
-  private Function<Class, Class> addAttributes;
+  private Function<Class, Class> populateClass;
 
   public ClassRepositoryImpl(
       Dao<ClassId, Class> classDao,
+      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     this.classDao = classDao;
+    this.classPermissionDao = classPermissionDao;
     this.classPropertyValueDao = classPropertyValueDao;
     this.textAttributeRepository = textAttributeRepository;
     this.referenceAttributeRepository = referenceAttributeRepository;
-    this.addClassProperties = new AddClassProperties();
-    this.addAttributes = Functions.compose(new AddClassTextAttributes(),
-                                           new AddClassReferenceAttributes());
+    this.populateClass = FunctionUtils.pipe(
+        new AddClassPermissions(),
+        new AddClassProperties(),
+        new AddClassTextAttributes(),
+        new AddClassReferenceAttributes());
   }
 
   @Override
@@ -70,6 +79,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
       ClassId classId = entry.getKey();
       Class cls = entry.getValue();
 
+      insertPermissions(classId, cls.getPermissions());
       insertProperties(classId, cls.getProperties());
       insertTextAttributes(classId, cls.getTextAttributes());
       insertReferenceAttributes(classId, cls.getReferenceAttributes());
@@ -79,9 +89,14 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   @Override
   protected void insert(ClassId classId, Class cls) {
     classDao.insert(classId, cls);
+    insertPermissions(classId, cls.getPermissions());
     insertProperties(classId, cls.getProperties());
     insertTextAttributes(classId, cls.getTextAttributes());
     insertReferenceAttributes(classId, cls.getReferenceAttributes());
+  }
+
+  private void insertPermissions(ClassId classId, Multimap<String, Permission> permissions) {
+    classPermissionDao.insert(RolePermissionsDtoToModel.create(classId).apply(permissions));
   }
 
   private void insertProperties(ClassId classId, Multimap<String, LangValue> propertyMultimap) {
@@ -118,11 +133,28 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   protected void update(ClassId classId, Class newClass, Class oldClass) {
     classDao.update(classId, newClass);
 
+    updatePermissions(classId, newClass.getPermissions(), oldClass.getPermissions());
     updateProperties(classId, newClass.getProperties(), oldClass.getProperties());
     updateTextAttributes(classId, addTextAttrIndices(newClass.getTextAttributes()),
                          oldClass.getTextAttributes());
     updateReferenceAttributes(classId, addRefAttrIndices(newClass.getReferenceAttributes()),
                               oldClass.getReferenceAttributes());
+  }
+
+  private void updatePermissions(ClassId classId,
+                                 Multimap<String, Permission> newPermissions,
+                                 Multimap<String, Permission> oldPermissions) {
+
+    Map<ObjectRolePermission<ClassId>, Void> newPermissionMap =
+        RolePermissionsDtoToModel.create(classId).apply(newPermissions);
+    Map<ObjectRolePermission<ClassId>, Void> oldPermissionMap =
+        RolePermissionsDtoToModel.create(classId).apply(oldPermissions);
+
+    MapDifference<ObjectRolePermission<ClassId>, Void> diff =
+        Maps.difference(newPermissionMap, oldPermissionMap);
+
+    classPermissionDao.insert(diff.entriesOnlyOnLeft());
+    classPermissionDao.delete(diff.entriesOnlyOnRight().keySet());
   }
 
   private void updateProperties(ClassId classId,
@@ -197,18 +229,31 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   @Override
   public List<Class> get() {
-    return Lists.transform(classDao.getValues(), addClassProperties);
+    return Lists.transform(classDao.getValues(), new AddClassProperties());
   }
 
   @Override
   public List<Class> get(Specification<ClassId, Class> specification) {
-    return Lists.transform(classDao.getValues(specification),
-                           Functions.compose(addAttributes, addClassProperties));
+    return Lists.transform(classDao.getValues(specification), populateClass);
   }
 
   @Override
   public Class get(ClassId id) {
-    return addAttributes.apply(addClassProperties.apply(classDao.get(id)));
+    return populateClass.apply(classDao.get(id));
+  }
+
+  /**
+   * Load and add permissions to a class.
+   */
+  private class AddClassPermissions implements Function<Class, Class> {
+
+    @Override
+    public Class apply(Class cls) {
+      cls.setPermissions(RolePermissionsModelToDto.<ClassId>create().apply(
+          classPermissionDao.getMap(new ClassPermissionsByClassId(
+              new ClassId(cls.getSchemeId(), cls.getId())))));
+      return cls;
+    }
   }
 
   /**

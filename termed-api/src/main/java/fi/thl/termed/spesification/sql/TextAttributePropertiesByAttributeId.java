@@ -7,12 +7,12 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.util.LangValue;
 
-public class TextAttributeProperiesByAttributeId
+public class TextAttributePropertiesByAttributeId
     extends SqlSpecification<PropertyValueId<TextAttributeId>, LangValue> {
 
   private TextAttributeId textAttributeId;
 
-  public TextAttributeProperiesByAttributeId(TextAttributeId textAttributeId) {
+  public TextAttributePropertiesByAttributeId(TextAttributeId textAttributeId) {
     this.textAttributeId = textAttributeId;
   }
 

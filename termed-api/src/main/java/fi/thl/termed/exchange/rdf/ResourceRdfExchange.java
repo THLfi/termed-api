@@ -14,12 +14,12 @@ import fi.thl.termed.exchange.AbstractExchange;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.util.rdf.RdfModel;
 
-public class RdfModelExchange extends AbstractExchange<ResourceId, Resource, RdfModel> {
+public class ResourceRdfExchange extends AbstractExchange<ResourceId, Resource, RdfModel> {
 
   private Service<UUID, Scheme> schemeService;
 
-  public RdfModelExchange(Service<ResourceId, Resource> resourceService,
-                          Service<UUID, Scheme> schemeService) {
+  public ResourceRdfExchange(Service<ResourceId, Resource> resourceService,
+                             Service<UUID, Scheme> schemeService) {
     super(resourceService);
     this.schemeService = schemeService;
   }
@@ -36,9 +36,9 @@ public class RdfModelExchange extends AbstractExchange<ResourceId, Resource, Rdf
   }
 
   @Override
-  protected void doImport(RdfModel value, Map<String, Object> args, User currentUser) {
+  protected List<Resource> doImport(RdfModel value, Map<String, Object> args, User currentUser) {
     Scheme scheme = schemeService.get((UUID) args.get("schemeId"), currentUser);
-    service.save(new RdfModelToResources(scheme).apply(value), currentUser);
+    return new RdfModelToResources(scheme).apply(value);
   }
 
 }

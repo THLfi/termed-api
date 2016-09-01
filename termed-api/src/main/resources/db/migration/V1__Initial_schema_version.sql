@@ -14,8 +14,8 @@ CREATE TABLE lang (
 
 CREATE TABLE users (
   username varchar(255),
-  password varchar(255),
-  app_role varchar(20),
+  password varchar(255) NOT NULL,
+  app_role varchar(20) NOT NULL,
   CONSTRAINT users_pkey PRIMARY KEY (username),
   CONSTRAINT users_app_role_check CHECK (app_role IN ('USER', 'ADMIN', 'SUPERUSER'))
 );

@@ -1,7 +1,6 @@
-package fi.thl.termed.service.impl;
+package fi.thl.termed.service.scheme;
 
-import com.google.common.base.Function;
-
+import java.util.List;
 import java.util.UUID;
 
 import fi.thl.termed.dao.Dao;
@@ -10,6 +9,9 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
+import fi.thl.termed.domain.User;
+import fi.thl.termed.service.Service;
+import fi.thl.termed.service.common.ForwardingService;
 import fi.thl.termed.spesification.sql.SchemeByCode;
 import fi.thl.termed.spesification.sql.SchemeByUri;
 import fi.thl.termed.util.RegularExpressions;
@@ -20,18 +22,32 @@ import static fi.thl.termed.util.ObjectUtils.coalesce;
 import static java.util.UUID.randomUUID;
 
 /**
- * Tries to resolve scheme, class and attribute IDs.
+ * Resolves scheme URIs and codes for actual ids. Useful to run before persisting a scheme.
  */
-public class SchemeIdResolver implements Function<Scheme, Scheme> {
+public class ResolvingSchemeService extends ForwardingService<UUID, Scheme> {
 
   private Dao<UUID, Scheme> schemeDao;
 
-  public SchemeIdResolver(Dao<UUID, Scheme> schemeDao) {
+  public ResolvingSchemeService(Service<UUID, Scheme> delegate, Dao<UUID, Scheme> schemeDao) {
+    super(delegate);
     this.schemeDao = schemeDao;
   }
 
   @Override
-  public Scheme apply(Scheme scheme) {
+  public void save(List<Scheme> schemes, User currentUser) {
+    for (Scheme scheme : schemes) {
+      resolveScheme(scheme);
+    }
+    super.save(schemes, currentUser);
+  }
+
+  @Override
+  public void save(Scheme scheme, User currentUser) {
+    resolveScheme(scheme);
+    super.save(scheme, currentUser);
+  }
+
+  private void resolveScheme(Scheme scheme) {
     if (scheme.getId() == null) {
       scheme.setId(coalesce(resolveSchemeIdForCode(scheme.getCode()),
                             resolveSchemeIdForUri(scheme.getUri()),
@@ -44,16 +60,15 @@ public class SchemeIdResolver implements Function<Scheme, Scheme> {
       cls.setScheme(new Scheme(scheme.getId()));
 
       for (TextAttribute textAttribute : cls.getTextAttributes()) {
-        textAttribute.setDomain(new Class(new ClassId(cls)));
-        textAttribute.setRegex(coalesce(textAttribute.getRegex(),
-                                        RegularExpressions.ALL));
+        textAttribute.setDomain(cls);
+        textAttribute.setRegex(coalesce(textAttribute.getRegex(), RegularExpressions.ALL));
       }
 
       for (ReferenceAttribute referenceAttribute : cls.getReferenceAttributes()) {
-        referenceAttribute.setDomain(new Class(new ClassId(cls)));
+        referenceAttribute.setDomain(cls);
 
-        Class range = coalesce(referenceAttribute.getRange(), new Class(new ClassId(cls)));
-        Scheme rangeScheme = coalesce(range.getScheme(), scheme);
+        Class range = coalesce(referenceAttribute.getRange(), cls);
+        Scheme rangeScheme = coalesce(range.getScheme(), new Scheme(scheme.getId()));
         if (rangeScheme.getId() == null) {
           range.setScheme(new Scheme(coalesce(
               resolveSchemeIdForCode(rangeScheme.getCode()),
@@ -66,8 +81,6 @@ public class SchemeIdResolver implements Function<Scheme, Scheme> {
         referenceAttribute.setRange(range);
       }
     }
-
-    return scheme;
   }
 
   private UUID resolveSchemeIdForCode(String code) {

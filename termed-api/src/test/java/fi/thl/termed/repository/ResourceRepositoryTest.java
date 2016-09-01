@@ -54,19 +54,20 @@ public class ResourceRepositoryTest {
 
   @Before
   public void setUp() {
-    personClass = new Class("Person");
+    personScheme = new Scheme(UUID.randomUUID());
+
+    personClass = new Class(personScheme, "Person");
     personClass.setTextAttributes(newArrayList(
         new TextAttribute("firstName", FOAF + "firstName"),
         new TextAttribute("lastName", FOAF + "lastName")));
     personClass.setReferenceAttributes(newArrayList(
-        new ReferenceAttribute("knows", personClass)));
+        new ReferenceAttribute(personClass, "knows")));
 
-    groupClass = new Class("Group");
+    groupClass = new Class(personScheme, "Group");
     groupClass.setTextAttributes(newArrayList(new TextAttribute("name")));
     groupClass.setReferenceAttributes(newArrayList(
-        new ReferenceAttribute("member", personClass)));
+        new ReferenceAttribute(personClass, "member")));
 
-    personScheme = new Scheme(UUID.randomUUID());
     personScheme.setClasses(newArrayList(personClass, groupClass));
 
     schemeRepository.save(personScheme);
