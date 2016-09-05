@@ -10,12 +10,12 @@ import fi.thl.termed.permission.PermissionEvaluator;
 /**
  * Accepts if all evaluators accept. Rejects if any of the evaluators denies permission.
  */
-public class ConjunctivePermissionEvaluator<K extends Serializable, V>
+public class ConjunctionPermissionEvaluator<K extends Serializable, V>
     implements PermissionEvaluator<K, V> {
 
   private List<PermissionEvaluator<K, V>> evaluators;
 
-  public ConjunctivePermissionEvaluator(List<PermissionEvaluator<K, V>> evaluators) {
+  public ConjunctionPermissionEvaluator(List<PermissionEvaluator<K, V>> evaluators) {
     this.evaluators = evaluators;
   }
 

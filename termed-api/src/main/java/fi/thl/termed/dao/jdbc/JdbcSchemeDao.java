@@ -12,7 +12,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {

@@ -10,12 +10,12 @@ import fi.thl.termed.permission.PermissionEvaluator;
 /**
  * Accepts if any of the evaluators accepts.
  */
-public class DisjunctivePermissionEvaluator<K extends Serializable, V>
+public class DisjunctionPermissionEvaluator<K extends Serializable, V>
     implements PermissionEvaluator<K, V> {
 
   private List<PermissionEvaluator<K, V>> evaluators;
 
-  public DisjunctivePermissionEvaluator(List<PermissionEvaluator<K, V>> evaluators) {
+  public DisjunctionPermissionEvaluator(List<PermissionEvaluator<K, V>> evaluators) {
     this.evaluators = evaluators;
   }
 

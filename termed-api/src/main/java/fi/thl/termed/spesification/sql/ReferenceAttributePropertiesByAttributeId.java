@@ -5,10 +5,13 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class ReferenceAttributePropertiesByAttributeId
-    extends SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
+    extends AbstractSpecification<PropertyValueId<ReferenceAttributeId>, LangValue>
+    implements SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
   private ReferenceAttributeId referenceAttributeId;
 

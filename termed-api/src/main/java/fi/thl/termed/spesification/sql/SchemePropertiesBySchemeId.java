@@ -5,10 +5,13 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class SchemePropertiesBySchemeId
-    extends SqlSpecification<PropertyValueId<UUID>, LangValue> {
+    extends AbstractSpecification<PropertyValueId<UUID>, LangValue>
+    implements SqlSpecification<PropertyValueId<UUID>, LangValue> {
 
   private UUID schemeId;
 

@@ -5,8 +5,11 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
-public class SchemeByUri extends SqlSpecification<UUID, Scheme> {
+public class SchemeByUri extends AbstractSpecification<UUID, Scheme>
+    implements SqlSpecification<UUID, Scheme> {
 
   private String uri;
 

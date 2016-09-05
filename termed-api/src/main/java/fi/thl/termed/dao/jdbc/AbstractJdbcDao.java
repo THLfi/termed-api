@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.MapUtils;
 
 /**

@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class JdbcUserDao extends AbstractJdbcDao<String, User> {
 

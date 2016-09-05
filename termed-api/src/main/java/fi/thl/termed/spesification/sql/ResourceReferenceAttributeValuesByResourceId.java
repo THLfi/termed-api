@@ -4,9 +4,12 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class ResourceReferenceAttributeValuesByResourceId
-    extends SqlSpecification<ResourceAttributeValueId, ResourceId> {
+    extends AbstractSpecification<ResourceAttributeValueId, ResourceId>
+    implements SqlSpecification<ResourceAttributeValueId, ResourceId> {
 
   private ResourceId resourceId;
 

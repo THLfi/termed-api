@@ -3,8 +3,11 @@ package fi.thl.termed.spesification.sql;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.UserSchemeRoleId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
-public class UserSchemeRolesByUsername extends SqlSpecification<UserSchemeRoleId, Void> {
+public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeRoleId, Void>
+    implements SqlSpecification<UserSchemeRoleId, Void> {
 
   private String username;
 

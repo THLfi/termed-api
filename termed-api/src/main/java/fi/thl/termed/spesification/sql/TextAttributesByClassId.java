@@ -5,9 +5,12 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class TextAttributesByClassId
-    extends SqlSpecification<TextAttributeId, TextAttribute> {
+    extends AbstractSpecification<TextAttributeId, TextAttribute>
+    implements SqlSpecification<TextAttributeId, TextAttribute> {
 
   private ClassId classId;
 

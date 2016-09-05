@@ -5,9 +5,12 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class ReferenceAttributePermissionsByReferenceAttributeId
-    extends SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<ReferenceAttributeId>, Void>
+    implements SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Void> {
 
   private ReferenceAttributeId attributeId;
 

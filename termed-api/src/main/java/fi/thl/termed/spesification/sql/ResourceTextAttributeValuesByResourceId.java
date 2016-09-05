@@ -4,10 +4,13 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 import fi.thl.termed.util.StrictLangValue;
 
 public class ResourceTextAttributeValuesByResourceId
-    extends SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
+    extends AbstractSpecification<ResourceAttributeValueId, StrictLangValue>
+    implements SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
 
   private ResourceId resourceId;
 

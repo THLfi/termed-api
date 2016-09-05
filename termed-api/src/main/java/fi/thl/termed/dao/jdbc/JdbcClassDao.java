@@ -13,7 +13,7 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcClassDao extends AbstractJdbcDao<ClassId, Class> {

@@ -11,7 +11,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Property;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
 

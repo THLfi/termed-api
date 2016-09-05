@@ -5,9 +5,12 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class SchemePermissionsBySchemeId
-    extends SqlSpecification<ObjectRolePermission<UUID>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<UUID>, Void>
+    implements SqlSpecification<ObjectRolePermission<UUID>, Void> {
 
   private UUID schemeId;
 

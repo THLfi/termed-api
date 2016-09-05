@@ -4,10 +4,13 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class ClassPropertiesByClassId
-    extends SqlSpecification<PropertyValueId<ClassId>, LangValue> {
+    extends AbstractSpecification<PropertyValueId<ClassId>, LangValue>
+    implements SqlSpecification<PropertyValueId<ClassId>, LangValue> {
 
   private ClassId classId;
 

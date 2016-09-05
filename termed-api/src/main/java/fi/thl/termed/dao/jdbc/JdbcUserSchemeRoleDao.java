@@ -11,7 +11,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Void> {

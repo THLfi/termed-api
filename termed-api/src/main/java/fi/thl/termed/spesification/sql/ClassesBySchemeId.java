@@ -6,8 +6,11 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
-public class ClassesBySchemeId extends SqlSpecification<ClassId, Class> {
+public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
+    implements SqlSpecification<ClassId, Class> {
 
   private UUID schemeId;
 

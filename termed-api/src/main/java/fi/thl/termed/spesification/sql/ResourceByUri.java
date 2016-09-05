@@ -6,8 +6,11 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
-public class ResourceByUri extends SqlSpecification<ResourceId, Resource> {
+public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
+    implements SqlSpecification<ResourceId, Resource> {
 
   private UUID schemeId;
   private String uri;

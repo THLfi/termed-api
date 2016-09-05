@@ -3,10 +3,13 @@ package fi.thl.termed.spesification.sql;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class PropertyPropertiesByPropertyId
-    extends SqlSpecification<PropertyValueId<String>, LangValue> {
+    extends AbstractSpecification<PropertyValueId<String>, LangValue>
+    implements SqlSpecification<PropertyValueId<String>, LangValue> {
 
   private String propertyId;
 

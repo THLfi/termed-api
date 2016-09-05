@@ -5,9 +5,12 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class TextAttributePermissionsByTextAttributeId
-    extends SqlSpecification<ObjectRolePermission<TextAttributeId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<TextAttributeId>, Void>
+    implements SqlSpecification<ObjectRolePermission<TextAttributeId>, Void> {
 
   private TextAttributeId attributeId;
 

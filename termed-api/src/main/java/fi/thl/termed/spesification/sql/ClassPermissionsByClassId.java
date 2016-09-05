@@ -4,9 +4,12 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.common.AbstractSpecification;
 
 public class ClassPermissionsByClassId
-    extends SqlSpecification<ObjectRolePermission<ClassId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<ClassId>, Void>
+    implements SqlSpecification<ObjectRolePermission<ClassId>, Void> {
 
   private ClassId classId;
 

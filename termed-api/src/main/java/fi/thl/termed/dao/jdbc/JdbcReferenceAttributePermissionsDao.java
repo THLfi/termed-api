@@ -14,7 +14,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributePermissionsDao

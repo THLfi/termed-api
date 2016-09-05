@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 

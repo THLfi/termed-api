@@ -11,7 +11,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.SchemeRole;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 import static com.google.common.base.Objects.equal;

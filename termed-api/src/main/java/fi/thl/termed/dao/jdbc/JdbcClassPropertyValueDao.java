@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.spesification.sql.SqlSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.UUIDs;
 

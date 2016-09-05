@@ -70,8 +70,8 @@ import fi.thl.termed.index.lucene.ResourceDocumentConverter;
 import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.permission.common.AppRolePermissionEvaluator;
 import fi.thl.termed.permission.resource.ClassBasedResourcePermissionEvaluator;
-import fi.thl.termed.permission.common.ConjunctivePermissionEvaluator;
-import fi.thl.termed.permission.common.DisjunctivePermissionEvaluator;
+import fi.thl.termed.permission.common.ConjunctionPermissionEvaluator;
+import fi.thl.termed.permission.common.DisjunctionPermissionEvaluator;
 import fi.thl.termed.permission.resource.ResourceReferenceAttributeValuePermissionEvaluator;
 import fi.thl.termed.permission.resource.ResourceTextAttributeValuePermissionEvaluator;
 import fi.thl.termed.permission.resource.SchemeBasedResourcePermissionEvaluator;
@@ -311,7 +311,7 @@ public class ApplicationBeans {
   @Bean
   public PermissionEvaluator<ResourceAttributeValueId, StrictLangValue> textAttributeValuePermissionEvaluator(
       Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
-    return new DisjunctivePermissionEvaluator<ResourceAttributeValueId, StrictLangValue>(
+    return new DisjunctionPermissionEvaluator<ResourceAttributeValueId, StrictLangValue>(
         ImmutableList.of(
             new AppRolePermissionEvaluator<ResourceAttributeValueId, StrictLangValue>(
                 ImmutableMultimap.<AppRole, Permission>builder()
@@ -324,7 +324,7 @@ public class ApplicationBeans {
   @Bean
   public PermissionEvaluator<ResourceAttributeValueId, ResourceId> referenceAttributeValuePermissionEvaluator(
       Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao) {
-    return new DisjunctivePermissionEvaluator<ResourceAttributeValueId, ResourceId>(
+    return new DisjunctionPermissionEvaluator<ResourceAttributeValueId, ResourceId>(
         ImmutableList.of(
             new AppRolePermissionEvaluator<ResourceAttributeValueId, ResourceId>(
                 ImmutableMultimap.<AppRole, Permission>builder()
@@ -348,13 +348,13 @@ public class ApplicationBeans {
                 .putAll(AppRole.SUPERUSER, Permission.values()).build());
 
     PermissionEvaluator<ResourceId, Resource> contentBasedEvaluator =
-        new ConjunctivePermissionEvaluator<ResourceId, Resource>(
+        new ConjunctionPermissionEvaluator<ResourceId, Resource>(
             ImmutableList.of(
                 new SchemeBasedResourcePermissionEvaluator(schemePermissionDao),
                 new ClassBasedResourcePermissionEvaluator(classPermissionDao)));
 
     // accepts if user has a sufficient app role, otherwise proceeds to check for content
-    return new DisjunctivePermissionEvaluator<ResourceId, Resource>(
+    return new DisjunctionPermissionEvaluator<ResourceId, Resource>(
         ImmutableList.of(appRoleBasedEvaluator, contentBasedEvaluator));
   }
 
