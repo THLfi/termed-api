@@ -23,7 +23,7 @@ public class DaoRepository<K extends Serializable, V> implements Repository<K, V
   }
 
   @Override
-  public void save(Iterable<V> values) {
+  public void save(List<V> values) {
     for (V value : values) {
       save(value);
     }
@@ -41,28 +41,13 @@ public class DaoRepository<K extends Serializable, V> implements Repository<K, V
   }
 
   @Override
-  public void delete(Iterable<K> ids) {
-    dao.delete(ids);
-  }
-
-  @Override
   public void delete(K id) {
     dao.delete(id);
   }
 
   @Override
-  public boolean exists(K id) {
-    return dao.exists(id);
-  }
-
-  @Override
   public List<V> get() {
     return dao.getValues();
-  }
-
-  @Override
-  public List<V> get(Iterable<K> ids) {
-    return dao.getValues(ids);
   }
 
   @Override

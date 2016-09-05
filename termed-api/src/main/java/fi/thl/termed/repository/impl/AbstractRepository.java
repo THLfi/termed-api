@@ -1,6 +1,5 @@
 package fi.thl.termed.repository.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 
 import java.io.Serializable;
@@ -12,25 +11,9 @@ import fi.thl.termed.repository.Repository;
 public abstract class AbstractRepository<K extends Serializable, V> implements Repository<K, V> {
 
   @Override
-  public void save(Iterable<V> values) {
+  public void save(List<V> values) {
     for (V value : values) {
       save(value);
-    }
-  }
-
-  @Override
-  public List<V> get(Iterable<K> ids) {
-    List<V> values = Lists.newArrayList();
-    for (K id : ids) {
-      values.add(get(id));
-    }
-    return values;
-  }
-
-  @Override
-  public void delete(Iterable<K> ids) {
-    for (K id : ids) {
-      delete(id);
     }
   }
 
@@ -43,6 +26,8 @@ public abstract class AbstractRepository<K extends Serializable, V> implements R
       update(key, value, get(key));
     }
   }
+
+  protected abstract boolean exists(K key);
 
   protected void insert(Map<K, V> map) {
     for (Map.Entry<K, V> entry : map.entrySet()) {

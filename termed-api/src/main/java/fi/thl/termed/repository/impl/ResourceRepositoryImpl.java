@@ -95,7 +95,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   }
 
   @Override
-  public void save(Iterable<Resource> resources) {
+  public void save(List<Resource> resources) {
     Map<ResourceId, Resource> inserts = Maps.newLinkedHashMap();
     Map<ResourceId, MapDifference.ValueDifference<Resource>> updates = Maps.newLinkedHashMap();
 
@@ -207,11 +207,6 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   @Override
   public List<Resource> get(Specification<ResourceId, Resource> specification) {
     return Lists.transform(resourceDao.getKeys(specification), resourceLoader);
-  }
-
-  @Override
-  public List<Resource> get(Iterable<ResourceId> ids) {
-    return Lists.transform(Lists.newArrayList(ids), resourceLoader);
   }
 
   @Override
