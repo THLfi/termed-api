@@ -1,6 +1,7 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
@@ -30,9 +31,10 @@ public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    return Objects.equal(resource.getSchemeId(), schemeId) && Objects.equal(resource.getUri(), uri);
+    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
+    return Objects.equal(resource.getSchemeId(), schemeId) &&
+           Objects.equal(resource.getUri(), uri);
   }
-
 
   @Override
   public Query luceneQuery() {

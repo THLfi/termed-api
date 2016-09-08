@@ -1,15 +1,19 @@
-package fi.thl.termed.spesification;
+package fi.thl.termed.spesification.util;
 
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 
 import java.io.Serializable;
+import java.util.Map;
 
-public class FalseSpecification<K extends Serializable, V> extends AbstractSpecification<K, V>
+import fi.thl.termed.spesification.LuceneSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
+
+public class FalseSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
 
   @Override
-  public boolean accept(K key, V value) {
+  public boolean apply(Map.Entry<K, V> entry) {
     return false;
   }
 

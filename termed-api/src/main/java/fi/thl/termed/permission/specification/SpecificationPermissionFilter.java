@@ -8,9 +8,9 @@ import java.io.Serializable;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.spesification.ConjunctionSpecification;
-import fi.thl.termed.spesification.DisjunctionSpecification;
-import fi.thl.termed.spesification.FalseSpecification;
+import fi.thl.termed.spesification.util.AndSpecification;
+import fi.thl.termed.spesification.util.OrSpecification;
+import fi.thl.termed.spesification.util.FalseSpecification;
 import fi.thl.termed.spesification.Specification;
 
 public class SpecificationPermissionFilter<K extends Serializable, V>
@@ -33,21 +33,21 @@ public class SpecificationPermissionFilter<K extends Serializable, V>
   }
 
   private Specification<K, V> filter(Specification<K, V> spec) {
-    if (spec instanceof DisjunctionSpecification) {
-      return filter((DisjunctionSpecification<K, V>) spec);
+    if (spec instanceof OrSpecification) {
+      return filter((OrSpecification<K, V>) spec);
     }
-    if (spec instanceof ConjunctionSpecification) {
-      return filter((ConjunctionSpecification<K, V>) spec);
+    if (spec instanceof AndSpecification) {
+      return filter((AndSpecification<K, V>) spec);
     }
     return evaluator.hasPermission(user, spec, permission) ? spec : new FalseSpecification<K, V>();
   }
 
-  private Specification<K, V> filter(DisjunctionSpecification<K, V> spec) {
-    return new DisjunctionSpecification<K, V>(Lists.transform(spec.getSpecifications(), this));
+  private Specification<K, V> filter(OrSpecification<K, V> spec) {
+    return new OrSpecification<K, V>(Lists.transform(spec.getSpecifications(), this));
   }
 
-  private Specification<K, V> filter(ConjunctionSpecification<K, V> spec) {
-    return new ConjunctionSpecification<K, V>(Lists.transform(spec.getSpecifications(), this));
+  private Specification<K, V> filter(AndSpecification<K, V> spec) {
+    return new AndSpecification<K, V>(Lists.transform(spec.getSpecifications(), this));
   }
 
 }

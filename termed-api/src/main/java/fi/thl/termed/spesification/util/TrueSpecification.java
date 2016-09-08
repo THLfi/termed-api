@@ -1,14 +1,16 @@
-package fi.thl.termed.spesification;
+package fi.thl.termed.spesification.util;
 
 import java.io.Serializable;
+import java.util.Map;
+
+import fi.thl.termed.spesification.SqlSpecification;
 
 // In this generic class, we don't implement LuceneSpecification as semantics of
 // e.g. MatchAllDocsQuery would not be the same as matching all elements of a certain type.
-public class TrueSpecification<K extends Serializable, V> extends AbstractSpecification<K, V>
-    implements SqlSpecification<K, V> {
+public class TrueSpecification<K extends Serializable, V> implements SqlSpecification<K, V> {
 
   @Override
-  public boolean accept(K key, V value) {
+  public boolean apply(Map.Entry<K, V> entry) {
     return true;
   }
 

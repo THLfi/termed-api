@@ -139,11 +139,6 @@ public class ResourceIndexTest {
     }
 
     @Override
-    public boolean accept(K key, V value) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean apply(@Nullable Map.Entry<K, V> input) {
       throw new UnsupportedOperationException();
     }

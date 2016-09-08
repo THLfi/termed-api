@@ -5,8 +5,6 @@ import com.google.common.base.Preconditions;
 import java.io.Serializable;
 import java.util.Map;
 
-import fi.thl.termed.spesification.Specification;
-
 public abstract class AbstractSpecification<K extends Serializable, V>
     implements Specification<K, V> {
 
@@ -20,5 +18,7 @@ public abstract class AbstractSpecification<K extends Serializable, V>
     Preconditions.checkNotNull(input.getValue());
     return accept(input.getKey(), input.getValue());
   }
+
+  protected abstract boolean accept(K key, V value);
 
 }

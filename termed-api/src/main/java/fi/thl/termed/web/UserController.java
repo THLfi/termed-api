@@ -13,7 +13,7 @@ import java.util.List;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.TrueSpecification;
+import fi.thl.termed.spesification.util.TrueSpecification;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;

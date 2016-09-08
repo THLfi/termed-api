@@ -1,6 +1,7 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
@@ -14,8 +15,8 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.spesification.LuceneSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.LuceneSpecification;
 import fi.thl.termed.util.StrictLangValue;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
@@ -42,6 +43,8 @@ public class ResourcesByTextAttributeValuePrefix
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
+    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
+
     if (Objects.equal(new ClassId(resourceId), attributeId.getDomainId())) {
       for (Map.Entry<String, StrictLangValue> entry : resource.getProperties().entries()) {
         StrictLangValue attributeValue = entry.getValue();

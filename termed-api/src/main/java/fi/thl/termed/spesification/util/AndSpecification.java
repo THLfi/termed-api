@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification;
+package fi.thl.termed.spesification.util;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -12,18 +12,23 @@ import org.apache.lucene.search.Query;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import fi.thl.termed.spesification.LuceneSpecification;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.Iterables.all;
 
-public class ConjunctionSpecification<K extends Serializable, V> extends AbstractSpecification<K, V>
+public class AndSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
 
   private List<Specification<K, V>> specifications;
 
-  public ConjunctionSpecification(List<Specification<K, V>> specifications) {
+  public AndSpecification(List<Specification<K, V>> specifications) {
     this.specifications = checkNotNull(specifications);
   }
 
@@ -32,9 +37,9 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
   }
 
   @Override
-  public boolean accept(K key, V value) {
+  public boolean apply(Map.Entry<K, V> entry) {
     for (Specification<K, V> specification : specifications) {
-      if (!specification.accept(key, value)) {
+      if (!specification.apply(entry)) {
         return false;
       }
     }
@@ -88,7 +93,7 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ConjunctionSpecification<?, ?> that = (ConjunctionSpecification<?, ?>) o;
+    AndSpecification<?, ?> that = (AndSpecification<?, ?>) o;
     return Objects.equal(specifications, that.specifications);
   }
 

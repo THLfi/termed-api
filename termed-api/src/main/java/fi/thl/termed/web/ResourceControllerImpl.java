@@ -19,11 +19,11 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.permission.util.PermissionPredicate;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.DisjunctionSpecification;
-import fi.thl.termed.spesification.FalseSpecification;
+import fi.thl.termed.spesification.util.OrSpecification;
+import fi.thl.termed.spesification.util.FalseSpecification;
 import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.TrueSpecification;
+import fi.thl.termed.spesification.util.TrueSpecification;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
@@ -116,7 +116,7 @@ public class ResourceControllerImpl implements ResourceController {
     for (UUID schemeId : schemeIds) {
       specifications.add(new ResourcesBySchemeId(schemeId));
     }
-    return new DisjunctionSpecification<ResourceId, Resource>(specifications);
+    return new OrSpecification<ResourceId, Resource>(specifications);
   }
 
   private Specification<ResourceId, Resource> resourcesBy(List<TextAttributeId> textAttributeIds,
@@ -127,7 +127,7 @@ public class ResourceControllerImpl implements ResourceController {
         specifications.add(new ResourcesByTextAttributeValuePrefix(attributeId, prefixQuery));
       }
     }
-    return new DisjunctionSpecification<ResourceId, Resource>(specifications);
+    return new OrSpecification<ResourceId, Resource>(specifications);
   }
 
   private List<UUID> schemeIds(User user) {

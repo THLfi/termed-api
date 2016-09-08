@@ -28,7 +28,7 @@ import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.RepositoryService;
 import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.TrueSpecification;
+import fi.thl.termed.spesification.util.TrueSpecification;
 import fi.thl.termed.util.UUIDs;
 
 import static org.junit.Assert.assertEquals;
