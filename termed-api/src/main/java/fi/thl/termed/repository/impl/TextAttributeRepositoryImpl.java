@@ -20,7 +20,7 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.TextAttributePermissionsByTextAttributeId;
 import fi.thl.termed.spesification.sql.TextAttributePropertiesByAttributeId;
 import fi.thl.termed.util.FunctionUtils;
@@ -72,7 +72,9 @@ public class TextAttributeRepositoryImpl
 
   private void insertPermissions(TextAttributeId attributeId,
                                  Multimap<String, Permission> permissions) {
-    permissionDao.insert(RolePermissionsDtoToModel.create(attributeId).apply(permissions));
+    ClassId domainId = attributeId.getDomainId();
+    permissionDao.insert(
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attributeId).apply(permissions));
   }
 
   @Override
@@ -89,10 +91,12 @@ public class TextAttributeRepositoryImpl
   private void updatePermissions(TextAttributeId attrId,
                                  Multimap<String, Permission> newPermissions,
                                  Multimap<String, Permission> oldPermissions) {
+    ClassId domainId = attrId.getDomainId();
+
     Map<ObjectRolePermission<TextAttributeId>, Void> newPermissionMap =
-        RolePermissionsDtoToModel.create(attrId).apply(newPermissions);
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(newPermissions);
     Map<ObjectRolePermission<TextAttributeId>, Void> oldPermissionMap =
-        RolePermissionsDtoToModel.create(attrId).apply(oldPermissions);
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<TextAttributeId>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -139,8 +143,9 @@ public class TextAttributeRepositoryImpl
   }
 
   @Override
-  public List<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification) {
-    return Lists.transform(textAttributeDao.getValues(specification), populateAttribute);
+  public List<TextAttribute> get(SpecificationQuery<TextAttributeId, TextAttribute> specification) {
+    return Lists.transform(textAttributeDao.getValues(specification.getSpecification()),
+                           populateAttribute);
   }
 
   @Override

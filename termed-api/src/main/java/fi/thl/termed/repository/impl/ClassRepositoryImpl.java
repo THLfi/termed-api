@@ -23,7 +23,7 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ClassPermissionsByClassId;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
@@ -96,7 +96,8 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   private void insertPermissions(ClassId classId, Multimap<String, Permission> permissions) {
-    classPermissionDao.insert(RolePermissionsDtoToModel.create(classId).apply(permissions));
+    classPermissionDao.insert(
+        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(permissions));
   }
 
   private void insertProperties(ClassId classId, Multimap<String, LangValue> propertyMultimap) {
@@ -146,9 +147,9 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
                                  Multimap<String, Permission> oldPermissions) {
 
     Map<ObjectRolePermission<ClassId>, Void> newPermissionMap =
-        RolePermissionsDtoToModel.create(classId).apply(newPermissions);
+        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(newPermissions);
     Map<ObjectRolePermission<ClassId>, Void> oldPermissionMap =
-        RolePermissionsDtoToModel.create(classId).apply(oldPermissions);
+        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<ClassId>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -233,8 +234,8 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   @Override
-  public List<Class> get(Specification<ClassId, Class> specification) {
-    return Lists.transform(classDao.getValues(specification), populateClass);
+  public List<Class> get(SpecificationQuery<ClassId, Class> specification) {
+    return Lists.transform(classDao.getValues(specification.getSpecification()), populateClass);
   }
 
   @Override
@@ -279,7 +280,8 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
     @Override
     public Class apply(Class cls) {
       cls.setTextAttributes(textAttributeRepository.get(
-          new TextAttributesByClassId(new ClassId(cls.getSchemeId(), cls.getId()))));
+          new SpecificationQuery<TextAttributeId, TextAttribute>(
+              new TextAttributesByClassId(new ClassId(cls.getSchemeId(), cls.getId())))));
       return cls;
     }
   }
@@ -292,8 +294,9 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
     @Override
     public Class apply(Class cls) {
       cls.setReferenceAttributes(referenceAttributeRepository.get(
-          new ReferenceAttributesByClassId(
-              new ClassId(cls.getSchemeId(), cls.getId()))));
+          new SpecificationQuery<ReferenceAttributeId, ReferenceAttribute>(
+              new ReferenceAttributesByClassId(
+                  new ClassId(cls.getSchemeId(), cls.getId())))));
       return cls;
     }
   }

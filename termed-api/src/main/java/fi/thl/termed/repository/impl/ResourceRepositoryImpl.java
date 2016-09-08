@@ -28,7 +28,7 @@ import fi.thl.termed.repository.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToReferrerDto;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueModelToDto;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
@@ -205,8 +205,8 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   }
 
   @Override
-  public List<Resource> get(Specification<ResourceId, Resource> specification) {
-    return Lists.transform(resourceDao.getKeys(specification), resourceLoader);
+  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification) {
+    return Lists.transform(resourceDao.getKeys(specification.getSpecification()), resourceLoader);
   }
 
   @Override

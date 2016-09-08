@@ -20,10 +20,15 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.permission.common.ObjectIdPermissionEvaluator;
+import fi.thl.termed.permission.common.ObjectPermissionEvaluator;
+import fi.thl.termed.permission.common.PermitAllPermissionEvaluator;
+import fi.thl.termed.permission.resource.DelegatingResourcePermissionEvaluator;
 import fi.thl.termed.repository.impl.DaoRepository;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.RepositoryService;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.TrueSpecification;
 import fi.thl.termed.util.UUIDs;
 
 import static org.junit.Assert.assertEquals;
@@ -38,6 +43,10 @@ public class ResourcePermissionEvaluatingServiceTest {
       return new ResourceId(input);
     }
   };
+
+  private SpecificationQuery<ResourceId, Resource> getAll =
+      new SpecificationQuery<ResourceId, Resource>(
+          new TrueSpecification<ResourceId, Resource>());
 
   // test "database"
   private Map<ResourceId, Resource> resources;
@@ -94,26 +103,32 @@ public class ResourcePermissionEvaluatingServiceTest {
     Dao<ResourceId, Resource> baseDao =
         new MemoryBasedDao<ResourceId, Resource>(resources);
 
-    PermissionEvaluator<ResourceId, Resource> permissionEvaluator =
-        new ObjectIdPermissionEvaluator<ResourceId, Resource>(resourcePermissions, getResourceId);
+    PermissionEvaluator<ResourceId> idEvaluator =
+        new ObjectPermissionEvaluator<ResourceId>(resourcePermissions);
+    PermissionEvaluator<Resource> valueEvaluator =
+        new DelegatingResourcePermissionEvaluator(idEvaluator);
+    PermissionEvaluator<Specification<ResourceId, Resource>> specificationEvaluator =
+    new PermitAllPermissionEvaluator<Specification<ResourceId, Resource>>();
 
     Service<ResourceId, Resource> baseService =
         new RepositoryService<ResourceId, Resource>(
             new DaoRepository<ResourceId, Resource>(baseDao, getResourceId));
 
-    return new ResourcePermissionEvaluatingService(baseService, permissionEvaluator, baseDao);
+    return new ResourcePermissionEvaluatingService(
+        baseService, idEvaluator, valueEvaluator, specificationEvaluator, baseDao);
   }
 
   @Test
   public void shouldFilterForRead() {
-    assertEquals(ImmutableSet.of(r1, r5), ImmutableSet.copyOf(authorizedService.get(null)));
+    assertEquals(ImmutableSet.of(r1, r5),
+                 ImmutableSet.copyOf(authorizedService.get(getAll, null)));
   }
 
   @Test
   public void shouldFilterForReadAfterChangingPermissions() {
-    assertEquals(ImmutableSet.of(r1, r5), ImmutableSet.copyOf(authorizedService.get(null)));
+    assertEquals(ImmutableSet.of(r1, r5), ImmutableSet.copyOf(authorizedService.get(getAll, null)));
     resourcePermissions.remove(getResourceId.apply(r1), Permission.READ);
-    assertEquals(ImmutableSet.of(r5), ImmutableSet.copyOf(authorizedService.get(null)));
+    assertEquals(ImmutableSet.of(r5), ImmutableSet.copyOf(authorizedService.get(getAll, null)));
   }
 
   @Test(expected = AccessDeniedException.class)

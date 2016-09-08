@@ -3,9 +3,9 @@ package fi.thl.termed.service;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 /**
  * Generic interface for services.
@@ -25,19 +25,9 @@ public interface Service<K extends Serializable, V> {
   void delete(K id, User currentUser);
 
   /**
-   * Get all values. Values may not have all dependencies fully populated.
-   */
-  List<V> get(User currentUser);
-
-  /**
    * Get specified values. Values are expected to be fully populated.
    */
-  List<V> get(Specification<K, V> specification, User currentUser);
-
-  /**
-   * Search values. Values may not have all dependencies fully populated.
-   */
-  List<V> get(Query query, User currentUser);
+  List<V> get(SpecificationQuery<K, V> specification, User currentUser);
 
   /**
    * Get value by id. Value is expected to be fully populated.

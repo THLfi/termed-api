@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification.lucene;
+package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
 
@@ -15,12 +15,13 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.LuceneSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 import fi.thl.termed.util.StrictLangValue;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
-public class ResourcesByTextAttributeValuePrefix extends AbstractSpecification<ResourceId, Resource>
+public class ResourcesByTextAttributeValuePrefix
+    extends AbstractSpecification<ResourceId, Resource>
     implements LuceneSpecification<ResourceId, Resource> {
 
   private final TextAttributeId attributeId;

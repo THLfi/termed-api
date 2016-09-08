@@ -14,13 +14,13 @@ import fi.thl.termed.spesification.Specification;
  * Evaluator that is composed of multiple specification type specific evaluators.
  */
 public class SpecificationPermissionEvaluator<K extends Serializable, V>
-    implements PermissionEvaluator<Specification<K, V>, Void> {
+    implements PermissionEvaluator<Specification<K, V>> {
 
   private Map<Class<? extends Specification<K, V>>,
-      PermissionEvaluator<? extends Specification<K, V>, Void>> evaluators = Maps.newHashMap();
+      PermissionEvaluator<? extends Specification<K, V>>> evaluators = Maps.newHashMap();
 
   public <S extends Specification<K, V>> void registerEvaluator(
-      Class<S> type, PermissionEvaluator<S, Void> evaluator) {
+      Class<S> type, PermissionEvaluator<S> evaluator) {
     evaluators.put(type, evaluator);
   }
 
@@ -37,11 +37,6 @@ public class SpecificationPermissionEvaluator<K extends Serializable, V>
     }
 
     throw new RuntimeException("No permission evaluator found for " + type.getSimpleName());
-  }
-
-  @Override
-  public boolean hasPermission(User user, Void value, Permission permission) {
-    throw new UnsupportedOperationException();
   }
 
 }

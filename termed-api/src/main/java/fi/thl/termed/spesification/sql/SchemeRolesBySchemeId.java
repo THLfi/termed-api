@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Void>
     implements SqlSpecification<SchemeRole, Void> {

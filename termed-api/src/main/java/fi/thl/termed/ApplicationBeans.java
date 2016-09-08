@@ -1,6 +1,5 @@
 package fi.thl.termed;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -69,12 +68,15 @@ import fi.thl.termed.index.lucene.LuceneIndex;
 import fi.thl.termed.index.lucene.ResourceDocumentConverter;
 import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.permission.common.AppRolePermissionEvaluator;
-import fi.thl.termed.permission.resource.ClassBasedResourcePermissionEvaluator;
 import fi.thl.termed.permission.common.ConjunctionPermissionEvaluator;
+import fi.thl.termed.permission.common.DaoBasedObjectPermissionEvaluator;
 import fi.thl.termed.permission.common.DisjunctionPermissionEvaluator;
+import fi.thl.termed.permission.common.PermitAllPermissionEvaluator;
+import fi.thl.termed.permission.resource.ClassIdBasedResourcePermissionEvaluator;
+import fi.thl.termed.permission.resource.DelegatingResourcePermissionEvaluator;
 import fi.thl.termed.permission.resource.ResourceReferenceAttributeValuePermissionEvaluator;
 import fi.thl.termed.permission.resource.ResourceTextAttributeValuePermissionEvaluator;
-import fi.thl.termed.permission.resource.SchemeBasedResourcePermissionEvaluator;
+import fi.thl.termed.permission.resource.SchemeIdBasedResourcePermissionEvaluator;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.repository.impl.AbstractRepository;
 import fi.thl.termed.repository.impl.ClassRepositoryImpl;
@@ -93,13 +95,11 @@ import fi.thl.termed.service.resource.AttributeResolvingResourceService;
 import fi.thl.termed.service.resource.AuditingResourceService;
 import fi.thl.termed.service.resource.IdResolvingResourceService;
 import fi.thl.termed.service.resource.IndexingResourceService;
-import fi.thl.termed.service.resource.ReferenceAttributeValuePermissionEvaluatingService;
-import fi.thl.termed.service.resource.ResourcePermissionEvaluatingService;
 import fi.thl.termed.service.resource.SchemeIdResolvingResourceService;
-import fi.thl.termed.service.resource.TextAttributeValuePermissionEvaluatingService;
 import fi.thl.termed.service.scheme.IndexingSchemeService;
 import fi.thl.termed.service.scheme.ResolvingSchemeService;
 import fi.thl.termed.service.scheme.ValidatingSchemeService;
+import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.util.DateTypeAdapter;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapTypeAdapterFactory;
@@ -107,7 +107,7 @@ import fi.thl.termed.util.StrictLangValue;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.web.PropertyController;
 import fi.thl.termed.web.ResourceContextJsTreeController;
-import fi.thl.termed.web.ResourceController;
+import fi.thl.termed.web.ResourceControllerSpringImpl;
 import fi.thl.termed.web.ResourceRdfController;
 import fi.thl.termed.web.ResourceTableController;
 import fi.thl.termed.web.ResourceTreeController;
@@ -135,8 +135,19 @@ public class ApplicationBeans {
   // Controllers
 
   @Bean
-  public ResourceController resourceController(Service<ResourceId, Resource> resourceService) {
-    return new ResourceController(resourceService);
+  public ResourceControllerSpringImpl resourceController(
+      Service<ResourceId, Resource> resourceService,
+      Dao<UUID, Scheme> schemeDao,
+      Dao<TextAttributeId, TextAttribute> textAttributeDao,
+      PermissionEvaluator<UUID> schemePermissionEvaluator,
+      PermissionEvaluator<ClassId> classPermissionEvaluator,
+      PermissionEvaluator<TextAttributeId> textAttributeEvaluator) {
+    return new ResourceControllerSpringImpl(resourceService,
+                                            schemeDao,
+                                            textAttributeDao,
+                                            schemePermissionEvaluator,
+                                            classPermissionEvaluator,
+                                            textAttributeEvaluator);
   }
 
   @Bean
@@ -197,14 +208,16 @@ public class ApplicationBeans {
 
   @Bean
   public Exporter<ResourceId, Resource, List<JsTree>> resourceContextJsTreeExporter(
-      Service<ResourceId, Resource> resourceService) {
-    return new ResourceContextJsTreeExporter(resourceService);
+      Service<ResourceId, Resource> resourceService,
+      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao) {
+    return new ResourceContextJsTreeExporter(resourceService, referenceAttributeDao);
   }
 
   @Bean
   public Exporter<ResourceId, Resource, List<Resource>> resourceTreeExporter(
-      Service<ResourceId, Resource> resourceService) {
-    return new ResourceTreeExporter(resourceService);
+      Service<ResourceId, Resource> resourceService,
+      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao) {
+    return new ResourceTreeExporter(resourceService, referenceAttributeDao);
   }
 
   // Services
@@ -216,10 +229,16 @@ public class ApplicationBeans {
     Service<String, User> service = new RepositoryService<String, User>(userRepository);
 
     service = new TransactionalService<String, User>(service, transactionManager);
-    service = new PermissionEvaluatingService<String, User>(
-        service, new AppRolePermissionEvaluator<String, User>(
+
+    ImmutableMultimap<AppRole, Permission> appRolePermissions =
         ImmutableMultimap.<AppRole, Permission>builder()
-            .putAll(AppRole.SUPERUSER, Permission.values()).build()));
+            .putAll(AppRole.SUPERUSER, Permission.values()).build();
+
+    service = new PermissionEvaluatingService<String, User>(
+        service,
+        new AppRolePermissionEvaluator<String>(appRolePermissions),
+        new AppRolePermissionEvaluator<User>(appRolePermissions),
+        new AppRolePermissionEvaluator<Specification<String, User>>(appRolePermissions));
 
     return service;
   }
@@ -232,12 +251,18 @@ public class ApplicationBeans {
     Service<String, Property> service = new RepositoryService<String, Property>(propertyRepository);
 
     service = new TransactionalService<String, Property>(service, transactionManager);
-    service = new PermissionEvaluatingService<String, Property>(
-        service, new AppRolePermissionEvaluator<String, Property>(
+
+    ImmutableMultimap<AppRole, Permission> appRolePermissions =
         ImmutableMultimap.<AppRole, Permission>builder()
             .putAll(AppRole.USER, Permission.READ)
             .putAll(AppRole.ADMIN, Permission.READ)
-            .putAll(AppRole.SUPERUSER, Permission.values()).build()));
+            .putAll(AppRole.SUPERUSER, Permission.values()).build();
+
+    service = new PermissionEvaluatingService<String, Property>(
+        service,
+        new AppRolePermissionEvaluator<String>(appRolePermissions),
+        new AppRolePermissionEvaluator<Property>(appRolePermissions),
+        new AppRolePermissionEvaluator<Specification<String, Property>>(appRolePermissions));
 
     return service;
   }
@@ -258,12 +283,18 @@ public class ApplicationBeans {
     service = new IndexingSchemeService(service, resourceRepository, resourceIndex, resourceDao);
     service = new ValidatingSchemeService(service);
     service = new ResolvingSchemeService(service, schemeDao);
-    service = new PermissionEvaluatingService<UUID, Scheme>(
-        service, new AppRolePermissionEvaluator<UUID, Scheme>(
+
+    ImmutableMultimap<AppRole, Permission> appRolePermissions =
         ImmutableMultimap.<AppRole, Permission>builder()
             .putAll(AppRole.USER, Permission.READ)
             .putAll(AppRole.ADMIN, Permission.values())
-            .putAll(AppRole.SUPERUSER, Permission.values()).build()));
+            .putAll(AppRole.SUPERUSER, Permission.values()).build();
+
+    service = new PermissionEvaluatingService<UUID, Scheme>(
+        service,
+        new AppRolePermissionEvaluator<UUID>(appRolePermissions),
+        new AppRolePermissionEvaluator<Scheme>(appRolePermissions),
+        new AppRolePermissionEvaluator<Specification<UUID, Scheme>>(appRolePermissions));
 
     return service;
   }
@@ -272,9 +303,11 @@ public class ApplicationBeans {
   public Service<ResourceId, Resource> resourceService(
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
-      PermissionEvaluator<ResourceId, Resource> resourcePermissionEvaluator,
-      PermissionEvaluator<ResourceAttributeValueId, StrictLangValue> textAttributeValuePermissionEvaluator,
-      PermissionEvaluator<ResourceAttributeValueId, ResourceId> referenceAttributeValuePermissionEvaluator,
+      PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator,
+      PermissionEvaluator<Resource> resourcePermissionEvaluator,
+      PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator,
+      PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdPermissionEvaluator,
+      PermissionEvaluator<ResourceAttributeValueId> referenceAttributeValueIdPermissionEvaluator,
       Dao<UUID, Scheme> schemeDao,
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
@@ -291,12 +324,15 @@ public class ApplicationBeans {
         service, resourceRepository, resourceIndex, referenceAttributeValueDao);
     service = new AuditingResourceService(service, resourceDao);
 
-    service = new ReferenceAttributeValuePermissionEvaluatingService(
-        service, referenceAttributeValueDao, referenceAttributeValuePermissionEvaluator);
-    service = new TextAttributeValuePermissionEvaluatingService(
-        service, textAttributeValueDao, textAttributeValuePermissionEvaluator);
-    service = new ResourcePermissionEvaluatingService(
-        service, resourcePermissionEvaluator, resourceDao);
+//    service = new ReferenceAttributeValuePermissionEvaluatingService(
+//        service, referenceAttributeValueDao, textAttributeValueIdPermissionEvaluator);
+//    service = new TextAttributeValuePermissionEvaluatingService(
+//        service, textAttributeValueDao, referenceAttributeValueIdPermissionEvaluator);
+//    service = new ResourcePermissionEvaluatingService(
+//        service, resourceIdPermissionEvaluator, resourcePermissionEvaluator,
+//        resourceSpecificationPermissionEvaluator, resourceDao);
+
+    service = new LoggingService<ResourceId, Resource>(service, Resource.class);
 
     service = new AttributeResolvingResourceService(
         service, textAttributeDao, referenceAttributeDao, resourceDao);
@@ -309,53 +345,106 @@ public class ApplicationBeans {
   // Permission evaluators
 
   @Bean
-  public PermissionEvaluator<ResourceAttributeValueId, StrictLangValue> textAttributeValuePermissionEvaluator(
-      Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
-    return new DisjunctionPermissionEvaluator<ResourceAttributeValueId, StrictLangValue>(
-        ImmutableList.of(
-            new AppRolePermissionEvaluator<ResourceAttributeValueId, StrictLangValue>(
-                ImmutableMultimap.<AppRole, Permission>builder()
-                    .putAll(AppRole.ADMIN, Permission.values())
-                    .putAll(AppRole.SUPERUSER, Permission.values()).build()),
-            new ResourceTextAttributeValuePermissionEvaluator(
-                textAttributePermissionDao)));
+  public PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdPermissionEvaluator(
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
+    return new ResourceTextAttributeValuePermissionEvaluator(
+        textAttributeIdPermissionEvaluator);
   }
 
   @Bean
-  public PermissionEvaluator<ResourceAttributeValueId, ResourceId> referenceAttributeValuePermissionEvaluator(
-      Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao) {
-    return new DisjunctionPermissionEvaluator<ResourceAttributeValueId, ResourceId>(
-        ImmutableList.of(
-            new AppRolePermissionEvaluator<ResourceAttributeValueId, ResourceId>(
-                ImmutableMultimap.<AppRole, Permission>builder()
-                    .putAll(AppRole.ADMIN, Permission.values())
-                    .putAll(AppRole.SUPERUSER, Permission.values()).build()),
-            new ResourceReferenceAttributeValuePermissionEvaluator(
-                referenceAttributePermissionDao)));
+  public PermissionEvaluator<ResourceAttributeValueId> referenceAttributeValueIdPermissionEvaluator(
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
+    return new ResourceReferenceAttributeValuePermissionEvaluator(
+        referenceAttributeIdPermissionEvaluator);
   }
 
   @Bean
-  public PermissionEvaluator<ResourceId, Resource> resourcePermissionEvaluator(
-      Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao,
-      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao,
-      Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao,
-      Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao) {
+  public PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator() {
+    return new PermitAllPermissionEvaluator<Specification<ResourceId, Resource>>();
+  }
 
-    PermissionEvaluator<ResourceId, Resource> appRoleBasedEvaluator =
-        new AppRolePermissionEvaluator<ResourceId, Resource>(
+  @Bean
+  public PermissionEvaluator<Resource> resourcePermissionEvaluator(
+      PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator) {
+    return new DelegatingResourcePermissionEvaluator(resourceIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator(
+      PermissionEvaluator<UUID> schemeIdPermissionEvaluator,
+      PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
+    return new ConjunctionPermissionEvaluator<ResourceId>(
+        new SchemeIdBasedResourcePermissionEvaluator(schemeIdPermissionEvaluator),
+        new ClassIdBasedResourcePermissionEvaluator(classIdPermissionEvaluator));
+  }
+
+  @Bean
+  public PermissionEvaluator<UUID> schemeIdPermissionEvaluator(
+      Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao) {
+
+    PermissionEvaluator<UUID> schemeIdPermissionEvaluator =
+        new DaoBasedObjectPermissionEvaluator<UUID>(schemePermissionDao);
+
+    PermissionEvaluator<UUID> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<UUID>(
             ImmutableMultimap.<AppRole, Permission>builder()
                 .putAll(AppRole.ADMIN, Permission.values())
                 .putAll(AppRole.SUPERUSER, Permission.values()).build());
 
-    PermissionEvaluator<ResourceId, Resource> contentBasedEvaluator =
-        new ConjunctionPermissionEvaluator<ResourceId, Resource>(
-            ImmutableList.of(
-                new SchemeBasedResourcePermissionEvaluator(schemePermissionDao),
-                new ClassBasedResourcePermissionEvaluator(classPermissionDao)));
+    return new DisjunctionPermissionEvaluator<UUID>(
+        appRolePermissionEvaluator, schemeIdPermissionEvaluator);
+  }
 
-    // accepts if user has a sufficient app role, otherwise proceeds to check for content
-    return new DisjunctionPermissionEvaluator<ResourceId, Resource>(
-        ImmutableList.of(appRoleBasedEvaluator, contentBasedEvaluator));
+  @Bean
+  public PermissionEvaluator<ClassId> classIdPermissionEvaluator(
+      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao) {
+
+    PermissionEvaluator<ClassId> classIdPermissionEvaluator =
+        new DaoBasedObjectPermissionEvaluator<ClassId>(classPermissionDao);
+
+    PermissionEvaluator<ClassId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<ClassId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    return new DisjunctionPermissionEvaluator<ClassId>(
+        appRolePermissionEvaluator, classIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator(
+      Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
+
+    PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator =
+        new DaoBasedObjectPermissionEvaluator<TextAttributeId>(textAttributePermissionDao);
+
+    PermissionEvaluator<TextAttributeId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<TextAttributeId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    return new DisjunctionPermissionEvaluator<TextAttributeId>(
+        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator(
+      Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao) {
+
+    PermissionEvaluator<ReferenceAttributeId> textAttributeIdPermissionEvaluator =
+        new DaoBasedObjectPermissionEvaluator<ReferenceAttributeId>(
+            referenceAttributePermissionDao);
+
+    PermissionEvaluator<ReferenceAttributeId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<ReferenceAttributeId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    return new DisjunctionPermissionEvaluator<ReferenceAttributeId>(
+        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
   }
 
   // Indices

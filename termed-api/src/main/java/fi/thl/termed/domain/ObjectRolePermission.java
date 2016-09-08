@@ -10,12 +10,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ObjectRolePermission<K extends Serializable> implements Serializable {
 
   private final K objectId;
-  private final String role;
+  private final SchemeRole schemeRole;
   private final Permission permission;
 
-  public ObjectRolePermission(K objectId, String role, Permission permission) {
+  public ObjectRolePermission(K objectId, SchemeRole schemeRole, Permission permission) {
     this.objectId = checkNotNull(objectId, "objectId can't be null in %s", getClass());
-    this.role = checkNotNull(role, "role can't be null in %s", getClass());
+    this.schemeRole = checkNotNull(schemeRole, "schemeRole can't be null in %s", getClass());
     this.permission = checkNotNull(permission, "permission can't be null in %s", getClass());
   }
 
@@ -23,8 +23,8 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     return objectId;
   }
 
-  public String getRole() {
-    return role;
+  public SchemeRole getSchemeRole() {
+    return schemeRole;
   }
 
   public Permission getPermission() {
@@ -41,20 +41,20 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     }
     ObjectRolePermission<?> that = (ObjectRolePermission<?>) o;
     return Objects.equal(objectId, that.objectId) &&
-           Objects.equal(role, that.role) &&
+           Objects.equal(schemeRole, that.schemeRole) &&
            permission == that.permission;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(objectId, role, permission);
+    return Objects.hashCode(objectId, schemeRole, permission);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("objectId", objectId)
-        .add("role", role)
+        .add("schemeRole", schemeRole)
         .add("permission", permission)
         .toString();
   }

@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification.lucene;
+package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
 
@@ -11,12 +11,13 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.spesification.LuceneSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
 public class ResourcesByClassId extends AbstractSpecification<ResourceId, Resource>
-    implements LuceneSpecification<ResourceId, Resource> {
+    implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
   private final ClassId classId;
 
@@ -40,6 +41,16 @@ public class ResourcesByClassId extends AbstractSpecification<ResourceId, Resour
     query.add(new TermQuery(new Term("scheme.id", classId.getSchemeId().toString())), MUST);
     query.add(new TermQuery(new Term("type.id", classId.getId())), MUST);
     return query;
+  }
+
+  @Override
+  public String sqlQueryTemplate() {
+    return "scheme_id = ? and type_id = ?";
+  }
+
+  @Override
+  public Object[] sqlQueryParameters() {
+    return new Object[]{classId.getSchemeId(), classId.getId()};
   }
 
 }

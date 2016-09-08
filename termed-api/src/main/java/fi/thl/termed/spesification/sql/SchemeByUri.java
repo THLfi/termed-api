@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class SchemeByUri extends AbstractSpecification<UUID, Scheme>
     implements SqlSpecification<UUID, Scheme> {

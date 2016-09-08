@@ -22,7 +22,7 @@ public class RolePermissionsModelToDto<K extends Serializable>
     Multimap<String, Permission> map = LinkedHashMultimap.create();
 
     for (ObjectRolePermission<K> objectRolePermission : input.keySet()) {
-      map.put(objectRolePermission.getRole(), objectRolePermission.getPermission());
+      map.put(objectRolePermission.getSchemeRole().getRole(), objectRolePermission.getPermission());
     }
 
     return map;

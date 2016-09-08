@@ -13,18 +13,17 @@ import java.util.Map;
 
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.util.KeyPermissionEvaluatingPredicate;
 import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.permission.util.PermissionPredicate;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueModelToDto;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ResourceTextAttributeValuesByResourceId;
 import fi.thl.termed.util.StrictLangValue;
 
@@ -32,16 +31,15 @@ public class TextAttributeValuePermissionEvaluatingService
     extends ForwardingService<ResourceId, Resource> {
 
   private Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao;
-  private PermissionEvaluator<ResourceAttributeValueId, StrictLangValue>
-      textAttributeValueEvaluator;
+  private PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdEvaluator;
 
   public TextAttributeValuePermissionEvaluatingService(
       Service<ResourceId, Resource> delegate,
       Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao,
-      PermissionEvaluator<ResourceAttributeValueId, StrictLangValue> textAttributeValueEvaluator) {
+      PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdEvaluator) {
     super(delegate);
     this.textAttributeValueDao = textAttributeValueDao;
-    this.textAttributeValueEvaluator = textAttributeValueEvaluator;
+    this.textAttributeValueIdEvaluator = textAttributeValueIdEvaluator;
   }
 
   @Override
@@ -67,18 +65,9 @@ public class TextAttributeValuePermissionEvaluatingService
   }
 
   @Override
-  public List<Resource> get(User currentUser) {
-    return Lists.transform(super.get(currentUser), new FilterForGet(currentUser));
-  }
-
-  @Override
-  public List<Resource> get(Specification<ResourceId, Resource> specification, User currentUser) {
+  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification,
+                            User currentUser) {
     return Lists.transform(super.get(specification, currentUser), new FilterForGet(currentUser));
-  }
-
-  @Override
-  public List<Resource> get(Query query, User currentUser) {
-    return Lists.transform(super.get(query, currentUser), new FilterForGet(currentUser));
   }
 
   @Override
@@ -101,17 +90,17 @@ public class TextAttributeValuePermissionEvaluatingService
         ResourceTextAttributeValueDtoToModel.create(resourceId).apply(oldProperties));
 
     for (ResourceAttributeValueId attributeValueId : diff.entriesOnlyOnLeft().keySet()) {
-      if (!textAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.INSERT)) {
+      if (!textAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.INSERT)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
     for (ResourceAttributeValueId attributeValueId : diff.entriesInCommon().keySet()) {
-      if (!textAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.UPDATE)) {
+      if (!textAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.UPDATE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
     for (ResourceAttributeValueId attributeValueId : diff.entriesOnlyOnRight().keySet()) {
-      if (!textAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
+      if (!textAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
@@ -125,7 +114,7 @@ public class TextAttributeValuePermissionEvaluatingService
         ResourceTextAttributeValueDtoToModel.create(resourceId).apply(properties);
 
     for (ResourceAttributeValueId attributeValueId : delete.keySet()) {
-      if (!textAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
+      if (!textAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
@@ -145,8 +134,8 @@ public class TextAttributeValuePermissionEvaluatingService
           ResourceTextAttributeValueDtoToModel.create(new ResourceId(r)).apply(r.getProperties());
 
       Map<ResourceAttributeValueId, StrictLangValue> filtered =
-          Maps.filterKeys(original, new KeyPermissionEvaluatingPredicate<ResourceAttributeValueId>(
-              textAttributeValueEvaluator, user, Permission.READ));
+          Maps.filterKeys(original, new PermissionPredicate<ResourceAttributeValueId>(
+              textAttributeValueIdEvaluator, user, Permission.READ));
 
       r.setProperties(ResourceTextAttributeValueModelToDto.create().apply(filtered));
       return r;

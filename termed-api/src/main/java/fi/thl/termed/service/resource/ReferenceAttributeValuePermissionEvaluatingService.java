@@ -14,36 +14,34 @@ import java.util.Map;
 
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.util.KeyPermissionEvaluatingPredicate;
 import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.permission.util.PermissionPredicate;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToDto;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
 
 public class ReferenceAttributeValuePermissionEvaluatingService
     extends ForwardingService<ResourceId, Resource> {
 
   private Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
-  private PermissionEvaluator<ResourceAttributeValueId, ResourceId>
-      refAttributeValueEvaluator;
+  private PermissionEvaluator<ResourceAttributeValueId> refAttributeValueIdEvaluator;
 
   public ReferenceAttributeValuePermissionEvaluatingService(
       Service<ResourceId, Resource> delegate,
       Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao,
-      PermissionEvaluator<ResourceAttributeValueId, ResourceId> referenceAttributeValueEvaluator) {
+      PermissionEvaluator<ResourceAttributeValueId> referenceAttributeValueEvaluator) {
     super(delegate);
     this.referenceAttributeValueDao = referenceAttributeValueDao;
-    this.refAttributeValueEvaluator = referenceAttributeValueEvaluator;
+    this.refAttributeValueIdEvaluator = referenceAttributeValueEvaluator;
   }
 
   @Override
@@ -69,18 +67,9 @@ public class ReferenceAttributeValuePermissionEvaluatingService
   }
 
   @Override
-  public List<Resource> get(User currentUser) {
-    return Lists.transform(super.get(currentUser), new FilterForGet(currentUser));
-  }
-
-  @Override
-  public List<Resource> get(Specification<ResourceId, Resource> specification, User currentUser) {
+  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification,
+                            User currentUser) {
     return Lists.transform(super.get(specification, currentUser), new FilterForGet(currentUser));
-  }
-
-  @Override
-  public List<Resource> get(Query query, User currentUser) {
-    return Lists.transform(super.get(query, currentUser), new FilterForGet(currentUser));
   }
 
   @Override
@@ -107,17 +96,17 @@ public class ReferenceAttributeValuePermissionEvaluatingService
         ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(oldReferences));
 
     for (ResourceAttributeValueId attributeValueId : diff.entriesOnlyOnLeft().keySet()) {
-      if (!refAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.INSERT)) {
+      if (!refAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.INSERT)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
     for (ResourceAttributeValueId attributeValueId : diff.entriesInCommon().keySet()) {
-      if (!refAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.UPDATE)) {
+      if (!refAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.UPDATE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
     for (ResourceAttributeValueId attributeValueId : diff.entriesOnlyOnRight().keySet()) {
-      if (!refAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
+      if (!refAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
@@ -131,7 +120,7 @@ public class ReferenceAttributeValuePermissionEvaluatingService
         ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(references);
 
     for (ResourceAttributeValueId attributeValueId : delete.keySet()) {
-      if (!refAttributeValueEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
+      if (!refAttributeValueIdEvaluator.hasPermission(user, attributeValueId, Permission.DELETE)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
@@ -151,8 +140,8 @@ public class ReferenceAttributeValuePermissionEvaluatingService
           ReferenceAttributeValueDtoToModel.create(new ResourceId(r)).apply(r.getReferences());
 
       Map<ResourceAttributeValueId, Resource> filtered =
-          Maps.filterKeys(original, new KeyPermissionEvaluatingPredicate<ResourceAttributeValueId>(
-              refAttributeValueEvaluator, user, Permission.READ));
+          Maps.filterKeys(original, new PermissionPredicate<ResourceAttributeValueId>(
+              refAttributeValueIdEvaluator, user, Permission.READ));
 
       r.setReferences(ReferenceAttributeValueModelToDto.create().apply(filtered));
       return r;

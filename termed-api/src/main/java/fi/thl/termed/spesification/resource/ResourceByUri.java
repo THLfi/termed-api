@@ -1,16 +1,24 @@
-package fi.thl.termed.spesification.sql;
+package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
+
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 import java.util.UUID;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.LuceneSpecification;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
 public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
-    implements SqlSpecification<ResourceId, Resource> {
+    implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
   private UUID schemeId;
   private String uri;
@@ -23,6 +31,15 @@ public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
     return Objects.equal(resource.getSchemeId(), schemeId) && Objects.equal(resource.getUri(), uri);
+  }
+
+
+  @Override
+  public Query luceneQuery() {
+    BooleanQuery query = new BooleanQuery();
+    query.add(new TermQuery(new Term("scheme.id", schemeId.toString())), MUST);
+    query.add(new TermQuery(new Term("uri", uri)), MUST);
+    return query;
   }
 
   @Override

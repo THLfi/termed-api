@@ -12,6 +12,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.PermissionEvaluatingService;
+import fi.thl.termed.spesification.Specification;
 
 /**
  * Extends basic PermissionEvaluatingService by differentiating update and insert permissions on
@@ -24,9 +25,11 @@ public class ResourcePermissionEvaluatingService
 
   public ResourcePermissionEvaluatingService(
       Service<ResourceId, Resource> delegate,
-      PermissionEvaluator<ResourceId, Resource> evaluator,
+      PermissionEvaluator<ResourceId> keyEvaluator,
+      PermissionEvaluator<Resource> valueEvaluator,
+      PermissionEvaluator<Specification<ResourceId, Resource>> specificationEvaluator,
       Dao<ResourceId, Resource> resourceDao) {
-    super(delegate, evaluator);
+    super(delegate, keyEvaluator, valueEvaluator, specificationEvaluator);
     this.resourceDao = resourceDao;
   }
 
@@ -35,7 +38,7 @@ public class ResourcePermissionEvaluatingService
     for (Resource value : values) {
       Permission savePermission = resourceDao.exists(new ResourceId(value)) ? Permission.UPDATE
                                                                             : Permission.INSERT;
-      if (!evaluator.hasPermission(currentUser, value, savePermission)) {
+      if (!valueEvaluator.hasPermission(currentUser, value, savePermission)) {
         throw new AccessDeniedException("Access is denied");
       }
     }
@@ -47,7 +50,7 @@ public class ResourcePermissionEvaluatingService
   public void save(Resource value, User currentUser) {
     Permission savePermission = resourceDao.exists(new ResourceId(value)) ? Permission.UPDATE
                                                                           : Permission.INSERT;
-    if (!evaluator.hasPermission(currentUser, value, savePermission)) {
+    if (!valueEvaluator.hasPermission(currentUser, value, savePermission)) {
       throw new AccessDeniedException("Access is denied");
     }
 

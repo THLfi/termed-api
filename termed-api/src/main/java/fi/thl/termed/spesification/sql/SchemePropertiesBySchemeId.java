@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class SchemePropertiesBySchemeId

@@ -7,12 +7,14 @@ import org.springframework.jdbc.core.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
@@ -33,7 +35,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString());
   }
 
@@ -51,7 +53,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString());
   }
 
@@ -80,7 +82,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString()) > 0;
   }
 
@@ -94,7 +96,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString()), null);
   }
 
@@ -105,15 +107,14 @@ public class JdbcTextAttributePermissionsDao
       public ObjectRolePermission<TextAttributeId> mapRow(ResultSet rs, int rowNum)
           throws SQLException {
 
-        ClassId domainId =
-            new ClassId(UUIDs.fromString(rs.getString("text_attribute_scheme_id")),
-                        rs.getString("text_attribute_domain_id"));
-
-        TextAttributeId textAttributeId =
-            new TextAttributeId(domainId, rs.getString("text_attribute_id"));
+        UUID schemeId = UUIDs.fromString(rs.getString("text_attribute_scheme_id"));
+        ClassId domainId = new ClassId(schemeId, rs.getString("text_attribute_domain_id"));
+        TextAttributeId textAttributeId = new TextAttributeId(
+            domainId, rs.getString("text_attribute_id"));
 
         return new ObjectRolePermission<TextAttributeId>(
-            textAttributeId, rs.getString("role"), Permission.valueOf(rs.getString("permission")));
+            textAttributeId, new SchemeRole(schemeId, rs.getString("role")),
+            Permission.valueOf(rs.getString("permission")));
       }
     };
   }

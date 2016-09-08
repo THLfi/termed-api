@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 public class LoggingService<K extends Serializable, V> extends ForwardingService<K, V> {
 
@@ -41,22 +40,10 @@ public class LoggingService<K extends Serializable, V> extends ForwardingService
   }
 
   @Override
-  public List<V> get(User currentUser) {
-    log.info("{} get (user: {})", valueClass.getSimpleName(), currentUser.getUsername());
-    return super.get(currentUser);
-  }
-
-  @Override
-  public List<V> get(Specification<K, V> specification, User currentUser) {
+  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
     log.info("{} get {} (user: {})", valueClass.getSimpleName(), specification,
              currentUser.getUsername());
     return super.get(specification, currentUser);
-  }
-
-  @Override
-  public List<V> get(Query query, User currentUser) {
-    log.info("{} get {} (user: {})", valueClass.getSimpleName(), query, currentUser.getUsername());
-    return super.get(query, currentUser);
   }
 
   @Override

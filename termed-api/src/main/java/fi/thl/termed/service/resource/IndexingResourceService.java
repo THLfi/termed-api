@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import fi.thl.termed.dao.Dao;
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
@@ -18,6 +17,8 @@ import fi.thl.termed.index.Index;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.SpecificationQuery.Engine;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
 
@@ -42,13 +43,10 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   }
 
   @Override
-  public List<Resource> get(User currentUser) {
-    return resourceIndex.query(new Query(-1));
-  }
-
-  @Override
-  public List<Resource> get(Query query, User currentUser) {
-    return resourceIndex.query(query);
+  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification,
+                            User currentUser) {
+    return specification.getEngine() == Engine.LUCENE ? resourceIndex.query(specification)
+                                                      : resourceRepository.get(specification);
   }
 
   @Override

@@ -3,7 +3,7 @@ package fi.thl.termed.repository;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 public interface Repository<K extends Serializable, V> {
 
@@ -27,7 +27,7 @@ public interface Repository<K extends Serializable, V> {
   /**
    * Query values. Values are expected to be fully populated.
    */
-  List<V> get(Specification<K, V> specification);
+  List<V> get(SpecificationQuery<K, V> specification);
 
   /**
    * Get value by id. Value is expected to be fully populated.

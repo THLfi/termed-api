@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification.common;
+package fi.thl.termed.spesification;
 
 import com.google.common.base.Preconditions;
 

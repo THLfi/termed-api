@@ -12,6 +12,8 @@ import java.util.List;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.TrueSpecification;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -32,7 +34,8 @@ public class UserController {
   @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.get(currentUser);
+    return userService.get(
+        new SpecificationQuery<String, User>(new TrueSpecification<String, User>()), currentUser);
   }
 
   @RequestMapping(method = GET, value = "/{username}", produces = "application/json;charset=UTF-8")

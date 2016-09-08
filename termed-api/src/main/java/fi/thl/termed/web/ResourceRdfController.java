@@ -16,14 +16,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.Exchange;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 import fi.thl.termed.util.rdf.JenaRdfModel;
 import fi.thl.termed.util.rdf.RdfModel;
 
+import static fi.thl.termed.spesification.SpecificationQuery.Engine.LUCENE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -60,9 +62,10 @@ public class ResourceRdfController {
   public Model exportModel(@PathVariable("schemeId") UUID schemeId,
                            @AuthenticationPrincipal User currentUser) {
     log.info("Exporting RDF-model");
-    RdfModel rdfModel = rdfExchange.get(new Query("+scheme.id:" + schemeId, -1),
-                                        ImmutableMap.<String, Object>of("schemeId", schemeId),
-                                        currentUser);
+    RdfModel rdfModel = rdfExchange.get(
+        new SpecificationQuery<ResourceId, Resource>(new ResourcesBySchemeId(schemeId), LUCENE),
+        ImmutableMap.<String, Object>of("schemeId", schemeId),
+        currentUser);
     return new JenaRdfModel(rdfModel).getModel();
   }
 

@@ -14,7 +14,7 @@ import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
 
 public class UserRepositoryImpl extends AbstractRepository<String, User> {
@@ -83,8 +83,8 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
   }
 
   @Override
-  public List<User> get(Specification<String, User> specification) {
-    return Lists.transform(userDao.getValues(specification), addSchemeRoles);
+  public List<User> get(SpecificationQuery<String, User> specification) {
+    return Lists.transform(userDao.getValues(specification.getSpecification()), addSchemeRoles);
   }
 
   @Override

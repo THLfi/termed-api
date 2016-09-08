@@ -6,7 +6,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class TextAttributesByClassId
     extends AbstractSpecification<TextAttributeId, TextAttribute>

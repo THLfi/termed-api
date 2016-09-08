@@ -7,7 +7,7 @@ import java.util.UUID;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
     implements SqlSpecification<ClassId, Class> {

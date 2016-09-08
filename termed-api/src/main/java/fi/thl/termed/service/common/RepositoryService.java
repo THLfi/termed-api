@@ -3,11 +3,10 @@ package fi.thl.termed.service.common;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 /**
  * Simple implementation of a service that delegates all requests to a repository.
@@ -21,19 +20,8 @@ public class RepositoryService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<V> get(User currentUser) {
-    return repository.get();
-  }
-
-  @Override
-  public List<V> get(Specification<K, V> specification, User currentUser) {
+  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
     return repository.get(specification);
-  }
-
-  @Override
-  public List<V> get(Query query, User currentUser) {
-    // text search is not supported by Repository, fall back to returning all
-    return repository.get();
   }
 
   @Override

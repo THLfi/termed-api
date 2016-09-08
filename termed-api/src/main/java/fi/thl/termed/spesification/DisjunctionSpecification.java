@@ -1,6 +1,8 @@
-package fi.thl.termed.spesification.common;
+package fi.thl.termed.spesification;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import org.apache.lucene.search.BooleanClause;
@@ -11,21 +13,17 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import fi.thl.termed.spesification.LuceneSpecification;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.SqlSpecification;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.Iterables.all;
 
-public class ConjunctionSpecification<K extends Serializable, V> extends AbstractSpecification<K, V>
+public class DisjunctionSpecification<K extends Serializable, V> extends AbstractSpecification<K, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
 
   private List<Specification<K, V>> specifications;
 
-  public ConjunctionSpecification(List<Specification<K, V>> specifications) {
+  public DisjunctionSpecification(List<Specification<K, V>> specifications) {
     this.specifications = checkNotNull(specifications);
   }
 
@@ -36,11 +34,11 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
   @Override
   public boolean accept(K key, V value) {
     for (Specification<K, V> specification : specifications) {
-      if (!specification.accept(key, value)) {
-        return false;
+      if (specification.accept(key, value)) {
+        return true;
       }
     }
-    return true;
+    return false;
   }
 
   @Override
@@ -50,7 +48,7 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
     BooleanQuery query = new BooleanQuery();
 
     for (Specification<K, V> spec : specifications) {
-      query.add(((LuceneSpecification<K, V>) spec).luceneQuery(), BooleanClause.Occur.MUST);
+      query.add(((LuceneSpecification<K, V>) spec).luceneQuery(), BooleanClause.Occur.SHOULD);
     }
 
     return query;
@@ -60,13 +58,13 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
   public String sqlQueryTemplate() {
     checkState(all(specifications, instanceOf(SqlSpecification.class)));
 
-    List<String> queryTemplates = Lists.newArrayList();
+    List<String> query = Lists.newArrayList();
 
     for (Specification<K, V> spec : specifications) {
-      queryTemplates.add(((SqlSpecification<K, V>) spec).sqlQueryTemplate());
+      query.add("(" + ((SqlSpecification<K, V>) spec).sqlQueryTemplate() + ")");
     }
 
-    return "(" + Joiner.on(" AND ").join(queryTemplates) + ")";
+    return Joiner.on(" OR ").join(query);
   }
 
   @Override
@@ -80,6 +78,30 @@ public class ConjunctionSpecification<K extends Serializable, V> extends Abstrac
     }
 
     return queryParameters.toArray(new Object[queryParameters.size()]);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    DisjunctionSpecification<?, ?> that = (DisjunctionSpecification<?, ?>) o;
+    return Objects.equal(specifications, that.specifications);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(specifications);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("specifications", specifications)
+        .toString();
   }
 
 }

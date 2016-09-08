@@ -1,8 +1,6 @@
-package fi.thl.termed.spesification.common;
+package fi.thl.termed.spesification;
 
 import java.io.Serializable;
-
-import fi.thl.termed.spesification.SqlSpecification;
 
 // In this generic class, we don't implement LuceneSpecification as semantics of
 // e.g. MatchAllDocsQuery would not be the same as matching all elements of a certain type.
@@ -16,7 +14,7 @@ public class TrueSpecification<K extends Serializable, V> extends AbstractSpecif
 
   @Override
   public String sqlQueryTemplate() {
-    return "(1 = 1)";
+    return "1 = 1";
   }
 
   @Override

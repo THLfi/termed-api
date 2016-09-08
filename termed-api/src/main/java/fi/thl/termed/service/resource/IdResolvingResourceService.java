@@ -11,8 +11,8 @@ import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.sql.ResourceByCode;
-import fi.thl.termed.spesification.sql.ResourceByUri;
+import fi.thl.termed.spesification.resource.ResourceByCode;
+import fi.thl.termed.spesification.resource.ResourceByUri;
 import fi.thl.termed.util.ErrorCode;
 import fi.thl.termed.util.UUIDs;
 

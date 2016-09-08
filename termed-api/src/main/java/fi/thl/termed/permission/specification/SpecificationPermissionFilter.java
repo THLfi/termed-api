@@ -8,19 +8,19 @@ import java.io.Serializable;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.spesification.ConjunctionSpecification;
+import fi.thl.termed.spesification.DisjunctionSpecification;
+import fi.thl.termed.spesification.FalseSpecification;
 import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.common.ConjunctionSpecification;
-import fi.thl.termed.spesification.common.DisjunctionSpecification;
-import fi.thl.termed.spesification.common.FalseSpecification;
 
 public class SpecificationPermissionFilter<K extends Serializable, V>
     implements Function<Specification<K, V>, Specification<K, V>> {
 
-  private PermissionEvaluator<Specification<K, V>, Void> evaluator;
+  private PermissionEvaluator<Specification<K, V>> evaluator;
   private User user;
   private Permission permission;
 
-  public SpecificationPermissionFilter(PermissionEvaluator<Specification<K, V>, Void> evaluator,
+  public SpecificationPermissionFilter(PermissionEvaluator<Specification<K, V>> evaluator,
                                        User user, Permission permission) {
     this.evaluator = evaluator;
     this.user = user;

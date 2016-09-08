@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification.lucene;
+package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.Objects;
 
@@ -11,10 +11,11 @@ import java.util.UUID;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.spesification.LuceneSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class ResourcesBySchemeId extends AbstractSpecification<ResourceId, Resource>
-    implements LuceneSpecification<ResourceId, Resource> {
+    implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
   private final UUID schemeId;
 
@@ -34,6 +35,16 @@ public class ResourcesBySchemeId extends AbstractSpecification<ResourceId, Resou
   @Override
   public Query luceneQuery() {
     return new TermQuery(new Term("scheme.id", schemeId.toString()));
+  }
+
+  @Override
+  public String sqlQueryTemplate() {
+    return "scheme_id = ?";
+  }
+
+  @Override
+  public Object[] sqlQueryParameters() {
+    return new Object[]{schemeId};
   }
 
 }

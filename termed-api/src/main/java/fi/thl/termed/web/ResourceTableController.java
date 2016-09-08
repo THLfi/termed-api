@@ -18,12 +18,14 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.Exchange;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.resource.AllResources;
 
+import static fi.thl.termed.spesification.SpecificationQuery.Engine.LUCENE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -49,9 +51,10 @@ public class ResourceTableController {
   public void exportModel(@PathVariable("schemeId") UUID schemeId,
                           @AuthenticationPrincipal User currentUser,
                           HttpServletResponse response) throws IOException {
-    List<String[]> rows = exchange.get(new Query("+scheme.id:" + schemeId, -1),
-                                       ImmutableMap.<String, Object>of("schemeId", schemeId),
-                                       currentUser);
+    List<String[]> rows =
+        exchange.get(new SpecificationQuery<ResourceId, Resource>(new AllResources(), LUCENE),
+                     ImmutableMap.<String, Object>of("schemeId", schemeId),
+                     currentUser);
     new CSVWriter(response.getWriter()).writeAll(rows);
   }
 

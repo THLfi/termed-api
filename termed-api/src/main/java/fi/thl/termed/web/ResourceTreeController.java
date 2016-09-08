@@ -12,16 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.Exporter;
 
-import static java.lang.String.format;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@RequestMapping(value = "/api/schemes/{schemeId}/trees")
+@RequestMapping(value = "/api/schemes/{schemeId}/classes/{typeId}/resources/{resourceId}/trees")
 public class ResourceTreeController {
 
   private Exporter<ResourceId, Resource, List<Resource>> resourceTreeExporter;
@@ -35,15 +33,18 @@ public class ResourceTreeController {
   @ResponseBody
   public List<Resource> getTrees(
       @PathVariable("schemeId") UUID schemeId,
+      @PathVariable("typeId") String typeId,
+      @PathVariable("resourceId") UUID resourceId,
       @RequestParam(value = "attributeId", defaultValue = "narrower") String attributeId,
       @RequestParam(value = "referrers", defaultValue = "false") boolean referrers,
       @AuthenticationPrincipal User user) {
-    Query rootsQuery = new Query(format("+scheme.id:%s -%s%s.id:[* TO *]",
-                                        schemeId, referrers ? "" : "referrers.", attributeId), -1);
+    ResourceId treeResourceId = new ResourceId(schemeId, typeId, resourceId);
     Map<String, Object> args = ImmutableMap.<String, Object>of(
+        "schemeId", schemeId,
+        "typeId", typeId,
         "attributeId", attributeId,
         "referrers", referrers);
-    return resourceTreeExporter.get(rootsQuery, args, user);
+    return resourceTreeExporter.get(treeResourceId, args, user);
   }
 
 }

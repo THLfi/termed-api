@@ -1,7 +1,5 @@
 package fi.thl.termed.permission.specification;
 
-import com.google.common.base.Objects;
-
 import java.util.UUID;
 
 import fi.thl.termed.dao.Dao;
@@ -10,10 +8,10 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.spesification.lucene.ResourcesBySchemeId;
+import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 
 public class ResourcesBySchemeIdPermissionEvaluator
-    implements PermissionEvaluator<ResourcesBySchemeId, Void> {
+    implements PermissionEvaluator<ResourcesBySchemeId> {
 
   private Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao;
 
@@ -26,22 +24,13 @@ public class ResourcesBySchemeIdPermissionEvaluator
                                Permission permission) {
 
     for (SchemeRole schemeRole : user.getSchemeRoles()) {
-      if (Objects.equal(schemeRole.getSchemeId(), specification.getSchemeId())) {
-        if (schemePermissionDao.exists(
-            new ObjectRolePermission<UUID>(specification.getSchemeId(),
-                                           schemeRole.getRole(),
-                                           permission))) {
-          return true;
-        }
+      if (schemePermissionDao.exists(
+          new ObjectRolePermission<UUID>(specification.getSchemeId(), schemeRole, permission))) {
+        return true;
       }
     }
 
     return false;
-  }
-
-  @Override
-  public boolean hasPermission(User user, Void value, Permission permission) {
-    throw new UnsupportedOperationException();
   }
 
 }

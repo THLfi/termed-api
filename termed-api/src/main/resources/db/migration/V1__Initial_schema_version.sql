@@ -95,7 +95,7 @@ CREATE TABLE class_property_value (
   CONSTRAINT class_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX class_property_value_class_scheme_id_class_id_idx ON class_property_value(class_scheme_id, class_id);
+CREATE INDEX class_property_value_class_id_idx ON class_property_value(class_scheme_id, class_id);
 
 CREATE TABLE text_attribute (
   scheme_id uuid,
@@ -111,6 +111,9 @@ CREATE TABLE text_attribute (
   CONSTRAINT text_attribute_regex_unique UNIQUE (scheme_id, domain_id, id, regex)
 );
 
+CREATE INDEX text_attribute_scheme_id_idx ON text_attribute(scheme_id);
+CREATE INDEX text_attribute_class_id_idx ON text_attribute(scheme_id, domain_id);
+
 CREATE TABLE text_attribute_property_value (
   text_attribute_scheme_id uuid,
   text_attribute_domain_id varchar(255),
@@ -124,6 +127,8 @@ CREATE TABLE text_attribute_property_value (
   CONSTRAINT text_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
   CONSTRAINT text_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
+
+CREATE INDEX text_attribute_property_value_subject_id_idx ON text_attribute_property_value(text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id);
 
 CREATE TABLE reference_attribute (
   scheme_id uuid,
@@ -141,6 +146,9 @@ CREATE TABLE reference_attribute (
   CONSTRAINT reference_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
+CREATE INDEX reference_attribute_scheme_id_idx ON reference_attribute(scheme_id);
+CREATE INDEX reference_attribute_class_id_idx ON reference_attribute(scheme_id, domain_id);
+
 CREATE TABLE reference_attribute_property_value (
   reference_attribute_scheme_id uuid,
   reference_attribute_domain_id varchar(255),
@@ -154,6 +162,8 @@ CREATE TABLE reference_attribute_property_value (
   CONSTRAINT reference_attribute_property_value_property_fkey FOREIGN KEY (property_id) REFERENCES property(id),
   CONSTRAINT reference_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
+
+CREATE INDEX reference_attribute_property_value_subject_id_idx ON reference_attribute_property_value(reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id);
 
 --
 -- Resource tables (the actual data)

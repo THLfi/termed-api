@@ -9,10 +9,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -28,21 +27,9 @@ public abstract class AbstractExporter<K extends Serializable, V, E> implements 
   }
 
   @Override
-  public E get(Map<String, Object> args, User currentUser) {
-    check(args);
-    return doExport(service.get(currentUser), args, currentUser);
-  }
-
-  @Override
-  public E get(Specification<K, V> specification, Map<String, Object> args, User currentUser) {
+  public E get(SpecificationQuery<K, V> specification, Map<String, Object> args, User currentUser) {
     check(args);
     return doExport(service.get(specification, currentUser), args, currentUser);
-  }
-
-  @Override
-  public E get(Query query, Map<String, Object> args, User currentUser) {
-    check(args);
-    return doExport(service.get(query, currentUser), args, currentUser);
   }
 
   @Override

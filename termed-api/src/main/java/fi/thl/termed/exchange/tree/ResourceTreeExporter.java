@@ -9,7 +9,12 @@ import com.google.common.collect.Multimap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.ReferenceAttribute;
+import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
@@ -23,23 +28,38 @@ import fi.thl.termed.util.Tree;
  */
 public class ResourceTreeExporter extends AbstractExporter<ResourceId, Resource, List<Resource>> {
 
-  public ResourceTreeExporter(Service<ResourceId, Resource> service) {
+  private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
+
+  public ResourceTreeExporter(Service<ResourceId, Resource> service,
+                              Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao) {
     super(service);
+    this.referenceAttributeDao = referenceAttributeDao;
   }
 
   @Override
   protected Map<String, Class> requiredArgs() {
-    return ImmutableMap.<String, Class>of("attributeId", String.class, "referrers", Boolean.class);
+    return ImmutableMap.<String, Class>builder()
+        .put("schemeId", UUID.class)
+        .put("typeId", String.class)
+        .put("attributeId", String.class)
+        .put("referrers", Boolean.class).build();
   }
 
   @Override
   protected List<Resource> doExport(List<Resource> values, Map<String, Object> args, User user) {
+    UUID schemeId = (UUID) args.get("schemeId");
+    String typeId = (String) args.get("typeId");
     String attributeId = (String) args.get("attributeId");
     Boolean referrers = (Boolean) args.get("referrers");
 
+    ClassId domainId = new ClassId(schemeId, typeId);
+    ReferenceAttributeId referenceAttributeId = new ReferenceAttributeId(domainId, attributeId);
+    ReferenceAttribute referenceAttribute = referenceAttributeDao.get(referenceAttributeId);
+    ClassId rangeId = new ClassId(referenceAttribute.getRange());
+
     Function<Resource, List<Resource>> referenceLoadingFunction =
-        referrers ? new IndexedReferrerLoader(service, user, attributeId)
-                  : new IndexedReferenceLoader(service, user, attributeId);
+        referrers ? new IndexedReferrerLoader(service, user, referenceAttributeId, rangeId)
+                  : new IndexedReferenceLoader(service, user, referenceAttributeId, rangeId);
 
     // function to convert and load resource into tree via attributeId
     Function<Resource, Tree<Resource>> toTree =

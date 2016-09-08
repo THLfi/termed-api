@@ -24,7 +24,7 @@ import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.repository.transform.SchemeRoleDtoToModel;
 import fi.thl.termed.repository.transform.SchemeRoleModelToDto;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ClassesBySchemeId;
 import fi.thl.termed.spesification.sql.SchemePermissionsBySchemeId;
 import fi.thl.termed.spesification.sql.SchemePropertiesBySchemeId;
@@ -80,7 +80,8 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   }
 
   private void insertPermissions(UUID schemeId, Multimap<String, Permission> permissions) {
-    schemePermissionDao.insert(RolePermissionsDtoToModel.create(schemeId).apply(permissions));
+    schemePermissionDao.insert(
+        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(permissions));
   }
 
   private void insertProperties(UUID schemeId, Multimap<String, LangValue> properties) {
@@ -125,9 +126,9 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
                                  Multimap<String, Permission> oldPermissions) {
 
     Map<ObjectRolePermission<UUID>, Void> newPermissionMap =
-        RolePermissionsDtoToModel.create(schemeId).apply(newPermissions);
+        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(newPermissions);
     Map<ObjectRolePermission<UUID>, Void> oldPermissionMap =
-        RolePermissionsDtoToModel.create(schemeId).apply(oldPermissions);
+        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<UUID>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -187,8 +188,8 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   }
 
   @Override
-  public List<Scheme> get(Specification<UUID, Scheme> specification) {
-    return Lists.transform(schemeDao.getValues(specification), populateScheme);
+  public List<Scheme> get(SpecificationQuery<UUID, Scheme> specification) {
+    return Lists.transform(schemeDao.getValues(specification.getSpecification()), populateScheme);
   }
 
   @Override
@@ -231,7 +232,8 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
     @Override
     public Scheme apply(Scheme scheme) {
-      scheme.setClasses(classRepository.get(new ClassesBySchemeId(scheme.getId())));
+      scheme.setClasses(classRepository.get(
+          new SpecificationQuery<ClassId, Class>(new ClassesBySchemeId(scheme.getId()))));
       return scheme;
     }
   }

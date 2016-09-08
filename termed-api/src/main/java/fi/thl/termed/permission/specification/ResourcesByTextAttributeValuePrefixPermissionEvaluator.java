@@ -1,19 +1,16 @@
 package fi.thl.termed.permission.specification;
 
-import com.google.common.base.Objects;
-
 import fi.thl.termed.dao.Dao;
-import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.spesification.lucene.ResourcesByTextAttributeValuePrefix;
+import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
 
 public class ResourcesByTextAttributeValuePrefixPermissionEvaluator
-    implements PermissionEvaluator<ResourcesByTextAttributeValuePrefix, Void> {
+    implements PermissionEvaluator<ResourcesByTextAttributeValuePrefix> {
 
   private Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao;
 
@@ -28,25 +25,15 @@ public class ResourcesByTextAttributeValuePrefixPermissionEvaluator
                                Permission permission) {
 
     TextAttributeId textAttributeId = specification.getAttributeId();
-    ClassId domainId = textAttributeId.getDomainId();
 
     for (SchemeRole schemeRole : user.getSchemeRoles()) {
-      if (Objects.equal(schemeRole.getSchemeId(), domainId.getSchemeId())) {
-        if (textAttributePermissionDao.exists(
-            new ObjectRolePermission<TextAttributeId>(textAttributeId,
-                                                      schemeRole.getRole(),
-                                                      permission))) {
-          return true;
-        }
+      if (textAttributePermissionDao.exists(
+          new ObjectRolePermission<TextAttributeId>(textAttributeId, schemeRole, permission))) {
+        return true;
       }
     }
 
     return false;
-  }
-
-  @Override
-  public boolean hasPermission(User user, Void value, Permission permission) {
-    throw new UnsupportedOperationException();
   }
 
 }

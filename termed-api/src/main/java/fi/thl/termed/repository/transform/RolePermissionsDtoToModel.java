@@ -6,21 +6,26 @@ import com.google.common.collect.Multimap;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.UUID;
 
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.SchemeRole;
 
 public class RolePermissionsDtoToModel<K extends Serializable>
     implements Function<Multimap<String, Permission>, Map<ObjectRolePermission<K>, Void>> {
 
+  private UUID schemeId;
   private K objectId;
 
-  public RolePermissionsDtoToModel(K objectId) {
+  public RolePermissionsDtoToModel(UUID schemeId, K objectId) {
+    this.schemeId = schemeId;
     this.objectId = objectId;
   }
 
-  public static <K extends Serializable> RolePermissionsDtoToModel<K> create(K objectId) {
-    return new RolePermissionsDtoToModel<K>(objectId);
+  public static <K extends Serializable> RolePermissionsDtoToModel<K> create(
+      UUID schemeId, K objectId) {
+    return new RolePermissionsDtoToModel<K>(schemeId, objectId);
   }
 
   @Override
@@ -29,7 +34,8 @@ public class RolePermissionsDtoToModel<K extends Serializable>
 
     for (Map.Entry<String, Permission> rolePermission : rolePermissions.entries()) {
       model.put(
-          new ObjectRolePermission<K>(objectId, rolePermission.getKey(), rolePermission.getValue()),
+          new ObjectRolePermission<K>(objectId, new SchemeRole(schemeId, rolePermission.getKey()),
+                                      rolePermission.getValue()),
           null);
     }
 

@@ -1,6 +1,7 @@
 package fi.thl.termed.permission.common;
 
-import java.io.Serializable;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 import fi.thl.termed.domain.Permission;
@@ -10,30 +11,27 @@ import fi.thl.termed.permission.PermissionEvaluator;
 /**
  * Accepts if any of the evaluators accepts.
  */
-public class DisjunctionPermissionEvaluator<K extends Serializable, V>
-    implements PermissionEvaluator<K, V> {
+public class DisjunctionPermissionEvaluator<E> implements PermissionEvaluator<E> {
 
-  private List<PermissionEvaluator<K, V>> evaluators;
+  private List<PermissionEvaluator<E>> evaluators;
 
-  public DisjunctionPermissionEvaluator(List<PermissionEvaluator<K, V>> evaluators) {
+
+  public DisjunctionPermissionEvaluator(PermissionEvaluator<E> e1,
+                                        PermissionEvaluator<E> e2) {
+    List<PermissionEvaluator<E>> list = Lists.newArrayList();
+    list.add(e1);
+    list.add(e2);
+    this.evaluators = list;
+  }
+
+  public DisjunctionPermissionEvaluator(List<PermissionEvaluator<E>> evaluators) {
     this.evaluators = evaluators;
   }
 
   @Override
-  public boolean hasPermission(User user, K key, Permission permission) {
-    for (PermissionEvaluator<K, V> evaluator : evaluators) {
-      if (evaluator.hasPermission(user, key, permission)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  @Override
-  public boolean hasPermission(User user, V value, Permission permission) {
-    for (PermissionEvaluator<K, V> evaluator : evaluators) {
-      if (evaluator.hasPermission(user, value, permission)) {
+  public boolean hasPermission(User user, E object, Permission permission) {
+    for (PermissionEvaluator<E> evaluator : evaluators) {
+      if (evaluator.hasPermission(user, object, permission)) {
         return true;
       }
     }

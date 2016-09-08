@@ -12,9 +12,9 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
@@ -39,8 +39,10 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.PreDestroy;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.index.Index;
+import fi.thl.termed.spesification.LuceneSpecification;
+import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.ToStringFunction;
@@ -48,7 +50,6 @@ import fi.thl.termed.util.ToStringFunction;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
-import static fi.thl.termed.index.lucene.LuceneConstants.DEFAULT_SEARCH_FIELD;
 import static fi.thl.termed.index.lucene.LuceneConstants.DOCUMENT_ID;
 import static java.util.Arrays.asList;
 import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
@@ -143,12 +144,14 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public List<V> query(Query query) {
+  public List<V> query(SpecificationQuery<K, V> specificationQuery) {
     try {
+      Specification<K, V> specification = specificationQuery.getSpecification();
+      Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
       log.debug("query: {}", query);
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(query, searcher);
+        return query(searcher, query, specificationQuery.getMax(), specificationQuery.getOrderBy());
       } finally {
         searcherManager.release(searcher);
       }
@@ -160,18 +163,13 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private List<V> query(Query query, IndexSearcher searcher) throws IOException, ParseException {
-    String queryString = query.getQuery().isEmpty() ? "*:*" : query.getQuery();
-    QueryParser parser = new QueryParser(LUCENE_47, DEFAULT_SEARCH_FIELD, analyzer);
-    ScoreDoc[] hits = searcher
-        .search(parser.parse(queryString), max(query.getMax()), sort(query.getOrderBy())).scoreDocs;
+  private List<V> query(IndexSearcher searcher, Query query, int max, List<String> orderBy)
+      throws IOException, ParseException {
+    ScoreDoc[] hits = searcher.search(query, max, sort(orderBy)).scoreDocs;
     // copy into a new list to fully run transformation so that searcherManager can be released
     List<Document> documents = copyOf(transform(asList(hits), new ScoreDocLoader(searcher)));
+    log.debug("found: {}", documents.size());
     return transform(documents, documentConverter.reverse());
-  }
-
-  private int max(int max) {
-    return max < 0 ? Integer.MAX_VALUE : max;
   }
 
   private Sort sort(List<String> orderBy) {

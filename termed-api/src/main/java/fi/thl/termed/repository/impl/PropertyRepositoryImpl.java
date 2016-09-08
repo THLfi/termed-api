@@ -9,13 +9,13 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.spesification.sql.PropertyPropertiesByPropertyId;
-import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.sql.PropertyPropertiesByPropertyId;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
@@ -87,8 +87,8 @@ public class PropertyRepositoryImpl extends AbstractRepository<String, Property>
   }
 
   @Override
-  public List<Property> get(Specification<String, Property> specification) {
-    return Lists.transform(propertyDao.getValues(specification), addProperties);
+  public List<Property> get(SpecificationQuery<String, Property> specification) {
+    return Lists.transform(propertyDao.getValues(specification.getSpecification()), addProperties);
   }
 
   @Override

@@ -18,7 +18,7 @@ import fi.thl.termed.index.Index;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.sql.ResourcesBySchemeId;
+import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 
 /**
  * Indexes scheme resources after scheme modifications.

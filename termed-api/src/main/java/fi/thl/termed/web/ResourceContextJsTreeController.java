@@ -42,11 +42,13 @@ public class ResourceContextJsTreeController {
       @RequestParam(value = "referrers", defaultValue = "false") boolean referrers,
       @AuthenticationPrincipal User user) {
     ResourceId treeResourceId = new ResourceId(schemeId, typeId, resourceId);
-    Map<String, Object> args = ImmutableMap.<String, Object>of(
-        "attributeId", attributeId,
-        "referrers", referrers,
-        "labelAttributeId", "prefLabel",
-        "lang", lang);
+    Map<String, Object> args = ImmutableMap.<String, Object>builder()
+        .put("schemeId", schemeId)
+        .put("typeId", typeId)
+        .put("attributeId", attributeId)
+        .put("referrers", referrers)
+        .put("labelAttributeId", "prefLabel")
+        .put("lang", lang).build();
     return resourceContextJsTreeExporter.get(treeResourceId, args, user);
   }
 

@@ -5,7 +5,7 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 public class ClassPermissionsByClassId
     extends AbstractSpecification<ObjectRolePermission<ClassId>, Void>

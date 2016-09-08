@@ -7,7 +7,7 @@ import org.junit.Test;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.spesification.common.AbstractSpecification;
+import fi.thl.termed.spesification.AbstractSpecification;
 
 import static org.junit.Assert.assertEquals;
 
@@ -52,7 +52,7 @@ public class SpecificationPermissionEvaluatorTest {
     evaluator.hasPermission(null, new AgeSpec(12), Permission.READ);
   }
 
-  private class NameSpecPermissionEvaluator implements PermissionEvaluator<NameSpec, Void> {
+  private class NameSpecPermissionEvaluator implements PermissionEvaluator<NameSpec> {
 
     private int evaluated = 0;
 
@@ -61,14 +61,9 @@ public class SpecificationPermissionEvaluatorTest {
       evaluated++;
       return true;
     }
-
-    @Override
-    public boolean hasPermission(User user, Void value, Permission permission) {
-      throw new UnsupportedOperationException();
-    }
   }
 
-  private class AgeSpecPermissionEvaluator implements PermissionEvaluator<AgeSpec, Void> {
+  private class AgeSpecPermissionEvaluator implements PermissionEvaluator<AgeSpec> {
 
     private int evaluated = 0;
 
@@ -76,11 +71,6 @@ public class SpecificationPermissionEvaluatorTest {
     public boolean hasPermission(User user, AgeSpec key, Permission permission) {
       evaluated++;
       return true;
-    }
-
-    @Override
-    public boolean hasPermission(User user, Void value, Permission permission) {
-      throw new UnsupportedOperationException();
     }
   }
 

@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
@@ -26,7 +27,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   public void insert(ObjectRolePermission<UUID> id, Void value) {
     jdbcTemplate.update(
         "insert into scheme_permission (scheme_id, role, permission) values (?, ?, ?)",
-        id.getObjectId(), id.getRole(), id.getPermission().toString());
+        id.getObjectId(), id.getSchemeRole(), id.getPermission().toString());
   }
 
   @Override
@@ -38,7 +39,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   public void delete(ObjectRolePermission<UUID> id) {
     jdbcTemplate.update(
         "delete from scheme_permission where scheme_id = ? and role = ? and permission = ?",
-        id.getObjectId(), id.getRole(), id.getPermission().toString());
+        id.getObjectId(), id.getSchemeRole(), id.getPermission().toString());
   }
 
   @Override
@@ -61,7 +62,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
         "select count(*) from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         Long.class,
         id.getObjectId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString()) > 0;
   }
 
@@ -71,7 +72,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
         "select * from scheme_permission scheme_id = ? and role = ? and permission = ?",
         mapper,
         id.getObjectId(),
-        id.getRole(),
+        id.getSchemeRole(),
         id.getPermission().toString()), null);
   }
 
@@ -80,8 +81,9 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
     return new RowMapper<ObjectRolePermission<UUID>>() {
       @Override
       public ObjectRolePermission<UUID> mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new ObjectRolePermission<UUID>(UUIDs.fromString(rs.getString("scheme_id")),
-                                              rs.getString("role"),
+        UUID schemeId = UUIDs.fromString(rs.getString("scheme_id"));
+        return new ObjectRolePermission<UUID>(schemeId,
+                                              new SchemeRole(schemeId, rs.getString("role")),
                                               Permission.valueOf(rs.getString("permission")));
       }
     };

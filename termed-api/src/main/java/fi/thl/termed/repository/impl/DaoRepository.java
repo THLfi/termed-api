@@ -7,7 +7,7 @@ import java.util.List;
 
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 /**
  * Repository implementation backed by a Dao. Useful e.g. for testing.
@@ -51,8 +51,8 @@ public class DaoRepository<K extends Serializable, V> implements Repository<K, V
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification) {
-    return dao.getValues(specification);
+  public List<V> get(SpecificationQuery<K, V> specification) {
+    return dao.getValues(specification.getSpecification());
   }
 
   @Override

@@ -3,10 +3,9 @@ package fi.thl.termed.service.common;
 import java.io.Serializable;
 import java.util.List;
 
-import fi.thl.termed.domain.Query;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 
 /**
  * A service which simply forwards all requests to a delegate (decorator pattern).
@@ -35,18 +34,8 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<V> get(User currentUser) {
-    return delegate.get(currentUser);
-  }
-
-  @Override
-  public List<V> get(Specification<K, V> specification, User currentUser) {
+  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
     return delegate.get(specification, currentUser);
-  }
-
-  @Override
-  public List<V> get(Query query, User currentUser) {
-    return delegate.get(query, currentUser);
   }
 
   @Override

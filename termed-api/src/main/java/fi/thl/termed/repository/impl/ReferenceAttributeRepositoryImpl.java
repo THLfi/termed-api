@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
@@ -19,7 +20,7 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ReferenceAttributePermissionsByReferenceAttributeId;
 import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
 import fi.thl.termed.util.FunctionUtils;
@@ -61,7 +62,9 @@ public class ReferenceAttributeRepositoryImpl
 
   private void insertPermissions(ReferenceAttributeId attributeId,
                                  Multimap<String, Permission> permissions) {
-    permissionDao.insert(RolePermissionsDtoToModel.create(attributeId).apply(permissions));
+    ClassId domainId = attributeId.getDomainId();
+    permissionDao.insert(RolePermissionsDtoToModel.create(
+        domainId.getSchemeId(), attributeId).apply(permissions));
   }
 
   private void insertProperties(ReferenceAttributeId attributeId,
@@ -84,10 +87,12 @@ public class ReferenceAttributeRepositoryImpl
   private void updatePermissions(ReferenceAttributeId attrId,
                                  Multimap<String, Permission> newPermissions,
                                  Multimap<String, Permission> oldPermissions) {
+    ClassId domainId = attrId.getDomainId();
+
     Map<ObjectRolePermission<ReferenceAttributeId>, Void> newPermissionMap =
-        RolePermissionsDtoToModel.create(attrId).apply(newPermissions);
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(newPermissions);
     Map<ObjectRolePermission<ReferenceAttributeId>, Void> oldPermissionMap =
-        RolePermissionsDtoToModel.create(attrId).apply(oldPermissions);
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -135,8 +140,9 @@ public class ReferenceAttributeRepositoryImpl
 
   @Override
   public List<ReferenceAttribute> get(
-      Specification<ReferenceAttributeId, ReferenceAttribute> specification) {
-    return Lists.transform(referenceAttributeDao.getValues(specification), populateAttribute);
+      SpecificationQuery<ReferenceAttributeId, ReferenceAttribute> specification) {
+    return Lists.transform(referenceAttributeDao.getValues(specification.getSpecification()),
+                           populateAttribute);
   }
 
   @Override

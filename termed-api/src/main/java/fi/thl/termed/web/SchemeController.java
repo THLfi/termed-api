@@ -20,6 +20,8 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.TrueSpecification;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -42,7 +44,8 @@ public class SchemeController {
   @RequestMapping(method = GET)
   @ResponseBody
   public List<Scheme> get(@AuthenticationPrincipal User user) {
-    return schemeService.get(user);
+    return schemeService.get(
+        new SpecificationQuery<UUID, Scheme>(new TrueSpecification<UUID, Scheme>()), user);
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}", produces = "application/json;charset=UTF-8")

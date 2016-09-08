@@ -12,6 +12,8 @@ import java.util.List;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.TrueSpecification;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -31,7 +33,8 @@ public class PropertyController {
   @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.get(user);
+    return propertyService.get(
+        new SpecificationQuery<String, Property>(new TrueSpecification<String, Property>()), user);
   }
 
   @RequestMapping(method = GET, value = "/{id}", produces = "application/json;charset=UTF-8")
