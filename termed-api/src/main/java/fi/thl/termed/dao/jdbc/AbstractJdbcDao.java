@@ -80,7 +80,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Dao<
     if (specification instanceof SqlSpecification) {
       return MapUtils.newLinkedHashMap(get((SqlSpecification<K, V>) specification, entryMapper));
     } else {
-      log.warn("Scanning through all entries as SqlQuery is not provided.");
+      log.warn("Scanning through all entries as SqlSpecification is not provided.");
       return Maps.filterEntries(getMap(), specification);
     }
   }
