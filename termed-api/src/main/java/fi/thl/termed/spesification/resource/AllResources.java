@@ -18,9 +18,4 @@ public class AllResources extends TrueSpecification<ResourceId, Resource>
     return new MatchAllDocsQuery();
   }
 
-  @Override
-  public boolean accept(ResourceId key, Resource value) {
-    return true;
-  }
-
 }
