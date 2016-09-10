@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
 @IntegrationTest
-public class SchemeRepositoryTest {
+public class SchemeRepositoryIntegrationTest {
 
   @Resource
   private Repository<UUID, Scheme> schemeRepository;

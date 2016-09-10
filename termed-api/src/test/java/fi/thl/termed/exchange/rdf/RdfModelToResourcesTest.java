@@ -57,18 +57,19 @@ public class RdfModelToResourcesTest {
   }
 
   private Scheme createExampleScheme() {
-    Class person = new Class("Person", "http://xmlns.com/foaf/0.1/Person");
-    person.setTextAttributes(Lists.newArrayList(
-        new TextAttribute("name", "http://xmlns.com/foaf/0.1/name"),
-        new TextAttribute("age", "http://xmlns.com/foaf/0.1/age")));
-
-    Class group = new Class("Group", "http://xmlns.com/foaf/0.1/Group");
-    group.setTextAttributes(Lists.newArrayList(
-        new TextAttribute("name", "http://xmlns.com/foaf/0.1/name")));
-    group.setReferenceAttributes(Lists.newArrayList(
-        new ReferenceAttribute(person, "member", "http://xmlns.com/foaf/0.1/member")));
-
     Scheme scheme = new Scheme(UUID.randomUUID());
+
+    Class person = new Class(scheme, "Person", "http://xmlns.com/foaf/0.1/Person");
+    person.setTextAttributes(Lists.newArrayList(
+        new TextAttribute(person, "name", "http://xmlns.com/foaf/0.1/name"),
+        new TextAttribute(person, "age", "http://xmlns.com/foaf/0.1/age")));
+
+    Class group = new Class(scheme, "Group", "http://xmlns.com/foaf/0.1/Group");
+    group.setTextAttributes(Lists.newArrayList(
+        new TextAttribute(group, "name", "http://xmlns.com/foaf/0.1/name")));
+    group.setReferenceAttributes(Lists.newArrayList(
+        new ReferenceAttribute(group, person, "member", "http://xmlns.com/foaf/0.1/member")));
+
     scheme.setClasses(Lists.newArrayList(person, group));
 
     return scheme;

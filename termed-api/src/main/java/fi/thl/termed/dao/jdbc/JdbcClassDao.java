@@ -88,9 +88,10 @@ public class JdbcClassDao extends AbstractJdbcDao<ClassId, Class> {
   protected RowMapper<Class> buildValueMapper() {
     return new RowMapper<Class>() {
       public Class mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Class cls = new Class(rs.getString("id"), rs.getString("uri"));
+        Class cls = new Class(new Scheme(UUIDs.fromString(rs.getString("scheme_id"))),
+                              rs.getString("id"),
+                              rs.getString("uri"));
         cls.setIndex(rs.getInt("index"));
-        cls.setScheme(new Scheme(UUIDs.fromString(rs.getString("scheme_id"))));
         return cls;
       }
     };

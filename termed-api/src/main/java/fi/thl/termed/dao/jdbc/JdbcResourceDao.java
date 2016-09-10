@@ -110,9 +110,11 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
   protected RowMapper<Resource> buildValueMapper() {
     return new RowMapper<Resource>() {
       public Resource mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Scheme scheme = new Scheme(UUIDs.fromString(rs.getString("scheme_id")));
+
         Resource resource = new Resource(UUIDs.fromString(rs.getString("id")));
-        resource.setScheme(new Scheme(UUIDs.fromString(rs.getString("scheme_id"))));
-        resource.setType(new Class(rs.getString("type_id")));
+        resource.setScheme(scheme);
+        resource.setType(new Class(scheme, rs.getString("type_id")));
 
         resource.setCode(rs.getString("code"));
         resource.setUri(rs.getString("uri"));

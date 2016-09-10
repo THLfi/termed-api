@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
 @IntegrationTest
-public class ResourceIndexTest {
+public class ResourceIndexIntegrationTest {
 
   @javax.annotation.Resource
   private Repository<UUID, Scheme> schemeRepository;
@@ -68,8 +68,8 @@ public class ResourceIndexTest {
 
   @Test
   public void shouldFindResourceById() {
-    Class cls = new Class("Document");
     Scheme scheme = new Scheme(UUID.randomUUID());
+    Class cls = new Class(scheme, "Document");
     scheme.setClasses(Lists.newArrayList(cls));
     schemeRepository.save(scheme);
 
@@ -92,9 +92,9 @@ public class ResourceIndexTest {
 
   @Test
   public void shouldFindResourceByPropertyValue() {
-    Class cls = new Class("Document");
-    cls.setTextAttributes(Lists.newArrayList(new TextAttribute("prefLabel")));
     Scheme scheme = new Scheme(UUID.randomUUID());
+    Class cls = new Class(scheme, "Document");
+    cls.setTextAttributes(Lists.newArrayList(new TextAttribute(cls, "prefLabel")));
     scheme.setClasses(Lists.newArrayList(cls));
     schemeRepository.save(scheme);
 

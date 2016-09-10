@@ -29,16 +29,13 @@ public class Class implements PropertyEntity {
 
   private List<ReferenceAttribute> referenceAttributes;
 
-  public Class(String id) {
-    this.id = id;
-  }
-
   public Class(Scheme scheme, String id) {
     this.scheme = scheme;
     this.id = id;
   }
 
-  public Class(String id, String uri) {
+  public Class(Scheme scheme, String id, String uri) {
+    this.scheme = scheme;
     this.id = id;
     this.uri = uri;
   }

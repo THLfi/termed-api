@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
 @IntegrationTest
-public class ClassRepositoryTest {
+public class ClassRepositoryIntegrationTest {
 
   @Resource
   private Repository<UUID, Scheme> schemeRepository;
@@ -39,11 +39,11 @@ public class ClassRepositoryTest {
     schemeRepository.save(testScheme);
 
     Class testClass = new Class(testScheme, "TestClass1");
-    testClass.setTextAttributes(Lists.newArrayList(new TextAttribute("prefLabel"),
-                                                   new TextAttribute("altLabel"),
-                                                   new TextAttribute("description")));
+    testClass.setTextAttributes(Lists.newArrayList(new TextAttribute(testClass, "prefLabel"),
+                                                   new TextAttribute(testClass, "altLabel"),
+                                                   new TextAttribute(testClass, "description")));
     testClass.setReferenceAttributes(Lists.newArrayList(
-        new ReferenceAttribute(testClass, "related")));
+        new ReferenceAttribute(testClass, testClass, "related")));
 
     classRepository.save(testClass);
 
@@ -69,21 +69,21 @@ public class ClassRepositoryTest {
 
     Class testClass = new Class(testScheme, "TestClass2");
     testClass.setTextAttributes(
-        Lists.newArrayList(new TextAttribute("prefLabel"),
-                           new TextAttribute("altLabel")));
+        Lists.newArrayList(new TextAttribute(testClass, "prefLabel"),
+                           new TextAttribute(testClass, "altLabel")));
     testClass.setReferenceAttributes(
-        Lists.newArrayList(new ReferenceAttribute(testClass, "related"),
-                           new ReferenceAttribute(testClass, "broader")));
+        Lists.newArrayList(new ReferenceAttribute(testClass, testClass, "related"),
+                           new ReferenceAttribute(testClass, testClass, "broader")));
 
     classRepository.save(testClass);
 
     Class updatedTestClass = new Class(testScheme, "TestClass2");
     updatedTestClass.setTextAttributes(
-        Lists.newArrayList(new TextAttribute("prefLabel"),
-                           new TextAttribute("description")));
+        Lists.newArrayList(new TextAttribute(updatedTestClass, "prefLabel"),
+                           new TextAttribute(updatedTestClass, "description")));
     updatedTestClass.setReferenceAttributes(
-        Lists.newArrayList(new ReferenceAttribute(testClass, "related"),
-                           new ReferenceAttribute(testClass, "narrower")));
+        Lists.newArrayList(new ReferenceAttribute(updatedTestClass, updatedTestClass, "related"),
+                           new ReferenceAttribute(updatedTestClass, updatedTestClass, "narrower")));
 
     classRepository.save(updatedTestClass);
 

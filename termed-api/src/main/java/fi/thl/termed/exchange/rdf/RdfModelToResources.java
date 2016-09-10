@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.domain.Class;
+import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.Scheme;
@@ -49,8 +50,8 @@ public class RdfModelToResources implements Function<RdfModel, List<Resource>> {
         Resource resource = new Resource();
         resource.setCode(removeDiacritics(URIs.localName(r.getUri())));
         resource.setUri(r.getUri());
-        resource.setScheme(scheme);
-        resource.setType(type);
+        resource.setScheme(new Scheme(scheme.getId()));
+        resource.setType(new Class(new ClassId(type)));
         resources.put(r.getUri(), resource);
       }
     }
@@ -104,7 +105,7 @@ public class RdfModelToResources implements Function<RdfModel, List<Resource>> {
       public boolean apply(Resource input) {
         Class type = input.getType();
         return Objects.equal(type.getId(), requiredType.getId()) &&
-               Objects.equal(type.getScheme(), requiredType.getScheme());
+               Objects.equal(type.getSchemeId(), requiredType.getSchemeId());
       }
     };
   }

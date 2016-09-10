@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
 @IntegrationTest
-public class ResourceRepositoryTest {
+public class ResourceRepositoryIntegrationTest {
 
   private static final String FOAF = "http://xmlns.com/foaf/0.1/";
 
@@ -58,15 +58,15 @@ public class ResourceRepositoryTest {
 
     personClass = new Class(personScheme, "Person");
     personClass.setTextAttributes(newArrayList(
-        new TextAttribute("firstName", FOAF + "firstName"),
-        new TextAttribute("lastName", FOAF + "lastName")));
+        new TextAttribute(personClass, "firstName", FOAF + "firstName"),
+        new TextAttribute(personClass, "lastName", FOAF + "lastName")));
     personClass.setReferenceAttributes(newArrayList(
-        new ReferenceAttribute(personClass, "knows")));
+        new ReferenceAttribute(personClass, personClass, "knows")));
 
     groupClass = new Class(personScheme, "Group");
-    groupClass.setTextAttributes(newArrayList(new TextAttribute("name")));
+    groupClass.setTextAttributes(newArrayList(new TextAttribute(groupClass, "name")));
     groupClass.setReferenceAttributes(newArrayList(
-        new ReferenceAttribute(personClass, "member")));
+        new ReferenceAttribute(groupClass, personClass, "member")));
 
     personScheme.setClasses(newArrayList(personClass, groupClass));
 

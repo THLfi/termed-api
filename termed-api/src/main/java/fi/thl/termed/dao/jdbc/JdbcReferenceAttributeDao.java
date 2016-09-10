@@ -124,15 +124,15 @@ public class JdbcReferenceAttributeDao
   protected RowMapper<ReferenceAttribute> buildValueMapper() {
     return new RowMapper<ReferenceAttribute>() {
       public ReferenceAttribute mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Class domain = new Class(rs.getString("domain_id"));
-        domain.setScheme(new Scheme(UUIDs.fromString(rs.getString("scheme_id"))));
-        Class range = new Class(rs.getString("range_id"));
-        range.setScheme(new Scheme(UUIDs.fromString(rs.getString("range_scheme_id"))));
+
+        Scheme domainScheme = new Scheme(UUIDs.fromString(rs.getString("scheme_id")));
+        Class domain = new Class(domainScheme, rs.getString("domain_id"));
+
+        Scheme rangeScheme = new Scheme(UUIDs.fromString(rs.getString("range_scheme_id")));
+        Class range = new Class(rangeScheme, rs.getString("range_id"));
 
         ReferenceAttribute referenceAttribute =
-            new ReferenceAttribute(rs.getString("id"), rs.getString("uri"));
-        referenceAttribute.setDomain(domain);
-        referenceAttribute.setRange(range);
+            new ReferenceAttribute(domain, range, rs.getString("id"), rs.getString("uri"));
         referenceAttribute.setIndex(rs.getInt("index"));
 
         return referenceAttribute;

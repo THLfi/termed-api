@@ -177,7 +177,7 @@ public class ResourceControllerImpl implements ResourceController {
   public void post(UUID schemeId, String typeId, List<Resource> resources, User currentUser) {
     for (Resource resource : resources) {
       resource.setScheme(new Scheme(schemeId));
-      resource.setType(new Class(typeId));
+      resource.setType(new Class(new Scheme(schemeId), typeId));
     }
     resourceService.save(resources, currentUser);
   }
@@ -185,7 +185,7 @@ public class ResourceControllerImpl implements ResourceController {
   @Override
   public Resource post(UUID schemeId, String typeId, Resource resource, User currentUser) {
     resource.setScheme(new Scheme(schemeId));
-    resource.setType(new Class(typeId));
+    resource.setType(new Class(new Scheme(schemeId), typeId));
     resourceService.save(resource, currentUser);
     return resourceService.get(new ResourceId(resource), currentUser);
   }
@@ -219,7 +219,7 @@ public class ResourceControllerImpl implements ResourceController {
   @Override
   public Resource put(UUID schemeId, String typeId, UUID id, Resource resource, User currentUser) {
     resource.setScheme(new Scheme(schemeId));
-    resource.setType(new Class(typeId));
+    resource.setType(new Class(new Scheme(schemeId), typeId));
     resource.setId(id);
     resourceService.save(resource, currentUser);
     return resourceService.get(new ResourceId(resource), currentUser);

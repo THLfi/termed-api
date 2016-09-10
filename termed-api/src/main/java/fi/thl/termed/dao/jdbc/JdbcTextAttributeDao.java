@@ -116,11 +116,11 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   protected RowMapper<TextAttribute> buildValueMapper() {
     return new RowMapper<TextAttribute>() {
       public TextAttribute mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Class domain = new Class(rs.getString("domain_id"));
-        domain.setScheme(new Scheme(UUIDs.fromString(rs.getString("scheme_id"))));
+        Scheme domainScheme = new Scheme(UUIDs.fromString(rs.getString("scheme_id")));
+        Class domain = new Class(domainScheme, rs.getString("domain_id"));
 
-        TextAttribute textAttribute = new TextAttribute(rs.getString("id"), rs.getString("uri"));
-        textAttribute.setDomain(domain);
+        TextAttribute textAttribute = new TextAttribute(domain, rs.getString("id"));
+        textAttribute.setUri(rs.getString("uri"));
         textAttribute.setRegex(rs.getString("regex"));
         textAttribute.setIndex(rs.getInt("index"));
 

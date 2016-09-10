@@ -42,7 +42,7 @@ public class Resource {
 
   public Resource(ResourceId resourceId) {
     this.scheme = new Scheme(resourceId.getSchemeId());
-    this.type = new Class(resourceId.getTypeId());
+    this.type = new Class(new Scheme(resourceId.getSchemeId()), resourceId.getTypeId());
     this.id = resourceId.getId();
   }
 
