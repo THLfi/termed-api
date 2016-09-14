@@ -54,6 +54,10 @@ public class ResourceRepositoryIntegrationTest {
 
   @Before
   public void setUp() {
+    date = new Date();
+    user = new User("test", passwordEncoder.encode(UUIDs.randomUUIDString()), AppRole.ADMIN);
+    userRepository.save(user, new User("initializer", "", AppRole.SUPERUSER));
+
     personScheme = new Scheme(UUID.randomUUID());
 
     personClass = new Class(personScheme, "Person");
@@ -69,12 +73,7 @@ public class ResourceRepositoryIntegrationTest {
         new ReferenceAttribute(groupClass, personClass, "member")));
 
     personScheme.setClasses(newArrayList(personClass, groupClass));
-
-    schemeRepository.save(personScheme);
-
-    date = new Date();
-    user = new User("test", passwordEncoder.encode(UUIDs.randomUUIDString()), AppRole.ADMIN);
-    userRepository.save(user);
+    schemeRepository.save(personScheme, user);
   }
 
   @Test
@@ -85,7 +84,7 @@ public class ResourceRepositoryIntegrationTest {
     bob.setLastModifiedDate(date);
     bob.setLastModifiedBy(user.getUsername());
     bob.addProperty("firstName", "", "Bob");
-    resourceRepository.save(bob);
+    resourceRepository.save(bob, user);
 
     Resource tim = new Resource(personScheme, personClass, UUID.randomUUID());
     tim.setCreatedDate(date);
@@ -94,7 +93,7 @@ public class ResourceRepositoryIntegrationTest {
     tim.setLastModifiedBy(user.getUsername());
     tim.addProperty("firstName", "", "Tim");
     tim.addReference("knows", bob);
-    resourceRepository.save(tim);
+    resourceRepository.save(tim, user);
 
     Resource adminGroup = new Resource(personScheme, groupClass, UUID.randomUUID());
     adminGroup.setCreatedDate(date);
@@ -104,16 +103,16 @@ public class ResourceRepositoryIntegrationTest {
     adminGroup.addProperty("name", "", "Admins");
     adminGroup.addReference("member", tim);
     adminGroup.addReference("member", bob);
-    resourceRepository.save(adminGroup);
+    resourceRepository.save(adminGroup, user);
 
-    assertEquals(bob.getId(), resourceRepository.get(new ResourceId(bob)).getId());
+    assertEquals(bob.getId(), resourceRepository.get(new ResourceId(bob), user).getId());
 
     List<Resource> timFriends = newArrayList(
-        resourceRepository.get(new ResourceId(tim)).getReferences().get("knows"));
+        resourceRepository.get(new ResourceId(tim), user).getReferences().get("knows"));
     assertEquals(bob.getId(), timFriends.get(0).getId());
 
     List<Resource> admins = newArrayList(
-        resourceRepository.get(new ResourceId(adminGroup)).getReferences().get("member"));
+        resourceRepository.get(new ResourceId(adminGroup), user).getReferences().get("member"));
     assertEquals(tim.getId(), admins.get(0).getId());
     assertEquals(bob.getId(), admins.get(1).getId());
   }

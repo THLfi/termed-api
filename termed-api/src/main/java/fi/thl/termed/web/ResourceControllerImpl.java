@@ -132,7 +132,7 @@ public class ResourceControllerImpl implements ResourceController {
 
   private List<UUID> schemeIds(User user) {
     return ListUtils.filter(
-        schemeDao.getKeys(new TrueSpecification<UUID, Scheme>()),
+        schemeDao.getKeys(new TrueSpecification<UUID, Scheme>(), user),
         new PermissionPredicate<UUID>(schemePermissionEvaluator, user, Permission.READ));
   }
 
@@ -148,19 +148,19 @@ public class ResourceControllerImpl implements ResourceController {
 
   private List<TextAttributeId> textAttributeIds(User user) {
     return ListUtils.filter(
-        textAttributeDao.getKeys(new TrueSpecification<TextAttributeId, TextAttribute>()),
+        textAttributeDao.getKeys(new TrueSpecification<TextAttributeId, TextAttribute>(), user),
         new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
   }
 
   private List<TextAttributeId> textAttributeIds(UUID schemeId, User user) {
     return ListUtils.filter(
-        textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId)),
+        textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId), user),
         new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
   }
 
   private List<TextAttributeId> textAttributeIds(ClassId classId, User user) {
     return ListUtils.filter(
-        textAttributeDao.getKeys(new TextAttributesByClassId(classId)),
+        textAttributeDao.getKeys(new TextAttributesByClassId(classId), user),
         new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
   }
 

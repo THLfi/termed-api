@@ -3,6 +3,7 @@ package fi.thl.termed.repository;
 import java.io.Serializable;
 import java.util.List;
 
+import fi.thl.termed.domain.User;
 import fi.thl.termed.spesification.SpecificationQuery;
 
 public interface Repository<K extends Serializable, V> {
@@ -10,28 +11,23 @@ public interface Repository<K extends Serializable, V> {
   /**
    * Save (insert or update) values with dependencies.
    */
-  void save(List<V> values);
+  void save(List<V> values, User user);
 
-  void save(V value);
+  void save(V value, User user);
 
   /**
    * Delete value (with dependencies) by id.
    */
-  void delete(K id);
-
-  /**
-   * Get all values. Values may not have all dependencies fully populated.
-   */
-  List<V> get();
+  void delete(K id, User user);
 
   /**
    * Query values. Values are expected to be fully populated.
    */
-  List<V> get(SpecificationQuery<K, V> specification);
+  List<V> get(SpecificationQuery<K, V> specification, User user);
 
   /**
    * Get value by id. Value is expected to be fully populated.
    */
-  V get(K id);
+  V get(K id, User user);
 
 }

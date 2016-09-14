@@ -45,7 +45,8 @@ public abstract class BaseApiIntegrationTest {
         new ObjectMapperConfig(ObjectMapperType.GSON));
 
     userRepository.save(
-        new User(testUsername, passwordEncoder.encode(testPassword), AppRole.ADMIN));
+        new User(testUsername, passwordEncoder.encode(testPassword), AppRole.ADMIN),
+        new User("initializer", "", AppRole.SUPERUSER));
   }
 
 }

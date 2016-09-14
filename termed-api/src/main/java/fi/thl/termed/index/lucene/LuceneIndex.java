@@ -168,7 +168,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     ScoreDoc[] hits = searcher.search(query, max, sort(orderBy)).scoreDocs;
     // copy into a new list to fully run transformation so that searcherManager can be released
     List<Document> documents = copyOf(transform(asList(hits), new ScoreDocLoader(searcher)));
-    log.debug("found: {}", documents.size());
     return transform(documents, documentConverter.reverse());
   }
 

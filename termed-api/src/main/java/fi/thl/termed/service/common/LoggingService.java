@@ -21,35 +21,34 @@ public class LoggingService<K extends Serializable, V> extends ForwardingService
   }
 
   @Override
-  public void save(List<V> values, User currentUser) {
+  public void save(List<V> values, User user) {
     log.info("{} save {} values (user: {})", valueClass.getSimpleName(), values.size(),
-             currentUser.getUsername());
-    super.save(values, currentUser);
+             user.getUsername());
+    super.save(values, user);
   }
 
   @Override
-  public void save(V value, User currentUser) {
-    log.info("{} save {} (user: {})", valueClass.getSimpleName(), value, currentUser.getUsername());
-    super.save(value, currentUser);
+  public void save(V value, User user) {
+    log.info("{} save {} (user: {})", valueClass.getSimpleName(), value, user.getUsername());
+    super.save(value, user);
   }
 
   @Override
-  public void delete(K id, User currentUser) {
-    log.info("{} delete {} (user: {})", valueClass.getSimpleName(), id, currentUser.getUsername());
-    super.delete(id, currentUser);
+  public void delete(K id, User user) {
+    log.info("{} delete {} (user: {})", valueClass.getSimpleName(), id, user.getUsername());
+    super.delete(id, user);
   }
 
   @Override
-  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
-    log.info("{} get {} (user: {})", valueClass.getSimpleName(), specification,
-             currentUser.getUsername());
-    return super.get(specification, currentUser);
+  public List<V> get(SpecificationQuery<K, V> specification, User user) {
+    log.info("{} get {} (user: {})", valueClass.getSimpleName(), specification, user.getUsername());
+    return super.get(specification, user);
   }
 
   @Override
-  public V get(K id, User currentUser) {
-    log.info("{} get {} (user: {})", valueClass.getSimpleName(), id, currentUser.getUsername());
-    return super.get(id, currentUser);
+  public V get(K id, User user) {
+    log.info("{} get {} (user: {})", valueClass.getSimpleName(), id, user.getUsername());
+    return super.get(id, user);
   }
 
 }

@@ -1,6 +1,6 @@
 package fi.thl.termed.permission.specification;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
@@ -12,10 +12,10 @@ import fi.thl.termed.spesification.resource.ResourcesByClassId;
 public class ResourcesByClassIdPermissionEvaluator
     implements PermissionEvaluator<ResourcesByClassId> {
 
-  private Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao;
+  private SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionDao;
 
   public ResourcesByClassIdPermissionEvaluator(
-      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao) {
+      SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionDao) {
     this.classPermissionDao = classPermissionDao;
   }
 

@@ -14,15 +14,15 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.MapUtils;
 
 /**
- * Base class to help with implementing a Dao.
+ * Base class to help with implementing a JDBC Dao.
  */
-public abstract class AbstractJdbcDao<K extends Serializable, V> implements Dao<K, V> {
+public abstract class AbstractJdbcDao<K extends Serializable, V> implements SystemDao<K, V> {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -59,12 +59,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Dao<
   }
 
   @Override
-  public void delete() {
-    delete(getKeys());
-  }
-
-  @Override
-  public void delete(Iterable<K> keys) {
+  public void delete(List<K> keys) {
     for (K key : keys) {
       delete(key);
     }
@@ -86,7 +81,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Dao<
   }
 
   @Override
-  public Map<K, V> getMap(Iterable<K> keys) {
+  public Map<K, V> getMap(List<K> keys) {
     return MapUtils.newLinkedHashMap(get(keys, entryMapper));
   }
 
@@ -119,7 +114,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Dao<
   }
 
   @Override
-  public List<V> getValues(Iterable<K> keys) {
+  public List<V> getValues(List<K> keys) {
     return get(keys, valueMapper);
   }
 

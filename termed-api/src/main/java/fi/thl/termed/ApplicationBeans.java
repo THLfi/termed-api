@@ -1,6 +1,7 @@
 package fi.thl.termed;
 
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.dao.jdbc.JdbcClassDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPropertyValueDao;
@@ -38,6 +40,8 @@ import fi.thl.termed.dao.jdbc.JdbcTextAttributePermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePropertyValueDao;
 import fi.thl.termed.dao.jdbc.JdbcUserDao;
 import fi.thl.termed.dao.jdbc.JdbcUserSchemeRoleDao;
+import fi.thl.termed.dao.util.CachedSystemDao;
+import fi.thl.termed.dao.util.SecureDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
@@ -57,6 +61,13 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
+import fi.thl.termed.domain.function.ObjectRolePermissionToObjectId;
+import fi.thl.termed.domain.function.PropertyValueIdToSubjectId;
+import fi.thl.termed.domain.function.ResourceAttributeValueIdToReferenceAttributeId;
+import fi.thl.termed.domain.function.ResourceAttributeValueIdToTextAttributeId;
+import fi.thl.termed.domain.function.ResourceIdToClassId;
+import fi.thl.termed.domain.function.ResourceToClassId;
+import fi.thl.termed.domain.function.SchemeRoleToSchemeId;
 import fi.thl.termed.exchange.Exchange;
 import fi.thl.termed.exchange.Exporter;
 import fi.thl.termed.exchange.rdf.ResourceRdfExchange;
@@ -68,15 +79,10 @@ import fi.thl.termed.index.lucene.LuceneIndex;
 import fi.thl.termed.index.lucene.ResourceDocumentConverter;
 import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.permission.common.AppRolePermissionEvaluator;
-import fi.thl.termed.permission.common.ConjunctionPermissionEvaluator;
-import fi.thl.termed.permission.common.DaoBasedObjectPermissionEvaluator;
+import fi.thl.termed.permission.common.DaoPermissionEvaluator;
 import fi.thl.termed.permission.common.DisjunctionPermissionEvaluator;
+import fi.thl.termed.permission.common.MappingPermissionEvaluator;
 import fi.thl.termed.permission.common.PermitAllPermissionEvaluator;
-import fi.thl.termed.permission.resource.ClassIdBasedResourcePermissionEvaluator;
-import fi.thl.termed.permission.resource.DelegatingResourcePermissionEvaluator;
-import fi.thl.termed.permission.resource.ResourceReferenceAttributeValuePermissionEvaluator;
-import fi.thl.termed.permission.resource.ResourceTextAttributeValuePermissionEvaluator;
-import fi.thl.termed.permission.resource.SchemeIdBasedResourcePermissionEvaluator;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.repository.impl.AbstractRepository;
 import fi.thl.termed.repository.impl.ClassRepositoryImpl;
@@ -88,11 +94,9 @@ import fi.thl.termed.repository.impl.TextAttributeRepositoryImpl;
 import fi.thl.termed.repository.impl.UserRepositoryImpl;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.LoggingService;
-import fi.thl.termed.service.common.PermissionEvaluatingService;
 import fi.thl.termed.service.common.RepositoryService;
 import fi.thl.termed.service.common.TransactionalService;
 import fi.thl.termed.service.resource.AttributeResolvingResourceService;
-import fi.thl.termed.service.resource.AuditingResourceService;
 import fi.thl.termed.service.resource.IdResolvingResourceService;
 import fi.thl.termed.service.resource.IndexingResourceService;
 import fi.thl.termed.service.resource.SchemeIdResolvingResourceService;
@@ -225,46 +229,16 @@ public class ApplicationBeans {
   @Bean
   public Service<String, User> userService(Repository<String, User> userRepository,
                                            PlatformTransactionManager transactionManager) {
-
-    Service<String, User> service = new RepositoryService<String, User>(userRepository);
-
-    service = new TransactionalService<String, User>(service, transactionManager);
-
-    ImmutableMultimap<AppRole, Permission> appRolePermissions =
-        ImmutableMultimap.<AppRole, Permission>builder()
-            .putAll(AppRole.SUPERUSER, Permission.values()).build();
-
-    service = new PermissionEvaluatingService<String, User>(
-        service,
-        new AppRolePermissionEvaluator<String>(appRolePermissions),
-        new AppRolePermissionEvaluator<User>(appRolePermissions),
-        new AppRolePermissionEvaluator<Specification<String, User>>(appRolePermissions));
-
-    return service;
+    return new TransactionalService<String, User>(
+        new RepositoryService<String, User>(userRepository), transactionManager);
   }
 
   @Bean
   public Service<String, Property> propertyService(
       Repository<String, Property> propertyRepository,
       PlatformTransactionManager transactionManager) {
-
-    Service<String, Property> service = new RepositoryService<String, Property>(propertyRepository);
-
-    service = new TransactionalService<String, Property>(service, transactionManager);
-
-    ImmutableMultimap<AppRole, Permission> appRolePermissions =
-        ImmutableMultimap.<AppRole, Permission>builder()
-            .putAll(AppRole.USER, Permission.READ)
-            .putAll(AppRole.ADMIN, Permission.READ)
-            .putAll(AppRole.SUPERUSER, Permission.values()).build();
-
-    service = new PermissionEvaluatingService<String, Property>(
-        service,
-        new AppRolePermissionEvaluator<String>(appRolePermissions),
-        new AppRolePermissionEvaluator<Property>(appRolePermissions),
-        new AppRolePermissionEvaluator<Specification<String, Property>>(appRolePermissions));
-
-    return service;
+    return new TransactionalService<String, Property>(
+        new RepositoryService<String, Property>(propertyRepository), transactionManager);
   }
 
   @Bean
@@ -272,29 +246,17 @@ public class ApplicationBeans {
       Repository<UUID, Scheme> schemeRepository,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
-      Dao<UUID, Scheme> schemeDao,
-      Dao<ResourceId, Resource> resourceDao,
+      SystemDao<UUID, Scheme> schemeSystemDao,
+      SystemDao<ResourceId, Resource> resourceSystemDao,
       PlatformTransactionManager transactionManager) {
 
     Service<UUID, Scheme> service = new RepositoryService<UUID, Scheme>(schemeRepository);
 
     service = new TransactionalService<UUID, Scheme>(service, transactionManager);
-    service = new LoggingService<UUID, Scheme>(service, Scheme.class);
-    service = new IndexingSchemeService(service, resourceRepository, resourceIndex, resourceDao);
+    service = new IndexingSchemeService(service, resourceRepository, resourceIndex,
+                                        resourceSystemDao);
     service = new ValidatingSchemeService(service);
-    service = new ResolvingSchemeService(service, schemeDao);
-
-    ImmutableMultimap<AppRole, Permission> appRolePermissions =
-        ImmutableMultimap.<AppRole, Permission>builder()
-            .putAll(AppRole.USER, Permission.READ)
-            .putAll(AppRole.ADMIN, Permission.values())
-            .putAll(AppRole.SUPERUSER, Permission.values()).build();
-
-    service = new PermissionEvaluatingService<UUID, Scheme>(
-        service,
-        new AppRolePermissionEvaluator<UUID>(appRolePermissions),
-        new AppRolePermissionEvaluator<Scheme>(appRolePermissions),
-        new AppRolePermissionEvaluator<Specification<UUID, Scheme>>(appRolePermissions));
+    service = new ResolvingSchemeService(service, schemeSystemDao);
 
     return service;
   }
@@ -303,17 +265,12 @@ public class ApplicationBeans {
   public Service<ResourceId, Resource> resourceService(
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
-      PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator,
-      PermissionEvaluator<Resource> resourcePermissionEvaluator,
-      PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator,
-      PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdPermissionEvaluator,
-      PermissionEvaluator<ResourceAttributeValueId> referenceAttributeValueIdPermissionEvaluator,
-      Dao<UUID, Scheme> schemeDao,
-      Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
-      Dao<ResourceId, Resource> resourceDao,
-      Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao,
-      Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao,
+      SystemDao<UUID, Scheme> schemeSystemDao,
+      SystemDao<TextAttributeId, TextAttribute> textAttributeSystemDao,
+      SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeSystemDao,
+      SystemDao<ResourceId, Resource> resourceSystemDao,
+      SystemDao<ResourceAttributeValueId, StrictLangValue> textAttributeValueSystemDao,
+      SystemDao<ResourceAttributeValueId, ResourceId> referenceAttributeValueSystemDao,
       PlatformTransactionManager transactionManager) {
 
     Service<ResourceId, Resource> service =
@@ -321,130 +278,14 @@ public class ApplicationBeans {
 
     service = new TransactionalService<ResourceId, Resource>(service, transactionManager);
     service = new IndexingResourceService(
-        service, resourceRepository, resourceIndex, referenceAttributeValueDao);
-    service = new AuditingResourceService(service, resourceDao);
-
-//    service = new ReferenceAttributeValuePermissionEvaluatingService(
-//        service, referenceAttributeValueDao, textAttributeValueIdPermissionEvaluator);
-//    service = new TextAttributeValuePermissionEvaluatingService(
-//        service, textAttributeValueDao, referenceAttributeValueIdPermissionEvaluator);
-//    service = new ResourcePermissionEvaluatingService(
-//        service, resourceIdPermissionEvaluator, resourcePermissionEvaluator,
-//        resourceSpecificationPermissionEvaluator, resourceDao);
-
+        service, resourceRepository, resourceIndex, referenceAttributeValueSystemDao);
     service = new LoggingService<ResourceId, Resource>(service, Resource.class);
-
     service = new AttributeResolvingResourceService(
-        service, textAttributeDao, referenceAttributeDao, resourceDao);
-    service = new IdResolvingResourceService(service, resourceDao);
-    service = new SchemeIdResolvingResourceService(service, schemeDao);
+        service, textAttributeSystemDao, referenceAttributeSystemDao, resourceSystemDao);
+    service = new IdResolvingResourceService(service, resourceSystemDao);
+    service = new SchemeIdResolvingResourceService(service, schemeSystemDao);
 
     return service;
-  }
-
-  // Permission evaluators
-
-  @Bean
-  public PermissionEvaluator<ResourceAttributeValueId> textAttributeValueIdPermissionEvaluator(
-      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
-    return new ResourceTextAttributeValuePermissionEvaluator(
-        textAttributeIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<ResourceAttributeValueId> referenceAttributeValueIdPermissionEvaluator(
-      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
-    return new ResourceReferenceAttributeValuePermissionEvaluator(
-        referenceAttributeIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator() {
-    return new PermitAllPermissionEvaluator<Specification<ResourceId, Resource>>();
-  }
-
-  @Bean
-  public PermissionEvaluator<Resource> resourcePermissionEvaluator(
-      PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator) {
-    return new DelegatingResourcePermissionEvaluator(resourceIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<ResourceId> resourceIdPermissionEvaluator(
-      PermissionEvaluator<UUID> schemeIdPermissionEvaluator,
-      PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
-    return new ConjunctionPermissionEvaluator<ResourceId>(
-        new SchemeIdBasedResourcePermissionEvaluator(schemeIdPermissionEvaluator),
-        new ClassIdBasedResourcePermissionEvaluator(classIdPermissionEvaluator));
-  }
-
-  @Bean
-  public PermissionEvaluator<UUID> schemeIdPermissionEvaluator(
-      Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao) {
-
-    PermissionEvaluator<UUID> schemeIdPermissionEvaluator =
-        new DaoBasedObjectPermissionEvaluator<UUID>(schemePermissionDao);
-
-    PermissionEvaluator<UUID> appRolePermissionEvaluator =
-        new AppRolePermissionEvaluator<UUID>(
-            ImmutableMultimap.<AppRole, Permission>builder()
-                .putAll(AppRole.ADMIN, Permission.values())
-                .putAll(AppRole.SUPERUSER, Permission.values()).build());
-
-    return new DisjunctionPermissionEvaluator<UUID>(
-        appRolePermissionEvaluator, schemeIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<ClassId> classIdPermissionEvaluator(
-      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao) {
-
-    PermissionEvaluator<ClassId> classIdPermissionEvaluator =
-        new DaoBasedObjectPermissionEvaluator<ClassId>(classPermissionDao);
-
-    PermissionEvaluator<ClassId> appRolePermissionEvaluator =
-        new AppRolePermissionEvaluator<ClassId>(
-            ImmutableMultimap.<AppRole, Permission>builder()
-                .putAll(AppRole.ADMIN, Permission.values())
-                .putAll(AppRole.SUPERUSER, Permission.values()).build());
-
-    return new DisjunctionPermissionEvaluator<ClassId>(
-        appRolePermissionEvaluator, classIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator(
-      Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
-
-    PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator =
-        new DaoBasedObjectPermissionEvaluator<TextAttributeId>(textAttributePermissionDao);
-
-    PermissionEvaluator<TextAttributeId> appRolePermissionEvaluator =
-        new AppRolePermissionEvaluator<TextAttributeId>(
-            ImmutableMultimap.<AppRole, Permission>builder()
-                .putAll(AppRole.ADMIN, Permission.values())
-                .putAll(AppRole.SUPERUSER, Permission.values()).build());
-
-    return new DisjunctionPermissionEvaluator<TextAttributeId>(
-        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
-  }
-
-  @Bean
-  public PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator(
-      Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao) {
-
-    PermissionEvaluator<ReferenceAttributeId> textAttributeIdPermissionEvaluator =
-        new DaoBasedObjectPermissionEvaluator<ReferenceAttributeId>(
-            referenceAttributePermissionDao);
-
-    PermissionEvaluator<ReferenceAttributeId> appRolePermissionEvaluator =
-        new AppRolePermissionEvaluator<ReferenceAttributeId>(
-            ImmutableMultimap.<AppRole, Permission>builder()
-                .putAll(AppRole.ADMIN, Permission.values())
-                .putAll(AppRole.SUPERUSER, Permission.values()).build());
-
-    return new DisjunctionPermissionEvaluator<ReferenceAttributeId>(
-        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
   }
 
   // Indices
@@ -538,114 +379,425 @@ public class ApplicationBeans {
                                       classPropertyValueDao);
   }
 
-  // DAOs
+  // Secured DAOs
 
   @Bean
-  public Dao<String, User> userDao(DataSource dataSource) {
-    return new JdbcUserDao(dataSource);
+  public Dao<String, User> userDao(SystemDao<String, User> userSystemDao) {
+    Multimap<AppRole, Permission> rolePermissions = ImmutableMultimap.<AppRole, Permission>builder()
+        .putAll(AppRole.SUPERUSER, Permission.values()).build();
+    return new SecureDao<String, User>(userSystemDao, rolePermissions);
   }
 
   @Bean
-  public Dao<UserSchemeRoleId, Void> userSchemeRoleDao(DataSource dataSource) {
-    return new JdbcUserSchemeRoleDao(dataSource);
+  public Dao<UserSchemeRoleId, Void> userSchemeRoleDao(
+      SystemDao<UserSchemeRoleId, Void> userSchemeRoleSystemDao) {
+    Multimap<AppRole, Permission> rolePermissions = ImmutableMultimap.<AppRole, Permission>builder()
+        .putAll(AppRole.SUPERUSER, Permission.values()).build();
+    return new SecureDao<UserSchemeRoleId, Void>(userSchemeRoleSystemDao, rolePermissions);
   }
 
   @Bean
-  public Dao<String, Property> propertyDao(DataSource dataSource) {
-    return new JdbcPropertyDao(dataSource);
+  public Dao<String, Property> propertyDao(SystemDao<String, Property> propertySystemDao) {
+    Multimap<AppRole, Permission> rolePermissions = ImmutableMultimap.<AppRole, Permission>builder()
+        .putAll(AppRole.USER, Permission.READ)
+        .putAll(AppRole.ADMIN, Permission.READ)
+        .putAll(AppRole.SUPERUSER, Permission.values()).build();
+    return new SecureDao<String, Property>(propertySystemDao, rolePermissions);
   }
 
   @Bean
-  public Dao<PropertyValueId<String>, LangValue> propertyPropertyValueDao(DataSource dataSource) {
-    return new JdbcPropertyPropertyValueDao(dataSource);
+  public Dao<PropertyValueId<String>, LangValue> propertyPropertyValueDao(
+      SystemDao<PropertyValueId<String>, LangValue> propertyPropertySystemDao) {
+    Multimap<AppRole, Permission> rolePermissions = ImmutableMultimap.<AppRole, Permission>builder()
+        .putAll(AppRole.USER, Permission.READ)
+        .putAll(AppRole.ADMIN, Permission.READ)
+        .putAll(AppRole.SUPERUSER, Permission.values()).build();
+    return new SecureDao<PropertyValueId<String>, LangValue>(propertyPropertySystemDao,
+                                                             rolePermissions);
   }
 
   @Bean
-  public Dao<UUID, Scheme> schemeDao(DataSource dataSource) {
-    return new JdbcSchemeDao(dataSource);
+  public Dao<UUID, Scheme> schemeDao(SystemDao<UUID, Scheme> schemeSystemDao,
+                                     PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
+    return new SecureDao<UUID, Scheme>(schemeSystemDao, schemeIdPermissionEvaluator, true);
   }
 
   @Bean
-  public Dao<SchemeRole, Void> schemeRoleDao(DataSource dataSource) {
-    return new JdbcSchemeRoleDao(dataSource);
+  public Dao<SchemeRole, Void> schemeRoleDao(SystemDao<SchemeRole, Void> schemeRoleSystemDao,
+                                             PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
+
+    PermissionEvaluator<SchemeRole> evaluator =
+        new MappingPermissionEvaluator<SchemeRole, UUID>(
+            new SchemeRoleToSchemeId(), schemeIdPermissionEvaluator);
+
+    return new SecureDao<SchemeRole, Void>(schemeRoleSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao(DataSource dataSource) {
-    return new JdbcSchemePermissionsDao(dataSource);
+  public Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao(
+      SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao,
+      PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
+
+    PermissionEvaluator<ObjectRolePermission<UUID>> evaluator =
+        new MappingPermissionEvaluator<ObjectRolePermission<UUID>, UUID>(
+            new ObjectRolePermissionToObjectId<UUID>(), schemeIdPermissionEvaluator);
+
+    return new SecureDao<ObjectRolePermission<UUID>, Void>(
+        schemePermissionSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao(DataSource dataSource) {
-    return new JdbcSchemePropertyValueDao(dataSource);
-  }
+  public Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao(
+      SystemDao<PropertyValueId<UUID>, LangValue> schemePropertyValueSystemDao,
+      PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
 
+    PermissionEvaluator<PropertyValueId<UUID>> evaluator =
+        new MappingPermissionEvaluator<PropertyValueId<UUID>, UUID>(
+            new PropertyValueIdToSubjectId<UUID>(), schemeIdPermissionEvaluator);
 
-  @Bean
-  public Dao<ClassId, Class> classDao(DataSource dataSource) {
-    return new JdbcClassDao(dataSource);
-  }
-
-  @Bean
-  public Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao(DataSource dataSource) {
-    return new JdbcClassPermissionsDao(dataSource);
+    return new SecureDao<PropertyValueId<UUID>, LangValue>(
+        schemePropertyValueSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao(DataSource dataSource) {
-    return new JdbcClassPropertyValueDao(dataSource);
+  public Dao<ClassId, Class> classDao(SystemDao<ClassId, Class> classSystemDao,
+                                      PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
+    return new SecureDao<ClassId, Class>(classSystemDao, classIdPermissionEvaluator, true);
+  }
+
+  @Bean
+  public Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao(
+      SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao,
+      PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
+
+    PermissionEvaluator<ObjectRolePermission<ClassId>> evaluator =
+        new MappingPermissionEvaluator<ObjectRolePermission<ClassId>, ClassId>(
+            new ObjectRolePermissionToObjectId<ClassId>(), classIdPermissionEvaluator);
+
+    return new SecureDao<ObjectRolePermission<ClassId>, Void>(
+        classPermissionSystemDao, evaluator, true);
+  }
+
+  @Bean
+  public Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao(
+      SystemDao<PropertyValueId<ClassId>, LangValue> classPropertyValueSystemDao,
+      PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
+
+    PermissionEvaluator<PropertyValueId<ClassId>> evaluator =
+        new MappingPermissionEvaluator<PropertyValueId<ClassId>, ClassId>(
+            new PropertyValueIdToSubjectId<ClassId>(), classIdPermissionEvaluator);
+
+    return new SecureDao<PropertyValueId<ClassId>, LangValue>(
+        classPropertyValueSystemDao, evaluator, true);
   }
 
   @Bean
   public Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao(
-      DataSource dataSource) {
-    return new JdbcReferenceAttributeDao(dataSource);
+      SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeSystemDao,
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
+    return new SecureDao<ReferenceAttributeId, ReferenceAttribute>(
+        referenceAttributeSystemDao, referenceAttributeIdPermissionEvaluator, true);
   }
 
   @Bean
   public Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao(
-      DataSource dataSource) {
-    return new JdbcReferenceAttributePermissionsDao(dataSource);
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao,
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<ObjectRolePermission<ReferenceAttributeId>> evaluator =
+        new MappingPermissionEvaluator<ObjectRolePermission<ReferenceAttributeId>, ReferenceAttributeId>(
+            new ObjectRolePermissionToObjectId<ReferenceAttributeId>(),
+            referenceAttributeIdPermissionEvaluator);
+
+    return new SecureDao<ObjectRolePermission<ReferenceAttributeId>, Void>(
+        referenceAttributePermissionSystemDao, evaluator, true);
   }
 
   @Bean
   public Dao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueDao(
-      DataSource dataSource) {
-    return new JdbcReferenceAttributePropertyValueDao(dataSource);
+      SystemDao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueSystemDao,
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<PropertyValueId<ReferenceAttributeId>> evaluator =
+        new MappingPermissionEvaluator<PropertyValueId<ReferenceAttributeId>, ReferenceAttributeId>(
+            new PropertyValueIdToSubjectId<ReferenceAttributeId>(),
+            referenceAttributeIdPermissionEvaluator);
+
+    return new SecureDao<PropertyValueId<ReferenceAttributeId>, LangValue>(
+        referenceAttributePropertyValueSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<TextAttributeId, TextAttribute> textAttributeDao(DataSource dataSource) {
-    return new JdbcTextAttributeDao(dataSource);
+  public Dao<TextAttributeId, TextAttribute> textAttributeDao(
+      SystemDao<TextAttributeId, TextAttribute> textAttributeSystemDao,
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
+    return new SecureDao<TextAttributeId, TextAttribute>(
+        textAttributeSystemDao, textAttributeIdPermissionEvaluator, true);
   }
 
   @Bean
   public Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao(
-      DataSource dataSource) {
-    return new JdbcTextAttributePermissionsDao(dataSource);
+      SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao,
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<ObjectRolePermission<TextAttributeId>> evaluator =
+        new MappingPermissionEvaluator<ObjectRolePermission<TextAttributeId>, TextAttributeId>(
+            new ObjectRolePermissionToObjectId<TextAttributeId>(),
+            textAttributeIdPermissionEvaluator);
+
+    return new SecureDao<ObjectRolePermission<TextAttributeId>, Void>(
+        textAttributePermissionSystemDao, evaluator, true);
   }
 
   @Bean
   public Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao(
-      DataSource dataSource) {
-    return new JdbcTextAttributePropertyValueDao(dataSource);
+      SystemDao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueSystemDao,
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<PropertyValueId<TextAttributeId>> evaluator =
+        new MappingPermissionEvaluator<PropertyValueId<TextAttributeId>, TextAttributeId>(
+            new PropertyValueIdToSubjectId<TextAttributeId>(),
+            textAttributeIdPermissionEvaluator);
+
+    return new SecureDao<PropertyValueId<TextAttributeId>, LangValue>(
+        textAttributePropertyValueSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<ResourceId, Resource> resourceDao(DataSource dataSource) {
-    return new JdbcResourceDao(dataSource);
+  public Dao<ResourceId, Resource> resourceDao(
+      SystemDao<ResourceId, Resource> resourceSystemDao,
+      PermissionEvaluator<ClassId> classIdPermissionEvaluator,
+      PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator) {
+
+    PermissionEvaluator<ResourceId> keyEvaluator =
+        new MappingPermissionEvaluator<ResourceId, ClassId>(
+            new ResourceIdToClassId(), classIdPermissionEvaluator);
+    PermissionEvaluator<Resource> valEvaluator =
+        new MappingPermissionEvaluator<Resource, ClassId>(
+            new ResourceToClassId(), classIdPermissionEvaluator);
+
+    return new SecureDao<ResourceId, Resource>(
+        resourceSystemDao, keyEvaluator, valEvaluator,
+        resourceSpecificationPermissionEvaluator, true);
   }
 
   @Bean
   public Dao<ResourceAttributeValueId, ResourceId> resourceReferenceAttributeValueDao(
-      DataSource dataSource) {
-    return new JdbcResourceReferenceAttributeValueDao(dataSource);
+      SystemDao<ResourceAttributeValueId, ResourceId> resourceReferenceAttributeValueSystemDao,
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<ResourceAttributeValueId> evaluator =
+        new MappingPermissionEvaluator<ResourceAttributeValueId, ReferenceAttributeId>(
+            new ResourceAttributeValueIdToReferenceAttributeId(),
+            referenceAttributeIdPermissionEvaluator);
+
+    return new SecureDao<ResourceAttributeValueId, ResourceId>(
+        resourceReferenceAttributeValueSystemDao, evaluator, true);
   }
 
   @Bean
   public Dao<ResourceAttributeValueId, StrictLangValue> resourceTextAttributeValueDao(
+      SystemDao<ResourceAttributeValueId, StrictLangValue> resourceTextAttributeValueSystemDao,
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
+
+    PermissionEvaluator<ResourceAttributeValueId> evaluator =
+        new MappingPermissionEvaluator<ResourceAttributeValueId, TextAttributeId>(
+            new ResourceAttributeValueIdToTextAttributeId(),
+            textAttributeIdPermissionEvaluator);
+
+    return new SecureDao<ResourceAttributeValueId, StrictLangValue>(
+        resourceTextAttributeValueSystemDao, evaluator, true);
+  }
+
+  // Permission evaluators
+
+  @Bean
+  public PermissionEvaluator<UUID> schemeIdPermissionEvaluator(
+      SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao) {
+
+    PermissionEvaluator<UUID> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<UUID>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    PermissionEvaluator<UUID> schemeIdPermissionEvaluator =
+        new DaoPermissionEvaluator<UUID>(schemePermissionSystemDao);
+
+    return new DisjunctionPermissionEvaluator<UUID>(
+        appRolePermissionEvaluator, schemeIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<ClassId> classIdPermissionEvaluator(
+      SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao) {
+
+    PermissionEvaluator<ClassId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<ClassId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    PermissionEvaluator<ClassId> classIdPermissionEvaluator =
+        new DaoPermissionEvaluator<ClassId>(classPermissionSystemDao);
+
+    return new DisjunctionPermissionEvaluator<ClassId>(
+        appRolePermissionEvaluator, classIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator(
+      SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao) {
+
+    PermissionEvaluator<TextAttributeId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<TextAttributeId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator =
+        new DaoPermissionEvaluator<TextAttributeId>(textAttributePermissionSystemDao);
+
+    return new DisjunctionPermissionEvaluator<TextAttributeId>(
+        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator(
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao) {
+
+    PermissionEvaluator<ReferenceAttributeId> appRolePermissionEvaluator =
+        new AppRolePermissionEvaluator<ReferenceAttributeId>(
+            ImmutableMultimap.<AppRole, Permission>builder()
+                .putAll(AppRole.ADMIN, Permission.values())
+                .putAll(AppRole.SUPERUSER, Permission.values()).build());
+
+    PermissionEvaluator<ReferenceAttributeId> textAttributeIdPermissionEvaluator =
+        new DaoPermissionEvaluator<ReferenceAttributeId>(
+            referenceAttributePermissionSystemDao);
+
+    return new DisjunctionPermissionEvaluator<ReferenceAttributeId>(
+        appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);
+  }
+
+  @Bean
+  public PermissionEvaluator<Specification<ResourceId, Resource>> resourceSpecificationPermissionEvaluator() {
+    // FIXME: 13/09/16
+    return new PermitAllPermissionEvaluator<Specification<ResourceId, Resource>>();
+  }
+
+  // System DAOs
+
+  @Bean
+  public SystemDao<String, User> userSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcUserDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<UserSchemeRoleId, Void> userSchemeRoleSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcUserSchemeRoleDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<String, Property> propertySystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcPropertyDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<PropertyValueId<String>, LangValue> propertyPropertyValueSystemDao(
       DataSource dataSource) {
-    return new JdbcResourceTextAttributeValueDao(dataSource);
+    return CachedSystemDao.create(new JdbcPropertyPropertyValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<UUID, Scheme> schemeSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcSchemeDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<SchemeRole, Void> schemeRoleSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcSchemeRoleDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcSchemePermissionsDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<PropertyValueId<UUID>, LangValue> schemePropertyValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcSchemePropertyValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ClassId, Class> classSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcClassDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcClassPermissionsDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<PropertyValueId<ClassId>, LangValue> classPropertyValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcClassPropertyValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcReferenceAttributeDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcReferenceAttributePermissionsDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcReferenceAttributePropertyValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<TextAttributeId, TextAttribute> textAttributeSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcTextAttributeDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcTextAttributePermissionsDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcTextAttributePropertyValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ResourceId, Resource> resourceSystemDao(DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcResourceDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ResourceAttributeValueId, ResourceId> resourceReferenceAttributeValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcResourceReferenceAttributeValueDao(dataSource));
+  }
+
+  @Bean
+  public SystemDao<ResourceAttributeValueId, StrictLangValue> resourceTextAttributeValueSystemDao(
+      DataSource dataSource) {
+    return CachedSystemDao.create(new JdbcResourceTextAttributeValueDao(dataSource));
   }
 
 }

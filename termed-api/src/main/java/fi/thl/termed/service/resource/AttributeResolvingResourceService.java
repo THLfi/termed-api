@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -18,9 +18,9 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.resource.ResourceByCode;
 import fi.thl.termed.spesification.resource.ResourceByUri;
+import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.util.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
@@ -31,15 +31,15 @@ import fi.thl.termed.util.UUIDs;
  */
 public class AttributeResolvingResourceService extends ForwardingService<ResourceId, Resource> {
 
-  private Dao<TextAttributeId, TextAttribute> textAttributeDao;
-  private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
-  private Dao<ResourceId, Resource> resourceDao;
+  private SystemDao<TextAttributeId, TextAttribute> textAttributeDao;
+  private SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
+  private SystemDao<ResourceId, Resource> resourceDao;
 
   public AttributeResolvingResourceService(
       Service<ResourceId, Resource> delegate,
-      Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
-      Dao<ResourceId, Resource> resourceDao) {
+      SystemDao<TextAttributeId, TextAttribute> textAttributeDao,
+      SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
+      SystemDao<ResourceId, Resource> resourceDao) {
     super(delegate);
     this.textAttributeDao = textAttributeDao;
     this.referenceAttributeDao = referenceAttributeDao;

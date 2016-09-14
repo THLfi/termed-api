@@ -14,7 +14,7 @@ import java.util.UUID;
 import fi.thl.termed.util.MultimapUtils;
 import fi.thl.termed.util.StrictLangValue;
 
-public class Resource {
+public class Resource implements Auditable {
 
   private UUID id;
   private String code;
@@ -74,12 +74,6 @@ public class Resource {
 
   public void setId(UUID id) {
     this.id = id;
-  }
-
-  public void ensureId() {
-    if (id == null) {
-      id = UUID.randomUUID();
-    }
   }
 
   public String getCode() {

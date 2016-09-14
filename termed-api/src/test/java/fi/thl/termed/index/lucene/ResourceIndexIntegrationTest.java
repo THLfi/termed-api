@@ -63,7 +63,7 @@ public class ResourceIndexIntegrationTest {
   public void setUp() {
     date = new Date();
     user = new User("test", passwordEncoder.encode(UUIDs.randomUUIDString()), AppRole.ADMIN);
-    userRepository.save(user);
+    userRepository.save(user, new User("initializer", "", AppRole.SUPERUSER));
   }
 
   @Test
@@ -71,7 +71,7 @@ public class ResourceIndexIntegrationTest {
     Scheme scheme = new Scheme(UUID.randomUUID());
     Class cls = new Class(scheme, "Document");
     scheme.setClasses(Lists.newArrayList(cls));
-    schemeRepository.save(scheme);
+    schemeRepository.save(scheme, user);
 
     Resource resource = new Resource(scheme, cls, UUID.randomUUID());
     resource.setCreatedBy(user.getUsername());
@@ -79,9 +79,9 @@ public class ResourceIndexIntegrationTest {
     resource.setLastModifiedBy(user.getUsername());
     resource.setLastModifiedDate(date);
 
-    resourceRepository.save(resource);
+    resourceRepository.save(resource, user);
     resourceIndex.reindex(new ResourceId(resource),
-                          resourceRepository.get(new ResourceId(resource)));
+                          resourceRepository.get(new ResourceId(resource), user));
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();
@@ -96,7 +96,7 @@ public class ResourceIndexIntegrationTest {
     Class cls = new Class(scheme, "Document");
     cls.setTextAttributes(Lists.newArrayList(new TextAttribute(cls, "prefLabel")));
     scheme.setClasses(Lists.newArrayList(cls));
-    schemeRepository.save(scheme);
+    schemeRepository.save(scheme, user);
 
     Resource resource = new Resource(scheme, cls, UUID.randomUUID());
     resource.setCreatedBy(user.getUsername());
@@ -105,9 +105,9 @@ public class ResourceIndexIntegrationTest {
     resource.setLastModifiedDate(date);
     resource.addProperty("prefLabel", "en", "Example Resource");
 
-    resourceRepository.save(resource);
+    resourceRepository.save(resource, user);
     resourceIndex.reindex(new ResourceId(resource),
-                          resourceRepository.get(new ResourceId(resource)));
+                          resourceRepository.get(new ResourceId(resource), user));
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();

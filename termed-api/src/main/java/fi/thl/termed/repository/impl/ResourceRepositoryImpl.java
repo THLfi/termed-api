@@ -1,15 +1,13 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +20,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueIdModelToDto;
@@ -39,12 +38,11 @@ import fi.thl.termed.util.MapUtils;
 import fi.thl.termed.util.SimpleValueDifference;
 import fi.thl.termed.util.StrictLangValue;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Maps.difference;
+import static com.google.common.collect.Multimaps.transformValues;
 
 public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resource> {
-
-  @SuppressWarnings("all")
-  private Logger log = LoggerFactory.getLogger(getClass());
 
   private Dao<ResourceId, Resource> resourceDao;
   private Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao;
@@ -54,11 +52,6 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   private Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao;
   private Dao<ClassId, Class> classDao;
   private Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao;
-
-  private Function<ResourceId, Resource> baseResourceLoader;
-  private Function<ResourceId, Multimap<String, Resource>> referenceLoader;
-  private Function<ResourceId, Multimap<String, Resource>> referrerLoader;
-  private Function<ResourceId, Resource> resourceLoader;
 
   public ResourceRepositoryImpl(
       Dao<ResourceId, Resource> resourceDao,
@@ -77,82 +70,105 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
     this.schemePropertyValueDao = schemePropertyValueDao;
     this.classDao = classDao;
     this.classPropertyValueDao = classPropertyValueDao;
-
-    this.baseResourceLoader = new BaseResourceLoader();
-    this.referenceLoader = new ReferenceLoader();
-    this.referrerLoader = new ReferrerLoader();
-    this.resourceLoader = new ResourceLoader();
   }
 
   @Override
-  public void save(Resource newResource) {
+  public void save(Resource newResource, User user) {
     ResourceId resourceId = new ResourceId(newResource);
-    if (!exists(resourceId)) {
-      insert(resourceId, newResource);
+    if (!exists(resourceId, user)) {
+      insert(resourceId, newResource, user);
     } else {
-      update(resourceId, newResource, get(resourceId));
+      update(resourceId, newResource, get(resourceId, user), user);
     }
   }
 
   @Override
-  public void save(List<Resource> resources) {
+  public void save(List<Resource> resources, User user) {
     Map<ResourceId, Resource> inserts = Maps.newLinkedHashMap();
     Map<ResourceId, MapDifference.ValueDifference<Resource>> updates = Maps.newLinkedHashMap();
 
     for (Resource newResource : resources) {
-      ResourceId resourceId = new ResourceId(newResource);
+      ResourceId id = new ResourceId(newResource);
 
-      if (!exists(resourceId)) {
-        inserts.put(resourceId, newResource);
+      if (!exists(id, user)) {
+        inserts.put(id, newResource);
       } else {
-        updates.put(resourceId, new SimpleValueDifference<Resource>(newResource, get(resourceId)));
+        updates.put(id, new SimpleValueDifference<Resource>(newResource, get(id, user)));
       }
     }
 
-    insert(inserts);
-    update(updates);
+    insert(inserts, user);
+    update(updates, user);
   }
 
   /**
    * With bulk insert, first save all resources, then dependant values.
    */
   @Override
-  protected void insert(Map<ResourceId, Resource> map) {
-    resourceDao.insert(map);
+  protected void insert(Map<ResourceId, Resource> map, User user) {
+    addCreatedInfo(map.values(), user);
+    resourceDao.insert(map, user);
     for (Map.Entry<ResourceId, Resource> entry : map.entrySet()) {
-      insertTextAttrValues(entry.getKey(), entry.getValue().getProperties());
-      insertRefAttrValues(entry.getKey(), entry.getValue().getReferences());
+      insertTextAttrValues(entry.getKey(), entry.getValue().getProperties(), user);
+      insertRefAttrValues(entry.getKey(), entry.getValue().getReferences(), user);
     }
   }
 
   @Override
-  protected void insert(ResourceId resourceId, Resource resource) {
-    resourceDao.insert(resourceId, resource);
-    insertTextAttrValues(resourceId, resource.getProperties());
-    insertRefAttrValues(resourceId, resource.getReferences());
+  protected void insert(ResourceId id, Resource resource, User user) {
+    addCreatedInfo(resource, new Date(), user);
+    resourceDao.insert(id, resource, user);
+    insertTextAttrValues(id, resource.getProperties(), user);
+    insertRefAttrValues(id, resource.getReferences(), user);
   }
 
-  private void insertTextAttrValues(ResourceId resourceId,
-                                    Multimap<String, StrictLangValue> properties) {
+  private void addCreatedInfo(Iterable<Resource> values, User user) {
+    Date now = new Date();
+    for (Resource resource : values) {
+      addCreatedInfo(resource, now, user);
+    }
+  }
+
+  private void addCreatedInfo(Resource resource, Date now, User user) {
+    resource.setCreatedDate(now);
+    resource.setCreatedBy(user.getUsername());
+    resource.setLastModifiedDate(now);
+    resource.setLastModifiedBy(user.getUsername());
+  }
+
+  private void insertTextAttrValues(ResourceId id,
+                                    Multimap<String, StrictLangValue> properties, User user) {
     textAttributeValueDao.insert(
-        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(properties));
+        ResourceTextAttributeValueDtoToModel.create(id).apply(properties), user);
   }
 
-  private void insertRefAttrValues(ResourceId resourceId, Multimap<String, Resource> references) {
+  private void insertRefAttrValues(ResourceId id, Multimap<String, Resource> references,
+                                   User user) {
     referenceAttributeValueDao.insert(
-        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(references));
+        ReferenceAttributeValueIdDtoToModel.create(id).apply(references), user);
   }
 
   @Override
-  protected void update(ResourceId resourceId, Resource newResource, Resource oldResource) {
-    resourceDao.update(resourceId, newResource);
-    updateTextAttrValues(resourceId, newResource.getProperties(), oldResource.getProperties());
-    updateRefAttrValues(resourceId, newResource.getReferences(), oldResource.getReferences());
+  protected void update(ResourceId id, Resource newResource, Resource oldResource,
+                        User user) {
+    addLastModifiedInfo(newResource, oldResource, user);
+    resourceDao.update(id, newResource, user);
+    updateTextAttrValues(id, newResource.getProperties(), oldResource.getProperties(), user);
+    updateRefAttrValues(id, newResource.getReferences(), oldResource.getReferences(), user);
+  }
+
+  private void addLastModifiedInfo(Resource newResource, Resource oldResource, User user) {
+    Date now = new Date();
+    newResource.setCreatedDate(oldResource.getCreatedDate());
+    newResource.setCreatedBy(oldResource.getCreatedBy());
+    newResource.setLastModifiedDate(now);
+    newResource.setLastModifiedBy(user.getUsername());
   }
 
   private void updateTextAttrValues(ResourceId resourceId,
                                     Multimap<String, StrictLangValue> newProperties,
-                                    Multimap<String, StrictLangValue> oldProperties) {
+                                    Multimap<String, StrictLangValue> oldProperties,
+                                    User user) {
 
     Map<ResourceAttributeValueId, StrictLangValue> newMappedProperties =
         ResourceTextAttributeValueDtoToModel.create(resourceId).apply(newProperties);
@@ -162,14 +178,15 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
     MapDifference<ResourceAttributeValueId, StrictLangValue> diff =
         difference(newMappedProperties, oldMappedProperties);
 
-    textAttributeValueDao.insert(diff.entriesOnlyOnLeft());
-    textAttributeValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
-    textAttributeValueDao.delete(diff.entriesOnlyOnRight().keySet());
+    textAttributeValueDao.insert(diff.entriesOnlyOnLeft(), user);
+    textAttributeValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    textAttributeValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   private void updateRefAttrValues(ResourceId resourceId,
                                    Multimap<String, Resource> oldRefs,
-                                   Multimap<String, Resource> newRefs) {
+                                   Multimap<String, Resource> newRefs,
+                                   User user) {
 
     Map<ResourceAttributeValueId, ResourceId> newMappedRefs =
         ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(oldRefs);
@@ -179,96 +196,134 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
     MapDifference<ResourceAttributeValueId, ResourceId> diff =
         difference(newMappedRefs, oldMappedRefs);
 
-    referenceAttributeValueDao.insert(diff.entriesOnlyOnLeft());
-    referenceAttributeValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
-    referenceAttributeValueDao.delete(diff.entriesOnlyOnRight().keySet());
+    referenceAttributeValueDao.insert(diff.entriesOnlyOnLeft(), user);
+    referenceAttributeValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    referenceAttributeValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   @Override
-  protected void delete(ResourceId resourceId, Resource resource) {
-    delete(resourceId);
+  public void delete(ResourceId resourceId, User user) {
+    delete(resourceId, get(resourceId, user), user);
   }
 
   @Override
-  public void delete(ResourceId resourceId) {
-    resourceDao.delete(resourceId);
+  protected void delete(ResourceId resourceId, Resource resource, User user) {
+    deleteRefAttrValues(resourceId, resource.getReferences(), user);
+    deleteTextAttrValues(resourceId, resource.getProperties(), user);
+    resourceDao.delete(resourceId, user);
+  }
+
+  private void deleteRefAttrValues(ResourceId id, Multimap<String, Resource> refs, User user) {
+    Map<ResourceAttributeValueId, ResourceId> mappedRefs =
+        ReferenceAttributeValueIdDtoToModel.create(id).apply(refs);
+    referenceAttributeValueDao.delete(ImmutableList.copyOf(mappedRefs.keySet()), user);
+  }
+
+  private void deleteTextAttrValues(ResourceId id, Multimap<String, StrictLangValue> properties,
+                                    User user) {
+    Map<ResourceAttributeValueId, StrictLangValue> mappedProperties =
+        ResourceTextAttributeValueDtoToModel.create(id).apply(properties);
+    textAttributeValueDao.delete(ImmutableList.copyOf(mappedProperties.keySet()), user);
   }
 
   @Override
-  public boolean exists(ResourceId resourceId) {
-    return resourceDao.exists(resourceId);
+  public boolean exists(ResourceId resourceId, User user) {
+    return resourceDao.exists(resourceId, user);
   }
 
   @Override
-  public List<Resource> get() {
-    return Lists.transform(resourceDao.getKeys(), resourceLoader);
+  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification, User user) {
+    return Lists.transform(resourceDao.getKeys(specification.getSpecification(), user),
+                           new ResourceLoader(user));
   }
 
   @Override
-  public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification) {
-    return Lists.transform(resourceDao.getKeys(specification.getSpecification()), resourceLoader);
-  }
-
-  @Override
-  public Resource get(ResourceId id) {
-    return resourceLoader.apply(id);
+  public Resource get(ResourceId id, User user) {
+    return new ResourceLoader(user).apply(id);
   }
 
   private class ResourceLoader implements Function<ResourceId, Resource> {
 
+    private Function<ResourceId, Resource> baseResourceLoader;
+    private Function<ResourceId, Multimap<String, ResourceId>> referenceLoader;
+    private Function<ResourceId, Multimap<String, ResourceId>> referrerLoader;
+
+    public ResourceLoader(User user) {
+      this.baseResourceLoader = new BaseResourceLoader(user);
+      this.referenceLoader = new ReferenceLoader(user);
+      this.referrerLoader = new ReferrerLoader(user);
+    }
+
     @Override
-    public Resource apply(ResourceId resourceId) {
-      Resource resource = baseResourceLoader.apply(resourceId);
-      resource.setReferences(referenceLoader.apply(resourceId));
-      resource.setReferrers(referrerLoader.apply(resourceId));
+    public Resource apply(ResourceId id) {
+      Resource resource = baseResourceLoader.apply(id);
+      resource.setReferences(transformValues(referenceLoader.apply(id), baseResourceLoader));
+      resource.setReferrers(transformValues(referrerLoader.apply(id), baseResourceLoader));
       return resource;
     }
+
   }
 
   private class BaseResourceLoader implements Function<ResourceId, Resource> {
 
+    private User user;
+
+    public BaseResourceLoader(User user) {
+      this.user = user;
+    }
+
     @Override
     public Resource apply(ResourceId resourceId) {
-      Resource resource = resourceDao.get(resourceId);
+      Resource resource = new Resource(resourceDao.get(resourceId, user));
       resource.setProperties(
           ResourceTextAttributeValueModelToDto.create().apply(textAttributeValueDao.getMap(
-              new ResourceTextAttributeValuesByResourceId(resourceId))));
+              new ResourceTextAttributeValuesByResourceId(resourceId), user)));
 
-      Scheme scheme = schemeDao.get(resourceId.getSchemeId());
+      Scheme scheme = new Scheme(schemeDao.get(resourceId.getSchemeId(), user));
       scheme.setProperties(
           PropertyValueModelToDto.<UUID>create().apply(schemePropertyValueDao.getMap(
-              new SchemePropertiesBySchemeId(scheme.getId()))));
+              new SchemePropertiesBySchemeId(scheme.getId()), user)));
       resource.setScheme(scheme);
 
-      Class type = classDao.get(new ClassId(resourceId));
+      Class type = new Class(classDao.get(new ClassId(resourceId), user));
       type.setProperties(
           PropertyValueModelToDto.<ClassId>create().apply(classPropertyValueDao.getMap(
-              new ClassPropertiesByClassId(new ClassId(resourceId)))));
+              new ClassPropertiesByClassId(new ClassId(resourceId)), user)));
       resource.setType(type);
 
       return resource;
     }
   }
 
-  private class ReferenceLoader implements Function<ResourceId, Multimap<String, Resource>> {
+  private class ReferenceLoader implements Function<ResourceId, Multimap<String, ResourceId>> {
+
+    private User user;
+
+    public ReferenceLoader(User user) {
+      this.user = user;
+    }
 
     @Override
-    public Multimap<String, Resource> apply(ResourceId resourceId) {
-      Multimap<String, ResourceId> references = ReferenceAttributeValueIdModelToDto.create()
+    public Multimap<String, ResourceId> apply(ResourceId resourceId) {
+      return ReferenceAttributeValueIdModelToDto.create()
           .apply(referenceAttributeValueDao.getMap(
-              new ResourceReferenceAttributeValuesByResourceId(resourceId)));
-      return Multimaps.transformValues(references, baseResourceLoader);
+              new ResourceReferenceAttributeValuesByResourceId(resourceId), user));
     }
   }
 
-  private class ReferrerLoader implements Function<ResourceId, Multimap<String, Resource>> {
+  private class ReferrerLoader implements Function<ResourceId, Multimap<String, ResourceId>> {
+
+    private User user;
+
+    public ReferrerLoader(User user) {
+      this.user = user;
+    }
 
     @Override
-    public Multimap<String, Resource> apply(ResourceId resourceId) {
-      Multimap<String, ResourceId> references = ReferenceAttributeValueModelToReferrerDto.create()
+    public Multimap<String, ResourceId> apply(ResourceId resourceId) {
+      return ReferenceAttributeValueModelToReferrerDto.create()
           .apply(referenceAttributeValueDao.getMap(
-              new ResourceReferenceAttributeResourcesByValueId(resourceId)));
-      return Multimaps.transformValues(references, baseResourceLoader);
+              new ResourceReferenceAttributeResourcesByValueId(resourceId), user));
     }
   }
 

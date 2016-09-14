@@ -11,7 +11,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -20,6 +19,8 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
+import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.util.TrueSpecification;
 import fi.thl.termed.util.ResourceUtils;
 import fi.thl.termed.util.UUIDs;
 
@@ -47,26 +48,34 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userRepository.get().isEmpty()) {
+    User initializer = new User("adminUserInitializer", "", AppRole.SUPERUSER);
+
+    SpecificationQuery<String, User> all = new SpecificationQuery<String, User>(
+        new TrueSpecification<String, User>());
+
+    if (userRepository.get(all, initializer).isEmpty()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
-      userRepository.save(new User("admin", passwordEncoder.encode(password), AppRole.ADMIN));
+
+      User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
+      userRepository.save(admin, initializer);
+
       log.info("Created new admin user with password: {}", password);
     }
   }
 
   private void saveDefaultProperties() {
-    Type propertyListType = new TypeToken<List<Property>>() {
-    }.getType();
+    User initializer = new User("propertyInitializer", "", AppRole.SUPERUSER);
 
     List<Property> properties = gson.fromJson(ResourceUtils.getResourceToString(
-        "default/properties.json"), propertyListType);
+        "default/properties.json"), new TypeToken<List<Property>>() {
+    }.getType());
 
     int index = 0;
     for (Property property : properties) {
       property.setIndex(index++);
     }
 
-    propertyRepository.save(properties);
+    propertyRepository.save(properties, initializer);
   }
 
 }

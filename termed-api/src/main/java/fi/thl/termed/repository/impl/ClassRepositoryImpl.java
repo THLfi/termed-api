@@ -1,6 +1,8 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -19,6 +21,7 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
@@ -32,7 +35,10 @@ import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.difference;
+import static fi.thl.termed.util.MapUtils.newLinkedHashMap;
 
 public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
@@ -42,8 +48,6 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
   private AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
-
-  private Function<Class, Class> populateClass;
 
   public ClassRepositoryImpl(
       Dao<ClassId, Class> classDao,
@@ -56,62 +60,57 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
     this.classPropertyValueDao = classPropertyValueDao;
     this.textAttributeRepository = textAttributeRepository;
     this.referenceAttributeRepository = referenceAttributeRepository;
-    this.populateClass = FunctionUtils.pipe(
-        new AddClassPermissions(),
-        new AddClassProperties(),
-        new AddClassTextAttributes(),
-        new AddClassReferenceAttributes());
   }
 
   @Override
-  public void save(Class cls) {
-    save(new ClassId(cls.getSchemeId(), cls.getId()), cls);
+  public void save(Class cls, User user) {
+    save(new ClassId(cls.getSchemeId(), cls.getId()), cls, user);
   }
 
   /**
    * With bulk insert, first save all classes, then dependant values.
    */
   @Override
-  protected void insert(Map<ClassId, Class> map) {
-    classDao.insert(map);
+  protected void insert(Map<ClassId, Class> map, User user) {
+    classDao.insert(map, user);
 
     for (Map.Entry<ClassId, Class> entry : map.entrySet()) {
-      ClassId classId = entry.getKey();
+      ClassId id = entry.getKey();
       Class cls = entry.getValue();
 
-      insertPermissions(classId, cls.getPermissions());
-      insertProperties(classId, cls.getProperties());
-      insertTextAttributes(classId, cls.getTextAttributes());
-      insertReferenceAttributes(classId, cls.getReferenceAttributes());
+      insertPermissions(id, cls.getPermissions(), user);
+      insertProperties(id, cls.getProperties(), user);
+      insertTextAttributes(id, cls.getTextAttributes(), user);
+      insertReferenceAttributes(id, cls.getReferenceAttributes(), user);
     }
   }
 
   @Override
-  protected void insert(ClassId classId, Class cls) {
-    classDao.insert(classId, cls);
-    insertPermissions(classId, cls.getPermissions());
-    insertProperties(classId, cls.getProperties());
-    insertTextAttributes(classId, cls.getTextAttributes());
-    insertReferenceAttributes(classId, cls.getReferenceAttributes());
+  protected void insert(ClassId id, Class cls, User user) {
+    classDao.insert(id, cls, user);
+    insertPermissions(id, cls.getPermissions(), user);
+    insertProperties(id, cls.getProperties(), user);
+    insertTextAttributes(id, cls.getTextAttributes(), user);
+    insertReferenceAttributes(id, cls.getReferenceAttributes(), user);
   }
 
-  private void insertPermissions(ClassId classId, Multimap<String, Permission> permissions) {
+  private void insertPermissions(ClassId id, Multimap<String, Permission> permissions, User user) {
     classPermissionDao.insert(
-        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(permissions));
+        RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(permissions), user);
   }
 
-  private void insertProperties(ClassId classId, Multimap<String, LangValue> propertyMultimap) {
-    classPropertyValueDao.insert(PropertyValueDtoToModel.create(classId).apply(propertyMultimap));
+  private void insertProperties(ClassId id, Multimap<String, LangValue> properties, User user) {
+    classPropertyValueDao.insert(PropertyValueDtoToModel.create(id).apply(properties), user);
   }
 
-  private void insertTextAttributes(ClassId classId, List<TextAttribute> textAttributes) {
-    textAttributeRepository.insert(MapUtils.newLinkedHashMap(Lists.transform(
-        addTextAttrIndices(textAttributes), new TextAttributeToIdEntry(classId))));
+  private void insertTextAttributes(ClassId id, List<TextAttribute> attrs, User user) {
+    textAttributeRepository.insert(newLinkedHashMap(transform(
+        addTextAttrIndices(attrs), new TextAttributeToIdEntry(id))), user);
   }
 
-  private void insertReferenceAttributes(ClassId classId, List<ReferenceAttribute> refAttributes) {
-    referenceAttributeRepository.insert(MapUtils.newLinkedHashMap(Lists.transform(
-        addRefAttrIndices(refAttributes), new ReferenceAttributeToIdEntry(classId))));
+  private void insertReferenceAttributes(ClassId id, List<ReferenceAttribute> attrs, User user) {
+    referenceAttributeRepository.insert(newLinkedHashMap(transform(
+        addRefAttrIndices(attrs), new ReferenceAttributeToIdEntry(id))), user);
   }
 
   private List<TextAttribute> addTextAttrIndices(List<TextAttribute> textAttributes) {
@@ -131,116 +130,154 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   @Override
-  protected void update(ClassId classId, Class newClass, Class oldClass) {
-    classDao.update(classId, newClass);
+  protected void update(ClassId id, Class newClass, Class oldClass, User user) {
+    classDao.update(id, newClass, user);
 
-    updatePermissions(classId, newClass.getPermissions(), oldClass.getPermissions());
-    updateProperties(classId, newClass.getProperties(), oldClass.getProperties());
-    updateTextAttributes(classId, addTextAttrIndices(newClass.getTextAttributes()),
-                         oldClass.getTextAttributes());
-    updateReferenceAttributes(classId, addRefAttrIndices(newClass.getReferenceAttributes()),
-                              oldClass.getReferenceAttributes());
+    updatePermissions(id, newClass.getPermissions(), oldClass.getPermissions(), user);
+    updateProperties(id, newClass.getProperties(), oldClass.getProperties(), user);
+    updateTextAttributes(id, addTextAttrIndices(newClass.getTextAttributes()),
+                         oldClass.getTextAttributes(), user);
+    updateReferenceAttributes(id, addRefAttrIndices(newClass.getReferenceAttributes()),
+                              oldClass.getReferenceAttributes(), user);
   }
 
-  private void updatePermissions(ClassId classId,
+  private void updatePermissions(ClassId id,
                                  Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions) {
+                                 Multimap<String, Permission> oldPermissions,
+                                 User user) {
 
     Map<ObjectRolePermission<ClassId>, Void> newPermissionMap =
-        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(newPermissions);
+        RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(newPermissions);
     Map<ObjectRolePermission<ClassId>, Void> oldPermissionMap =
-        RolePermissionsDtoToModel.create(classId.getSchemeId(), classId).apply(oldPermissions);
+        RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<ClassId>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    classPermissionDao.insert(diff.entriesOnlyOnLeft());
-    classPermissionDao.delete(diff.entriesOnlyOnRight().keySet());
+    classPermissionDao.insert(diff.entriesOnlyOnLeft(), user);
+    classPermissionDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
-  private void updateProperties(ClassId classId,
+  private void updateProperties(ClassId id,
                                 Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap) {
+                                Multimap<String, LangValue> oldPropertyMultimap,
+                                User user) {
 
     Map<PropertyValueId<ClassId>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(classId).apply(newPropertyMultimap);
+        PropertyValueDtoToModel.create(id).apply(newPropertyMultimap);
     Map<PropertyValueId<ClassId>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(classId).apply(oldPropertyMultimap);
+        PropertyValueDtoToModel.create(id).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<ClassId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    classPropertyValueDao.insert(diff.entriesOnlyOnLeft());
-    classPropertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
-    classPropertyValueDao.delete(diff.entriesOnlyOnRight().keySet());
+    classPropertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
+    classPropertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    classPropertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
-  private void updateTextAttributes(ClassId classId,
+  private void updateTextAttributes(ClassId id,
                                     List<TextAttribute> newTextAttributes,
-                                    List<TextAttribute> oldTextAttributes) {
+                                    List<TextAttribute> oldTextAttributes,
+                                    User user) {
 
     Map<TextAttributeId, TextAttribute> newAttrs =
-        MapUtils.newLinkedHashMap(
-            Lists.transform(newTextAttributes, new TextAttributeToIdEntry(classId)));
+        newLinkedHashMap(transform(newTextAttributes, new TextAttributeToIdEntry(id)));
     Map<TextAttributeId, TextAttribute> oldAttrs =
-        MapUtils.newLinkedHashMap(
-            Lists.transform(oldTextAttributes, new TextAttributeToIdEntry(classId)));
+        newLinkedHashMap(transform(oldTextAttributes, new TextAttributeToIdEntry(id)));
 
     MapDifference<TextAttributeId, TextAttribute> diff =
         difference(newAttrs, oldAttrs);
 
-    textAttributeRepository.insert(diff.entriesOnlyOnLeft());
-    textAttributeRepository.update(diff.entriesDiffering());
-    textAttributeRepository.delete(diff.entriesOnlyOnRight());
+    textAttributeRepository.insert(diff.entriesOnlyOnLeft(), user);
+    textAttributeRepository.update(diff.entriesDiffering(), user);
+    textAttributeRepository.delete(diff.entriesOnlyOnRight(), user);
   }
 
-  private void updateReferenceAttributes(ClassId classId,
+  private void updateReferenceAttributes(ClassId id,
                                          List<ReferenceAttribute> newReferenceAttributes,
-                                         List<ReferenceAttribute> oldReferenceAttributes) {
+                                         List<ReferenceAttribute> oldReferenceAttributes,
+                                         User user) {
 
     Map<ReferenceAttributeId, ReferenceAttribute> newAttrs =
-        MapUtils.newLinkedHashMap(
-            Lists.transform(newReferenceAttributes, new ReferenceAttributeToIdEntry(classId)));
+        newLinkedHashMap(transform(newReferenceAttributes, new ReferenceAttributeToIdEntry(id)));
     Map<ReferenceAttributeId, ReferenceAttribute> oldAttrs =
-        MapUtils.newLinkedHashMap(
-            Lists.transform(oldReferenceAttributes, new ReferenceAttributeToIdEntry(classId)));
+        newLinkedHashMap(transform(oldReferenceAttributes, new ReferenceAttributeToIdEntry(id)));
 
     MapDifference<ReferenceAttributeId, ReferenceAttribute> diff =
         difference(newAttrs, oldAttrs);
 
-    referenceAttributeRepository.insert(diff.entriesOnlyOnLeft());
-    referenceAttributeRepository.update(diff.entriesDiffering());
-    referenceAttributeRepository.delete(diff.entriesOnlyOnRight());
+    referenceAttributeRepository.insert(diff.entriesOnlyOnLeft(), user);
+    referenceAttributeRepository.update(diff.entriesDiffering(), user);
+    referenceAttributeRepository.delete(diff.entriesOnlyOnRight(), user);
   }
 
   @Override
-  protected void delete(ClassId id, Class value) {
-    delete(id);
+  public void delete(ClassId id, User user) {
+    delete(id, get(id, user), user);
   }
 
   @Override
-  public void delete(ClassId id) {
-    classDao.delete(id);
+  protected void delete(ClassId id, Class cls, User user) {
+    deletePermissions(id, cls.getPermissions(), user);
+    deleteProperties(id, cls.getProperties(), user);
+    deleteTextAttributes(id, cls.getTextAttributes(), user);
+    deleteReferenceAttributes(id, cls.getReferenceAttributes(), user);
+    classDao.delete(id, user);
+  }
+
+  private void deletePermissions(ClassId id, Multimap<String, Permission> permissions, User user) {
+    classPermissionDao.delete(ImmutableList.copyOf(
+        RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(permissions).keySet()), user);
+  }
+
+  private void deleteProperties(ClassId id, Multimap<String, LangValue> properties, User user) {
+    classPropertyValueDao.delete(ImmutableList.copyOf(
+        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+  }
+
+  private void deleteTextAttributes(ClassId id, List<TextAttribute> textAttributes, User user) {
+    textAttributeRepository.delete(ImmutableMap.copyOf(
+        Lists.transform(textAttributes, new TextAttributeToIdEntry(id))), user);
+  }
+
+  private void deleteReferenceAttributes(ClassId id, List<ReferenceAttribute> referenceAttributes,
+                                         User user) {
+    referenceAttributeRepository.delete(ImmutableMap.copyOf(
+        Lists.transform(referenceAttributes, new ReferenceAttributeToIdEntry(id))), user);
   }
 
   @Override
-  public boolean exists(ClassId id) {
-    return classDao.exists(id);
+  public boolean exists(ClassId id, User user) {
+    return classDao.exists(id, user);
   }
 
   @Override
-  public List<Class> get() {
-    return Lists.transform(classDao.getValues(), new AddClassProperties());
+  public List<Class> get(SpecificationQuery<ClassId, Class> specification, User user) {
+    return Lists.transform(classDao.getValues(specification.getSpecification(), user),
+                           populateClassFunction(user));
   }
 
   @Override
-  public List<Class> get(SpecificationQuery<ClassId, Class> specification) {
-    return Lists.transform(classDao.getValues(specification.getSpecification()), populateClass);
+  public Class get(ClassId id, User user) {
+    return populateClassFunction(user).apply(classDao.get(id, user));
   }
 
-  @Override
-  public Class get(ClassId id) {
-    return populateClass.apply(classDao.get(id));
+  private Function<Class, Class> populateClassFunction(User user) {
+    return FunctionUtils.pipe(
+        new CreateCopy(),
+        new AddClassPermissions(user),
+        new AddClassProperties(user),
+        new AddClassTextAttributes(user),
+        new AddClassReferenceAttributes(user));
+  }
+
+  private class CreateCopy implements Function<Class, Class> {
+
+    public Class apply(Class cls) {
+      return new Class(cls);
+    }
+
   }
 
   /**
@@ -248,11 +285,17 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
    */
   private class AddClassPermissions implements Function<Class, Class> {
 
+    private User user;
+
+    public AddClassPermissions(User user) {
+      this.user = user;
+    }
+
     @Override
     public Class apply(Class cls) {
       cls.setPermissions(RolePermissionsModelToDto.<ClassId>create().apply(
           classPermissionDao.getMap(new ClassPermissionsByClassId(
-              new ClassId(cls.getSchemeId(), cls.getId())))));
+              new ClassId(cls.getSchemeId(), cls.getId())), user)));
       return cls;
     }
   }
@@ -262,12 +305,18 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
    */
   private class AddClassProperties implements Function<Class, Class> {
 
+    private User user;
+
+    public AddClassProperties(User user) {
+      this.user = user;
+    }
+
     @Override
     public Class apply(Class cls) {
       cls.setProperties(
           PropertyValueModelToDto.<ClassId>create().apply(classPropertyValueDao.getMap(
               new ClassPropertiesByClassId(
-                  new ClassId(cls.getSchemeId(), cls.getId())))));
+                  new ClassId(cls.getSchemeId(), cls.getId())), user)));
       return cls;
     }
   }
@@ -277,11 +326,17 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
    */
   private class AddClassTextAttributes implements Function<Class, Class> {
 
+    private User user;
+
+    public AddClassTextAttributes(User user) {
+      this.user = user;
+    }
+
     @Override
     public Class apply(Class cls) {
       cls.setTextAttributes(textAttributeRepository.get(
           new SpecificationQuery<TextAttributeId, TextAttribute>(
-              new TextAttributesByClassId(new ClassId(cls.getSchemeId(), cls.getId())))));
+              new TextAttributesByClassId(new ClassId(cls.getSchemeId(), cls.getId()))), user));
       return cls;
     }
   }
@@ -291,12 +346,18 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
    */
   private class AddClassReferenceAttributes implements Function<Class, Class> {
 
+    private User user;
+
+    public AddClassReferenceAttributes(User user) {
+      this.user = user;
+    }
+
     @Override
     public Class apply(Class cls) {
       cls.setReferenceAttributes(referenceAttributeRepository.get(
           new SpecificationQuery<ReferenceAttributeId, ReferenceAttribute>(
               new ReferenceAttributesByClassId(
-                  new ClassId(cls.getSchemeId(), cls.getId())))));
+                  new ClassId(cls.getSchemeId(), cls.getId()))), user));
       return cls;
     }
   }

@@ -21,27 +21,27 @@ public class RepositoryService<K extends Serializable, V> implements Service<K, 
 
   @Override
   public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
-    return repository.get(specification);
+    return repository.get(specification, currentUser);
   }
 
   @Override
   public V get(K id, User currentUser) {
-    return repository.get(id);
+    return repository.get(id, currentUser);
   }
 
   @Override
   public void save(List<V> values, User currentUser) {
-    repository.save(values);
+    repository.save(values, currentUser);
   }
 
   @Override
   public void save(V value, User currentUser) {
-    repository.save(value);
+    repository.save(value, currentUser);
   }
 
   @Override
   public void delete(K id, User currentUser) {
-    repository.delete(id);
+    repository.delete(id, currentUser);
   }
 
 }

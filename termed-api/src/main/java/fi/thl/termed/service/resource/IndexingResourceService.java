@@ -8,7 +8,8 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
@@ -29,13 +30,13 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
 
   private Repository<ResourceId, Resource> resourceRepository;
   private Index<ResourceId, Resource> resourceIndex;
-  private Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
+  private SystemDao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
 
   public IndexingResourceService(
       Service<ResourceId, Resource> delegate,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
-      Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
+      SystemDao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
     super(delegate);
     this.resourceRepository = resourceRepository;
     this.resourceIndex = resourceIndex;
@@ -45,13 +46,15 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   @Override
   public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification,
                             User currentUser) {
-    return specification.getEngine() == Engine.LUCENE ? resourceIndex.query(specification)
-                                                      : resourceRepository.get(specification);
+    return specification.getEngine() == Engine.LUCENE
+           ? resourceIndex.query(specification)
+           : resourceRepository.get(specification, currentUser);
   }
 
   @Override
   public void save(List<Resource> resources, User currentUser) {
     Set<ResourceId> affectedIds = Sets.newHashSet();
+
     for (Resource resource : resources) {
       affectedIds.add(new ResourceId(resource));
       affectedIds.addAll(resourceRelatedIds(new ResourceId(resource)));
@@ -110,7 +113,8 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
 
   private void reindex(Set<ResourceId> affectedIds) {
     for (ResourceId affectedId : affectedIds) {
-      resourceIndex.reindex(affectedId, resourceRepository.get(affectedId));
+      resourceIndex.reindex(
+          affectedId, resourceRepository.get(affectedId, new User("indexer", "", AppRole.ADMIN)));
     }
   }
 
@@ -118,7 +122,7 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
     if (!ids.isEmpty()) {
       resourceIndex.reindex(ImmutableList.copyOf(ids), new Function<ResourceId, Resource>() {
         public Resource apply(ResourceId id) {
-          return resourceRepository.get(id);
+          return resourceRepository.get(id, new User("indexer", "", AppRole.ADMIN));
         }
       });
     }

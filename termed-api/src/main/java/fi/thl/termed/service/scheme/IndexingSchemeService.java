@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
@@ -27,12 +28,12 @@ public class IndexingSchemeService extends ForwardingService<UUID, Scheme> {
 
   private Repository<ResourceId, Resource> resourceRepository;
   private Index<ResourceId, Resource> resourceIndex;
-  private Dao<ResourceId, Resource> resourceDao;
+  private SystemDao<ResourceId, Resource> resourceDao;
 
   public IndexingSchemeService(Service<UUID, Scheme> delegate,
                                Repository<ResourceId, Resource> resourceRepository,
                                Index<ResourceId, Resource> resourceIndex,
-                               Dao<ResourceId, Resource> resourceDao) {
+                               SystemDao<ResourceId, Resource> resourceDao) {
     super(delegate);
     this.resourceRepository = resourceRepository;
     this.resourceIndex = resourceIndex;
@@ -88,7 +89,7 @@ public class IndexingSchemeService extends ForwardingService<UUID, Scheme> {
     if (!ids.isEmpty()) {
       resourceIndex.reindex(ImmutableList.copyOf(ids), new Function<ResourceId, Resource>() {
         public Resource apply(ResourceId id) {
-          return resourceRepository.get(id);
+          return resourceRepository.get(id, new User("termedIndexer", "", AppRole.ADMIN));
         }
       });
     }

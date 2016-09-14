@@ -18,6 +18,11 @@ public class AppRolePermissionEvaluator<E> implements PermissionEvaluator<E> {
     this.rolePermissions = rolePermissions;
   }
 
+  public static <E> AppRolePermissionEvaluator<E> create(
+      Multimap<AppRole, Permission> rolePermissions) {
+    return new AppRolePermissionEvaluator<E>(rolePermissions);
+  }
+
   @Override
   public boolean hasPermission(User user, E object, Permission permission) {
     return rolePermissions.get(user.getAppRole()).contains(permission);

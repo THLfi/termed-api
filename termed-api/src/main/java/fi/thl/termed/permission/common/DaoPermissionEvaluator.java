@@ -2,19 +2,18 @@ package fi.thl.termed.permission.common;
 
 import java.io.Serializable;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
 
-public class DaoBasedObjectPermissionEvaluator<E extends Serializable>
-    implements PermissionEvaluator<E> {
+public class DaoPermissionEvaluator<E extends Serializable> implements PermissionEvaluator<E> {
 
-  private Dao<ObjectRolePermission<E>, Void> permissionDao;
+  private SystemDao<ObjectRolePermission<E>, Void> permissionDao;
 
-  public DaoBasedObjectPermissionEvaluator(Dao<ObjectRolePermission<E>, Void> permissionDao) {
+  public DaoPermissionEvaluator(SystemDao<ObjectRolePermission<E>, Void> permissionDao) {
     this.permissionDao = permissionDao;
   }
 

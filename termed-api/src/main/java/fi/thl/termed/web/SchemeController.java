@@ -41,7 +41,7 @@ public class SchemeController {
     this.schemeService = schemeService;
   }
 
-  @RequestMapping(method = GET)
+  @RequestMapping(method = GET, produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Scheme> get(@AuthenticationPrincipal User user) {
     return schemeService.get(

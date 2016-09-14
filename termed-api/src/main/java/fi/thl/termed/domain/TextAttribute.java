@@ -17,6 +17,11 @@ public class TextAttribute extends Attribute {
     super(domain, id, uri);
   }
 
+  public TextAttribute(TextAttribute textAttribute) {
+    super(textAttribute);
+    this.regex = textAttribute.regex;
+  }
+
   public String getRegex() {
     return MoreObjects.firstNonNull(regex, RegularExpressions.ALL);
   }

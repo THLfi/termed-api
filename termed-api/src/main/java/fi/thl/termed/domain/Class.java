@@ -11,7 +11,7 @@ import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.MultimapUtils;
 
-public class Class implements PropertyEntity {
+public class Class {
 
   private String id;
 

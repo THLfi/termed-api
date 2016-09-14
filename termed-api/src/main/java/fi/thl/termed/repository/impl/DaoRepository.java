@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.spesification.SpecificationQuery;
 
@@ -23,41 +24,36 @@ public class DaoRepository<K extends Serializable, V> implements Repository<K, V
   }
 
   @Override
-  public void save(List<V> values) {
+  public void save(List<V> values, User user) {
     for (V value : values) {
-      save(value);
+      save(value, user);
     }
   }
 
   @Override
-  public void save(V value) {
+  public void save(V value, User user) {
     K key = keyFunction.apply(value);
 
-    if (dao.exists(key)) {
-      dao.update(key, value);
+    if (dao.exists(key, user)) {
+      dao.update(key, value, user);
     } else {
-      dao.insert(key, value);
+      dao.insert(key, value, user);
     }
   }
 
   @Override
-  public void delete(K id) {
-    dao.delete(id);
+  public void delete(K id, User user) {
+    dao.delete(id, user);
   }
 
   @Override
-  public List<V> get() {
-    return dao.getValues();
+  public List<V> get(SpecificationQuery<K, V> specification, User user) {
+    return dao.getValues(specification.getSpecification(), user);
   }
 
   @Override
-  public List<V> get(SpecificationQuery<K, V> specification) {
-    return dao.getValues(specification.getSpecification());
-  }
-
-  @Override
-  public V get(K id) {
-    return dao.get(id);
+  public V get(K id, User user) {
+    return dao.get(id, user);
   }
 
 }

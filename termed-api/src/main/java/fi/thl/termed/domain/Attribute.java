@@ -32,6 +32,15 @@ public abstract class Attribute {
     this.uri = uri;
   }
 
+  public Attribute(Attribute attribute) {
+    this.id = attribute.id;
+    this.uri = attribute.uri;
+    this.index = attribute.index;
+    this.domain = attribute.domain;
+    this.permissions = attribute.permissions;
+    this.properties = attribute.properties;
+  }
+
   public String getId() {
     return id;
   }
@@ -58,6 +67,10 @@ public abstract class Attribute {
 
   public Class getDomain() {
     return domain;
+  }
+
+  public ClassId getDomainClassId() {
+    return new ClassId(domain);
   }
 
   public UUID getDomainSchemeId() {
@@ -100,14 +113,14 @@ public abstract class Attribute {
     return Objects.equal(id, attribute.id) &&
            Objects.equal(uri, attribute.uri) &&
            Objects.equal(index, attribute.index) &&
-           Objects.equal(domain, attribute.domain) &&
+           Objects.equal(getDomainClassId(), attribute.getDomainClassId()) &&
            Objects.equal(permissions, attribute.permissions) &&
            Objects.equal(properties, attribute.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, domain, permissions, properties);
+    return Objects.hashCode(id, uri, index, getDomainClassId(), permissions, properties);
   }
 
   @Override
@@ -120,7 +133,7 @@ public abstract class Attribute {
         .add("id", id)
         .add("uri", uri)
         .add("index", index)
-        .add("domain", domain)
+        .add("domainId", getDomainClassId())
         .add("permissions", permissions)
         .add("properties", properties);
   }

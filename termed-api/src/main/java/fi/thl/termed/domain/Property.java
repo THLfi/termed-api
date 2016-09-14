@@ -7,7 +7,7 @@ import com.google.common.collect.Multimap;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MultimapUtils;
 
-public class Property implements PropertyEntity {
+public class Property {
 
   private String id;
 
@@ -25,6 +25,13 @@ public class Property implements PropertyEntity {
     this.id = id;
     this.uri = uri;
     this.index = index;
+  }
+
+  public Property(Property property) {
+    this.id = property.id;
+    this.uri = property.uri;
+    this.index = property.index;
+    this.properties = property.properties;
   }
 
   public String getId() {
@@ -51,12 +58,10 @@ public class Property implements PropertyEntity {
     this.index = index;
   }
 
-  @Override
   public Multimap<String, LangValue> getProperties() {
     return MultimapUtils.nullToEmpty(properties);
   }
 
-  @Override
   public void setProperties(Multimap<String, LangValue> properties) {
     this.properties = properties;
   }

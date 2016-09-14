@@ -3,9 +3,8 @@ package fi.thl.termed.service.scheme;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.Class;
-import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
@@ -26,9 +25,10 @@ import static java.util.UUID.randomUUID;
  */
 public class ResolvingSchemeService extends ForwardingService<UUID, Scheme> {
 
-  private Dao<UUID, Scheme> schemeDao;
+  private SystemDao<UUID, Scheme> schemeDao;
 
-  public ResolvingSchemeService(Service<UUID, Scheme> delegate, Dao<UUID, Scheme> schemeDao) {
+  public ResolvingSchemeService(Service<UUID, Scheme> delegate,
+                                SystemDao<UUID, Scheme> schemeDao) {
     super(delegate);
     this.schemeDao = schemeDao;
   }

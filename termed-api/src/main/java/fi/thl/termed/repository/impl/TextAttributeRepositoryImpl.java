@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -16,6 +17,7 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
@@ -27,14 +29,14 @@ import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+
 public class TextAttributeRepositoryImpl
     extends AbstractRepository<TextAttributeId, TextAttribute> {
 
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
   private Dao<ObjectRolePermission<TextAttributeId>, Void> permissionDao;
   private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao;
-
-  private Function<TextAttribute, TextAttribute> populateAttribute;
 
   public TextAttributeRepositoryImpl(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
@@ -43,8 +45,6 @@ public class TextAttributeRepositoryImpl
     this.textAttributeDao = textAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyValueDao = propertyValueDao;
-    this.populateAttribute = FunctionUtils.pipe(new AddTextAttributePermissions(),
-                                                new AddTextAttributeProperties());
   }
 
   private TextAttributeId getTextAttributeId(TextAttribute textAttribute) {
@@ -54,43 +54,43 @@ public class TextAttributeRepositoryImpl
   }
 
   @Override
-  public void save(TextAttribute textAttribute) {
-    save(getTextAttributeId(textAttribute), textAttribute);
+  public void save(TextAttribute textAttribute, User user) {
+    save(getTextAttributeId(textAttribute), textAttribute, user);
   }
 
   @Override
-  protected void insert(TextAttributeId id, TextAttribute textAttribute) {
-    textAttributeDao.insert(id, textAttribute);
-
-    insertProperties(id, textAttribute.getProperties());
-    insertPermissions(id, textAttribute.getPermissions());
+  protected void insert(TextAttributeId id, TextAttribute textAttribute, User user) {
+    textAttributeDao.insert(id, textAttribute, user);
+    insertProperties(id, textAttribute.getProperties(), user);
+    insertPermissions(id, textAttribute.getPermissions(), user);
   }
 
-  private void insertProperties(TextAttributeId attrId, Multimap<String, LangValue> properties) {
-    propertyValueDao.insert(PropertyValueDtoToModel.create(attrId).apply(properties));
+  private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
+                                User user) {
+    propertyValueDao.insert(PropertyValueDtoToModel.create(id).apply(properties), user);
   }
 
-  private void insertPermissions(TextAttributeId attributeId,
-                                 Multimap<String, Permission> permissions) {
-    ClassId domainId = attributeId.getDomainId();
+  private void insertPermissions(TextAttributeId id, Multimap<String, Permission> permissions,
+                                 User user) {
+    ClassId domainId = id.getDomainId();
     permissionDao.insert(
-        RolePermissionsDtoToModel.create(domainId.getSchemeId(), attributeId).apply(permissions));
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), id).apply(permissions), user);
   }
 
   @Override
   protected void update(TextAttributeId id,
-                        TextAttribute newTextAttribute,
-                        TextAttribute oldTextAttribute) {
-
-    textAttributeDao.update(id, newTextAttribute);
-
-    updatePermissions(id, newTextAttribute.getPermissions(), oldTextAttribute.getPermissions());
-    updateProperties(id, newTextAttribute.getProperties(), oldTextAttribute.getProperties());
+                        TextAttribute newAttribute,
+                        TextAttribute oldAttribute,
+                        User user) {
+    textAttributeDao.update(id, newAttribute, user);
+    updatePermissions(id, newAttribute.getPermissions(), oldAttribute.getPermissions(), user);
+    updateProperties(id, newAttribute.getProperties(), oldAttribute.getProperties(), user);
   }
 
   private void updatePermissions(TextAttributeId attrId,
                                  Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions) {
+                                 Multimap<String, Permission> oldPermissions,
+                                 User user) {
     ClassId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<TextAttributeId>, Void> newPermissionMap =
@@ -101,13 +101,14 @@ public class TextAttributeRepositoryImpl
     MapDifference<ObjectRolePermission<TextAttributeId>, Void> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    permissionDao.insert(diff.entriesOnlyOnLeft());
-    permissionDao.delete(diff.entriesOnlyOnRight().keySet());
+    permissionDao.insert(diff.entriesOnlyOnLeft(), user);
+    permissionDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   private void updateProperties(TextAttributeId attributeId,
                                 Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap) {
+                                Multimap<String, LangValue> oldPropertyMultimap,
+                                User user) {
 
     Map<PropertyValueId<TextAttributeId>, LangValue> newProperties =
         PropertyValueDtoToModel.create(attributeId).apply(newPropertyMultimap);
@@ -117,40 +118,65 @@ public class TextAttributeRepositoryImpl
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyValueDao.insert(diff.entriesOnlyOnLeft());
-    propertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()));
-    propertyValueDao.delete(diff.entriesOnlyOnRight().keySet());
+    propertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
+    propertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    propertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   @Override
-  protected void delete(TextAttributeId id, TextAttribute value) {
-    delete(id);
+  public void delete(TextAttributeId id, User user) {
+    delete(id, get(id, user), user);
   }
 
   @Override
-  public void delete(TextAttributeId id) {
-    textAttributeDao.delete(id);
+  protected void delete(TextAttributeId id, TextAttribute textAttribute, User user) {
+    deletePermissions(id, textAttribute.getPermissions(), user);
+    deleteProperties(id, textAttribute.getProperties(), user);
+    textAttributeDao.delete(id, user);
+  }
+
+  private void deletePermissions(TextAttributeId id, Multimap<String, Permission> permissions,
+                                 User user) {
+    ClassId domainId = id.getDomainId();
+    permissionDao.delete(ImmutableList.copyOf(
+        RolePermissionsDtoToModel.create(domainId.getSchemeId(), id)
+            .apply(permissions).keySet()), user);
+  }
+
+  private void deleteProperties(TextAttributeId id, Multimap<String, LangValue> properties,
+                                User user) {
+    propertyValueDao.delete(ImmutableList.copyOf(
+        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
   }
 
   @Override
-  public boolean exists(TextAttributeId id) {
-    return textAttributeDao.exists(id);
+  public boolean exists(TextAttributeId id, User user) {
+    return textAttributeDao.exists(id, user);
   }
 
   @Override
-  public List<TextAttribute> get() {
-    return Lists.transform(textAttributeDao.getValues(), populateAttribute);
+  public List<TextAttribute> get(SpecificationQuery<TextAttributeId, TextAttribute> specification,
+                                 User user) {
+    return Lists.transform(textAttributeDao.getValues(specification.getSpecification(), user),
+                           populateAttributeFunction(user));
   }
 
   @Override
-  public List<TextAttribute> get(SpecificationQuery<TextAttributeId, TextAttribute> specification) {
-    return Lists.transform(textAttributeDao.getValues(specification.getSpecification()),
-                           populateAttribute);
+  public TextAttribute get(TextAttributeId id, User user) {
+    return populateAttributeFunction(user).apply(textAttributeDao.get(id, user));
   }
 
-  @Override
-  public TextAttribute get(TextAttributeId id) {
-    return populateAttribute.apply(textAttributeDao.get(id));
+  private Function<TextAttribute, TextAttribute> populateAttributeFunction(User user) {
+    return FunctionUtils.pipe(new CreateCopy(),
+                              new AddTextAttributePermissions(user),
+                              new AddTextAttributeProperties(user));
+  }
+
+  private class CreateCopy implements Function<TextAttribute, TextAttribute> {
+
+    public TextAttribute apply(TextAttribute attribute) {
+      return new TextAttribute(attribute);
+    }
   }
 
   /**
@@ -158,11 +184,17 @@ public class TextAttributeRepositoryImpl
    */
   private class AddTextAttributePermissions implements Function<TextAttribute, TextAttribute> {
 
+    private User user;
+
+    public AddTextAttributePermissions(User user) {
+      this.user = user;
+    }
+
     @Override
     public TextAttribute apply(TextAttribute textAttribute) {
       textAttribute.setPermissions(RolePermissionsModelToDto.<TextAttributeId>create().apply(
           permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
-              new TextAttributeId(textAttribute)))));
+              new TextAttributeId(textAttribute)), user)));
       return textAttribute;
     }
   }
@@ -172,12 +204,18 @@ public class TextAttributeRepositoryImpl
    */
   private class AddTextAttributeProperties implements Function<TextAttribute, TextAttribute> {
 
+    private User user;
+
+    public AddTextAttributeProperties(User user) {
+      this.user = user;
+    }
+
     @Override
     public TextAttribute apply(TextAttribute textAttribute) {
       textAttribute.setProperties(
           PropertyValueModelToDto.<TextAttributeId>create()
               .apply(propertyValueDao.getMap(new TextAttributePropertiesByAttributeId(
-                  getTextAttributeId(textAttribute)))));
+                  getTextAttributeId(textAttribute)), user)));
       return textAttribute;
     }
   }

@@ -16,80 +16,88 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
+import fi.thl.termed.util.FunctionUtils;
 
 public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   private Dao<String, User> userDao;
   private Dao<UserSchemeRoleId, Void> userSchemeRoleDao;
-  private Function<User, User> addSchemeRoles;
 
   public UserRepositoryImpl(Dao<String, User> userDao,
                             Dao<UserSchemeRoleId, Void> userSchemeRoleDao) {
     this.userDao = userDao;
     this.userSchemeRoleDao = userSchemeRoleDao;
-    this.addSchemeRoles = new AddSchemeRoles();
   }
 
   @Override
-  public void save(User user) {
-    save(user.getUsername(), user);
+  public void save(User user, User auth) {
+    save(user.getUsername(), user, auth);
   }
 
   @Override
-  protected void insert(String username, User user) {
-    userDao.insert(username, user);
+  protected void insert(String username, User user, User auth) {
+    userDao.insert(username, user, auth);
 
     for (SchemeRole schemeRole : user.getSchemeRoles()) {
       userSchemeRoleDao.insert(new UserSchemeRoleId(
-          username, schemeRole.getSchemeId(), schemeRole.getRole()), null);
+          username, schemeRole.getSchemeId(), schemeRole.getRole()), null, auth);
     }
   }
 
   @Override
-  protected void update(String username, User newUser, User oldUser) {
-    userDao.update(username, newUser);
+  protected void update(String username, User newUser, User oldUser, User auth) {
+    userDao.update(username, newUser, auth);
 
     Set<SchemeRole> newRoles = ImmutableSet.copyOf(newUser.getSchemeRoles());
     Set<SchemeRole> oldRoles = ImmutableSet.copyOf(oldUser.getSchemeRoles());
 
     for (SchemeRole removedRole : Sets.difference(oldRoles, newRoles)) {
       userSchemeRoleDao.delete(new UserSchemeRoleId(
-          username, removedRole.getSchemeId(), removedRole.getRole()));
+          username, removedRole.getSchemeId(), removedRole.getRole()), auth);
     }
     for (SchemeRole addedRole : Sets.difference(newRoles, oldRoles)) {
       userSchemeRoleDao.insert(new UserSchemeRoleId(
-          username, addedRole.getSchemeId(), addedRole.getRole()), null);
+          username, addedRole.getSchemeId(), addedRole.getRole()), null, auth);
     }
   }
 
   @Override
-  protected void delete(String username, User user) {
-    delete(username);
+  public void delete(String username, User auth) {
+    delete(username, get(username, auth), auth);
   }
 
   @Override
-  public void delete(String username) {
-    userDao.delete(username);
+  protected void delete(String username, User user, User auth) {
+    for (SchemeRole schemeRole : user.getSchemeRoles()) {
+      userSchemeRoleDao.delete(new UserSchemeRoleId(
+          username, schemeRole.getSchemeId(), schemeRole.getRole()), auth);
+    }
+
+    userDao.delete(username, auth);
   }
 
   @Override
-  public boolean exists(String username) {
-    return userDao.exists(username);
+  public boolean exists(String username, User auth) {
+    return userDao.exists(username, auth);
   }
 
   @Override
-  public List<User> get() {
-    return Lists.transform(userDao.getValues(), addSchemeRoles);
+  public List<User> get(SpecificationQuery<String, User> specification, User auth) {
+    return Lists.transform(userDao.getValues(specification.getSpecification(), auth),
+                           FunctionUtils.pipe(new CreateCopy(), new AddSchemeRoles(auth)));
   }
 
   @Override
-  public List<User> get(SpecificationQuery<String, User> specification) {
-    return Lists.transform(userDao.getValues(specification.getSpecification()), addSchemeRoles);
+  public User get(String username, User auth) {
+    return new AddSchemeRoles(auth).apply(new User(userDao.get(username, auth)));
   }
 
-  @Override
-  public User get(String username) {
-    return addSchemeRoles.apply(userDao.get(username));
+  private class CreateCopy implements Function<User, User> {
+
+    public User apply(User user) {
+      return new User(user);
+    }
+
   }
 
   /**
@@ -97,17 +105,23 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
    */
   private class AddSchemeRoles implements Function<User, User> {
 
+    private User auth;
+
+    public AddSchemeRoles(User auth) {
+      this.auth = auth;
+    }
+
     @Override
     public User apply(User user) {
       user.setSchemeRoles(Lists.transform(
-          userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername())),
+          userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername()), auth),
           new ToSchemeRole(user.getUsername())));
       return user;
     }
   }
 
   /**
-   * Transforms user scheme role tuple to scheme role. Checks that username in the tuple matches to
+   * Transforms user scheme role tuple to scheme role. Checks that username in the tuple matches the
    * expected username.
    */
   private class ToSchemeRole implements Function<UserSchemeRoleId, SchemeRole> {

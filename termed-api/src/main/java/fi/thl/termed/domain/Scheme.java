@@ -11,7 +11,7 @@ import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.MultimapUtils;
 
-public class Scheme implements PropertyEntity {
+public class Scheme {
 
   private UUID id;
   private String code;

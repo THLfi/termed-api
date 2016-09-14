@@ -15,7 +15,9 @@ import java.util.UUID;
 import javax.annotation.Resource;
 
 import fi.thl.termed.Application;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.util.LangValue;
 
 import static org.junit.Assert.assertEquals;
@@ -28,6 +30,8 @@ public class SchemeRepositoryIntegrationTest {
   @Resource
   private Repository<UUID, Scheme> schemeRepository;
 
+  private User testAdmin = new User("testAdmin", "", AppRole.ADMIN);
+
   @Test
   public void shouldSaveSchemeWithProperties() {
     Scheme scheme = new Scheme(UUID.randomUUID());
@@ -36,9 +40,9 @@ public class SchemeRepositoryIntegrationTest {
         "prefLabel", new LangValue("en", "Scheme label 1"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme);
+    schemeRepository.save(scheme, testAdmin);
 
-    Scheme savedScheme = schemeRepository.get(scheme.getId());
+    Scheme savedScheme = schemeRepository.get(scheme.getId(), testAdmin);
 
     assertEquals(scheme.getId(), savedScheme.getId());
 
@@ -56,15 +60,15 @@ public class SchemeRepositoryIntegrationTest {
         "prefLabel", new LangValue("en", "Scheme label 1"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme);
+    schemeRepository.save(scheme, testAdmin);
 
     scheme.setProperties(ImmutableMultimap.of(
         "prefLabel", new LangValue("en", "Scheme label 0 updated"),
         "prefLabel", new LangValue("en", "Scheme label 2")));
 
-    schemeRepository.save(scheme);
+    schemeRepository.save(scheme, testAdmin);
 
-    Scheme updated = schemeRepository.get(scheme.getId());
+    Scheme updated = schemeRepository.get(scheme.getId(), testAdmin);
 
     List<LangValue> langValues = Lists.newArrayList(updated.getProperties().get("prefLabel"));
     assertEquals(2, langValues.size());

@@ -1,6 +1,6 @@
 package fi.thl.termed.permission.specification;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
@@ -12,10 +12,11 @@ import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
 public class ResourcesByTextAttributeValuePrefixPermissionEvaluator
     implements PermissionEvaluator<ResourcesByTextAttributeValuePrefix> {
 
-  private Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao;
+  private SystemDao<ObjectRolePermission<TextAttributeId>, Void>
+      textAttributePermissionDao;
 
   public ResourcesByTextAttributeValuePrefixPermissionEvaluator(
-      Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
+      SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao) {
     this.textAttributePermissionDao = textAttributePermissionDao;
   }
 

@@ -20,12 +20,21 @@ public class ReferenceAttribute extends Attribute {
     this.setUri(uri);
   }
 
+  public ReferenceAttribute(ReferenceAttribute referenceAttribute) {
+    super(referenceAttribute);
+    this.range = referenceAttribute.range;
+  }
+
   public Class getRange() {
     return range;
   }
 
   public void setRange(Class range) {
     this.range = range;
+  }
+
+  public ClassId getRangeClassId() {
+    return new ClassId(range);
   }
 
   public UUID getRangeSchemeId() {
@@ -48,17 +57,17 @@ public class ReferenceAttribute extends Attribute {
       return false;
     }
     ReferenceAttribute that = (ReferenceAttribute) o;
-    return Objects.equal(range, that.range);
+    return Objects.equal(getRangeClassId(), that.getRangeClassId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), range);
+    return Objects.hashCode(super.hashCode(), getRangeClassId());
   }
 
   @Override
   public MoreObjects.ToStringHelper toStringHelper() {
-    return super.toStringHelper().add("range", range);
+    return super.toStringHelper().add("rangeId", getRangeClassId());
   }
 
 }

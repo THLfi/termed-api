@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.annotation.Resource;
 
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 
@@ -41,7 +42,7 @@ public class Security extends WebSecurityConfigurerAdapter {
   public void configure(AuthenticationManagerBuilder auth) throws Exception {
     UserDetailsService userDetailsService = new UserDetailsService() {
       public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.get(username);
+        User user = userRepository.get(username, new User("authenticator", "", AppRole.SUPERUSER));
         if (user != null) {
           return user;
         }

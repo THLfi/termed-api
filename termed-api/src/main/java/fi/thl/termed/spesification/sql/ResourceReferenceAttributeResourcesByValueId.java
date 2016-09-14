@@ -1,11 +1,12 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class ResourceReferenceAttributeResourcesByValueId
     extends AbstractSpecification<ResourceAttributeValueId, ResourceId>
@@ -30,6 +31,31 @@ public class ResourceReferenceAttributeResourcesByValueId
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{valueId.getSchemeId(), valueId.getTypeId(), valueId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ResourceReferenceAttributeResourcesByValueId that =
+        (ResourceReferenceAttributeResourcesByValueId) o;
+    return Objects.equal(valueId, that.valueId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(valueId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("valueId", valueId)
+        .toString();
   }
 
 }

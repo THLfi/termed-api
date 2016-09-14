@@ -28,6 +28,13 @@ public class User implements UserDetails {
     this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
   }
 
+  public User(User user) {
+    this.username = user.username;
+    this.password = user.password;
+    this.appRole = user.appRole;
+    this.schemeRoles = user.schemeRoles;
+  }
+
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
     return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(appRole.toString()));

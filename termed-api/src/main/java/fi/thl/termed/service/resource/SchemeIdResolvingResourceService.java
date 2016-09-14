@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
@@ -23,10 +23,10 @@ import static com.google.common.collect.Iterables.getFirst;
  */
 public class SchemeIdResolvingResourceService extends ForwardingService<ResourceId, Resource> {
 
-  private Dao<UUID, Scheme> schemeDao;
+  private SystemDao<UUID, Scheme> schemeDao;
 
   public SchemeIdResolvingResourceService(Service<ResourceId, Resource> delegate,
-                                          Dao<UUID, Scheme> schemeDao) {
+                                          SystemDao<UUID, Scheme> schemeDao) {
     super(delegate);
     this.schemeDao = schemeDao;
   }

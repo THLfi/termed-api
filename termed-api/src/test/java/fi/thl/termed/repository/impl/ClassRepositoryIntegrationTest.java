@@ -13,11 +13,13 @@ import java.util.UUID;
 import javax.annotation.Resource;
 
 import fi.thl.termed.Application;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
+import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 
 import static org.junit.Assert.assertEquals;
@@ -33,10 +35,12 @@ public class ClassRepositoryIntegrationTest {
   @Resource
   private Repository<ClassId, Class> classRepository;
 
+  private User testAdmin = new User("testAdmin", "", AppRole.ADMIN);
+
   @Test
   public void shouldInsertClass() {
     Scheme testScheme = new Scheme(UUID.randomUUID());
-    schemeRepository.save(testScheme);
+    schemeRepository.save(testScheme, testAdmin);
 
     Class testClass = new Class(testScheme, "TestClass1");
     testClass.setTextAttributes(Lists.newArrayList(new TextAttribute(testClass, "prefLabel"),
@@ -45,9 +49,9 @@ public class ClassRepositoryIntegrationTest {
     testClass.setReferenceAttributes(Lists.newArrayList(
         new ReferenceAttribute(testClass, testClass, "related")));
 
-    classRepository.save(testClass);
+    classRepository.save(testClass, testAdmin);
 
-    Class expectedClass = schemeRepository.get(testScheme.getId()).getClasses().get(0);
+    Class expectedClass = schemeRepository.get(testScheme.getId(), testAdmin).getClasses().get(0);
 
     assertEquals(testClass.getId(), expectedClass.getId());
 
@@ -65,7 +69,7 @@ public class ClassRepositoryIntegrationTest {
   @Test
   public void shouldUpdateClass() {
     Scheme testScheme = new Scheme(UUID.randomUUID());
-    schemeRepository.save(testScheme);
+    schemeRepository.save(testScheme, testAdmin);
 
     Class testClass = new Class(testScheme, "TestClass2");
     testClass.setTextAttributes(
@@ -75,7 +79,7 @@ public class ClassRepositoryIntegrationTest {
         Lists.newArrayList(new ReferenceAttribute(testClass, testClass, "related"),
                            new ReferenceAttribute(testClass, testClass, "broader")));
 
-    classRepository.save(testClass);
+    classRepository.save(testClass, testAdmin);
 
     Class updatedTestClass = new Class(testScheme, "TestClass2");
     updatedTestClass.setTextAttributes(
@@ -85,9 +89,9 @@ public class ClassRepositoryIntegrationTest {
         Lists.newArrayList(new ReferenceAttribute(updatedTestClass, updatedTestClass, "related"),
                            new ReferenceAttribute(updatedTestClass, updatedTestClass, "narrower")));
 
-    classRepository.save(updatedTestClass);
+    classRepository.save(updatedTestClass, testAdmin);
 
-    Class expectedClass = schemeRepository.get(testScheme.getId()).getClasses().get(0);
+    Class expectedClass = schemeRepository.get(testScheme.getId(), testAdmin).getClasses().get(0);
 
     assertEquals(testClass.getId(), expectedClass.getId());
 

@@ -2,7 +2,7 @@ package fi.thl.termed.permission.specification;
 
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
@@ -13,10 +13,10 @@ import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 public class ResourcesBySchemeIdPermissionEvaluator
     implements PermissionEvaluator<ResourcesBySchemeId> {
 
-  private Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao;
+  private SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionDao;
 
   public ResourcesBySchemeIdPermissionEvaluator(
-      Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao) {
+      SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionDao) {
     this.schemePermissionDao = schemePermissionDao;
   }
 

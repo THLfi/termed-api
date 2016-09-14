@@ -28,13 +28,15 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Before
   public void addTestAdminAndSuperuser() {
+    User initializer = new User("initializer", "", AppRole.SUPERUSER);
+
     userRepository.save(new User(testAdminUsername,
                                  passwordEncoder.encode(testAdminPassword),
-                                 AppRole.ADMIN));
+                                 AppRole.ADMIN), initializer);
 
     userRepository.save(new User(testSuperuserUsername,
                                  passwordEncoder.encode(testSuperuserPassword),
-                                 AppRole.SUPERUSER));
+                                 AppRole.SUPERUSER), initializer);
   }
 
   @Test
