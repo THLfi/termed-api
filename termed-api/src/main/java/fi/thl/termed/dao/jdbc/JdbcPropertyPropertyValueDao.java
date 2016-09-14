@@ -78,7 +78,7 @@ public class JdbcPropertyPropertyValueDao
   @Override
   protected <E> E get(PropertyValueId<String> id, RowMapper<E> mapper) {
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from property_property_value subject_id = ? and property_id = ? and index = ?",
+        "select * from property_property_value where subject_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId(),
         id.getPropertyId(),

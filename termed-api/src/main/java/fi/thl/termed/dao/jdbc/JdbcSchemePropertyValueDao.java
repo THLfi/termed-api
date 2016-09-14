@@ -78,7 +78,7 @@ public class JdbcSchemePropertyValueDao extends AbstractJdbcDao<PropertyValueId<
   @Override
   protected <E> E get(PropertyValueId<UUID> id, RowMapper<E> mapper) {
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from scheme_property_value scheme_id = ? and property_id = ? and index = ?",
+        "select * from scheme_property_value where scheme_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId(),
         id.getPropertyId(),

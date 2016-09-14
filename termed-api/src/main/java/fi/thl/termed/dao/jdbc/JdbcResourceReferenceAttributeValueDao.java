@@ -86,7 +86,7 @@ public class JdbcResourceReferenceAttributeValueDao
     ResourceId resourceId = id.getResourceId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
+        "select count(*) from resource_reference_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         Long.class,
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
@@ -100,7 +100,7 @@ public class JdbcResourceReferenceAttributeValueDao
     ResourceId resourceId = id.getResourceId();
 
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
+        "select * from resource_reference_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         mapper,
         resourceId.getSchemeId(),
         resourceId.getTypeId(),

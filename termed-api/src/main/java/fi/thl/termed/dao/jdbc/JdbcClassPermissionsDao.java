@@ -75,7 +75,7 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
   protected <E> E get(ObjectRolePermission<ClassId> id, RowMapper<E> mapper) {
     ClassId classId = id.getObjectId();
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from class_permission class_scheme_id = ? and class_id = ? and role = ? and permission = ?",
+        "select * from class_permission where class_scheme_id = ? and class_id = ? and role = ? and permission = ?",
         mapper,
         classId.getSchemeId(),
         classId.getId(),
