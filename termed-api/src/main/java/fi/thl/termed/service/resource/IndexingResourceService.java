@@ -1,8 +1,8 @@
 package fi.thl.termed.service.resource;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.util.List;
@@ -10,11 +10,16 @@ import java.util.Set;
 
 import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.index.Index;
+import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.service.common.ForwardingService;
@@ -23,23 +28,38 @@ import fi.thl.termed.spesification.SpecificationQuery.Engine;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
 
+import static com.google.common.collect.Lists.transform;
+import static fi.thl.termed.util.ListUtils.filter;
+
 /**
  * Manages querying and updating full text index of resources
  */
 public class IndexingResourceService extends ForwardingService<ResourceId, Resource> {
 
   private Repository<ResourceId, Resource> resourceRepository;
+
   private Index<ResourceId, Resource> resourceIndex;
+
+  private PermissionEvaluator<ClassId> classEvaluator;
+  private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
+  private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
+
   private SystemDao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
 
   public IndexingResourceService(
       Service<ResourceId, Resource> delegate,
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
+      PermissionEvaluator<ClassId> classEvaluator,
+      PermissionEvaluator<TextAttributeId> textAttrEvaluator,
+      PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator,
       SystemDao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
     super(delegate);
     this.resourceRepository = resourceRepository;
     this.resourceIndex = resourceIndex;
+    this.classEvaluator = classEvaluator;
+    this.textAttrEvaluator = textAttrEvaluator;
+    this.refAttrEvaluator = refAttrEvaluator;
     this.referenceAttributeValueDao = referenceAttributeValueDao;
   }
 
@@ -47,8 +67,19 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   public List<Resource> get(SpecificationQuery<ResourceId, Resource> specification,
                             User currentUser) {
     return specification.getEngine() == Engine.LUCENE
-           ? resourceIndex.query(specification)
+           ? filterByPermissions(resourceIndex.query(specification), currentUser)
            : resourceRepository.get(specification, currentUser);
+  }
+
+  // resources retrieved from index contain all data regardless of the user searching, thus filter
+  private List<Resource> filterByPermissions(List<Resource> resources, User user) {
+    Predicate<Resource> resourcePermissionPredicate =
+        new ResourcePermissionPredicate(classEvaluator, user, Permission.READ);
+    Function<Resource, Resource> resourceAttributeFilter =
+        new ResourceAttributePermissionFilter(
+            classEvaluator, textAttrEvaluator, refAttrEvaluator, user, Permission.READ);
+
+    return transform(filter(resources, resourcePermissionPredicate), resourceAttributeFilter);
   }
 
   @Override
@@ -108,7 +139,7 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   private List<ResourceId> referringResourceIds(ResourceId resourceId) {
     List<ResourceAttributeValueId> keys = referenceAttributeValueDao.getKeys(
         new ResourceReferenceAttributeResourcesByValueId(resourceId));
-    return Lists.transform(keys, new GetResourceId());
+    return transform(keys, new GetResourceId());
   }
 
   private void reindex(Set<ResourceId> affectedIds) {

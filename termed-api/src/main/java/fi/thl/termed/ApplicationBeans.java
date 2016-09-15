@@ -265,6 +265,9 @@ public class ApplicationBeans {
   public Service<ResourceId, Resource> resourceService(
       Repository<ResourceId, Resource> resourceRepository,
       Index<ResourceId, Resource> resourceIndex,
+      PermissionEvaluator<ClassId> classIdPermissionEvaluator,
+      PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator,
+      PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator,
       SystemDao<UUID, Scheme> schemeSystemDao,
       SystemDao<TextAttributeId, TextAttribute> textAttributeSystemDao,
       SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeSystemDao,
@@ -278,7 +281,9 @@ public class ApplicationBeans {
 
     service = new TransactionalService<ResourceId, Resource>(service, transactionManager);
     service = new IndexingResourceService(
-        service, resourceRepository, resourceIndex, referenceAttributeValueSystemDao);
+        service, resourceRepository, resourceIndex, classIdPermissionEvaluator,
+        textAttributeIdPermissionEvaluator, referenceAttributeIdPermissionEvaluator,
+        referenceAttributeValueSystemDao);
     service = new LoggingService<ResourceId, Resource>(service, Resource.class);
     service = new AttributeResolvingResourceService(
         service, textAttributeSystemDao, referenceAttributeSystemDao, resourceSystemDao);

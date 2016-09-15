@@ -1,11 +1,12 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.LangValue;
 
 public class ClassPropertiesByClassId
@@ -31,6 +32,30 @@ public class ClassPropertiesByClassId
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{classId.getSchemeId(), classId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClassPropertiesByClassId that = (ClassPropertiesByClassId) o;
+    return Objects.equal(classId, that.classId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(classId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("classId", classId)
+        .toString();
   }
 
 }
