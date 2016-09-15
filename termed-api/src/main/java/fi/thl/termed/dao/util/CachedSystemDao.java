@@ -31,7 +31,7 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
 
   private SystemDao<K, V> delegate;
 
-  public CachedSystemDao(final SystemDao<K, V> delegate) {
+  public CachedSystemDao(SystemDao<K, V> delegate) {
     this.delegate = delegate;
     this.specificationCache = CacheBuilder.newBuilder()
         .maximumSize(DEFAULT_SPECIFICATION_CACHE_SIZE)
