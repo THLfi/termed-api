@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
@@ -31,6 +32,30 @@ public class ReferenceAttributesByClassId
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{classId.getSchemeId(), classId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ReferenceAttributesByClassId that = (ReferenceAttributesByClassId) o;
+    return Objects.equal(classId, that.classId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(classId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("classId", classId)
+        .toString();
   }
 
 }

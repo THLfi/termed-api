@@ -1,6 +1,8 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Collections;
@@ -37,6 +39,30 @@ public class TextAttributesBySchemeIds
   @Override
   public Object[] sqlQueryParameters() {
     return schemeIds.toArray(new Object[schemeIds.size()]);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    TextAttributesBySchemeIds that = (TextAttributesBySchemeIds) o;
+    return Objects.equal(schemeIds, that.schemeIds);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(schemeIds);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("schemeIds", schemeIds)
+        .toString();
   }
 
 }

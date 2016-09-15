@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -47,6 +48,30 @@ public class ResourcesBySchemeId extends AbstractSpecification<ResourceId, Resou
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{schemeId};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ResourcesBySchemeId that = (ResourcesBySchemeId) o;
+    return Objects.equal(schemeId, that.schemeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(schemeId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("schemeId", schemeId)
+        .toString();
   }
 
 }

@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
@@ -33,6 +34,30 @@ public class TextAttributePropertiesByAttributeId
   public Object[] sqlQueryParameters() {
     ClassId domainId = textAttributeId.getDomainId();
     return new Object[]{domainId.getSchemeId(), domainId.getId(), textAttributeId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    TextAttributePropertiesByAttributeId that = (TextAttributePropertiesByAttributeId) o;
+    return Objects.equal(textAttributeId, that.textAttributeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(textAttributeId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("textAttributeId", textAttributeId)
+        .toString();
   }
 
 }

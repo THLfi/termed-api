@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.UserSchemeRoleId;
@@ -28,6 +29,30 @@ public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeR
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{username};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    UserSchemeRolesByUsername that = (UserSchemeRolesByUsername) o;
+    return Objects.equal(username, that.username);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(username);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("username", username)
+        .toString();
   }
 
 }

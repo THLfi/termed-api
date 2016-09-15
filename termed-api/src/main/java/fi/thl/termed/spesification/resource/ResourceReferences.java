@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -57,6 +58,34 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
     query.add(new TermQuery(new Term("referrers." + attrId.getId() + ".resourceId",
                                      subjectId.toString())), MUST);
     return query;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ResourceReferences that = (ResourceReferences) o;
+    return Objects.equal(subjectId, that.subjectId) &&
+           Objects.equal(attrId, that.attrId) &&
+           Objects.equal(rangeId, that.rangeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(subjectId, attrId, rangeId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("subjectId", subjectId)
+        .add("attrId", attrId)
+        .add("rangeId", rangeId)
+        .toString();
   }
 
 }

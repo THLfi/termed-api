@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -67,6 +68,32 @@ public class ResourcesByTextAttributeValuePrefix
     query.add(new TermQuery(new Term("type.id", domainId.getId())), MUST);
     query.add(new PrefixQuery(new Term(attributeId.getId(), value)), MUST);
     return query;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ResourcesByTextAttributeValuePrefix that = (ResourcesByTextAttributeValuePrefix) o;
+    return Objects.equal(attributeId, that.attributeId) &&
+           Objects.equal(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(attributeId, value);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("attributeId", attributeId)
+        .add("value", value)
+        .toString();
   }
 
 }

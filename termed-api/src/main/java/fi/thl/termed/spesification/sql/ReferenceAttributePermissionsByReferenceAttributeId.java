@@ -1,12 +1,13 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class ReferenceAttributePermissionsByReferenceAttributeId
     extends AbstractSpecification<ObjectRolePermission<ReferenceAttributeId>, Void>
@@ -33,6 +34,31 @@ public class ReferenceAttributePermissionsByReferenceAttributeId
   public Object[] sqlQueryParameters() {
     ClassId domainId = attributeId.getDomainId();
     return new Object[]{domainId.getSchemeId(), domainId.getId(), attributeId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ReferenceAttributePermissionsByReferenceAttributeId that =
+        (ReferenceAttributePermissionsByReferenceAttributeId) o;
+    return Objects.equal(attributeId, that.attributeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(attributeId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("attributeId", attributeId)
+        .toString();
   }
 
 }

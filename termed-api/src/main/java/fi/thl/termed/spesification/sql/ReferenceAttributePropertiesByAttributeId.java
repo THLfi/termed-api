@@ -1,5 +1,6 @@
 package fi.thl.termed.spesification.sql;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
@@ -36,6 +37,30 @@ public class ReferenceAttributePropertiesByAttributeId
     return new Object[]{domainId.getSchemeId(),
                         domainId.getId(),
                         referenceAttributeId.getId()};
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ReferenceAttributePropertiesByAttributeId that = (ReferenceAttributePropertiesByAttributeId) o;
+    return Objects.equal(referenceAttributeId, that.referenceAttributeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(referenceAttributeId);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("referenceAttributeId", referenceAttributeId)
+        .toString();
   }
 
 }
