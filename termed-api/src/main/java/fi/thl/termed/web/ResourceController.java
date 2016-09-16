@@ -8,8 +8,6 @@ import fi.thl.termed.domain.User;
 
 public interface ResourceController {
 
-  List<Resource> get(List<String> orderBy, int max, boolean bypassIndex, User currentUser);
-
   List<Resource> get(String query, List<String> orderBy, int max, boolean bypassIndex,
                      User currentUser);
 

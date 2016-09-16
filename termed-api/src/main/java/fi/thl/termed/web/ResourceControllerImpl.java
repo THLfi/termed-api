@@ -9,27 +9,23 @@ import java.util.UUID;
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.permission.util.PermissionPredicate;
 import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.util.OrSpecification;
-import fi.thl.termed.spesification.util.FalseSpecification;
 import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.util.TrueSpecification;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
-import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
+import fi.thl.termed.spesification.sql.ClassesBySchemeId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesBySchemeId;
-import fi.thl.termed.util.ListUtils;
+import fi.thl.termed.spesification.util.FalseSpecification;
+import fi.thl.termed.spesification.util.OrSpecification;
+import fi.thl.termed.spesification.util.TrueSpecification;
 
 import static fi.thl.termed.spesification.SpecificationQuery.Engine.LUCENE;
 import static fi.thl.termed.spesification.SpecificationQuery.Engine.SQL;
@@ -38,39 +34,23 @@ public class ResourceControllerImpl implements ResourceController {
 
   private Service<ResourceId, Resource> resourceService;
 
-  private Dao<UUID, Scheme> schemeDao;
+  private Dao<ClassId, Class> classDao;
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
-
-  private PermissionEvaluator<UUID> schemePermissionEvaluator;
-  private PermissionEvaluator<ClassId> classPermissionEvaluator;
-  private PermissionEvaluator<TextAttributeId> textAttributeEvaluator;
 
   public ResourceControllerImpl(
       Service<ResourceId, Resource> resourceService,
-      Dao<UUID, Scheme> schemeDao,
-      Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      PermissionEvaluator<UUID> schemePermissionEvaluator,
-      PermissionEvaluator<ClassId> classPermissionEvaluator,
-      PermissionEvaluator<TextAttributeId> textAttributeEvaluator) {
+      Dao<ClassId, Class> classDao,
+      Dao<TextAttributeId, TextAttribute> textAttributeDao) {
     this.resourceService = resourceService;
-    this.schemeDao = schemeDao;
+    this.classDao = classDao;
     this.textAttributeDao = textAttributeDao;
-    this.schemePermissionEvaluator = schemePermissionEvaluator;
-    this.classPermissionEvaluator = classPermissionEvaluator;
-    this.textAttributeEvaluator = textAttributeEvaluator;
-  }
-
-  @Override
-  public List<Resource> get(List<String> orderBy, int max, boolean bypassIndex, User currentUser) {
-    Specification<ResourceId, Resource> specification = resourcesBy(schemeIds(currentUser));
-    return resourceService.get(query(specification, orderBy, max, bypassIndex), currentUser);
   }
 
   @Override
   public List<Resource> get(String query, List<String> orderBy, int max, boolean bypassIndex,
                             User currentUser) {
     Specification<ResourceId, Resource> specification =
-        query.isEmpty() ? resourcesBy(schemeIds(currentUser))
+        query.isEmpty() ? resourcesBy(classIds(currentUser))
                         : resourcesBy(textAttributeIds(currentUser), tokenize(query));
     return resourceService.get(query(specification, orderBy, max, bypassIndex), currentUser);
   }
@@ -79,7 +59,7 @@ public class ResourceControllerImpl implements ResourceController {
   public List<Resource> get(UUID schemeId, String query, List<String> orderBy, int max,
                             boolean bypassIndex, User currentUser) {
     Specification<ResourceId, Resource> specification =
-        query.isEmpty() ? resourcesBy(schemeId(schemeId, currentUser))
+        query.isEmpty() ? resourcesBy(classIds(schemeId, currentUser))
                         : resourcesBy(textAttributeIds(schemeId, currentUser), tokenize(query));
     return resourceService.get(query(specification, orderBy, max, bypassIndex), currentUser);
   }
@@ -101,20 +81,15 @@ public class ResourceControllerImpl implements ResourceController {
         specification, orderBy, max, bypassIndex ? SQL : LUCENE);
   }
 
-  private Specification<ResourceId, Resource> resourcesBy(UUID schemeId) {
-    return schemeId != null ? new ResourcesBySchemeId(schemeId)
-                            : new FalseSpecification<ResourceId, Resource>();
-  }
-
   private Specification<ResourceId, Resource> resourcesBy(ClassId classId) {
     return classId != null ? new ResourcesByClassId(classId)
                            : new FalseSpecification<ResourceId, Resource>();
   }
 
-  private Specification<ResourceId, Resource> resourcesBy(List<UUID> schemeIds) {
+  private Specification<ResourceId, Resource> resourcesBy(List<ClassId> classIds) {
     List<Specification<ResourceId, Resource>> specifications = Lists.newArrayList();
-    for (UUID schemeId : schemeIds) {
-      specifications.add(new ResourcesBySchemeId(schemeId));
+    for (ClassId classId : classIds) {
+      specifications.add(new ResourcesByClassId(classId));
     }
     return new OrSpecification<ResourceId, Resource>(specifications);
   }
@@ -130,38 +105,28 @@ public class ResourceControllerImpl implements ResourceController {
     return new OrSpecification<ResourceId, Resource>(specifications);
   }
 
-  private List<UUID> schemeIds(User user) {
-    return ListUtils.filter(
-        schemeDao.getKeys(new TrueSpecification<UUID, Scheme>(), user),
-        new PermissionPredicate<UUID>(schemePermissionEvaluator, user, Permission.READ));
+  private List<ClassId> classIds(User user) {
+    return classDao.getKeys(new TrueSpecification<ClassId, Class>(), user);
   }
 
-  private UUID schemeId(UUID schemeId, User user) {
-    return schemePermissionEvaluator.hasPermission(user, schemeId, Permission.READ)
-           ? schemeId : null;
+  private List<ClassId> classIds(UUID schemeId, User user) {
+    return classDao.getKeys(new ClassesBySchemeId(schemeId), user);
   }
 
   private ClassId classId(ClassId classId, User user) {
-    return classPermissionEvaluator.hasPermission(user, classId, Permission.READ)
-           ? classId : null;
+    return classDao.exists(classId, user) ? classId : null;
   }
 
   private List<TextAttributeId> textAttributeIds(User user) {
-    return ListUtils.filter(
-        textAttributeDao.getKeys(new TrueSpecification<TextAttributeId, TextAttribute>(), user),
-        new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
+    return textAttributeDao.getKeys(new TrueSpecification<TextAttributeId, TextAttribute>(), user);
   }
 
   private List<TextAttributeId> textAttributeIds(UUID schemeId, User user) {
-    return ListUtils.filter(
-        textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId), user),
-        new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
+    return textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId), user);
   }
 
   private List<TextAttributeId> textAttributeIds(ClassId classId, User user) {
-    return ListUtils.filter(
-        textAttributeDao.getKeys(new TextAttributesByClassId(classId), user),
-        new PermissionPredicate<TextAttributeId>(textAttributeEvaluator, user, Permission.READ));
+    return textAttributeDao.getKeys(new TextAttributesByClassId(classId), user);
   }
 
   private List<String> tokenize(String query) {

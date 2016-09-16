@@ -14,14 +14,13 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
 import fi.thl.termed.service.Service;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -39,28 +38,13 @@ public class ResourceControllerSpringImpl extends ResourceControllerImpl
 
   public ResourceControllerSpringImpl(
       Service<ResourceId, Resource> resourceService,
-      Dao<UUID, Scheme> schemeDao,
-      Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      PermissionEvaluator<UUID> schemePermissionEvaluator,
-      PermissionEvaluator<ClassId> classPermissionEvaluator,
-      PermissionEvaluator<TextAttributeId> textAttributeEvaluator) {
-    super(resourceService, schemeDao, textAttributeDao, schemePermissionEvaluator,
-          classPermissionEvaluator, textAttributeEvaluator);
+      Dao<ClassId, Class> classDao,
+      Dao<TextAttributeId, TextAttribute> textAttributeDao) {
+    super(resourceService, classDao, textAttributeDao);
   }
 
   @Override
   @RequestMapping(method = GET, value = "/resources", produces = "application/json;charset=UTF-8")
-  @ResponseBody
-  public List<Resource> get(
-      @RequestParam(value = "orderBy", required = false, defaultValue = "") List<String> orderBy,
-      @RequestParam(value = "max", required = false, defaultValue = "50") int max,
-      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
-      @AuthenticationPrincipal User currentUser) {
-    return super.get(orderBy, max, bypassIndex, currentUser);
-  }
-
-  @Override
-  @RequestMapping(method = GET, value = "/resources", params = "query", produces = "application/json;charset=UTF-8")
   @ResponseBody
   public List<Resource> get(
       @RequestParam(value = "query", required = false, defaultValue = "") String query,

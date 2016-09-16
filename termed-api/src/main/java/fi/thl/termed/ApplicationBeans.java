@@ -141,17 +141,9 @@ public class ApplicationBeans {
   @Bean
   public ResourceControllerSpringImpl resourceController(
       Service<ResourceId, Resource> resourceService,
-      Dao<UUID, Scheme> schemeDao,
-      Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      PermissionEvaluator<UUID> schemePermissionEvaluator,
-      PermissionEvaluator<ClassId> classPermissionEvaluator,
-      PermissionEvaluator<TextAttributeId> textAttributeEvaluator) {
-    return new ResourceControllerSpringImpl(resourceService,
-                                            schemeDao,
-                                            textAttributeDao,
-                                            schemePermissionEvaluator,
-                                            classPermissionEvaluator,
-                                            textAttributeEvaluator);
+      Dao<ClassId, Class> classDao,
+      Dao<TextAttributeId, TextAttribute> textAttributeDao) {
+    return new ResourceControllerSpringImpl(resourceService, classDao, textAttributeDao);
   }
 
   @Bean
