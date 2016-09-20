@@ -148,7 +148,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     try {
       Specification<K, V> specification = specificationQuery.getSpecification();
       Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
-      log.debug("query: {}", query);
+      log.trace("query: {}", query);
       IndexSearcher searcher = searcherManager.acquire();
       try {
         return query(searcher, query, specificationQuery.getMax(), specificationQuery.getOrderBy());

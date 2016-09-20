@@ -32,6 +32,14 @@ public class ResourceReferrers extends AbstractSpecification<ResourceId, Resourc
     this.attrId = attrId;
   }
 
+  public ReferenceAttributeId getAttrId() {
+    return attrId;
+  }
+
+  public ResourceId getObjectId() {
+    return objectId;
+  }
+
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));

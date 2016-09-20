@@ -1,4 +1,4 @@
-package fi.thl.termed.permission.specification;
+package fi.thl.termed.permission.util;
 
 import com.google.common.base.Objects;
 
@@ -7,41 +7,42 @@ import org.junit.Test;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.permission.common.TypeBasedDelegatingSpecificationEvaluator;
 import fi.thl.termed.spesification.AbstractSpecification;
 
 import static org.junit.Assert.assertEquals;
 
-public class SpecificationPermissionEvaluatorTest {
+public class TypeBasedDelegatingSpecificationEvaluatorTest {
 
   @Test
   public void shouldFindCorrectEvaluatorForSpecification() {
-    SpecificationPermissionEvaluator<String, TestPerson> evaluator =
-        new SpecificationPermissionEvaluator<String, TestPerson>();
+    TypeBasedDelegatingSpecificationEvaluator<String, TestPerson> evaluator =
+        new TypeBasedDelegatingSpecificationEvaluator<String, TestPerson>();
 
     NameSpecPermissionEvaluator nameSpecEvaluator = new NameSpecPermissionEvaluator();
     AgeSpecPermissionEvaluator ageSpecEvaluator = new AgeSpecPermissionEvaluator();
 
-    assertEquals(0, nameSpecEvaluator.evaluated);
-    assertEquals(0, ageSpecEvaluator.evaluated);
+    assertEquals(0, nameSpecEvaluator.evaluatedCount);
+    assertEquals(0, ageSpecEvaluator.evaluatedCount);
 
     evaluator.registerEvaluator(NameSpec.class, nameSpecEvaluator);
     evaluator.registerEvaluator(AgeSpec.class, ageSpecEvaluator);
 
     evaluator.hasPermission(null, new NameSpec("test"), Permission.READ);
 
-    assertEquals(1, nameSpecEvaluator.evaluated);
-    assertEquals(0, ageSpecEvaluator.evaluated);
+    assertEquals(1, nameSpecEvaluator.evaluatedCount);
+    assertEquals(0, ageSpecEvaluator.evaluatedCount);
 
     evaluator.hasPermission(null, new AgeSpec(12), Permission.READ);
 
-    assertEquals(1, nameSpecEvaluator.evaluated);
-    assertEquals(1, ageSpecEvaluator.evaluated);
+    assertEquals(1, nameSpecEvaluator.evaluatedCount);
+    assertEquals(1, ageSpecEvaluator.evaluatedCount);
   }
 
   @Test(expected = RuntimeException.class)
   public void shouldFailIfEvaluatorForTypeIsNotFound() {
-    SpecificationPermissionEvaluator<String, TestPerson> evaluator =
-        new SpecificationPermissionEvaluator<String, TestPerson>();
+    TypeBasedDelegatingSpecificationEvaluator<String, TestPerson> evaluator =
+        new TypeBasedDelegatingSpecificationEvaluator<String, TestPerson>();
 
     evaluator.registerEvaluator(NameSpec.class, new NameSpecPermissionEvaluator());
 
@@ -54,22 +55,22 @@ public class SpecificationPermissionEvaluatorTest {
 
   private class NameSpecPermissionEvaluator implements PermissionEvaluator<NameSpec> {
 
-    private int evaluated = 0;
+    private int evaluatedCount = 0;
 
     @Override
     public boolean hasPermission(User user, NameSpec key, Permission permission) {
-      evaluated++;
+      evaluatedCount++;
       return true;
     }
   }
 
   private class AgeSpecPermissionEvaluator implements PermissionEvaluator<AgeSpec> {
 
-    private int evaluated = 0;
+    private int evaluatedCount = 0;
 
     @Override
     public boolean hasPermission(User user, AgeSpec key, Permission permission) {
-      evaluated++;
+      evaluatedCount++;
       return true;
     }
   }

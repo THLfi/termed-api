@@ -34,6 +34,18 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
     this.rangeId = rangeId;
   }
 
+  public ReferenceAttributeId getAttrId() {
+    return attrId;
+  }
+
+  public ResourceId getSubjectId() {
+    return subjectId;
+  }
+
+  public ClassId getRangeId() {
+    return rangeId;
+  }
+
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));

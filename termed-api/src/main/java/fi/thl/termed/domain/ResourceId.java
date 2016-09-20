@@ -20,14 +20,6 @@ public class ResourceId implements Serializable {
     this(resource.getSchemeId(), resource.getTypeId(), resource.getId());
   }
 
-  /**
-   * Construct internal version of an ID from external ID. Throws {@code NullPointerException} if
-   * any of the resource key fields is null.
-   */
-  public ResourceId(ResourceKey resourceKey) {
-    this(resourceKey.getSchemeId(), resourceKey.getTypeId(), resourceKey.getId());
-  }
-
   public ResourceId(UUID schemeId, String typeId, UUID id) {
     this.schemeId = checkNotNull(schemeId, "schemeId can't be null in %s", getClass());
     this.typeId = checkNotNull(typeId, "typeId can't be null in %s", getClass());

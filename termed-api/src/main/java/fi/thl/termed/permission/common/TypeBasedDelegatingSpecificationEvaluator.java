@@ -1,4 +1,4 @@
-package fi.thl.termed.permission.specification;
+package fi.thl.termed.permission.common;
 
 import com.google.common.collect.Maps;
 
@@ -13,11 +13,17 @@ import fi.thl.termed.spesification.Specification;
 /**
  * Evaluator that is composed of multiple specification type specific evaluators.
  */
-public class SpecificationPermissionEvaluator<K extends Serializable, V>
+public class TypeBasedDelegatingSpecificationEvaluator<K extends Serializable, V>
     implements PermissionEvaluator<Specification<K, V>> {
 
   private Map<Class<? extends Specification<K, V>>,
       PermissionEvaluator<? extends Specification<K, V>>> evaluators = Maps.newHashMap();
+
+  @SuppressWarnings("unchecked")
+  public <S extends Specification<K, V>> void registerEvaluatorByRawType(
+      Class type, PermissionEvaluator<S> evaluator) {
+    registerEvaluator((Class<S>) type, evaluator);
+  }
 
   public <S extends Specification<K, V>> void registerEvaluator(
       Class<S> type, PermissionEvaluator<S> evaluator) {
