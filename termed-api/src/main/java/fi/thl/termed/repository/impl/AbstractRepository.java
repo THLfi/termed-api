@@ -1,5 +1,6 @@
 package fi.thl.termed.repository.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 
 import java.io.Serializable;
@@ -54,5 +55,14 @@ public abstract class AbstractRepository<K extends Serializable, V> implements R
   }
 
   protected abstract void delete(K id, V value, User user);
+
+  @Override
+  public List<V> get(List<K> ids, User user) {
+    List<V> values = Lists.newArrayList();
+    for (K id : ids) {
+      values.add(get(id, user));
+    }
+    return values;
+  }
 
 }

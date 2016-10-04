@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.Specification;
 import fi.thl.termed.spesification.SpecificationQuery;
 
 /**
@@ -28,6 +27,11 @@ public interface Service<K extends Serializable, V> {
    * Get specified values. Values are expected to be fully populated.
    */
   List<V> get(SpecificationQuery<K, V> specification, User currentUser);
+
+  /**
+   * Get values by ids. Values are expected to be fully populated.
+   */
+  List<V> get(List<K> ids, User currentUser);
 
   /**
    * Get value by id. Value is expected to be fully populated.

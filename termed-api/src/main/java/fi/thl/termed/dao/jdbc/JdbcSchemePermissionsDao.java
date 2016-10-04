@@ -13,25 +13,26 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermission<UUID>, Void> {
+public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermission<UUID>, Empty> {
 
   public JdbcSchemePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<UUID> id, Void value) {
+  public void insert(ObjectRolePermission<UUID> id, Empty value) {
     jdbcTemplate.update(
         "insert into scheme_permission (scheme_id, role, permission) values (?, ?, ?)",
-        id.getObjectId(), id.getSchemeRole(), id.getPermission().toString());
+        id.getObjectId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<UUID> id, Void value) {
+  public void update(ObjectRolePermission<UUID> id, Empty value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -39,7 +40,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   public void delete(ObjectRolePermission<UUID> id) {
     jdbcTemplate.update(
         "delete from scheme_permission where scheme_id = ? and role = ? and permission = ?",
-        id.getObjectId(), id.getSchemeRole(), id.getPermission().toString());
+        id.getObjectId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
@@ -48,8 +49,9 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<ObjectRolePermission<UUID>, Void> specification,
-                            RowMapper<E> mapper) {
+  protected <E> List<E> get(
+      SqlSpecification<ObjectRolePermission<UUID>, Empty> specification,
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from scheme_permission where %s",
                       specification.sqlQueryTemplate()),
@@ -62,17 +64,17 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
         "select count(*) from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         Long.class,
         id.getObjectId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
   @Override
   protected <E> E get(ObjectRolePermission<UUID> id, RowMapper<E> mapper) {
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from scheme_permission scheme_id = ? and role = ? and permission = ?",
+        "select * from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         mapper,
         id.getObjectId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()), null);
   }
 
@@ -90,11 +92,11 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   }
 
   @Override
-  protected RowMapper<Void> buildValueMapper() {
-    return new RowMapper<Void>() {
+  protected RowMapper<Empty> buildValueMapper() {
+    return new RowMapper<Empty>() {
       @Override
-      public Void mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
+      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Empty.INSTANCE;
       }
     };
   }

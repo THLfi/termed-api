@@ -44,6 +44,11 @@ public class MemoryBasedSystemDao<K extends Serializable, V> extends AbstractSys
   }
 
   @Override
+  public boolean exists(K key) {
+    return data.containsKey(key);
+  }
+
+  @Override
   public V get(K key) {
     return data.get(key);
   }

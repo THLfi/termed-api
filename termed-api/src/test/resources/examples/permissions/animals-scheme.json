@@ -1,0 +1,164 @@
+{
+  "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff",
+  "code": "animals-example-with-permissions",
+  "roles": [
+    "editor",
+    "reviewer",
+    "visitor"
+  ],
+  "permissions": {
+    "editor": [
+      "READ",
+      "INSERT",
+      "UPDATE",
+      "DELETE"
+    ],
+    "reviewer": [
+      "READ"
+    ],
+    "visitor": [
+      "READ"
+    ]
+  },
+  "properties": {
+    "prefLabel": [
+      {
+        "lang": "fi",
+        "value": "Esimerkkisanasto"
+      },
+      {
+        "lang": "en",
+        "value": "Example Animal Vocabulary"
+      }
+    ]
+  },
+  "classes": [
+    {
+      "id": "Concept",
+      "uri": "http://www.w3.org/2004/02/skos/core#Concept",
+      "permissions": {
+        "editor": [
+          "READ",
+          "INSERT",
+          "UPDATE",
+          "DELETE"
+        ],
+        "reviewer": [
+          "READ"
+        ],
+        "visitor": [
+          "READ"
+        ]
+      },
+      "properties": {
+        "prefLabel": [
+          {
+            "lang": "fi",
+            "value": "Käsite"
+          },
+          {
+            "lang": "en",
+            "value": "Concept"
+          }
+        ]
+      },
+      "textAttributes": [
+        {
+          "id": "prefLabel",
+          "uri": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "permissions": {
+            "editor": [
+              "READ",
+              "INSERT",
+              "UPDATE",
+              "DELETE"
+            ],
+            "reviewer": [
+              "READ"
+            ],
+            "visitor": [
+              "READ"
+            ]
+          },
+          "properties": {
+            "prefLabel": [
+              {
+                "lang": "fi",
+                "value": "ensisijainen termi"
+              },
+              {
+                "lang": "en",
+                "value": "preferred label"
+              }
+            ]
+          }
+        },
+        {
+          "id": "comment",
+          "uri": "http://www.w3.org/2000/01/rdf-schema#comment",
+          "permissions": {
+            "editor": [
+              "READ",
+              "INSERT",
+              "UPDATE",
+              "DELETE"
+            ],
+            "reviewer": [
+              "READ",
+              "INSERT",
+              "UPDATE",
+              "DELETE"
+            ]
+          },
+          "properties": {
+            "prefLabel": [
+              {
+                "lang": "fi",
+                "value": "kommentti"
+              },
+              {
+                "lang": "en",
+                "value": "comment"
+              }
+            ]
+          }
+        }
+      ],
+      "referenceAttributes": [
+        {
+          "id": "broader",
+          "uri": "http://www.w3.org/2004/02/skos/core#broader",
+          "permissions": {
+            "editor": [
+              "READ",
+              "INSERT",
+              "UPDATE",
+              "DELETE"
+            ],
+            "reviewer": [
+              "READ"
+            ],
+            "visitor": [
+              "READ"
+            ]
+          },
+          "properties": {
+            "prefLabel": [
+              {
+                "lang": "fi",
+                "value": "yläkäsite"
+              },
+              {
+                "lang": "en",
+                "value": "broader"
+              }
+            ]
+          },
+          "range": {
+            "id": "Concept"
+          }
+        }
+      ]
+    }
+  ]
+}

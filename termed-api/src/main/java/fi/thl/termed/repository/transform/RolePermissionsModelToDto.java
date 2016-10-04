@@ -7,22 +7,23 @@ import com.google.common.collect.Multimap;
 import java.io.Serializable;
 import java.util.Map;
 
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 
 public class RolePermissionsModelToDto<K extends Serializable>
-    implements Function<Map<ObjectRolePermission<K>, Void>, Multimap<String, Permission>> {
+    implements Function<Map<ObjectRolePermission<K>, Empty>, Multimap<String, Permission>> {
 
   public static <K extends Serializable> RolePermissionsModelToDto<K> create() {
     return new RolePermissionsModelToDto<K>();
   }
 
   @Override
-  public Multimap<String, Permission> apply(Map<ObjectRolePermission<K>, Void> input) {
+  public Multimap<String, Permission> apply(Map<ObjectRolePermission<K>, Empty> input) {
     Multimap<String, Permission> map = LinkedHashMultimap.create();
 
     for (ObjectRolePermission<K> objectRolePermission : input.keySet()) {
-      map.put(objectRolePermission.getSchemeRole().getRole(), objectRolePermission.getPermission());
+      map.put(objectRolePermission.getRole(), objectRolePermission.getPermission());
     }
 
     return map;

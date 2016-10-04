@@ -14,20 +14,21 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, Void> {
+    extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, Empty> {
 
   public JdbcTextAttributePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<TextAttributeId> id, Void value) {
+  public void insert(ObjectRolePermission<TextAttributeId> id, Empty value) {
     TextAttributeId textAttributeId = id.getObjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
     jdbcTemplate.update(
@@ -35,12 +36,12 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<TextAttributeId> id, Void value) {
+  public void update(ObjectRolePermission<TextAttributeId> id, Empty value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -53,7 +54,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString());
   }
 
@@ -64,7 +65,7 @@ public class JdbcTextAttributePermissionsDao
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<TextAttributeId>, Void> specification,
+      SqlSpecification<ObjectRolePermission<TextAttributeId>, Empty> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from text_attribute_permission where %s",
@@ -82,7 +83,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
@@ -91,12 +92,12 @@ public class JdbcTextAttributePermissionsDao
     TextAttributeId textAttributeId = id.getObjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from text_attribute_permission text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
+        "select * from text_attribute_permission where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
         mapper,
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()), null);
   }
 
@@ -120,11 +121,11 @@ public class JdbcTextAttributePermissionsDao
   }
 
   @Override
-  protected RowMapper<Void> buildValueMapper() {
-    return new RowMapper<Void>() {
+  protected RowMapper<Empty> buildValueMapper() {
+    return new RowMapper<Empty>() {
       @Override
-      public Void mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
+      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Empty.INSTANCE;
       }
     };
   }

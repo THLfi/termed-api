@@ -25,6 +25,11 @@ public class RepositoryService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
+  public List<V> get(List<K> ids, User currentUser) {
+    return repository.get(ids, currentUser);
+  }
+
+  @Override
   public V get(K id, User currentUser) {
     return repository.get(id, currentUser);
   }

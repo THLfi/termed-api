@@ -14,6 +14,7 @@ import fi.thl.termed.dao.util.SecureDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.Property;
@@ -56,11 +57,11 @@ public class Daos {
   }
 
   @Bean
-  public Dao<UserSchemeRoleId, Void> userSchemeRoleDao(
-      SystemDao<UserSchemeRoleId, Void> userSchemeRoleSystemDao) {
+  public Dao<UserSchemeRoleId, Empty> userSchemeRoleDao(
+      SystemDao<UserSchemeRoleId, Empty> userSchemeRoleSystemDao) {
     Multimap<AppRole, Permission> rolePermissions = ImmutableMultimap.<AppRole, Permission>builder()
         .putAll(AppRole.SUPERUSER, Permission.values()).build();
-    return new SecureDao<UserSchemeRoleId, Void>(userSchemeRoleSystemDao, rolePermissions);
+    return new SecureDao<UserSchemeRoleId, Empty>(userSchemeRoleSystemDao, rolePermissions);
   }
 
   @Bean
@@ -90,26 +91,26 @@ public class Daos {
   }
 
   @Bean
-  public Dao<SchemeRole, Void> schemeRoleDao(SystemDao<SchemeRole, Void> schemeRoleSystemDao,
-                                             PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
+  public Dao<SchemeRole, Empty> schemeRoleDao(SystemDao<SchemeRole, Empty> schemeRoleSystemDao,
+                                              PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
 
     PermissionEvaluator<SchemeRole> evaluator =
         new MappingPermissionEvaluator<SchemeRole, UUID>(
             new SchemeRoleToSchemeId(), schemeIdPermissionEvaluator);
 
-    return new SecureDao<SchemeRole, Void>(schemeRoleSystemDao, evaluator, true);
+    return new SecureDao<SchemeRole, Empty>(schemeRoleSystemDao, evaluator, true);
   }
 
   @Bean
-  public Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao(
-      SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao,
+  public Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao(
+      SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao,
       PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<UUID>> evaluator =
         new MappingPermissionEvaluator<ObjectRolePermission<UUID>, UUID>(
             new ObjectRolePermissionToObjectId<UUID>(), schemeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<UUID>, Void>(
+    return new SecureDao<ObjectRolePermission<UUID>, Empty>(
         schemePermissionSystemDao, evaluator, true);
   }
 
@@ -133,15 +134,15 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao(
-      SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao,
+  public Dao<ObjectRolePermission<ClassId>, Empty> classPermissionDao(
+      SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao,
       PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<ClassId>> evaluator =
         new MappingPermissionEvaluator<ObjectRolePermission<ClassId>, ClassId>(
             new ObjectRolePermissionToObjectId<ClassId>(), classIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<ClassId>, Void>(
+    return new SecureDao<ObjectRolePermission<ClassId>, Empty>(
         classPermissionSystemDao, evaluator, true);
   }
 
@@ -167,8 +168,8 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionDao(
-      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao,
+  public Dao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionDao(
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao,
       PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<ReferenceAttributeId>> evaluator =
@@ -176,7 +177,7 @@ public class Daos {
             new ObjectRolePermissionToObjectId<ReferenceAttributeId>(),
             referenceAttributeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<ReferenceAttributeId>, Void>(
+    return new SecureDao<ObjectRolePermission<ReferenceAttributeId>, Empty>(
         referenceAttributePermissionSystemDao, evaluator, true);
   }
 
@@ -203,8 +204,8 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionDao(
-      SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao,
+  public Dao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionDao(
+      SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao,
       PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<TextAttributeId>> evaluator =
@@ -212,7 +213,7 @@ public class Daos {
             new ObjectRolePermissionToObjectId<TextAttributeId>(),
             textAttributeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<TextAttributeId>, Void>(
+    return new SecureDao<ObjectRolePermission<TextAttributeId>, Empty>(
         textAttributePermissionSystemDao, evaluator, true);
   }
 

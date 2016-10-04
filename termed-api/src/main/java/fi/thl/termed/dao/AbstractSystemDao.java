@@ -76,9 +76,4 @@ public abstract class AbstractSystemDao<K extends Serializable, V> implements Sy
     return values;
   }
 
-  @Override
-  public boolean exists(K key) {
-    return get(key) != null;
-  }
-
 }

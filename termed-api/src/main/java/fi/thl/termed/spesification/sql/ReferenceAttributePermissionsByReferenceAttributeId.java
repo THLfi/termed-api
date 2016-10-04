@@ -5,13 +5,14 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.spesification.AbstractSpecification;
 import fi.thl.termed.spesification.SqlSpecification;
 
 public class ReferenceAttributePermissionsByReferenceAttributeId
-    extends AbstractSpecification<ObjectRolePermission<ReferenceAttributeId>, Void>
-    implements SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<ReferenceAttributeId>, Empty>
+    implements SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Empty> {
 
   private ReferenceAttributeId attributeId;
 
@@ -21,7 +22,7 @@ public class ReferenceAttributePermissionsByReferenceAttributeId
 
   @Override
   public boolean accept(ObjectRolePermission<ReferenceAttributeId> objectRolePermission,
-                        Void value) {
+                        Empty value) {
     return Objects.equal(objectRolePermission.getObjectId(), attributeId);
   }
 

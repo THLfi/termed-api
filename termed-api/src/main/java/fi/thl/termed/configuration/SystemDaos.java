@@ -31,6 +31,7 @@ import fi.thl.termed.dao.jdbc.JdbcUserSchemeRoleDao;
 import fi.thl.termed.dao.util.CachedSystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -61,7 +62,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<UserSchemeRoleId, Void> userSchemeRoleSystemDao(DataSource dataSource) {
+  public SystemDao<UserSchemeRoleId, Empty> userSchemeRoleSystemDao(DataSource dataSource) {
     return CachedSystemDao.create(new JdbcUserSchemeRoleDao(dataSource));
   }
 
@@ -82,12 +83,12 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<SchemeRole, Void> schemeRoleSystemDao(DataSource dataSource) {
+  public SystemDao<SchemeRole, Empty> schemeRoleSystemDao(DataSource dataSource) {
     return CachedSystemDao.create(new JdbcSchemeRoleDao(dataSource));
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcSchemePermissionsDao(dataSource));
   }
@@ -104,7 +105,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao(
+  public SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcClassPermissionsDao(dataSource));
   }
@@ -122,7 +123,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcReferenceAttributePermissionsDao(dataSource));
   }
@@ -139,7 +140,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcTextAttributePermissionsDao(dataSource));
   }

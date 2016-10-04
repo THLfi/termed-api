@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import fi.thl.termed.dao.Dao;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
@@ -21,10 +22,10 @@ import fi.thl.termed.util.FunctionUtils;
 public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   private Dao<String, User> userDao;
-  private Dao<UserSchemeRoleId, Void> userSchemeRoleDao;
+  private Dao<UserSchemeRoleId, Empty> userSchemeRoleDao;
 
   public UserRepositoryImpl(Dao<String, User> userDao,
-                            Dao<UserSchemeRoleId, Void> userSchemeRoleDao) {
+                            Dao<UserSchemeRoleId, Empty> userSchemeRoleDao) {
     this.userDao = userDao;
     this.userSchemeRoleDao = userSchemeRoleDao;
   }

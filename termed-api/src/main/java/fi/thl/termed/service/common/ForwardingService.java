@@ -39,6 +39,11 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
+  public List<V> get(List<K> ids, User currentUser) {
+    return delegate.get(ids, currentUser);
+  }
+
+  @Override
   public V get(K id, User currentUser) {
     return delegate.get(id, currentUser);
   }

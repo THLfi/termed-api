@@ -3,12 +3,13 @@ package fi.thl.termed.spesification.sql;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
-public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeRoleId, Void>
-    implements SqlSpecification<UserSchemeRoleId, Void> {
+public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeRoleId, Empty>
+    implements SqlSpecification<UserSchemeRoleId, Empty> {
 
   private String username;
 
@@ -17,7 +18,7 @@ public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeR
   }
 
   @Override
-  public boolean accept(UserSchemeRoleId id, Void value) {
+  public boolean accept(UserSchemeRoleId id, Empty value) {
     return Objects.equal(id.getUsername(), username);
   }
 

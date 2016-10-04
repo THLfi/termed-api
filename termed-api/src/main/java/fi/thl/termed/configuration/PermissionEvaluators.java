@@ -10,6 +10,7 @@ import java.util.UUID;
 import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -38,7 +39,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<UUID> schemeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<UUID>, Void> schemePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao) {
 
     PermissionEvaluator<UUID> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<UUID>(
@@ -55,7 +56,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<ClassId> classIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<ClassId>, Void> classPermissionSystemDao) {
+      SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao) {
 
     PermissionEvaluator<ClassId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<ClassId>(
@@ -72,7 +73,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<TextAttributeId>, Void> textAttributePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao) {
 
     PermissionEvaluator<TextAttributeId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<TextAttributeId>(
@@ -89,7 +90,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Void> referenceAttributePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao) {
 
     PermissionEvaluator<ReferenceAttributeId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<ReferenceAttributeId>(
@@ -98,8 +99,7 @@ public class PermissionEvaluators {
                 .putAll(AppRole.SUPERUSER, Permission.values()).build());
 
     PermissionEvaluator<ReferenceAttributeId> textAttributeIdPermissionEvaluator =
-        new DaoPermissionEvaluator<ReferenceAttributeId>(
-            referenceAttributePermissionSystemDao);
+        new DaoPermissionEvaluator<ReferenceAttributeId>(referenceAttributePermissionSystemDao);
 
     return new DisjunctionPermissionEvaluator<ReferenceAttributeId>(
         appRolePermissionEvaluator, textAttributeIdPermissionEvaluator);

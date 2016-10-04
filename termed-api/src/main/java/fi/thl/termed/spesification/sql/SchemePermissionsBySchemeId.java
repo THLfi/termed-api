@@ -6,12 +6,13 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.ObjectRolePermission;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class SchemePermissionsBySchemeId
-    extends AbstractSpecification<ObjectRolePermission<UUID>, Void>
-    implements SqlSpecification<ObjectRolePermission<UUID>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<UUID>, Empty>
+    implements SqlSpecification<ObjectRolePermission<UUID>, Empty> {
 
   private UUID schemeId;
 
@@ -20,7 +21,7 @@ public class SchemePermissionsBySchemeId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<UUID> objectRolePermission, Void value) {
+  public boolean accept(ObjectRolePermission<UUID> objectRolePermission, Empty value) {
     return Objects.equal(objectRolePermission.getObjectId(), schemeId);
   }
 

@@ -22,6 +22,13 @@ public class User implements UserDetails {
   private AppRole appRole;
   private List<SchemeRole> schemeRoles;
 
+  public User(String username, String password, AppRole appRole, List<SchemeRole> schemeRoles) {
+    this.username = checkNotNull(username, "username can't be null in %s", getClass());
+    this.password = checkNotNull(password, "password can't be null in %s", getClass());
+    this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
+    this.schemeRoles = schemeRoles;
+  }
+
   public User(String username, String password, AppRole appRole) {
     this.username = checkNotNull(username, "username can't be null in %s", getClass());
     this.password = checkNotNull(password, "password can't be null in %s", getClass());

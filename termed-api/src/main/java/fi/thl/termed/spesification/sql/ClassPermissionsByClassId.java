@@ -5,12 +5,13 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.spesification.AbstractSpecification;
 import fi.thl.termed.spesification.SqlSpecification;
 
 public class ClassPermissionsByClassId
-    extends AbstractSpecification<ObjectRolePermission<ClassId>, Void>
-    implements SqlSpecification<ObjectRolePermission<ClassId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<ClassId>, Empty>
+    implements SqlSpecification<ObjectRolePermission<ClassId>, Empty> {
 
   private ClassId classId;
 
@@ -19,7 +20,7 @@ public class ClassPermissionsByClassId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<ClassId> objectRolePermission, Void value) {
+  public boolean accept(ObjectRolePermission<ClassId> objectRolePermission, Empty value) {
     return Objects.equal(objectRolePermission.getObjectId(), classId);
   }
 

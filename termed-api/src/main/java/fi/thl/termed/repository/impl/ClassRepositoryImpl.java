@@ -16,6 +16,7 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -43,7 +44,7 @@ import static fi.thl.termed.util.MapUtils.newLinkedHashMap;
 public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   private Dao<ClassId, Class> classDao;
-  private Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao;
+  private Dao<ObjectRolePermission<ClassId>, Empty> classPermissionDao;
   private Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao;
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
@@ -51,7 +52,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   public ClassRepositoryImpl(
       Dao<ClassId, Class> classDao,
-      Dao<ObjectRolePermission<ClassId>, Void> classPermissionDao,
+      Dao<ObjectRolePermission<ClassId>, Empty> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
@@ -146,12 +147,12 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
                                  Multimap<String, Permission> oldPermissions,
                                  User user) {
 
-    Map<ObjectRolePermission<ClassId>, Void> newPermissionMap =
+    Map<ObjectRolePermission<ClassId>, Empty> newPermissionMap =
         RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(newPermissions);
-    Map<ObjectRolePermission<ClassId>, Void> oldPermissionMap =
+    Map<ObjectRolePermission<ClassId>, Empty> oldPermissionMap =
         RolePermissionsDtoToModel.create(id.getSchemeId(), id).apply(oldPermissions);
 
-    MapDifference<ObjectRolePermission<ClassId>, Void> diff =
+    MapDifference<ObjectRolePermission<ClassId>, Empty> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
     classPermissionDao.insert(diff.entriesOnlyOnLeft(), user);

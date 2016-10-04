@@ -7,9 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 
-public class SchemeRoleDtoToModel implements Function<List<String>, Map<SchemeRole, Void>> {
+public class SchemeRoleDtoToModel implements Function<List<String>, Map<SchemeRole, Empty>> {
 
   private UUID schemeId;
 
@@ -22,10 +23,10 @@ public class SchemeRoleDtoToModel implements Function<List<String>, Map<SchemeRo
   }
 
   @Override
-  public Map<SchemeRole, Void> apply(List<String> roles) {
-    Map<SchemeRole, Void> map = Maps.newHashMap();
+  public Map<SchemeRole, Empty> apply(List<String> roles) {
+    Map<SchemeRole, Empty> map = Maps.newHashMap();
     for (String role : roles) {
-      map.put(new SchemeRole(schemeId, role), null);
+      map.put(new SchemeRole(schemeId, role), Empty.INSTANCE);
     }
     return map;
   }

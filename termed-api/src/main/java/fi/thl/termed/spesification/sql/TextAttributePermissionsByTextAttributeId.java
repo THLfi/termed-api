@@ -5,13 +5,14 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
 public class TextAttributePermissionsByTextAttributeId
-    extends AbstractSpecification<ObjectRolePermission<TextAttributeId>, Void>
-    implements SqlSpecification<ObjectRolePermission<TextAttributeId>, Void> {
+    extends AbstractSpecification<ObjectRolePermission<TextAttributeId>, Empty>
+    implements SqlSpecification<ObjectRolePermission<TextAttributeId>, Empty> {
 
   private TextAttributeId attributeId;
 
@@ -20,7 +21,8 @@ public class TextAttributePermissionsByTextAttributeId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<TextAttributeId> objectRolePermission, Void value) {
+  public boolean accept(ObjectRolePermission<TextAttributeId> objectRolePermission,
+                        Empty value) {
     return Objects.equal(objectRolePermission.getObjectId(), attributeId);
   }
 

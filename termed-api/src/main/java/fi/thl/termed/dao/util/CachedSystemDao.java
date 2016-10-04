@@ -94,6 +94,11 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
     return keyValueCache.getUnchecked(key).orNull();
   }
 
+  @Override
+  public boolean exists(K key) {
+    return get(key) != null || delegate.exists(key);
+  }
+
   private class SpecificationCacheLoader extends CacheLoader<Specification<K, V>, List<K>> {
 
     public List<K> load(Specification<K, V> specification) {

@@ -14,26 +14,27 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermission<ClassId>, Void> {
+public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermission<ClassId>, Empty> {
 
   public JdbcClassPermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<ClassId> id, Void value) {
+  public void insert(ObjectRolePermission<ClassId> id, Empty value) {
     ClassId classId = id.getObjectId();
     jdbcTemplate.update(
         "insert into class_permission (class_scheme_id, class_id, role, permission) values (?, ?, ?, ?)",
-        classId.getSchemeId(), classId.getId(), id.getSchemeRole(), id.getPermission().toString());
+        classId.getSchemeId(), classId.getId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<ClassId> id, Void value) {
+  public void update(ObjectRolePermission<ClassId> id, Empty value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -42,7 +43,7 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
     ClassId classId = id.getObjectId();
     jdbcTemplate.update(
         "delete from class_permission where class_scheme_id = ? and class_id = ? and role = ? and permission = ?",
-        classId.getSchemeId(), classId.getId(), id.getSchemeRole(), id.getPermission().toString());
+        classId.getSchemeId(), classId.getId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
@@ -51,8 +52,9 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<ObjectRolePermission<ClassId>, Void> specification,
-                            RowMapper<E> mapper) {
+  protected <E> List<E> get(
+      SqlSpecification<ObjectRolePermission<ClassId>, Empty> specification,
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from class_permission where %s",
                       specification.sqlQueryTemplate()),
@@ -67,7 +69,7 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
         Long.class,
         classId.getSchemeId(),
         classId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
@@ -79,7 +81,7 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
         mapper,
         classId.getSchemeId(),
         classId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()), null);
   }
 
@@ -88,7 +90,7 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
     return new RowMapper<ObjectRolePermission<ClassId>>() {
       @Override
       public ObjectRolePermission<ClassId> mapRow(ResultSet rs, int rowNum) throws SQLException {
-        UUID schemeId = UUIDs.fromString(rs.getString("scheme_id"));
+        UUID schemeId = UUIDs.fromString(rs.getString("class_scheme_id"));
         ClassId classId = new ClassId(schemeId, rs.getString("class_id"));
         return new ObjectRolePermission<ClassId>(
             classId, new SchemeRole(schemeId, rs.getString("role")),
@@ -98,11 +100,10 @@ public class JdbcClassPermissionsDao extends AbstractJdbcDao<ObjectRolePermissio
   }
 
   @Override
-  protected RowMapper<Void> buildValueMapper() {
-    return new RowMapper<Void>() {
-      @Override
-      public Void mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
+  protected RowMapper<Empty> buildValueMapper() {
+    return new RowMapper<Empty>() {
+      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Empty.INSTANCE;
       }
     };
   }

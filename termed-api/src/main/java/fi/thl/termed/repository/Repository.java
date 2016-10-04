@@ -26,6 +26,11 @@ public interface Repository<K extends Serializable, V> {
   List<V> get(SpecificationQuery<K, V> specification, User user);
 
   /**
+   * Get values by ids. Value is expected to be fully populated.
+   */
+  List<V> get(List<K> ids, User user);
+
+  /**
    * Get value by id. Value is expected to be fully populated.
    */
   V get(K id, User user);

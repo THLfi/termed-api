@@ -51,7 +51,8 @@ public class UserController {
     for (User userDatum : userData) {
       userService.save(new User(userDatum.getUsername(),
                                 passwordEncoder.encode(userDatum.getPassword()),
-                                userDatum.getAppRole()),
+                                userDatum.getAppRole(),
+                                userDatum.getSchemeRoles()),
                        currentUser);
     }
   }
@@ -61,7 +62,8 @@ public class UserController {
   public void save(@RequestBody User userData, @AuthenticationPrincipal User currentUser) {
     userService.save(new User(userData.getUsername(),
                               passwordEncoder.encode(userData.getPassword()),
-                              userData.getAppRole()),
+                              userData.getAppRole(),
+                              userData.getSchemeRoles()),
                      currentUser);
   }
 

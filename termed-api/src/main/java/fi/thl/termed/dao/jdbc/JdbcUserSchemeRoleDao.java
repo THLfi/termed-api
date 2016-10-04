@@ -10,25 +10,26 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Void> {
+public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Empty> {
 
   public JdbcUserSchemeRoleDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(UserSchemeRoleId id, Void value) {
+  public void insert(UserSchemeRoleId id, Empty value) {
     jdbcTemplate.update(
         "insert into user_scheme_role (username, scheme_id, role) values (?, ?, ?)",
         id.getUsername(), id.getSchemeId(), id.getRole());
   }
 
   @Override
-  public void update(UserSchemeRoleId id, Void value) {
+  public void update(UserSchemeRoleId id, Empty value) {
     // NOP (user scheme role doesn't have a separate value)
   }
 
@@ -45,7 +46,7 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Voi
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<UserSchemeRoleId, Void> specification,
+  protected <E> List<E> get(SqlSpecification<UserSchemeRoleId, Empty> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from user_scheme_role where %s",
@@ -66,7 +67,7 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Voi
   @Override
   protected <E> E get(UserSchemeRoleId id, RowMapper<E> mapper) {
     return Iterables.getFirst(jdbcTemplate.query(
-        "select * from user_scheme_role username = ? and scheme_id = ? and role = ?",
+        "select * from user_scheme_role where username = ? and scheme_id = ? and role = ?",
         mapper,
         id.getUsername(),
         id.getSchemeId(),
@@ -86,11 +87,11 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Voi
   }
 
   @Override
-  protected RowMapper<Void> buildValueMapper() {
-    return new RowMapper<Void>() {
+  protected RowMapper<Empty> buildValueMapper() {
+    return new RowMapper<Empty>() {
       @Override
-      public Void mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
+      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Empty.INSTANCE;
       }
     };
   }

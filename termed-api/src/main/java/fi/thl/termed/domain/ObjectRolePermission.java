@@ -27,6 +27,10 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     return schemeRole;
   }
 
+  public String getRole() {
+    return schemeRole != null ? schemeRole.getRole() : null;
+  }
+
   public Permission getPermission() {
     return permission;
   }
@@ -42,7 +46,7 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     ObjectRolePermission<?> that = (ObjectRolePermission<?>) o;
     return Objects.equal(objectId, that.objectId) &&
            Objects.equal(schemeRole, that.schemeRole) &&
-           permission == that.permission;
+           Objects.equal(permission, that.permission);
   }
 
   @Override

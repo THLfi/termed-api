@@ -5,12 +5,13 @@ import com.google.common.base.Objects;
 
 import java.util.UUID;
 
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
-import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.spesification.SqlSpecification;
 
-public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Void>
-    implements SqlSpecification<SchemeRole, Void> {
+public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Empty>
+    implements SqlSpecification<SchemeRole, Empty> {
 
   private UUID schemeId;
 
@@ -19,7 +20,7 @@ public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Voi
   }
 
   @Override
-  public boolean accept(SchemeRole schemeRole, Void value) {
+  public boolean accept(SchemeRole schemeRole, Empty value) {
     return Objects.equal(schemeRole.getSchemeId(), schemeId);
   }
 

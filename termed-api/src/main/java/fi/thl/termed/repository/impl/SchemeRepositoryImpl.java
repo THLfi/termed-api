@@ -17,6 +17,7 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeRole;
@@ -41,14 +42,14 @@ import static com.google.common.collect.ImmutableList.copyOf;
 public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
   private Dao<UUID, Scheme> schemeDao;
-  private Dao<SchemeRole, Void> schemeRoleDao;
-  private Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao;
+  private Dao<SchemeRole, Empty> schemeRoleDao;
+  private Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao;
   private Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao;
   private AbstractRepository<ClassId, Class> classRepository;
 
   public SchemeRepositoryImpl(Dao<UUID, Scheme> schemeDao,
-                              Dao<SchemeRole, Void> schemeRoleDao,
-                              Dao<ObjectRolePermission<UUID>, Void> schemePermissionDao,
+                              Dao<SchemeRole, Empty> schemeRoleDao,
+                              Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao,
                               Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
                               AbstractRepository<ClassId, Class> classRepository) {
     this.schemeDao = schemeDao;
@@ -110,10 +111,10 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   }
 
   private void updateRoles(UUID schemeId, List<String> newRoles, List<String> oldRoles, User user) {
-    Map<SchemeRole, Void> newRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(newRoles);
-    Map<SchemeRole, Void> oldRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(oldRoles);
+    Map<SchemeRole, Empty> newRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(newRoles);
+    Map<SchemeRole, Empty> oldRolesMap = SchemeRoleDtoToModel.create(schemeId).apply(oldRoles);
 
-    MapDifference<SchemeRole, Void> diff = Maps.difference(newRolesMap, oldRolesMap);
+    MapDifference<SchemeRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
 
     schemeRoleDao.insert(diff.entriesOnlyOnLeft(), user);
     schemeRoleDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
@@ -124,12 +125,12 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
                                  Multimap<String, Permission> oldPermissions,
                                  User user) {
 
-    Map<ObjectRolePermission<UUID>, Void> newPermissionMap =
+    Map<ObjectRolePermission<UUID>, Empty> newPermissionMap =
         RolePermissionsDtoToModel.create(schemeId, schemeId).apply(newPermissions);
-    Map<ObjectRolePermission<UUID>, Void> oldPermissionMap =
+    Map<ObjectRolePermission<UUID>, Empty> oldPermissionMap =
         RolePermissionsDtoToModel.create(schemeId, schemeId).apply(oldPermissions);
 
-    MapDifference<ObjectRolePermission<UUID>, Void> diff =
+    MapDifference<ObjectRolePermission<UUID>, Empty> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
     schemePermissionDao.insert(diff.entriesOnlyOnLeft(), user);

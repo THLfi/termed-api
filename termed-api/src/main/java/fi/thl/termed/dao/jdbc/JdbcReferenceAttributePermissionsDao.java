@@ -14,20 +14,21 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<ReferenceAttributeId>, Void> {
+    extends AbstractJdbcDao<ObjectRolePermission<ReferenceAttributeId>, Empty> {
 
   public JdbcReferenceAttributePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<ReferenceAttributeId> id, Void value) {
+  public void insert(ObjectRolePermission<ReferenceAttributeId> id, Empty value) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     jdbcTemplate.update(
@@ -35,12 +36,12 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<ReferenceAttributeId> id, Void value) {
+  public void update(ObjectRolePermission<ReferenceAttributeId> id, Empty value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -53,7 +54,7 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString());
   }
 
@@ -64,7 +65,7 @@ public class JdbcReferenceAttributePermissionsDao
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Void> specification,
+      SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Empty> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from reference_attribute_permission where %s",
@@ -82,7 +83,7 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
@@ -96,7 +97,7 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
-        id.getSchemeRole(),
+        id.getRole(),
         id.getPermission().toString()), null);
   }
 
@@ -121,11 +122,11 @@ public class JdbcReferenceAttributePermissionsDao
   }
 
   @Override
-  protected RowMapper<Void> buildValueMapper() {
-    return new RowMapper<Void>() {
+  protected RowMapper<Empty> buildValueMapper() {
+    return new RowMapper<Empty>() {
       @Override
-      public Void mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
+      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Empty.INSTANCE;
       }
     };
   }

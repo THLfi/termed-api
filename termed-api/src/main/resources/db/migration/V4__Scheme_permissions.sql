@@ -41,9 +41,9 @@ CREATE TABLE class_permission (
   role varchar(20),
   permission varchar(20),
   CONSTRAINT class_permission_pkey PRIMARY KEY (class_scheme_id, class_id, role, permission),
-  CONSTRAINT class_permission_class_fkey FOREIGN KEY (class_scheme_id, class_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE,
+  CONSTRAINT class_permission_class_fkey FOREIGN KEY (class_scheme_id, class_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT class_permission_scheme_role_fkey FOREIGN KEY (class_scheme_id, role) REFERENCES scheme_role(scheme_id, role) ON DELETE CASCADE,
-  CONSTRAINT class_permission_scheme_permission_fkey FOREIGN KEY (class_scheme_id, role, permission) REFERENCES scheme_permission(scheme_id, role, permission) ON DELETE CASCADE
+  CONSTRAINT class_permission_permission_check CHECK (permission IN ('READ', 'INSERT', 'UPDATE', 'DELETE'))
 );
 
 CREATE INDEX class_permission_class_id_idx ON class_permission(class_scheme_id, class_id);
@@ -55,9 +55,9 @@ CREATE TABLE text_attribute_permission (
   role varchar(20),
   permission varchar(20),
   CONSTRAINT text_attribute_permission_pkey PRIMARY KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id, role, permission),
-  CONSTRAINT text_attribute_permission_attribute_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, id) ON DELETE CASCADE,
+  CONSTRAINT text_attribute_permission_attribute_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id) REFERENCES text_attribute(scheme_id, domain_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT text_attribute_permission_scheme_role_fkey FOREIGN KEY (text_attribute_scheme_id, role) REFERENCES scheme_role(scheme_id, role) ON DELETE CASCADE,
-  CONSTRAINT text_attribute_permission_class_permission_fkey FOREIGN KEY (text_attribute_scheme_id, text_attribute_domain_id, role, permission) REFERENCES class_permission(class_scheme_id, class_id, role, permission) ON DELETE CASCADE
+  CONSTRAINT text_attribute_permission_permission_check CHECK (permission IN ('READ', 'INSERT', 'UPDATE', 'DELETE'))
 );
 
 CREATE INDEX text_attribute_permission_attribute_idx ON text_attribute_permission(text_attribute_scheme_id, text_attribute_domain_id, text_attribute_id);
@@ -69,9 +69,9 @@ CREATE TABLE reference_attribute_permission (
   role varchar(20),
   permission varchar(20),
   CONSTRAINT reference_attribute_permission_pkey PRIMARY KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id, role, permission),
-  CONSTRAINT reference_attribute_permission_attribute_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, id) ON DELETE CASCADE,
+  CONSTRAINT reference_attribute_permission_attribute_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id) REFERENCES reference_attribute(scheme_id, domain_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT reference_attribute_permission_scheme_role_fkey FOREIGN KEY (reference_attribute_scheme_id, role) REFERENCES scheme_role(scheme_id, role) ON DELETE CASCADE,
-  CONSTRAINT reference_attribute_permission_class_permission_fkey FOREIGN KEY (reference_attribute_scheme_id, reference_attribute_domain_id, role, permission) REFERENCES class_permission(class_scheme_id, class_id, role, permission) ON DELETE CASCADE
+  CONSTRAINT reference_attribute_permission_permission_check CHECK (permission IN ('READ', 'INSERT', 'UPDATE', 'DELETE'))
 );
 
 CREATE INDEX reference_attribute_permission_attribute_idx ON reference_attribute_permission(reference_attribute_scheme_id, reference_attribute_domain_id, reference_attribute_id);
