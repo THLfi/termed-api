@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Empty> {
@@ -65,13 +66,13 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Emp
   }
 
   @Override
-  protected <E> E get(UserSchemeRoleId id, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
+  protected <E> Optional<E> get(UserSchemeRoleId id, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from user_scheme_role where username = ? and scheme_id = ? and role = ?",
         mapper,
         id.getUsername(),
         id.getSchemeId(),
-        id.getRole()), null);
+        id.getRole()));
   }
 
   @Override

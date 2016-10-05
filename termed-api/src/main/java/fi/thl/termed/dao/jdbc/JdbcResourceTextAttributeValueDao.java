@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 
@@ -99,17 +100,17 @@ public class JdbcResourceTextAttributeValueDao
   }
 
   @Override
-  protected <E> E get(ResourceAttributeValueId id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ResourceAttributeValueId id, RowMapper<E> mapper) {
     ResourceId resourceId = id.getResourceId();
 
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         mapper,
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
-        id.getIndex()), null);
+        id.getIndex()));
   }
 
   @Override

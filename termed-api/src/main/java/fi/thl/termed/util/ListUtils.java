@@ -1,6 +1,7 @@
 package fi.thl.termed.util;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -13,6 +14,10 @@ import java.util.List;
 public final class ListUtils {
 
   private ListUtils() {
+  }
+
+  public static <T> Optional<T> findFirst(List<T> list) {
+    return !list.isEmpty() ? Optional.of(list.iterator().next()) : Optional.<T>absent();
   }
 
   public static <T> List<T> concat(List<? extends T> l1, List<? extends T> l2) {

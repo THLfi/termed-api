@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -11,14 +11,16 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermission<UUID>, GrantedPermission> {
+public class JdbcSchemePermissionsDao
+    extends AbstractJdbcDao<ObjectRolePermission<UUID>, GrantedPermission> {
 
   public JdbcSchemePermissionsDao(DataSource dataSource) {
     super(dataSource);
@@ -69,13 +71,13 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   }
 
   @Override
-  protected <E> E get(ObjectRolePermission<UUID> id, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
+  protected <E> Optional<E> get(ObjectRolePermission<UUID> id, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         mapper,
         id.getObjectId(),
         id.getRole(),
-        id.getPermission().toString()), null);
+        id.getPermission().toString()));
   }
 
   @Override

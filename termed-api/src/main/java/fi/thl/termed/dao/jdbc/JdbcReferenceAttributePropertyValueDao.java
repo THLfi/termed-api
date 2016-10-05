@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -15,6 +15,7 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributePropertyValueDao
@@ -102,18 +103,18 @@ public class JdbcReferenceAttributePropertyValueDao
   }
 
   @Override
-  protected <E> E get(PropertyValueId<ReferenceAttributeId> id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(PropertyValueId<ReferenceAttributeId> id, RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from reference_attribute_property_value where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()), null);
+        id.getIndex()));
   }
 
   @Override

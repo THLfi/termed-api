@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -15,6 +15,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
@@ -86,13 +87,13 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
   }
 
   @Override
-  protected <E> E get(ResourceId resourceId, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
+  protected <E> Optional<E> get(ResourceId resourceId, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from resource where scheme_id = ? and type_id = ? and id = ?",
         mapper,
         resourceId.getSchemeId(),
         resourceId.getTypeId(),
-        resourceId.getId()), null);
+        resourceId.getId()));
   }
 
   @Override

@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.ListUtils;
 
 public class JdbcPropertyPropertyValueDao
     extends AbstractJdbcDao<PropertyValueId<String>, LangValue> {
@@ -76,13 +77,13 @@ public class JdbcPropertyPropertyValueDao
   }
 
   @Override
-  protected <E> E get(PropertyValueId<String> id, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
+  protected <E> Optional<E> get(PropertyValueId<String> id, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from property_property_value where subject_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId(),
         id.getPropertyId(),
-        id.getIndex()), null);
+        id.getIndex()));
   }
 
   @Override

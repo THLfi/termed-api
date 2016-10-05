@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -16,6 +16,7 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributeDao
@@ -98,15 +99,15 @@ public class JdbcReferenceAttributeDao
   }
 
   @Override
-  protected <E> E get(ReferenceAttributeId referenceAttributeId, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ReferenceAttributeId referenceAttributeId, RowMapper<E> mapper) {
     ClassId domainId = referenceAttributeId.getDomainId();
 
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from reference_attribute where scheme_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getSchemeId(),
         domainId.getId(),
-        referenceAttributeId.getId()), null);
+        referenceAttributeId.getId()));
   }
 
   @Override

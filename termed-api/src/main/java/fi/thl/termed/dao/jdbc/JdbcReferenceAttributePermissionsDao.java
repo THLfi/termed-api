@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -12,12 +12,13 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributePermissionsDao
@@ -88,17 +89,18 @@ public class JdbcReferenceAttributePermissionsDao
   }
 
   @Override
-  protected <E> E get(ObjectRolePermission<ReferenceAttributeId> id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ObjectRolePermission<ReferenceAttributeId> id,
+                                RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from reference_attribute_permission where reference_attribute_scheme_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
         mapper,
         referenceAttributeDomainId.getSchemeId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
         id.getRole(),
-        id.getPermission().toString()), null);
+        id.getPermission().toString()));
   }
 
   @Override

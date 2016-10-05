@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -12,12 +12,13 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributePermissionsDao
@@ -88,17 +89,17 @@ public class JdbcTextAttributePermissionsDao
   }
 
   @Override
-  protected <E> E get(ObjectRolePermission<TextAttributeId> id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ObjectRolePermission<TextAttributeId> id, RowMapper<E> mapper) {
     TextAttributeId textAttributeId = id.getObjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from text_attribute_permission where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
         mapper,
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
         id.getRole(),
-        id.getPermission().toString()), null);
+        id.getPermission().toString()));
   }
 
   @Override

@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -14,6 +14,7 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcClassDao extends AbstractJdbcDao<ClassId, Class> {
@@ -68,10 +69,10 @@ public class JdbcClassDao extends AbstractJdbcDao<ClassId, Class> {
   }
 
   @Override
-  protected <E> E get(ClassId classId, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
+  protected <E> Optional<E> get(ClassId classId, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from class where scheme_id = ? and id = ?",
-        mapper, classId.getSchemeId(), classId.getId()), null);
+        mapper, classId.getSchemeId(), classId.getId()));
   }
 
   @Override

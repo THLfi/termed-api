@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {
@@ -58,9 +59,8 @@ public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {
   }
 
   @Override
-  protected <E> E get(UUID id, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query(
-        "select * from scheme where id = ?", mapper, id), null);
+  protected <E> Optional<E> get(UUID id, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query("select * from scheme where id = ?", mapper, id));
   }
 
   @Override

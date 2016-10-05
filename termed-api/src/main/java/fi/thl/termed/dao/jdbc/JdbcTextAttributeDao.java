@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -16,6 +16,7 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {
@@ -90,15 +91,15 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   }
 
   @Override
-  protected <E> E get(TextAttributeId textAttributeId, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(TextAttributeId textAttributeId, RowMapper<E> mapper) {
     ClassId domainId = textAttributeId.getDomainId();
 
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from text_attribute where scheme_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getSchemeId(),
         domainId.getId(),
-        textAttributeId.getId()), null);
+        textAttributeId.getId()));
   }
 
   @Override

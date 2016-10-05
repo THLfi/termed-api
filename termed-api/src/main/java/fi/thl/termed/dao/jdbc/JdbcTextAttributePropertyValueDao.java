@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -15,6 +15,7 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributePropertyValueDao
@@ -102,18 +103,18 @@ public class JdbcTextAttributePropertyValueDao
   }
 
   @Override
-  protected <E> E get(PropertyValueId<TextAttributeId> id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(PropertyValueId<TextAttributeId> id, RowMapper<E> mapper) {
     TextAttributeId textAttributeId = id.getSubjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
 
-    return Iterables.getFirst(jdbcTemplate.query(
+    return ListUtils.findFirst(jdbcTemplate.query(
         "select * from text_attribute_property_value where text_attribute_scheme_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         textAttributeDomainId.getSchemeId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()), null);
+        id.getIndex()));
   }
 
   @Override

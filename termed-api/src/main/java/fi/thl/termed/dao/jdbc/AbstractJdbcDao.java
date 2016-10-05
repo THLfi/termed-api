@@ -121,7 +121,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   @Override
   public Optional<V> get(K key) {
-    return Optional.fromNullable(get(key, valueMapper));
+    return get(key, valueMapper);
   }
 
   protected abstract <E> List<E> get(RowMapper<E> mapper);
@@ -131,11 +131,11 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
   protected <E> List<E> get(Iterable<K> keys, RowMapper<E> mapper) {
     List<E> values = Lists.newArrayList();
     for (K key : keys) {
-      values.add(get(key, mapper));
+      values.add(get(key, mapper).get());
     }
     return values;
   }
 
-  protected abstract <E> E get(K key, RowMapper<E> mapper);
+  protected abstract <E> Optional<E> get(K key, RowMapper<E> mapper);
 
 }

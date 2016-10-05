@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.ListUtils;
 
 public class JdbcUserDao extends AbstractJdbcDao<String, User> {
 
@@ -56,9 +57,9 @@ public class JdbcUserDao extends AbstractJdbcDao<String, User> {
   }
 
   @Override
-  protected <E> E get(String username, RowMapper<E> mapper) {
-    return Iterables.getFirst(jdbcTemplate.query("select * from users where username = ?",
-                                                 mapper, username), null);
+  protected <E> Optional<E> get(String username, RowMapper<E> mapper) {
+    return ListUtils.findFirst(jdbcTemplate.query("select * from users where username = ?",
+                                                  mapper, username));
   }
 
   @Override
