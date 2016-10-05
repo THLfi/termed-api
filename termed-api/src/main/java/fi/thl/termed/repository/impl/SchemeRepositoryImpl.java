@@ -15,9 +15,10 @@ import java.util.UUID;
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeRole;
@@ -43,13 +44,13 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
   private Dao<UUID, Scheme> schemeDao;
   private Dao<SchemeRole, Empty> schemeRoleDao;
-  private Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao;
+  private Dao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionDao;
   private Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao;
   private AbstractRepository<ClassId, Class> classRepository;
 
   public SchemeRepositoryImpl(Dao<UUID, Scheme> schemeDao,
                               Dao<SchemeRole, Empty> schemeRoleDao,
-                              Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao,
+                              Dao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionDao,
                               Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
                               AbstractRepository<ClassId, Class> classRepository) {
     this.schemeDao = schemeDao;
@@ -125,12 +126,12 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
                                  Multimap<String, Permission> oldPermissions,
                                  User user) {
 
-    Map<ObjectRolePermission<UUID>, Empty> newPermissionMap =
+    Map<ObjectRolePermission<UUID>, GrantedPermission> newPermissionMap =
         RolePermissionsDtoToModel.create(schemeId, schemeId).apply(newPermissions);
-    Map<ObjectRolePermission<UUID>, Empty> oldPermissionMap =
+    Map<ObjectRolePermission<UUID>, GrantedPermission> oldPermissionMap =
         RolePermissionsDtoToModel.create(schemeId, schemeId).apply(oldPermissions);
 
-    MapDifference<ObjectRolePermission<UUID>, Empty> diff =
+    MapDifference<ObjectRolePermission<UUID>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
     schemePermissionDao.insert(diff.entriesOnlyOnLeft(), user);

@@ -14,21 +14,21 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcReferenceAttributePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<ReferenceAttributeId>, Empty> {
+    extends AbstractJdbcDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> {
 
   public JdbcReferenceAttributePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<ReferenceAttributeId> id, Empty value) {
+  public void insert(ObjectRolePermission<ReferenceAttributeId> id, GrantedPermission value) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     jdbcTemplate.update(
@@ -41,7 +41,7 @@ public class JdbcReferenceAttributePermissionsDao
   }
 
   @Override
-  public void update(ObjectRolePermission<ReferenceAttributeId> id, Empty value) {
+  public void update(ObjectRolePermission<ReferenceAttributeId> id, GrantedPermission value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -65,7 +65,7 @@ public class JdbcReferenceAttributePermissionsDao
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, Empty> specification,
+      SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from reference_attribute_permission where %s",
@@ -122,11 +122,11 @@ public class JdbcReferenceAttributePermissionsDao
   }
 
   @Override
-  protected RowMapper<Empty> buildValueMapper() {
-    return new RowMapper<Empty>() {
+  protected RowMapper<GrantedPermission> buildValueMapper() {
+    return new RowMapper<GrantedPermission>() {
       @Override
-      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return Empty.INSTANCE;
+      public GrantedPermission mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return GrantedPermission.INSTANCE;
       }
     };
   }

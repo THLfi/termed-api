@@ -13,26 +13,26 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermission<UUID>, Empty> {
+public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermission<UUID>, GrantedPermission> {
 
   public JdbcSchemePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<UUID> id, Empty value) {
+  public void insert(ObjectRolePermission<UUID> id, GrantedPermission value) {
     jdbcTemplate.update(
         "insert into scheme_permission (scheme_id, role, permission) values (?, ?, ?)",
         id.getObjectId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<UUID> id, Empty value) {
+  public void update(ObjectRolePermission<UUID> id, GrantedPermission value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -50,7 +50,7 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<UUID>, Empty> specification,
+      SqlSpecification<ObjectRolePermission<UUID>, GrantedPermission> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from scheme_permission where %s",
@@ -92,11 +92,11 @@ public class JdbcSchemePermissionsDao extends AbstractJdbcDao<ObjectRolePermissi
   }
 
   @Override
-  protected RowMapper<Empty> buildValueMapper() {
-    return new RowMapper<Empty>() {
+  protected RowMapper<GrantedPermission> buildValueMapper() {
+    return new RowMapper<GrantedPermission>() {
       @Override
-      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return Empty.INSTANCE;
+      public GrantedPermission mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return GrantedPermission.INSTANCE;
       }
     };
   }

@@ -8,13 +8,13 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
 
 public class RolePermissionsDtoToModel<K extends Serializable>
-    implements Function<Multimap<String, Permission>, Map<ObjectRolePermission<K>, Empty>> {
+    implements Function<Multimap<String, Permission>, Map<ObjectRolePermission<K>, GrantedPermission>> {
 
   private UUID schemeId;
   private K objectId;
@@ -30,8 +30,8 @@ public class RolePermissionsDtoToModel<K extends Serializable>
   }
 
   @Override
-  public Map<ObjectRolePermission<K>, Empty> apply(Multimap<String, Permission> rolePermissions) {
-    Map<ObjectRolePermission<K>, Empty> model = Maps.newHashMap();
+  public Map<ObjectRolePermission<K>, GrantedPermission> apply(Multimap<String, Permission> rolePermissions) {
+    Map<ObjectRolePermission<K>, GrantedPermission> model = Maps.newHashMap();
 
     for (Map.Entry<String, Permission> rolePermission : rolePermissions.entries()) {
       model.put(

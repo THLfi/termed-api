@@ -10,7 +10,7 @@ import java.util.UUID;
 import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -39,7 +39,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<UUID> schemeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionSystemDao) {
 
     PermissionEvaluator<UUID> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<UUID>(
@@ -56,7 +56,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<ClassId> classIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao) {
+      SystemDao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionSystemDao) {
 
     PermissionEvaluator<ClassId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<ClassId>(
@@ -73,7 +73,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionSystemDao) {
 
     PermissionEvaluator<TextAttributeId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<TextAttributeId>(
@@ -90,7 +90,7 @@ public class PermissionEvaluators {
 
   @Bean
   public PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator(
-      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao) {
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionSystemDao) {
 
     PermissionEvaluator<ReferenceAttributeId> appRolePermissionEvaluator =
         new AppRolePermissionEvaluator<ReferenceAttributeId>(

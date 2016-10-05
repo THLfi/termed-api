@@ -15,6 +15,7 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.Property;
@@ -102,15 +103,15 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao(
-      SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao,
+  public Dao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionDao(
+      SystemDao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionSystemDao,
       PermissionEvaluator<UUID> schemeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<UUID>> evaluator =
         new MappingPermissionEvaluator<ObjectRolePermission<UUID>, UUID>(
             new ObjectRolePermissionToObjectId<UUID>(), schemeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<UUID>, Empty>(
+    return new SecureDao<ObjectRolePermission<UUID>, GrantedPermission>(
         schemePermissionSystemDao, evaluator, true);
   }
 
@@ -134,15 +135,15 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<ClassId>, Empty> classPermissionDao(
-      SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao,
+  public Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao(
+      SystemDao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionSystemDao,
       PermissionEvaluator<ClassId> classIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<ClassId>> evaluator =
         new MappingPermissionEvaluator<ObjectRolePermission<ClassId>, ClassId>(
             new ObjectRolePermissionToObjectId<ClassId>(), classIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<ClassId>, Empty>(
+    return new SecureDao<ObjectRolePermission<ClassId>, GrantedPermission>(
         classPermissionSystemDao, evaluator, true);
   }
 
@@ -168,8 +169,8 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionDao(
-      SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao,
+  public Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionDao(
+      SystemDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionSystemDao,
       PermissionEvaluator<ReferenceAttributeId> referenceAttributeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<ReferenceAttributeId>> evaluator =
@@ -177,7 +178,7 @@ public class Daos {
             new ObjectRolePermissionToObjectId<ReferenceAttributeId>(),
             referenceAttributeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<ReferenceAttributeId>, Empty>(
+    return new SecureDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission>(
         referenceAttributePermissionSystemDao, evaluator, true);
   }
 
@@ -204,8 +205,8 @@ public class Daos {
   }
 
   @Bean
-  public Dao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionDao(
-      SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao,
+  public Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionDao(
+      SystemDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionSystemDao,
       PermissionEvaluator<TextAttributeId> textAttributeIdPermissionEvaluator) {
 
     PermissionEvaluator<ObjectRolePermission<TextAttributeId>> evaluator =
@@ -213,7 +214,7 @@ public class Daos {
             new ObjectRolePermissionToObjectId<TextAttributeId>(),
             textAttributeIdPermissionEvaluator);
 
-    return new SecureDao<ObjectRolePermission<TextAttributeId>, Empty>(
+    return new SecureDao<ObjectRolePermission<TextAttributeId>, GrantedPermission>(
         textAttributePermissionSystemDao, evaluator, true);
   }
 

@@ -5,16 +5,16 @@ import java.io.Serializable;
 import fi.thl.termed.dao.SystemDao;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.permission.PermissionEvaluator;
 
 public class DaoPermissionEvaluator<E extends Serializable> implements PermissionEvaluator<E> {
 
-  private SystemDao<ObjectRolePermission<E>, Empty> permissionDao;
+  private SystemDao<ObjectRolePermission<E>, GrantedPermission> permissionDao;
 
-  public DaoPermissionEvaluator(SystemDao<ObjectRolePermission<E>, Empty> permissionDao) {
+  public DaoPermissionEvaluator(SystemDao<ObjectRolePermission<E>, GrantedPermission> permissionDao) {
     this.permissionDao = permissionDao;
   }
 

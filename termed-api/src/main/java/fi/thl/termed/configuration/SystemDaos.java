@@ -32,6 +32,7 @@ import fi.thl.termed.dao.util.CachedSystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -88,7 +89,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<UUID>, Empty> schemePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcSchemePermissionsDao(dataSource));
   }
@@ -105,7 +106,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<ClassId>, Empty> classPermissionSystemDao(
+  public SystemDao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcClassPermissionsDao(dataSource));
   }
@@ -123,7 +124,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcReferenceAttributePermissionsDao(dataSource));
   }
@@ -140,7 +141,7 @@ public class SystemDaos {
   }
 
   @Bean
-  public SystemDao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionSystemDao(
+  public SystemDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionSystemDao(
       DataSource dataSource) {
     return CachedSystemDao.create(new JdbcTextAttributePermissionsDao(dataSource));
   }

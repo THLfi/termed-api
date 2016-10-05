@@ -9,6 +9,7 @@ import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -60,7 +61,7 @@ public class Repositories {
   public Repository<UUID, Scheme> schemeRepository(
       Dao<UUID, Scheme> schemeDao,
       Dao<SchemeRole, Empty> schemeRoleDao,
-      Dao<ObjectRolePermission<UUID>, Empty> schemePermissionDao,
+      Dao<ObjectRolePermission<UUID>, GrantedPermission> schemePermissionDao,
       Dao<PropertyValueId<UUID>, LangValue> schemePropertyValueDao,
       AbstractRepository<ClassId, Class> classRepository) {
     return new SchemeRepositoryImpl(schemeDao,
@@ -73,7 +74,7 @@ public class Repositories {
   @Bean
   public AbstractRepository<ClassId, Class> classRepository(
       Dao<ClassId, Class> classDao,
-      Dao<ObjectRolePermission<ClassId>, Empty> classPermissionDao,
+      Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
@@ -87,7 +88,7 @@ public class Repositories {
   @Bean
   public AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao<ObjectRolePermission<TextAttributeId>, Empty> textAttributePermissionDao,
+      Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionDao,
       Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao) {
     return new TextAttributeRepositoryImpl(textAttributeDao,
                                            textAttributePermissionDao,
@@ -97,7 +98,7 @@ public class Repositories {
   @Bean
   public AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
-      Dao<ObjectRolePermission<ReferenceAttributeId>, Empty> referenceAttributePermissionDao,
+      Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionDao,
       Dao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueDao) {
     return new ReferenceAttributeRepositoryImpl(referenceAttributeDao,
                                                 referenceAttributePermissionDao,

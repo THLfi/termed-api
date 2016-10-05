@@ -14,21 +14,21 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.spesification.SqlSpecification;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, Empty> {
+    extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> {
 
   public JdbcTextAttributePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<TextAttributeId> id, Empty value) {
+  public void insert(ObjectRolePermission<TextAttributeId> id, GrantedPermission value) {
     TextAttributeId textAttributeId = id.getObjectId();
     ClassId textAttributeDomainId = textAttributeId.getDomainId();
     jdbcTemplate.update(
@@ -41,7 +41,7 @@ public class JdbcTextAttributePermissionsDao
   }
 
   @Override
-  public void update(ObjectRolePermission<TextAttributeId> id, Empty value) {
+  public void update(ObjectRolePermission<TextAttributeId> id, GrantedPermission value) {
     // NOP (permission doesn't have a separate value)
   }
 
@@ -65,7 +65,7 @@ public class JdbcTextAttributePermissionsDao
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<TextAttributeId>, Empty> specification,
+      SqlSpecification<ObjectRolePermission<TextAttributeId>, GrantedPermission> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from text_attribute_permission where %s",
@@ -121,11 +121,11 @@ public class JdbcTextAttributePermissionsDao
   }
 
   @Override
-  protected RowMapper<Empty> buildValueMapper() {
-    return new RowMapper<Empty>() {
+  protected RowMapper<GrantedPermission> buildValueMapper() {
+    return new RowMapper<GrantedPermission>() {
       @Override
-      public Empty mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return Empty.INSTANCE;
+      public GrantedPermission mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return GrantedPermission.INSTANCE;
       }
     };
   }

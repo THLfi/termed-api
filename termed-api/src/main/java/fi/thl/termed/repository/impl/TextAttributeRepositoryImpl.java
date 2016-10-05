@@ -14,7 +14,7 @@ import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
@@ -36,12 +36,12 @@ public class TextAttributeRepositoryImpl
     extends AbstractRepository<TextAttributeId, TextAttribute> {
 
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
-  private Dao<ObjectRolePermission<TextAttributeId>, Empty> permissionDao;
+  private Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
   private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao;
 
   public TextAttributeRepositoryImpl(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao<ObjectRolePermission<TextAttributeId>, Empty> permissionDao,
+      Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao,
       Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao) {
     this.textAttributeDao = textAttributeDao;
     this.permissionDao = permissionDao;
@@ -94,12 +94,12 @@ public class TextAttributeRepositoryImpl
                                  User user) {
     ClassId domainId = attrId.getDomainId();
 
-    Map<ObjectRolePermission<TextAttributeId>, Empty> newPermissionMap =
+    Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> newPermissionMap =
         RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(newPermissions);
-    Map<ObjectRolePermission<TextAttributeId>, Empty> oldPermissionMap =
+    Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> oldPermissionMap =
         RolePermissionsDtoToModel.create(domainId.getSchemeId(), attrId).apply(oldPermissions);
 
-    MapDifference<ObjectRolePermission<TextAttributeId>, Empty> diff =
+    MapDifference<ObjectRolePermission<TextAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
     permissionDao.insert(diff.entriesOnlyOnLeft(), user);
