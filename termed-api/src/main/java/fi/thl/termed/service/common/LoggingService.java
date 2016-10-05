@@ -1,5 +1,7 @@
 package fi.thl.termed.service.common;
 
+import com.google.common.base.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,7 @@ public class LoggingService<K extends Serializable, V> extends ForwardingService
   }
 
   @Override
-  public V get(K id, User user) {
+  public Optional<V> get(K id, User user) {
     log.info("{} get {} (user: {})", valueClass.getSimpleName(), id, user.getUsername());
     return super.get(id, user);
   }

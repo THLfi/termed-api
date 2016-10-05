@@ -43,7 +43,7 @@ public abstract class AbstractDao<K extends Serializable, V> implements Dao<K, V
   public Map<K, V> getMap(List<K> keys, User user) {
     Map<K, V> map = Maps.newLinkedHashMap();
     for (K key : keys) {
-      map.put(key, get(key, user));
+      map.put(key, get(key, user).get());
     }
     return map;
   }
@@ -71,11 +71,6 @@ public abstract class AbstractDao<K extends Serializable, V> implements Dao<K, V
   @Override
   public List<V> getValues(List<K> keys, User user) {
     return Lists.newArrayList(getMap(keys, user).values());
-  }
-
-  @Override
-  public boolean exists(K key, User user) {
-    return get(key, user) != null;
   }
 
 }

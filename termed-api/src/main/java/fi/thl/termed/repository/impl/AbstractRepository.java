@@ -25,7 +25,7 @@ public abstract class AbstractRepository<K extends Serializable, V> implements R
     if (!exists(key, user)) {
       insert(key, value, user);
     } else {
-      update(key, value, get(key, user), user);
+      update(key, value, get(key, user).get(), user);
     }
   }
 
@@ -60,7 +60,7 @@ public abstract class AbstractRepository<K extends Serializable, V> implements R
   public List<V> get(List<K> ids, User user) {
     List<V> values = Lists.newArrayList();
     for (K id : ids) {
-      values.add(get(id, user));
+      values.add(get(id, user).get());
     }
     return values;
   }

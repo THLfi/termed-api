@@ -1,5 +1,7 @@
 package fi.thl.termed.service.common;
 
+import com.google.common.base.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,10 +43,10 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
   }
 
   @Override
-  public V get(K id, User currentUser) {
+  public Optional<V> get(K id, User currentUser) {
     TransactionStatus tx = transactionManager.getTransaction(transactionDefinition);
     log.trace("begin transaction {}", serialNumber.incrementAndGet());
-    V value = super.get(id, currentUser);
+    Optional<V> value = super.get(id, currentUser);
     transactionManager.commit(tx);
     log.trace("commit transaction {}", serialNumber.get());
     return value;

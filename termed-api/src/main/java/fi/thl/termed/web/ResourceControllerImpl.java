@@ -135,7 +135,7 @@ public class ResourceControllerImpl implements ResourceController {
 
   @Override
   public Resource get(UUID schemeId, String typeId, UUID id, User currentUser) {
-    return resourceService.get(new ResourceId(schemeId, typeId, id), currentUser);
+    return resourceService.get(new ResourceId(schemeId, typeId, id), currentUser).orNull();
   }
 
   @Override
@@ -152,7 +152,7 @@ public class ResourceControllerImpl implements ResourceController {
     resource.setScheme(new Scheme(schemeId));
     resource.setType(new Class(new Scheme(schemeId), typeId));
     resourceService.save(resource, currentUser);
-    return resourceService.get(new ResourceId(resource), currentUser);
+    return resourceService.get(new ResourceId(resource), currentUser).orNull();
   }
 
   @Override
@@ -167,7 +167,7 @@ public class ResourceControllerImpl implements ResourceController {
   public Resource post(UUID schemeId, Resource resource, User currentUser) {
     resource.setScheme(new Scheme(schemeId));
     resourceService.save(resource, currentUser);
-    return resourceService.get(new ResourceId(resource), currentUser);
+    return resourceService.get(new ResourceId(resource), currentUser).orNull();
   }
 
   @Override
@@ -178,7 +178,7 @@ public class ResourceControllerImpl implements ResourceController {
   @Override
   public Resource post(Resource resource, User currentUser) {
     resourceService.save(resource, currentUser);
-    return resourceService.get(new ResourceId(resource), currentUser);
+    return resourceService.get(new ResourceId(resource), currentUser).orNull();
   }
 
   @Override
@@ -187,7 +187,7 @@ public class ResourceControllerImpl implements ResourceController {
     resource.setType(new Class(new Scheme(schemeId), typeId));
     resource.setId(id);
     resourceService.save(resource, currentUser);
-    return resourceService.get(new ResourceId(resource), currentUser);
+    return resourceService.get(new ResourceId(resource), currentUser).orNull();
   }
 
   @Override

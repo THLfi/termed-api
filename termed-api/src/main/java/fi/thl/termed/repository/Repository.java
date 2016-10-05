@@ -1,5 +1,7 @@
 package fi.thl.termed.repository;
 
+import com.google.common.base.Optional;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -33,6 +35,6 @@ public interface Repository<K extends Serializable, V> {
   /**
    * Get value by id. Value is expected to be fully populated.
    */
-  V get(K id, User user);
+  Optional<V> get(K id, User user);
 
 }

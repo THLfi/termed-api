@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -172,7 +173,7 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
 
   @Override
   public void delete(UUID id, User user) {
-    delete(id, get(id, user), user);
+    delete(id, get(id, user).get(), user);
   }
 
   @Override
@@ -216,8 +217,10 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   }
 
   @Override
-  public Scheme get(UUID id, User user) {
-    return populateSchemeFunction(user).apply(schemeDao.get(id, user));
+  public Optional<Scheme> get(UUID id, User user) {
+    Optional<Scheme> o = schemeDao.get(id, user);
+    return o.isPresent() ? Optional.of(populateSchemeFunction(user).apply(o.get()))
+                         : Optional.<Scheme>absent();
   }
 
   private Function<Scheme, Scheme> populateSchemeFunction(User user) {

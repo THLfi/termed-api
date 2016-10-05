@@ -42,7 +42,7 @@ public abstract class AbstractSystemDao<K extends Serializable, V> implements Sy
   public Map<K, V> getMap(List<K> keys) {
     Map<K, V> map = Maps.newLinkedHashMap();
     for (K key : keys) {
-      map.put(key, get(key));
+      map.put(key, get(key).get());
     }
     return map;
   }
@@ -71,7 +71,7 @@ public abstract class AbstractSystemDao<K extends Serializable, V> implements Sy
   public List<V> getValues(List<K> keys) {
     List<V> values = Lists.newArrayList();
     for (K key : keys) {
-      values.add(get(key));
+      values.add(get(key).get());
     }
     return values;
   }

@@ -1,5 +1,6 @@
 package fi.thl.termed.dao.util;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
@@ -123,12 +124,12 @@ public class SecureDao<K extends Serializable, V> extends AbstractDao<K, V> {
   }
 
   @Override
-  public V get(K key, User user) {
+  public Optional<V> get(K key, User user) {
     if (keyEvaluator.hasPermission(user, key, READ)) {
-      V value = systemDao.get(key);
+      Optional<V> value = systemDao.get(key);
 
-      if (value != null) {
-        if (valEvaluator.hasPermission(user, value, READ)) {
+      if (value.isPresent()) {
+        if (valEvaluator.hasPermission(user, value.get(), READ)) {
           return value;
         } else {
           reportFailedPostAuthorization(user, value, READ);
@@ -138,7 +139,16 @@ public class SecureDao<K extends Serializable, V> extends AbstractDao<K, V> {
       reportFailedPreAuthorization(user, key, READ);
     }
 
-    return null;
+    return Optional.absent();
+  }
+
+  @Override
+  public boolean exists(K key, User user) {
+    if (keyEvaluator.hasPermission(user, key, READ)) {
+      return systemDao.exists(key);
+    }
+    reportFailedPreAuthorization(user, key, READ);
+    return false;
   }
 
   private void reportFailedPreAuthorization(User user, Object item, Permission permission) {

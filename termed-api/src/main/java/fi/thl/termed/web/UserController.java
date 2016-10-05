@@ -42,7 +42,7 @@ public class UserController {
   @ResponseBody
   public User get(@PathVariable("username") String username,
                   @AuthenticationPrincipal User currentUser) {
-    return userService.get(username, currentUser);
+    return userService.get(username, currentUser).orNull();
   }
 
   @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8", params = "batch=true")

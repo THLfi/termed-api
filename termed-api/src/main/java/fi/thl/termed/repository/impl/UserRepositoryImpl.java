@@ -2,6 +2,7 @@ package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -64,7 +65,7 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   @Override
   public void delete(String username, User auth) {
-    delete(username, get(username, auth), auth);
+    delete(username, get(username, auth).get(), auth);
   }
 
   @Override
@@ -89,8 +90,10 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
   }
 
   @Override
-  public User get(String username, User auth) {
-    return new AddSchemeRoles(auth).apply(new User(userDao.get(username, auth)));
+  public Optional<User> get(String username, User auth) {
+    Optional<User> o = userDao.get(username, auth);
+    return o.isPresent() ? Optional.of(new AddSchemeRoles(auth).apply(new User(o.get())))
+                         : Optional.<User>absent();
   }
 
   private class CreateCopy implements Function<User, User> {

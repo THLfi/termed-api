@@ -51,7 +51,8 @@ public class ClassRepositoryIntegrationTest {
 
     classRepository.save(testClass, testAdmin);
 
-    Class expectedClass = schemeRepository.get(testScheme.getId(), testAdmin).getClasses().get(0);
+    Class expectedClass =
+        schemeRepository.get(testScheme.getId(), testAdmin).get().getClasses().get(0);
 
     assertEquals(testClass.getId(), expectedClass.getId());
 
@@ -91,7 +92,8 @@ public class ClassRepositoryIntegrationTest {
 
     classRepository.save(updatedTestClass, testAdmin);
 
-    Class expectedClass = schemeRepository.get(testScheme.getId(), testAdmin).getClasses().get(0);
+    Class expectedClass =
+        schemeRepository.get(testScheme.getId(), testAdmin).get().getClasses().get(0);
 
     assertEquals(testClass.getId(), expectedClass.getId());
 

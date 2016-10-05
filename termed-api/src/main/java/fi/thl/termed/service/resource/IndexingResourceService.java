@@ -145,7 +145,8 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   private void reindex(Set<ResourceId> affectedIds) {
     for (ResourceId affectedId : affectedIds) {
       resourceIndex.reindex(
-          affectedId, resourceRepository.get(affectedId, new User("indexer", "", AppRole.ADMIN)));
+          affectedId,
+          resourceRepository.get(affectedId, new User("indexer", "", AppRole.ADMIN)).get());
     }
   }
 
@@ -153,7 +154,7 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
     if (!ids.isEmpty()) {
       resourceIndex.reindex(ImmutableList.copyOf(ids), new Function<ResourceId, Resource>() {
         public Resource apply(ResourceId id) {
-          return resourceRepository.get(id, new User("indexer", "", AppRole.ADMIN));
+          return resourceRepository.get(id, new User("indexer", "", AppRole.ADMIN)).get();
         }
       });
     }

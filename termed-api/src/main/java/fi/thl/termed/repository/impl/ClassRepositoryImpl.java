@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -14,9 +15,9 @@ import java.util.Map;
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -215,7 +216,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 
   @Override
   public void delete(ClassId id, User user) {
-    delete(id, get(id, user), user);
+    delete(id, get(id, user).get(), user);
   }
 
   @Override
@@ -260,8 +261,10 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   @Override
-  public Class get(ClassId id, User user) {
-    return populateClassFunction(user).apply(classDao.get(id, user));
+  public Optional<Class> get(ClassId id, User user) {
+    Optional<Class> o = classDao.get(id, user);
+    return o.isPresent() ? Optional.of(populateClassFunction(user).apply(o.get()))
+                         : Optional.<Class>absent();
   }
 
   private Function<Class, Class> populateClassFunction(User user) {

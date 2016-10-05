@@ -2,6 +2,7 @@ package fi.thl.termed.exchange;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -35,7 +36,11 @@ public abstract class AbstractExporter<K extends Serializable, V, E> implements 
   @Override
   public E get(K id, Map<String, Object> args, User currentUser) {
     check(args);
-    return doExport(Collections.singletonList(service.get(id, currentUser)), args, currentUser);
+
+    Optional<V> optional = service.get(id, currentUser);
+
+    return doExport(optional.isPresent() ? Collections.singletonList(optional.get())
+                                         : Collections.<V>emptyList(), args, currentUser);
   }
 
   protected void check(Map<String, Object> args) {

@@ -1,8 +1,10 @@
 package fi.thl.termed.web;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import fi.thl.termed.service.Service;
 import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.util.TrueSpecification;
 
+import static com.google.common.collect.Iterables.tryFind;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -52,7 +55,7 @@ public class SchemeController {
   @ResponseBody
   public Scheme get(@PathVariable("schemeId") UUID schemeId,
                     @AuthenticationPrincipal User user) {
-    return schemeService.get(schemeId, user);
+    return schemeService.get(schemeId, user).orNull();
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}",
@@ -61,8 +64,8 @@ public class SchemeController {
   public Class getClass(@PathVariable("schemeId") UUID schemeId,
                         @PathVariable("classId") String classId,
                         @AuthenticationPrincipal User user) {
-    Scheme scheme = schemeService.get(schemeId, user);
-    return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId));
+    Optional<Scheme> o = schemeService.get(schemeId, user);
+    return o.isPresent() ? Iterables.find(o.get().getClasses(), new ClassIdMatches(classId)) : null;
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/textAttributes",
@@ -71,8 +74,12 @@ public class SchemeController {
   public List<TextAttribute> getTextAttributes(@PathVariable("schemeId") UUID schemeId,
                                                @PathVariable("classId") String classId,
                                                @AuthenticationPrincipal User user) {
-    Scheme scheme = schemeService.get(schemeId, user);
-    return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId)).getTextAttributes();
+    Optional<Scheme> scheme = schemeService.get(schemeId, user);
+    Optional<Class> cls = scheme.isPresent()
+                          ? tryFind(scheme.get().getClasses(), new ClassIdMatches(classId))
+                          : Optional.<Class>absent();
+    return cls.isPresent() ? cls.get().getTextAttributes()
+                           : Lists.<TextAttribute>newArrayList();
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/referenceAttributes",
@@ -81,9 +88,12 @@ public class SchemeController {
   public List<ReferenceAttribute> getReferenceAttributes(@PathVariable("schemeId") UUID schemeId,
                                                          @PathVariable("classId") String classId,
                                                          @AuthenticationPrincipal User user) {
-    Scheme scheme = schemeService.get(schemeId, user);
-    return Iterables.find(scheme.getClasses(), new ClassIdMatches(classId))
-        .getReferenceAttributes();
+    Optional<Scheme> scheme = schemeService.get(schemeId, user);
+    Optional<Class> cls = scheme.isPresent()
+                          ? tryFind(scheme.get().getClasses(), new ClassIdMatches(classId))
+                          : Optional.<Class>absent();
+    return cls.isPresent() ? cls.get().getReferenceAttributes()
+                           : Lists.<ReferenceAttribute>newArrayList();
   }
 
   @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8",
@@ -92,7 +102,7 @@ public class SchemeController {
   public Scheme save(@RequestBody Scheme scheme,
                      @AuthenticationPrincipal User user) {
     schemeService.save(scheme, user);
-    return schemeService.get(scheme.getId(), user);
+    return schemeService.get(scheme.getId(), user).get();
   }
 
   @RequestMapping(method = PUT, value = "/{schemeId}", consumes = "application/json;charset=UTF-8")
@@ -102,7 +112,7 @@ public class SchemeController {
                      @AuthenticationPrincipal User user) {
     scheme.setId(schemeId);
     schemeService.save(scheme, user);
-    return schemeService.get(schemeId, user);
+    return schemeService.get(schemeId, user).get();
   }
 
   @RequestMapping(method = DELETE, value = "/{schemeId}")

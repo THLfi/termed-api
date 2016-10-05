@@ -81,7 +81,7 @@ public class ResourceIndexIntegrationTest {
 
     resourceRepository.save(resource, user);
     resourceIndex.reindex(new ResourceId(resource),
-                          resourceRepository.get(new ResourceId(resource), user));
+                          resourceRepository.get(new ResourceId(resource), user).get());
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();
@@ -107,7 +107,7 @@ public class ResourceIndexIntegrationTest {
 
     resourceRepository.save(resource, user);
     resourceIndex.reindex(new ResourceId(resource),
-                          resourceRepository.get(new ResourceId(resource), user));
+                          resourceRepository.get(new ResourceId(resource), user).get());
 
     // force refresh and wait for completion, normally index updates are visible within one second
     ((LuceneIndex) resourceIndex).refreshBlocking();

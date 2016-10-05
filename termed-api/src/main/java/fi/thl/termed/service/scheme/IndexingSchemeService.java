@@ -89,7 +89,7 @@ public class IndexingSchemeService extends ForwardingService<UUID, Scheme> {
     if (!ids.isEmpty()) {
       resourceIndex.reindex(ImmutableList.copyOf(ids), new Function<ResourceId, Resource>() {
         public Resource apply(ResourceId id) {
-          return resourceRepository.get(id, new User("termedIndexer", "", AppRole.ADMIN));
+          return resourceRepository.get(id, new User("termedIndexer", "", AppRole.ADMIN)).get();
         }
       });
     }

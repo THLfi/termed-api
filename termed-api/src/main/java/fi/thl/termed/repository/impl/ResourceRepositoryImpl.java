@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -78,7 +79,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
     if (!exists(resourceId, user)) {
       insert(resourceId, newResource, user);
     } else {
-      update(resourceId, newResource, get(resourceId, user), user);
+      update(resourceId, newResource, get(resourceId, user).get(), user);
     }
   }
 
@@ -93,7 +94,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
       if (!exists(id, user)) {
         inserts.put(id, newResource);
       } else {
-        updates.put(id, new SimpleValueDifference<Resource>(newResource, get(id, user)));
+        updates.put(id, new SimpleValueDifference<Resource>(newResource, get(id, user).get()));
       }
     }
 
@@ -203,7 +204,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
 
   @Override
   public void delete(ResourceId resourceId, User user) {
-    delete(resourceId, get(resourceId, user), user);
+    delete(resourceId, get(resourceId, user).get(), user);
   }
 
   @Override
@@ -238,8 +239,9 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   }
 
   @Override
-  public Resource get(ResourceId id, User user) {
-    return new ResourceLoader(user).apply(id);
+  public Optional<Resource> get(ResourceId id, User user) {
+    return exists(id, user) ? Optional.of(new ResourceLoader(user).apply(id))
+                            : Optional.<Resource>absent();
   }
 
   private class ResourceLoader implements Function<ResourceId, Resource> {
@@ -274,18 +276,18 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
 
     @Override
     public Resource apply(ResourceId resourceId) {
-      Resource resource = new Resource(resourceDao.get(resourceId, user));
+      Resource resource = new Resource(resourceDao.get(resourceId, user).get());
       resource.setProperties(
           ResourceTextAttributeValueModelToDto.create().apply(textAttributeValueDao.getMap(
               new ResourceTextAttributeValuesByResourceId(resourceId), user)));
 
-      Scheme scheme = new Scheme(schemeDao.get(resourceId.getSchemeId(), user));
+      Scheme scheme = new Scheme(schemeDao.get(resourceId.getSchemeId(), user).get());
       scheme.setProperties(
           PropertyValueModelToDto.<UUID>create().apply(schemePropertyValueDao.getMap(
               new SchemePropertiesBySchemeId(scheme.getId()), user)));
       resource.setScheme(scheme);
 
-      Class type = new Class(classDao.get(new ClassId(resourceId), user));
+      Class type = new Class(classDao.get(new ClassId(resourceId), user).get());
       type.setProperties(
           PropertyValueModelToDto.<ClassId>create().apply(classPropertyValueDao.getMap(
               new ClassPropertiesByClassId(new ClassId(resourceId)), user)));

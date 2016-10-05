@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -12,9 +13,9 @@ import java.util.Map;
 
 import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
@@ -126,7 +127,7 @@ public class TextAttributeRepositoryImpl
 
   @Override
   public void delete(TextAttributeId id, User user) {
-    delete(id, get(id, user), user);
+    delete(id, get(id, user).get(), user);
   }
 
   @Override
@@ -163,8 +164,10 @@ public class TextAttributeRepositoryImpl
   }
 
   @Override
-  public TextAttribute get(TextAttributeId id, User user) {
-    return populateAttributeFunction(user).apply(textAttributeDao.get(id, user));
+  public Optional<TextAttribute> get(TextAttributeId id, User user) {
+    Optional<TextAttribute> o = textAttributeDao.get(id, user);
+    return o.isPresent() ? Optional.of(populateAttributeFunction(user).apply(o.get()))
+                         : Optional.<TextAttribute>absent();
   }
 
   private Function<TextAttribute, TextAttribute> populateAttributeFunction(User user) {

@@ -31,13 +31,13 @@ public class ResourceRdfExchange extends AbstractExchange<ResourceId, Resource, 
 
   @Override
   protected RdfModel doExport(List<Resource> values, Map<String, Object> args, User currentUser) {
-    Scheme scheme = schemeService.get((UUID) args.get("schemeId"), currentUser);
+    Scheme scheme = schemeService.get((UUID) args.get("schemeId"), currentUser).get();
     return new ResourcesToRdfModel(scheme).apply(values);
   }
 
   @Override
   protected List<Resource> doImport(RdfModel value, Map<String, Object> args, User currentUser) {
-    Scheme scheme = schemeService.get((UUID) args.get("schemeId"), currentUser);
+    Scheme scheme = schemeService.get((UUID) args.get("schemeId"), currentUser).get();
     return new RdfModelToResources(scheme).apply(value);
   }
 

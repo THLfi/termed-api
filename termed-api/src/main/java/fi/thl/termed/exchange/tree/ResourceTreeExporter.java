@@ -54,7 +54,8 @@ public class ResourceTreeExporter extends AbstractExporter<ResourceId, Resource,
 
     ClassId domainId = new ClassId(schemeId, typeId);
     ReferenceAttributeId referenceAttributeId = new ReferenceAttributeId(domainId, attributeId);
-    ReferenceAttribute referenceAttribute = referenceAttributeDao.get(referenceAttributeId, user);
+    ReferenceAttribute referenceAttribute =
+        referenceAttributeDao.get(referenceAttributeId, user).get();
     ClassId rangeId = new ClassId(referenceAttribute.getRange());
 
     Function<Resource, List<Resource>> referenceLoadingFunction =

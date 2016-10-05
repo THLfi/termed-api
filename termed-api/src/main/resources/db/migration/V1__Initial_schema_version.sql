@@ -107,7 +107,7 @@ CREATE TABLE text_attribute (
   CONSTRAINT text_attribute_pkey PRIMARY KEY (scheme_id, domain_id, id),
   CONSTRAINT text_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$'),
   CONSTRAINT text_attribute_domain_fkey FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT text_attribute_uri_unique UNIQUE (scheme_id, uri),
+  CONSTRAINT text_attribute_uri_unique UNIQUE (scheme_id, domain_id, uri),
   CONSTRAINT text_attribute_regex_unique UNIQUE (scheme_id, domain_id, id, regex)
 );
 
@@ -140,7 +140,7 @@ CREATE TABLE reference_attribute (
   index integer,
   CONSTRAINT reference_attribute_pkey PRIMARY KEY (scheme_id, domain_id, id),
   CONSTRAINT reference_attribute_domain_fkey FOREIGN KEY (scheme_id, domain_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT reference_attribute_uri_unique UNIQUE (scheme_id, uri),
+  CONSTRAINT reference_attribute_uri_unique UNIQUE (scheme_id, domain_id, uri),
   CONSTRAINT reference_attribute_range_fkey FOREIGN KEY (range_scheme_id, range_id) REFERENCES class(scheme_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT reference_attribute_range_unique UNIQUE (scheme_id, domain_id, id, range_scheme_id, range_id),
   CONSTRAINT reference_attribute_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')

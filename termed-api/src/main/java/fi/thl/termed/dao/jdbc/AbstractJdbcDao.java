@@ -1,5 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -119,8 +120,8 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
   }
 
   @Override
-  public V get(K key) {
-    return get(key, valueMapper);
+  public Optional<V> get(K key) {
+    return Optional.fromNullable(get(key, valueMapper));
   }
 
   protected abstract <E> List<E> get(RowMapper<E> mapper);

@@ -26,7 +26,6 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private LoadingCache<Specification<K, V>, List<K>> specificationCache;
-  // cached value is wrapped in optional as CacheLoader can't return null values but Dao can
   private LoadingCache<K, Optional<V>> keyValueCache;
 
   private SystemDao<K, V> delegate;
@@ -70,7 +69,7 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   public Map<K, V> getMap(Specification<K, V> specification) {
     Map<K, V> results = Maps.newLinkedHashMap();
     for (K key : getKeys(specification)) {
-      results.put(key, get(key));
+      results.put(key, get(key).get());
     }
     return results;
   }
@@ -84,19 +83,19 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   public List<V> getValues(Specification<K, V> specification) {
     List<V> values = Lists.newArrayList();
     for (K key : getKeys(specification)) {
-      values.add(get(key));
+      values.add(get(key).get());
     }
     return values;
   }
 
   @Override
-  public V get(K key) {
-    return keyValueCache.getUnchecked(key).orNull();
+  public Optional<V> get(K key) {
+    return keyValueCache.getUnchecked(key);
   }
 
   @Override
   public boolean exists(K key) {
-    return get(key) != null || delegate.exists(key);
+    return get(key).isPresent() || delegate.exists(key);
   }
 
   private class SpecificationCacheLoader extends CacheLoader<Specification<K, V>, List<K>> {
@@ -109,7 +108,7 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   private class KeyValueCacheLoader extends CacheLoader<K, Optional<V>> {
 
     public Optional<V> load(K key) {
-      return Optional.fromNullable(delegate.get(key));
+      return delegate.get(key);
     }
   }
 

@@ -42,7 +42,7 @@ public class SchemeRepositoryIntegrationTest {
 
     schemeRepository.save(scheme, testAdmin);
 
-    Scheme savedScheme = schemeRepository.get(scheme.getId(), testAdmin);
+    Scheme savedScheme = schemeRepository.get(scheme.getId(), testAdmin).get();
 
     assertEquals(scheme.getId(), savedScheme.getId());
 
@@ -68,7 +68,7 @@ public class SchemeRepositoryIntegrationTest {
 
     schemeRepository.save(scheme, testAdmin);
 
-    Scheme updated = schemeRepository.get(scheme.getId(), testAdmin);
+    Scheme updated = schemeRepository.get(scheme.getId(), testAdmin).get();
 
     List<LangValue> langValues = Lists.newArrayList(updated.getProperties().get("prefLabel"));
     assertEquals(2, langValues.size());

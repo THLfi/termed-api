@@ -1,6 +1,7 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -76,7 +77,7 @@ public class PropertyRepositoryImpl extends AbstractRepository<String, Property>
 
   @Override
   public void delete(String id, User user) {
-    delete(id, get(id, user), user);
+    delete(id, get(id, user).get(), user);
   }
 
   @Override
@@ -102,8 +103,10 @@ public class PropertyRepositoryImpl extends AbstractRepository<String, Property>
   }
 
   @Override
-  public Property get(String id, User user) {
-    return new AddPropertyProperties(user).apply(new Property(propertyDao.get(id, user)));
+  public Optional<Property> get(String id, User user) {
+    Optional<Property> o = propertyDao.get(id, user);
+    return o.isPresent() ? Optional.of(new AddPropertyProperties(user).apply(o.get()))
+                         : Optional.<Property>absent();
   }
 
   private class CreateCopy implements Function<Property, Property> {

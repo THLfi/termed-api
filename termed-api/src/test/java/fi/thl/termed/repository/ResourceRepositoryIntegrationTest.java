@@ -105,14 +105,15 @@ public class ResourceRepositoryIntegrationTest {
     adminGroup.addReference("member", bob);
     resourceRepository.save(adminGroup, user);
 
-    assertEquals(bob.getId(), resourceRepository.get(new ResourceId(bob), user).getId());
+    assertEquals(bob.getId(), resourceRepository.get(new ResourceId(bob), user).get().getId());
 
     List<Resource> timFriends = newArrayList(
-        resourceRepository.get(new ResourceId(tim), user).getReferences().get("knows"));
+        resourceRepository.get(new ResourceId(tim), user).get().getReferences().get("knows"));
     assertEquals(bob.getId(), timFriends.get(0).getId());
 
     List<Resource> admins = newArrayList(
-        resourceRepository.get(new ResourceId(adminGroup), user).getReferences().get("member"));
+        resourceRepository.get(new ResourceId(adminGroup), user).get().getReferences()
+            .get("member"));
     assertEquals(tim.getId(), admins.get(0).getId());
     assertEquals(bob.getId(), admins.get(1).getId());
   }
