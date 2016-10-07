@@ -50,8 +50,8 @@ public class ReferenceAttributeRepositoryImpl
   }
 
   @Override
-  public void save(ReferenceAttribute referenceAttribute, User user) {
-    save(new ReferenceAttributeId(referenceAttribute), referenceAttribute, user);
+  protected ReferenceAttributeId extractKey(ReferenceAttribute referenceAttribute) {
+    return new ReferenceAttributeId(referenceAttribute);
   }
 
   @Override

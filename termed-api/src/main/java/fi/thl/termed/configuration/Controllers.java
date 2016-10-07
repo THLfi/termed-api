@@ -22,6 +22,7 @@ import fi.thl.termed.exchange.Exchange;
 import fi.thl.termed.exchange.Exporter;
 import fi.thl.termed.service.Service;
 import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.web.DumpAndRestoreController;
 import fi.thl.termed.web.PropertyController;
 import fi.thl.termed.web.ResourceContextJsTreeController;
 import fi.thl.termed.web.ResourceControllerSpringImpl;
@@ -36,6 +37,14 @@ import fi.thl.termed.web.UserController;
  */
 @Configuration
 public class Controllers {
+
+  @Bean
+  public DumpAndRestoreController dumpAndRestoreController(
+      Service<ResourceId, Resource> resourceService,
+      Service<UUID, Scheme> schemeService,
+      Dao<ClassId, Class> classDao) {
+    return new DumpAndRestoreController(resourceService, schemeService, classDao);
+  }
 
   @Bean
   public ResourceControllerSpringImpl resourceController(

@@ -37,13 +37,13 @@ public class RepositoryService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public void save(List<V> values, User currentUser) {
-    repository.save(values, currentUser);
+  public List<K> save(List<V> values, User currentUser) {
+    return repository.save(values, currentUser);
   }
 
   @Override
-  public void save(V value, User currentUser) {
-    repository.save(value, currentUser);
+  public K save(V value, User currentUser) {
+    return repository.save(value, currentUser);
   }
 
   @Override

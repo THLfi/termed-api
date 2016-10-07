@@ -47,17 +47,17 @@ public class AttributeResolvingResourceService extends ForwardingService<Resourc
   }
 
   @Override
-  public void save(List<Resource> resources, User currentUser) {
+  public List<ResourceId> save(List<Resource> resources, User currentUser) {
     for (Resource resource : resources) {
       resolveAttributes(resource);
     }
-    super.save(resources, currentUser);
+    return super.save(resources, currentUser);
   }
 
   @Override
-  public void save(Resource resource, User currentUser) {
+  public ResourceId save(Resource resource, User currentUser) {
     resolveAttributes(resource);
-    super.save(resource, currentUser);
+    return super.save(resource, currentUser);
   }
 
   private void resolveAttributes(Resource resource) {

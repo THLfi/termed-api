@@ -37,8 +37,8 @@ public class PropertyRepositoryImpl extends AbstractRepository<String, Property>
   }
 
   @Override
-  public void save(Property property, User user) {
-    save(property.getId(), property, user);
+  protected String extractKey(Property property) {
+    return property.getId();
   }
 
   @Override

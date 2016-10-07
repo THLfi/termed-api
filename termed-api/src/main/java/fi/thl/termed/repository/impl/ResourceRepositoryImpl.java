@@ -5,7 +5,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import java.util.Date;
@@ -36,7 +35,6 @@ import fi.thl.termed.spesification.sql.ResourceTextAttributeValuesByResourceId;
 import fi.thl.termed.spesification.sql.SchemePropertiesBySchemeId;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
-import fi.thl.termed.util.SimpleValueDifference;
 import fi.thl.termed.util.StrictLangValue;
 
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -74,32 +72,8 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   }
 
   @Override
-  public void save(Resource newResource, User user) {
-    ResourceId resourceId = new ResourceId(newResource);
-    if (!exists(resourceId, user)) {
-      insert(resourceId, newResource, user);
-    } else {
-      update(resourceId, newResource, get(resourceId, user).get(), user);
-    }
-  }
-
-  @Override
-  public void save(List<Resource> resources, User user) {
-    Map<ResourceId, Resource> inserts = Maps.newLinkedHashMap();
-    Map<ResourceId, MapDifference.ValueDifference<Resource>> updates = Maps.newLinkedHashMap();
-
-    for (Resource newResource : resources) {
-      ResourceId id = new ResourceId(newResource);
-
-      if (!exists(id, user)) {
-        inserts.put(id, newResource);
-      } else {
-        updates.put(id, new SimpleValueDifference<Resource>(newResource, get(id, user).get()));
-      }
-    }
-
-    insert(inserts, user);
-    update(updates, user);
+  protected ResourceId extractKey(Resource resource) {
+    return new ResourceId(resource);
   }
 
   /**

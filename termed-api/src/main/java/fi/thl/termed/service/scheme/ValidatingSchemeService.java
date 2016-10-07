@@ -28,17 +28,17 @@ public class ValidatingSchemeService extends ForwardingService<UUID, Scheme> {
   }
 
   @Override
-  public void save(List<Scheme> schemes, User currentUser) {
+  public List<UUID> save(List<Scheme> schemes, User currentUser) {
     for (Scheme scheme : schemes) {
       validateScheme(scheme);
     }
-    super.save(schemes, currentUser);
+    return super.save(schemes, currentUser);
   }
 
   @Override
-  public void save(Scheme scheme, User currentUser) {
+  public UUID save(Scheme scheme, User currentUser) {
     validateScheme(scheme);
-    super.save(scheme, currentUser);
+    return super.save(scheme, currentUser);
   }
 
   private void validateScheme(Scheme scheme) {

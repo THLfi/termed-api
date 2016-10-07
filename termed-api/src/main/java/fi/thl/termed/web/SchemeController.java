@@ -101,8 +101,8 @@ public class SchemeController {
   @ResponseBody
   public Scheme save(@RequestBody Scheme scheme,
                      @AuthenticationPrincipal User user) {
-    schemeService.save(scheme, user);
-    return schemeService.get(scheme.getId(), user).get();
+    UUID schemeId = schemeService.save(scheme, user);
+    return schemeService.get(schemeId, user).get();
   }
 
   @RequestMapping(method = PUT, value = "/{schemeId}", consumes = "application/json;charset=UTF-8")

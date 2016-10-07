@@ -23,16 +23,16 @@ public class LoggingService<K extends Serializable, V> extends ForwardingService
   }
 
   @Override
-  public void save(List<V> values, User user) {
+  public List<K> save(List<V> values, User user) {
     log.info("{} save {} values (user: {})", valueClass.getSimpleName(), values.size(),
              user.getUsername());
-    super.save(values, user);
+    return super.save(values, user);
   }
 
   @Override
-  public void save(V value, User user) {
+  public K save(V value, User user) {
     log.info("{} save {} (user: {})", valueClass.getSimpleName(), value, user.getUsername());
-    super.save(value, user);
+    return super.save(value, user);
   }
 
   @Override

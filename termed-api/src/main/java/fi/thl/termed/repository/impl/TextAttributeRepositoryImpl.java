@@ -49,15 +49,9 @@ public class TextAttributeRepositoryImpl
     this.propertyValueDao = propertyValueDao;
   }
 
-  private TextAttributeId getTextAttributeId(TextAttribute textAttribute) {
-    return new TextAttributeId(new ClassId(textAttribute.getDomainSchemeId(),
-                                           textAttribute.getDomainId()),
-                               textAttribute.getId());
-  }
-
   @Override
-  public void save(TextAttribute textAttribute, User user) {
-    save(getTextAttributeId(textAttribute), textAttribute, user);
+  protected TextAttributeId extractKey(TextAttribute textAttribute) {
+    return new TextAttributeId(textAttribute);
   }
 
   @Override
@@ -219,7 +213,7 @@ public class TextAttributeRepositoryImpl
       textAttribute.setProperties(
           PropertyValueModelToDto.<TextAttributeId>create()
               .apply(propertyValueDao.getMap(new TextAttributePropertiesByAttributeId(
-                  getTextAttributeId(textAttribute)), user)));
+                  new TextAttributeId(textAttribute)), user)));
       return textAttribute;
     }
   }

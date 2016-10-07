@@ -53,21 +53,23 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
   }
 
   @Override
-  public void save(List<V> values, User currentUser) {
+  public List<K> save(List<V> values, User currentUser) {
     TransactionStatus tx = transactionManager.getTransaction(transactionDefinition);
     log.trace("begin transaction {}", serialNumber.incrementAndGet());
-    super.save(values, currentUser);
+    List<K> keys = super.save(values, currentUser);
     transactionManager.commit(tx);
     log.trace("commit transaction {}", serialNumber.get());
+    return keys;
   }
 
   @Override
-  public void save(V value, User currentUser) {
+  public K save(V value, User currentUser) {
     TransactionStatus tx = transactionManager.getTransaction(transactionDefinition);
     log.trace("begin transaction {}", serialNumber.incrementAndGet());
-    super.save(value, currentUser);
+    K key = super.save(value, currentUser);
     transactionManager.commit(tx);
     log.trace("commit transaction {}", serialNumber.get());
+    return key;
   }
 
   @Override

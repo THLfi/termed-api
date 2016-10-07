@@ -2,6 +2,7 @@ package fi.thl.termed.repository.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,25 +10,54 @@ import java.util.Map;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
+import fi.thl.termed.util.SimpleValueDifference;
 
 public abstract class AbstractRepository<K extends Serializable, V> implements Repository<K, V> {
 
   @Override
-  public void save(List<V> values, User user) {
+  public List<K> save(List<V> values, User user) {
+    List<K> keys = Lists.newArrayList();
+
+    Map<K, V> inserts = Maps.newLinkedHashMap();
+    Map<K, MapDifference.ValueDifference<V>> updates = Maps.newLinkedHashMap();
+
     for (V value : values) {
-      save(value, user);
+      K key = extractKey(value);
+
+      if (!exists(key, user)) {
+        inserts.put(key, value);
+      } else {
+        updates.put(key, new SimpleValueDifference<V>(value, get(key, user).get()));
+      }
+
+      keys.add(key);
     }
+
+    insert(inserts, user);
+    update(updates, user);
+
+    return keys;
   }
 
-  // operations to help with crud operations and with updates delegated to other repositories
+  @Override
+  public K save(V value, User user) {
+    K key = extractKey(value);
 
-  protected void save(K key, V value, User user) {
     if (!exists(key, user)) {
       insert(key, value, user);
     } else {
       update(key, value, get(key, user).get(), user);
     }
+
+    return key;
   }
+
+  /**
+   * Find, create or extract key for given value.
+   */
+  protected abstract K extractKey(V value);
+
+  // operations to help with crud operations and with updates delegated to other repositories
 
   protected abstract boolean exists(K key, User user);
 

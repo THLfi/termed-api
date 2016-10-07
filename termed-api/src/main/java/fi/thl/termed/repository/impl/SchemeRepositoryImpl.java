@@ -62,8 +62,8 @@ public class SchemeRepositoryImpl extends AbstractRepository<UUID, Scheme> {
   }
 
   @Override
-  public void save(Scheme scheme, User user) {
-    save(scheme.getId(), scheme, user);
+  protected UUID extractKey(Scheme scheme) {
+    return scheme.getId();
   }
 
   @Override

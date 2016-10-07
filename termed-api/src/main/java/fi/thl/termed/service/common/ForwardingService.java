@@ -21,13 +21,13 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public void save(List<V> values, User currentUser) {
-    delegate.save(values, currentUser);
+  public List<K> save(List<V> values, User currentUser) {
+    return delegate.save(values, currentUser);
   }
 
   @Override
-  public void save(V value, User currentUser) {
-    delegate.save(value, currentUser);
+  public K save(V value, User currentUser) {
+    return delegate.save(value, currentUser);
   }
 
   @Override

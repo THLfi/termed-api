@@ -32,17 +32,17 @@ public class SchemeIdResolvingResourceService extends ForwardingService<Resource
   }
 
   @Override
-  public void save(List<Resource> resources, User currentUser) {
+  public List<ResourceId> save(List<Resource> resources, User currentUser) {
     for (Resource resource : resources) {
       resolveSchemeId(resource.getScheme());
     }
-    super.save(resources, currentUser);
+    return super.save(resources, currentUser);
   }
 
   @Override
-  public void save(Resource resource, User currentUser) {
+  public ResourceId save(Resource resource, User currentUser) {
     resolveSchemeId(resource.getScheme());
-    super.save(resource, currentUser);
+    return super.save(resource, currentUser);
   }
 
   private void resolveSchemeId(Scheme scheme) {

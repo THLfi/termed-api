@@ -13,9 +13,9 @@ public interface Repository<K extends Serializable, V> {
   /**
    * Save (insert or update) values with dependencies.
    */
-  void save(List<V> values, User user);
+  List<K> save(List<V> values, User user);
 
-  void save(V value, User user);
+  K save(V value, User user);
 
   /**
    * Delete value (with dependencies) by id.

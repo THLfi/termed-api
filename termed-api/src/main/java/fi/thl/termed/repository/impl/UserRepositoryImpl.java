@@ -32,8 +32,8 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void save(User user, User auth) {
-    save(user.getUsername(), user, auth);
+  protected String extractKey(User user) {
+    return user.getUsername();
   }
 
   @Override

@@ -41,13 +41,13 @@ public class IndexingSchemeService extends ForwardingService<UUID, Scheme> {
   }
 
   @Override
-  public void save(List<Scheme> schemes, User currentUser) {
+  public List<UUID> save(List<Scheme> schemes, User currentUser) {
     Set<ResourceId> oldResourceIds = Sets.newHashSet();
     for (Scheme scheme : schemes) {
       oldResourceIds.addAll(schemeResourceIds(scheme.getId()));
     }
 
-    super.save(schemes, currentUser);
+    List<UUID> ids = super.save(schemes, currentUser);
 
     Set<ResourceId> newResourceIds = Sets.newHashSet();
     for (Scheme scheme : schemes) {
@@ -56,16 +56,19 @@ public class IndexingSchemeService extends ForwardingService<UUID, Scheme> {
 
     deleteFromIndex(Sets.difference(oldResourceIds, newResourceIds));
     reindex(newResourceIds);
+
+    return ids;
   }
 
   @Override
-  public void save(Scheme scheme, User currentUser) {
+  public UUID save(Scheme scheme, User currentUser) {
     Set<ResourceId> oldResourceIds = schemeResourceIds(scheme.getId());
-    super.save(scheme, currentUser);
+    UUID id = super.save(scheme, currentUser);
     Set<ResourceId> newResourceIds = schemeResourceIds(scheme.getId());
 
     deleteFromIndex(Sets.difference(oldResourceIds, newResourceIds));
     reindex(newResourceIds);
+    return id;
   }
 
   @Override

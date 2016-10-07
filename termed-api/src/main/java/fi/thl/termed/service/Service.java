@@ -16,9 +16,9 @@ public interface Service<K extends Serializable, V> {
   /**
    * Save (insert or update) values with dependencies.
    */
-  void save(List<V> values, User currentUser);
+  List<K> save(List<V> values, User currentUser);
 
-  void save(V value, User currentUser);
+  K save(V value, User currentUser);
 
   /**
    * Delete value (with dependencies) by id.

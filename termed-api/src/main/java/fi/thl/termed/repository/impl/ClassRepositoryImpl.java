@@ -65,8 +65,8 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   @Override
-  public void save(Class cls, User user) {
-    save(new ClassId(cls.getSchemeId(), cls.getId()), cls, user);
+  protected ClassId extractKey(Class cls) {
+    return new ClassId(cls);
   }
 
   /**

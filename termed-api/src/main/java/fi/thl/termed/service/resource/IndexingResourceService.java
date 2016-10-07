@@ -83,7 +83,7 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   }
 
   @Override
-  public void save(List<Resource> resources, User currentUser) {
+  public List<ResourceId> save(List<Resource> resources, User currentUser) {
     Set<ResourceId> affectedIds = Sets.newHashSet();
 
     for (Resource resource : resources) {
@@ -91,26 +91,29 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
       affectedIds.addAll(resourceRelatedIds(new ResourceId(resource)));
     }
 
-    super.save(resources, currentUser);
+    List<ResourceId> ids = super.save(resources, currentUser);
 
     for (Resource resource : resources) {
       affectedIds.addAll(resourceRelatedIds(new ResourceId(resource)));
     }
 
     asyncReindex(affectedIds);
+
+    return ids;
   }
 
   @Override
-  public void save(Resource resource, User currentUser) {
+  public ResourceId save(Resource resource, User currentUser) {
     Set<ResourceId> affectedIds = Sets.newHashSet();
     affectedIds.add(new ResourceId(resource));
     affectedIds.addAll(resourceRelatedIds(new ResourceId(resource)));
 
-    super.save(resource, currentUser);
+    ResourceId id = super.save(resource, currentUser);
 
     affectedIds.addAll(resourceRelatedIds(new ResourceId(resource)));
-
     reindex(affectedIds);
+
+    return id;
   }
 
   @Override
