@@ -19,6 +19,8 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.ResourceAttributeValueId;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
@@ -27,6 +29,7 @@ import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ReferenceAttributePermissionsByReferenceAttributeId;
 import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
+import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByAttributeId;
 import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
@@ -39,14 +42,17 @@ public class ReferenceAttributeRepositoryImpl
   private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
   private Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
   private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao;
+  private Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao;
 
   public ReferenceAttributeRepositoryImpl(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
       Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
-      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao) {
+      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao,
+      Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
     this.referenceAttributeDao = referenceAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyValueDao = propertyValueDao;
+    this.referenceAttributeValueDao = referenceAttributeValueDao;
   }
 
   @Override
@@ -128,6 +134,8 @@ public class ReferenceAttributeRepositoryImpl
   protected void delete(ReferenceAttributeId id, ReferenceAttribute referenceAttribute, User user) {
     deletePermissions(id, referenceAttribute.getPermissions(), user);
     deleteProperties(id, referenceAttribute.getProperties(), user);
+    referenceAttributeValueDao.delete(referenceAttributeValueDao.getKeys(
+        new ResourceReferenceAttributeValuesByAttributeId(id), user), user);
     referenceAttributeDao.delete(id, user);
   }
 

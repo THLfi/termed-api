@@ -76,11 +76,13 @@ public class Repositories {
       Dao<ClassId, Class> classDao,
       Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
+      Dao<ResourceId, Resource> resourceDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     return new ClassRepositoryImpl(classDao,
                                    classPermissionDao,
                                    classPropertyValueDao,
+                                   resourceDao,
                                    textAttributeRepository,
                                    referenceAttributeRepository);
   }
@@ -89,20 +91,24 @@ public class Repositories {
   public AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
       Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionDao,
-      Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao) {
+      Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyValueDao,
+      Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao) {
     return new TextAttributeRepositoryImpl(textAttributeDao,
                                            textAttributePermissionDao,
-                                           textAttributePropertyValueDao);
+                                           textAttributePropertyValueDao,
+                                           textAttributeValueDao);
   }
 
   @Bean
   public AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
       Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionDao,
-      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueDao) {
+      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyValueDao,
+      Dao<ResourceAttributeValueId, ResourceId> referenceAttributeValueDao) {
     return new ReferenceAttributeRepositoryImpl(referenceAttributeDao,
                                                 referenceAttributePermissionDao,
-                                                referenceAttributePropertyValueDao);
+                                                referenceAttributePropertyValueDao,
+                                                referenceAttributeValueDao);
   }
 
   @Bean

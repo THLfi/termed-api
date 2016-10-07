@@ -17,6 +17,7 @@ import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
@@ -25,11 +26,13 @@ import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.sql.ResourceTextAttributeValuesByAttributeId;
 import fi.thl.termed.spesification.sql.TextAttributePermissionsByTextAttributeId;
 import fi.thl.termed.spesification.sql.TextAttributePropertiesByAttributeId;
 import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.LangValue;
 import fi.thl.termed.util.MapUtils;
+import fi.thl.termed.util.StrictLangValue;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -39,14 +42,17 @@ public class TextAttributeRepositoryImpl
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
   private Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
   private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao;
+  private Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao;
 
   public TextAttributeRepositoryImpl(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
       Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao,
-      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao) {
+      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao,
+      Dao<ResourceAttributeValueId, StrictLangValue> textAttributeValueDao) {
     this.textAttributeDao = textAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyValueDao = propertyValueDao;
+    this.textAttributeValueDao = textAttributeValueDao;
   }
 
   @Override
@@ -128,6 +134,8 @@ public class TextAttributeRepositoryImpl
   protected void delete(TextAttributeId id, TextAttribute textAttribute, User user) {
     deletePermissions(id, textAttribute.getPermissions(), user);
     deleteProperties(id, textAttribute.getProperties(), user);
+    textAttributeValueDao.delete(textAttributeValueDao.getKeys(
+        new ResourceTextAttributeValuesByAttributeId(id), user), user);
     textAttributeDao.delete(id, user);
   }
 

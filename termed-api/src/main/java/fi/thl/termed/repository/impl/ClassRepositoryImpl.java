@@ -21,6 +21,8 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.Resource;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
@@ -29,6 +31,7 @@ import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
 import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.sql.ClassPermissionsByClassId;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
@@ -47,6 +50,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   private Dao<ClassId, Class> classDao;
   private Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao;
   private Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao;
+  private Dao<ResourceId,Resource> resourceDao;
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
   private AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
@@ -55,10 +59,12 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
       Dao<ClassId, Class> classDao,
       Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
+      Dao<ResourceId,Resource> resourceDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     this.classDao = classDao;
     this.classPermissionDao = classPermissionDao;
+    this.resourceDao = resourceDao;
     this.classPropertyValueDao = classPropertyValueDao;
     this.textAttributeRepository = textAttributeRepository;
     this.referenceAttributeRepository = referenceAttributeRepository;
@@ -225,6 +231,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
     deleteProperties(id, cls.getProperties(), user);
     deleteTextAttributes(id, cls.getTextAttributes(), user);
     deleteReferenceAttributes(id, cls.getReferenceAttributes(), user);
+    resourceDao.delete(resourceDao.getKeys(new ResourcesByClassId(id), user), user);
     classDao.delete(id, user);
   }
 
