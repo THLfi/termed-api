@@ -15,6 +15,7 @@ import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeAndResources;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
@@ -40,10 +41,9 @@ public class Controllers {
 
   @Bean
   public DumpAndRestoreController dumpAndRestoreController(
-      Service<ResourceId, Resource> resourceService,
-      Service<UUID, Scheme> schemeService,
-      Dao<ClassId, Class> classDao) {
-    return new DumpAndRestoreController(resourceService, schemeService, classDao);
+      Service<UUID, SchemeAndResources> schemeAndResourcesService,
+      Dao<UUID, Scheme> schemeDao) {
+    return new DumpAndRestoreController(schemeAndResourcesService, schemeDao);
   }
 
   @Bean

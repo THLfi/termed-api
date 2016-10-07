@@ -16,6 +16,22 @@
     }
   },
   {
+    "id": "note",
+    "uri": "http://www.w3.org/2004/02/skos/core#note",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "huomautus"
+        },
+        {
+          "lang": "en",
+          "value": "note"
+        }
+      ]
+    }
+  },
+  {
     "id": "description",
     "uri": "http://purl.org/dc/elements/1.1/description",
     "properties": {

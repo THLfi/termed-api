@@ -6,7 +6,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.UUID;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -15,6 +17,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeAndResources;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
@@ -31,6 +34,7 @@ import fi.thl.termed.service.resource.IndexingResourceService;
 import fi.thl.termed.service.resource.SchemeIdResolvingResourceService;
 import fi.thl.termed.service.scheme.IndexingSchemeService;
 import fi.thl.termed.service.scheme.ResolvingSchemeService;
+import fi.thl.termed.service.scheme.SchemeAndResourcesService;
 import fi.thl.termed.service.scheme.ValidatingSchemeService;
 import fi.thl.termed.util.StrictLangValue;
 
@@ -103,6 +107,22 @@ public class Services {
         service, textAttributeSystemDao, referenceAttributeSystemDao, resourceSystemDao);
     service = new IdResolvingResourceService(service, resourceSystemDao);
     service = new SchemeIdResolvingResourceService(service, schemeSystemDao);
+
+    return service;
+  }
+
+  @Bean
+  public Service<UUID, SchemeAndResources> schemeAndResourcesService(
+      Service<ResourceId, Resource> resourceService,
+      Service<UUID, Scheme> schemeService,
+      Dao<ClassId, Class> classDao,
+      PlatformTransactionManager transactionManager) {
+
+    Service<UUID, SchemeAndResources> service =
+        new SchemeAndResourcesService(resourceService, schemeService, classDao);
+
+    service = new TransactionalService<UUID, SchemeAndResources>(service, transactionManager);
+    service = new LoggingService<UUID, SchemeAndResources>(service, SchemeAndResources.class);
 
     return service;
   }
