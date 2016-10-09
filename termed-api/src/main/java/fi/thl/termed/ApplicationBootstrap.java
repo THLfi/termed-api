@@ -1,5 +1,6 @@
 package fi.thl.termed;
 
+import com.google.common.base.Function;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -15,36 +16,52 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import fi.thl.termed.dao.Dao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.index.Index;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.spesification.SpecificationQuery;
 import fi.thl.termed.spesification.util.TrueSpecification;
 import fi.thl.termed.util.ResourceUtils;
 import fi.thl.termed.util.UUIDs;
 
+/**
+ * If no users found, adds default user (admin). Adds default properties (defined in
+ * src/resources/default/properties.json. Runs full re-indexing if index is empty e.g. in the case
+ * of it been deleted
+ */
 @Component
 public class ApplicationBootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
+
+  @Value("${security.user.password:}")
+  private String defaultPassword;
+
+  @Resource
+  private Gson gson;
+  @Resource
+  private PasswordEncoder passwordEncoder;
 
   @Resource
   private Repository<String, User> userRepository;
   @Resource
   private Repository<String, Property> propertyRepository;
   @Resource
-  private Gson gson;
+  private Dao<ResourceId, fi.thl.termed.domain.Resource> resourceDao;
   @Resource
-  private PasswordEncoder passwordEncoder;
-
-  @Value("${security.user.password:}")
-  private String defaultPassword;
+  private Repository<ResourceId, fi.thl.termed.domain.Resource> resourceRepository;
+  @Resource
+  private Index<ResourceId, fi.thl.termed.domain.Resource> resourceIndex;
 
   @Override
   public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
     saveDefaultUser();
     saveDefaultProperties();
+    reindexIfEmpty();
   }
 
   private void saveDefaultUser() {
@@ -76,6 +93,22 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
     }
 
     propertyRepository.save(properties, initializer);
+  }
+
+  private void reindexIfEmpty() {
+    final User initializer = new User("indexInitializer", "", AppRole.SUPERUSER);
+
+    if (resourceIndex.indexSize() == 0) {
+      log.info("Index not found, reindexing all resources");
+
+      resourceIndex.reindex(
+          resourceDao.getKeys(initializer),
+          new Function<ResourceId, fi.thl.termed.domain.Resource>() {
+            public fi.thl.termed.domain.Resource apply(ResourceId input) {
+              return resourceRepository.get(input, initializer).get();
+            }
+          });
+    }
   }
 
 }
