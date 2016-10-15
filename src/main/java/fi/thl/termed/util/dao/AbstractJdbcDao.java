@@ -1,6 +1,6 @@
-package fi.thl.termed.dao.jdbc;
+package fi.thl.termed.util.dao;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import org.slf4j.Logger;
@@ -9,6 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.io.Serializable;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,7 +18,6 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import fi.thl.termed.util.collect.MapUtils;
-import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
@@ -38,7 +39,8 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
     this.keyMapper = buildKeyMapper();
     this.valueMapper = buildValueMapper();
-    this.entryMapper = new MapEntryRowMapper<K, V>(keyMapper, valueMapper);
+    this.entryMapper = (rs, rowNum) ->
+        new SimpleEntry<>(keyMapper.mapRow(rs, rowNum), valueMapper.mapRow(rs, rowNum));
   }
 
   protected abstract RowMapper<K> buildKeyMapper();
@@ -47,28 +49,22 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   @Override
   public void insert(Map<K, V> map) {
-    for (Map.Entry<K, V> entry : map.entrySet()) {
-      insert(entry.getKey(), entry.getValue());
-    }
+    map.forEach(this::insert);
   }
 
   @Override
   public void update(Map<K, V> map) {
-    for (Map.Entry<K, V> entry : map.entrySet()) {
-      update(entry.getKey(), entry.getValue());
-    }
+    map.forEach(this::update);
   }
 
   @Override
   public void delete(List<K> keys) {
-    for (K key : keys) {
-      delete(key);
-    }
+    keys.forEach(this::delete);
   }
 
   @Override
   public Map<K, V> getMap() {
-    return MapUtils.newLinkedHashMap(get(entryMapper));
+    return ImmutableMap.copyOf(get(entryMapper));
   }
 
   @Override
@@ -83,7 +79,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   @Override
   public Map<K, V> getMap(List<K> keys) {
-    return MapUtils.newLinkedHashMap(get(keys, entryMapper));
+    return ImmutableMap.copyOf(get(keys, entryMapper));
   }
 
   @Override
@@ -96,7 +92,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
     if (specification instanceof SqlSpecification) {
       return get((SqlSpecification<K, V>) specification, keyMapper);
     } else {
-      return Lists.newArrayList(getMap(specification).keySet());
+      return new ArrayList<>(getMap(specification).keySet());
     }
   }
 
@@ -110,7 +106,7 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
     if (specification instanceof SqlSpecification) {
       return get((SqlSpecification<K, V>) specification, valueMapper);
     } else {
-      return Lists.newArrayList(getMap(specification).values());
+      return new ArrayList<>(getMap(specification).values());
     }
   }
 
@@ -129,9 +125,9 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
   protected abstract <E> List<E> get(SqlSpecification<K, V> specification, RowMapper<E> mapper);
 
   protected <E> List<E> get(Iterable<K> keys, RowMapper<E> mapper) {
-    List<E> values = Lists.newArrayList();
+    List<E> values = new ArrayList<>();
     for (K key : keys) {
-      values.add(get(key, mapper).get());
+      get(key, mapper).ifPresent(values::add);
     }
     return values;
   }

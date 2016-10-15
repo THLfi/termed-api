@@ -12,6 +12,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;

@@ -15,6 +15,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;

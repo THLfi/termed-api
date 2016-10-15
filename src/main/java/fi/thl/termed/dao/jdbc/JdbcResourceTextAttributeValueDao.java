@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.domain.StrictLangValue;

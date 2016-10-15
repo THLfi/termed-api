@@ -17,6 +17,7 @@ import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;

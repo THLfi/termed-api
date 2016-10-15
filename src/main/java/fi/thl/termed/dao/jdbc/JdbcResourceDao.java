@@ -13,6 +13,7 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
