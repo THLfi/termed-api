@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -47,14 +47,14 @@ public class ResourceId implements Serializable {
       return false;
     }
     ResourceId that = (ResourceId) o;
-    return Objects.equal(schemeId, that.schemeId) &&
-           Objects.equal(typeId, that.typeId) &&
-           Objects.equal(id, that.id);
+    return Objects.equals(schemeId, that.schemeId) &&
+           Objects.equals(typeId, that.typeId) &&
+           Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(schemeId, typeId, id);
+    return Objects.hash(schemeId, typeId, id);
   }
 
   @Override

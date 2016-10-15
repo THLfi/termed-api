@@ -1,7 +1,6 @@
 package fi.thl.termed.service.resource;
 
 import com.google.common.base.Converter;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -111,13 +110,11 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
   }
 
   private Multimap<String, Resource> truncateValues(Multimap<String, Resource> multimap) {
-    return Multimaps.transformValues(multimap, new Function<Resource, Resource>() {
-      public Resource apply(Resource value) {
-        Resource truncated = new Resource(new ResourceId(value));
-        truncated.setCode(value.getCode());
-        truncated.setUri(value.getUri());
-        return truncated;
-      }
+    return Multimaps.transformValues(multimap, value -> {
+      Resource truncated = new Resource(new ResourceId(value));
+      truncated.setCode(value.getCode());
+      truncated.setUri(value.getUri());
+      return truncated;
     });
   }
 

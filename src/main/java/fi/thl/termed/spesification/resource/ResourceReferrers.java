@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -27,7 +27,7 @@ public class ResourceReferrers extends AbstractSpecification<ResourceId, Resourc
   private ReferenceAttributeId attrId;
 
   public ResourceReferrers(ResourceId objectId, ReferenceAttributeId attrId, ClassId rangeId) {
-    Preconditions.checkArgument(Objects.equal(new ClassId(objectId), rangeId));
+    Preconditions.checkArgument(Objects.equals(new ClassId(objectId), rangeId));
     this.objectId = objectId;
     this.attrId = attrId;
   }
@@ -42,12 +42,12 @@ public class ResourceReferrers extends AbstractSpecification<ResourceId, Resourc
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
+    Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
-    if (Objects.equal(new ClassId(resourceId), attrId.getDomainId())) {
+    if (Objects.equals(new ClassId(resourceId), attrId.getDomainId())) {
       for (Map.Entry<String, ResourceId> entry : resource.getReferenceIds().entries()) {
-        if (Objects.equal(entry.getKey(), attrId.getId()) &&
-            Objects.equal(entry.getValue(), objectId)) {
+        if (Objects.equals(entry.getKey(), attrId.getId()) &&
+            Objects.equals(entry.getValue(), objectId)) {
           return true;
         }
       }
@@ -75,13 +75,13 @@ public class ResourceReferrers extends AbstractSpecification<ResourceId, Resourc
       return false;
     }
     ResourceReferrers that = (ResourceReferrers) o;
-    return Objects.equal(objectId, that.objectId) &&
-           Objects.equal(attrId, that.attrId);
+    return Objects.equals(objectId, that.objectId) &&
+           Objects.equals(attrId, that.attrId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(objectId, attrId);
+    return Objects.hash(objectId, attrId);
   }
 
   @Override

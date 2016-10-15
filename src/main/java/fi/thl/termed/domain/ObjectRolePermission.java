@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.io.Serializable;
 
@@ -44,14 +44,14 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
       return false;
     }
     ObjectRolePermission<?> that = (ObjectRolePermission<?>) o;
-    return Objects.equal(objectId, that.objectId) &&
-           Objects.equal(schemeRole, that.schemeRole) &&
-           Objects.equal(permission, that.permission);
+    return Objects.equals(objectId, that.objectId) &&
+           Objects.equals(schemeRole, that.schemeRole) &&
+           Objects.equals(permission, that.permission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(objectId, schemeRole, permission);
+    return Objects.hash(objectId, schemeRole, permission);
   }
 
   @Override

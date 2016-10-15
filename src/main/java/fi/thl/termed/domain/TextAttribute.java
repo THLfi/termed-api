@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.util.RegularExpressions;
 
@@ -42,12 +42,12 @@ public class TextAttribute extends Attribute {
       return false;
     }
     TextAttribute that = (TextAttribute) o;
-    return Objects.equal(regex, that.regex);
+    return Objects.equals(regex, that.regex);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), regex);
+    return Objects.hash(super.hashCode(), regex);
   }
 
   @Override

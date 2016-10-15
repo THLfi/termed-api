@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
 

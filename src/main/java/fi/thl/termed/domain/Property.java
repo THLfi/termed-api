@@ -1,8 +1,9 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Multimap;
+
+import java.util.Objects;
 
 import fi.thl.termed.util.collect.MultimapUtils;
 
@@ -84,15 +85,15 @@ public class Property {
       return false;
     }
     Property property = (Property) o;
-    return Objects.equal(id, property.id) &&
-           Objects.equal(uri, property.uri) &&
-           Objects.equal(index, property.index) &&
-           Objects.equal(properties, property.properties);
+    return Objects.equals(id, property.id) &&
+           Objects.equals(uri, property.uri) &&
+           Objects.equals(index, property.index) &&
+           Objects.equals(properties, property.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, properties);
+    return Objects.hash(id, uri, index, properties);
   }
 
 }

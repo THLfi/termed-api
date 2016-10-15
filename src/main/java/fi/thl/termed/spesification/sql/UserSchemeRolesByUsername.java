@@ -1,7 +1,8 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+
+import java.util.Objects;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserSchemeRoleId;
@@ -19,7 +20,7 @@ public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeR
 
   @Override
   public boolean accept(UserSchemeRoleId id, Empty value) {
-    return Objects.equal(id.getUsername(), username);
+    return Objects.equals(id.getUsername(), username);
   }
 
   @Override
@@ -41,7 +42,7 @@ public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeR
       return false;
     }
     UserSchemeRolesByUsername that = (UserSchemeRolesByUsername) o;
-    return Objects.equal(username, that.username);
+    return Objects.equals(username, that.username);
   }
 
   @Override

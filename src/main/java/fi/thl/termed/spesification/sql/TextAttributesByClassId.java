@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.TextAttribute;
@@ -21,7 +21,7 @@ public class TextAttributesByClassId
 
   @Override
   public boolean accept(TextAttributeId key, TextAttribute value) {
-    return Objects.equal(key.getDomainId(), classId);
+    return Objects.equals(key.getDomainId(), classId);
   }
 
   @Override
@@ -43,7 +43,7 @@ public class TextAttributesByClassId
       return false;
     }
     TextAttributesByClassId that = (TextAttributesByClassId) o;
-    return Objects.equal(classId, that.classId);
+    return Objects.equals(classId, that.classId);
   }
 
   @Override

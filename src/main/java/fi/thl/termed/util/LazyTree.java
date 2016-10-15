@@ -1,8 +1,8 @@
 package fi.thl.termed.util;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -27,11 +27,11 @@ public class LazyTree<T> implements Tree<T> {
    * Construct a new tree based root data and a function for loading children.
    */
   @SuppressWarnings("unchecked")
-  public LazyTree(T data, Function<T, List<T>> neighbourFunction) {
+  public LazyTree(T data, java.util.function.Function<T, List<T>> neighbourFunction) {
     this(data, Sets.newLinkedHashSet(Lists.newArrayList(data)), neighbourFunction);
   }
 
-  private LazyTree(T data, Set<T> path, Function<T, List<T>> neighbourFunction) {
+  private LazyTree(T data, Set<T> path, java.util.function.Function<T, List<T>> neighbourFunction) {
     this.data = data;
     this.path = path;
     this.neighbourFunction = neighbourFunction;
@@ -91,13 +91,13 @@ public class LazyTree<T> implements Tree<T> {
       return false;
     }
     LazyTree<?> lazyTree = (LazyTree<?>) o;
-    return Objects.equal(path, lazyTree.path) &&
-           Objects.equal(data, lazyTree.data);
+    return Objects.equals(path, lazyTree.path) &&
+           Objects.equals(data, lazyTree.data);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(path, data);
+    return Objects.hash(path, data);
   }
 
 }

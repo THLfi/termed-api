@@ -1,11 +1,11 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;

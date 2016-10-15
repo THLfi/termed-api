@@ -1,6 +1,6 @@
 package fi.thl.termed;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 

@@ -1,7 +1,5 @@
 package fi.thl.termed.util.service;
 
-import com.google.common.base.Optional;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -45,7 +43,7 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public Optional<V> get(K id, User currentUser) {
+  public java.util.Optional<V> get(K id, User currentUser) {
     return delegate.get(id, currentUser);
   }
 

@@ -1,7 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -11,6 +10,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.Map;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
@@ -44,13 +44,13 @@ public class ResourcesByTextAttributeValuePrefix
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
+    Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
-    if (Objects.equal(new ClassId(resourceId), attributeId.getDomainId())) {
+    if (Objects.equals(new ClassId(resourceId), attributeId.getDomainId())) {
       for (Map.Entry<String, StrictLangValue> entry : resource.getProperties().entries()) {
         StrictLangValue attributeValue = entry.getValue();
 
-        if (Objects.equal(entry.getKey(), attributeId.getId()) &&
+        if (Objects.equals(entry.getKey(), attributeId.getId()) &&
             attributeValue.getValue().startsWith(value)) {
           return true;
         }
@@ -79,13 +79,13 @@ public class ResourcesByTextAttributeValuePrefix
       return false;
     }
     ResourcesByTextAttributeValuePrefix that = (ResourcesByTextAttributeValuePrefix) o;
-    return Objects.equal(attributeId, that.attributeId) &&
-           Objects.equal(value, that.value);
+    return Objects.equals(attributeId, that.attributeId) &&
+           Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(attributeId, value);
+    return Objects.hash(attributeId, value);
   }
 
   @Override

@@ -1,7 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -9,6 +8,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.ClassId;
@@ -37,10 +37,10 @@ public class ResourceByCode extends AbstractSpecification<ResourceId, Resource>
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
-    return Objects.equal(resource.getSchemeId(), classId.getSchemeId()) &&
-           Objects.equal(resource.getTypeId(), classId.getId()) &&
-           Objects.equal(resource.getCode(), code);
+    Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
+    return Objects.equals(resource.getSchemeId(), classId.getSchemeId()) &&
+           Objects.equals(resource.getTypeId(), classId.getId()) &&
+           Objects.equals(resource.getCode(), code);
   }
 
   @Override
@@ -71,13 +71,13 @@ public class ResourceByCode extends AbstractSpecification<ResourceId, Resource>
       return false;
     }
     ResourceByCode that = (ResourceByCode) o;
-    return Objects.equal(classId, that.classId) &&
-           Objects.equal(code, that.code);
+    return Objects.equals(classId, that.classId) &&
+           Objects.equals(code, that.code);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(classId, code);
+    return Objects.hash(classId, code);
   }
 
   @Override

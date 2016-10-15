@@ -1,7 +1,5 @@
 package fi.thl.termed;
 
-import com.google.common.base.Optional;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -42,7 +40,7 @@ public class Security extends WebSecurityConfigurerAdapter {
   public void configure(AuthenticationManagerBuilder auth) throws Exception {
     UserDetailsService userDetailsService = new UserDetailsService() {
       public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user =
+        java.util.Optional<User> user =
             userRepository.get(username, new User("authenticator", "", AppRole.SUPERUSER));
         if (user.isPresent()) {
           return user.get();

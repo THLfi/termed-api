@@ -1,18 +1,18 @@
 package fi.thl.termed.exchange.tree;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -21,10 +21,11 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.AbstractExporter;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.GraphUtils;
-import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.Tree;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.service.Service;
 
 /**
  * Exporter for jstree visualization.
@@ -85,7 +86,7 @@ public class ResourceContextJsTreeExporter
       List<List<Resource>> paths = GraphUtils.collectPaths(
           resource, referrers ? referenceLoadingFunction : referrerLoadingFunction);
       roots.addAll(GraphUtils.findRoots(paths));
-      pathIds.addAll(Lists.transform(ListUtils.flatten(paths), new ToResourceId()));
+      pathIds.addAll(Lists.transform(ListUtils.flatten(paths), ResourceId::new));
       selectedIds.add(new ResourceId(resource));
     }
 
@@ -98,7 +99,9 @@ public class ResourceContextJsTreeExporter
                                  Predicates.in(selectedIds),
                                  labelAttributeId, lang);
 
-    return Lists.transform(Lists.newArrayList(roots), Functions.compose(toJsTree, toTree));
+    return new ArrayList<>(roots).stream()
+        .map(toTree)
+        .map(toJsTree).collect(Collectors.toList());
   }
 
 }

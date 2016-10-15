@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.UUID;
 
@@ -22,7 +22,7 @@ public class TextAttributesBySchemeId
 
   @Override
   public boolean accept(TextAttributeId key, TextAttribute value) {
-    return Objects.equal(key.getDomainId().getSchemeId(), schemeId);
+    return Objects.equals(key.getDomainId().getSchemeId(), schemeId);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class TextAttributesBySchemeId
       return false;
     }
     TextAttributesBySchemeId that = (TextAttributesBySchemeId) o;
-    return Objects.equal(schemeId, that.schemeId);
+    return Objects.equals(schemeId, that.schemeId);
   }
 
   @Override

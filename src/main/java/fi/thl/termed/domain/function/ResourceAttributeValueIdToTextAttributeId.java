@@ -1,13 +1,11 @@
 package fi.thl.termed.domain.function;
 
-import com.google.common.base.Function;
-
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.TextAttributeId;
 
 public class ResourceAttributeValueIdToTextAttributeId
-    implements Function<ResourceAttributeValueId, TextAttributeId> {
+    implements java.util.function.Function<ResourceAttributeValueId, TextAttributeId> {
 
   @Override
   public TextAttributeId apply(ResourceAttributeValueId attributeValueId) {

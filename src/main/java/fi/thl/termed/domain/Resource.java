@@ -1,14 +1,13 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.util.collect.MultimapUtils;
@@ -188,11 +187,8 @@ public class Resource implements Auditable {
   }
 
   public Multimap<String, ResourceId> getReferenceIds() {
-    return Multimaps.transformValues(getReferences(), new Function<Resource, ResourceId>() {
-      public ResourceId apply(Resource r) {
-        return new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId());
-      }
-    });
+    return Multimaps.transformValues(
+        getReferences(), r -> new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId()));
   }
 
   public void addReferences(String attributeId, List<Resource> references) {
@@ -218,11 +214,8 @@ public class Resource implements Auditable {
   }
 
   public Multimap<String, ResourceId> getReferrerIds() {
-    return Multimaps.transformValues(getReferrers(), new Function<Resource, ResourceId>() {
-      public ResourceId apply(Resource r) {
-        return new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId());
-      }
-    });
+    return Multimaps.transformValues(
+        getReferrers(), r -> new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId()));
   }
 
   public void addReferrer(String attributeId, Resource referrer) {
@@ -260,34 +253,34 @@ public class Resource implements Auditable {
       return false;
     }
     Resource resource = (Resource) o;
-    return Objects.equal(id, resource.id) &&
-           Objects.equal(code, resource.code) &&
-           Objects.equal(uri, resource.uri) &&
-           Objects.equal(createdBy, resource.createdBy) &&
-           Objects.equal(createdDate, resource.createdDate) &&
-           Objects.equal(lastModifiedBy, resource.lastModifiedBy) &&
-           Objects.equal(lastModifiedDate, resource.lastModifiedDate) &&
-           Objects.equal(getSchemeId(), resource.getSchemeId()) &&
-           Objects.equal(getTypeId(), resource.getTypeId()) &&
-           Objects.equal(permissions, resource.permissions) &&
-           Objects.equal(properties, resource.properties) &&
-           Objects.equal(getReferenceIds(), resource.getReferenceIds());
+    return Objects.equals(id, resource.id) &&
+           Objects.equals(code, resource.code) &&
+           Objects.equals(uri, resource.uri) &&
+           Objects.equals(createdBy, resource.createdBy) &&
+           Objects.equals(createdDate, resource.createdDate) &&
+           Objects.equals(lastModifiedBy, resource.lastModifiedBy) &&
+           Objects.equals(lastModifiedDate, resource.lastModifiedDate) &&
+           Objects.equals(getSchemeId(), resource.getSchemeId()) &&
+           Objects.equals(getTypeId(), resource.getTypeId()) &&
+           Objects.equals(permissions, resource.permissions) &&
+           Objects.equals(properties, resource.properties) &&
+           Objects.equals(getReferenceIds(), resource.getReferenceIds());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id,
-                            code,
-                            uri,
-                            createdBy,
-                            createdDate,
-                            lastModifiedBy,
-                            lastModifiedDate,
-                            getSchemeId(),
-                            getTypeId(),
-                            permissions,
-                            properties,
-                            getReferenceIds());
+    return Objects.hash(id,
+                        code,
+                        uri,
+                        createdBy,
+                        createdDate,
+                        lastModifiedBy,
+                        lastModifiedDate,
+                        getSchemeId(),
+                        getTypeId(),
+                        permissions,
+                        properties,
+                        getReferenceIds());
   }
 
 }

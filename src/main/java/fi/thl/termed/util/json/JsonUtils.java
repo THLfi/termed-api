@@ -1,7 +1,7 @@
 package fi.thl.termed.util.json;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;

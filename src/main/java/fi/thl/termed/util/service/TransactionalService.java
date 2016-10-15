@@ -1,6 +1,6 @@
 package fi.thl.termed.util.service;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;

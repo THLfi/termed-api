@@ -1,7 +1,5 @@
 package fi.thl.termed.util.collect;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -10,6 +8,9 @@ import com.google.common.collect.Sets;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class ListUtils {
 
@@ -17,7 +18,7 @@ public final class ListUtils {
   }
 
   public static <T> Optional<T> findFirst(List<T> list) {
-    return !list.isEmpty() ? Optional.of(list.iterator().next()) : Optional.<T>absent();
+    return !list.isEmpty() ? Optional.of(list.iterator().next()) : Optional.<T>empty();
   }
 
   public static <T> List<T> concat(List<? extends T> l1, List<? extends T> l2) {
@@ -46,12 +47,9 @@ public final class ListUtils {
 
   public static <F, T> List<List<T>> transformNested(List<List<F>> fromLists,
                                                      final Function<? super F, ? extends T> function) {
-    return Lists.transform(fromLists, new Function<List<F>, List<T>>() {
-      @Override
-      public List<T> apply(List<F> input) {
-        return Lists.transform(input, function);
-      }
-    });
+    return fromLists.stream()
+        .map(l -> l.stream().map(function).collect(Collectors.toList()))
+        .collect(Collectors.toList());
   }
 
   public static <T> List<T> nullToEmpty(List<T> list) {

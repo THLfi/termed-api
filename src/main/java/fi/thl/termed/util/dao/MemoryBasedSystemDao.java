@@ -1,6 +1,6 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -50,7 +50,7 @@ public class MemoryBasedSystemDao<K extends Serializable, V> extends AbstractSys
 
   @Override
   public Optional<V> get(K key) {
-    return Optional.fromNullable(data.get(key));
+    return Optional.ofNullable(data.get(key));
   }
 
 }

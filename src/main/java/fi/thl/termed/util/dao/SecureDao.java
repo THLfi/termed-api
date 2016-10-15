@@ -1,6 +1,6 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
@@ -137,7 +137,7 @@ public class SecureDao<K extends Serializable, V> extends AbstractDao<K, V> {
       reportFailedPreAuthorization(user, key, READ);
     }
 
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

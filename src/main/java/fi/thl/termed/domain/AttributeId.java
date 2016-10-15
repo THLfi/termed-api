@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.io.Serializable;
 
@@ -39,13 +39,13 @@ public abstract class AttributeId implements Serializable {
       return false;
     }
     AttributeId that = (AttributeId) o;
-    return Objects.equal(domainId, that.domainId) &&
-           Objects.equal(id, that.id);
+    return Objects.equals(domainId, that.domainId) &&
+           Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(domainId, id);
+    return Objects.hash(domainId, id);
   }
 
   @Override

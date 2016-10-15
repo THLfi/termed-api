@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.List;
 
@@ -32,13 +32,13 @@ public class SchemeAndResources {
       return false;
     }
     SchemeAndResources that = (SchemeAndResources) o;
-    return Objects.equal(scheme, that.scheme) &&
-           Objects.equal(resources, that.resources);
+    return Objects.equals(scheme, that.scheme) &&
+           Objects.equals(resources, that.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(scheme, resources);
+    return Objects.hash(scheme, resources);
   }
 
   @Override

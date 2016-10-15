@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ResourceAttributeValueId;
@@ -29,7 +29,7 @@ public class ResourceTextAttributeValuesByAttributeId
     TextAttributeId valueAttributeId =
         new TextAttributeId(new ClassId(attributeValueId.getResourceId()),
                             attributeValueId.getAttributeId());
-    return Objects.equal(valueAttributeId, attributeId);
+    return Objects.equals(valueAttributeId, attributeId);
   }
 
   @Override
@@ -53,7 +53,7 @@ public class ResourceTextAttributeValuesByAttributeId
     }
     ResourceTextAttributeValuesByAttributeId that =
         (ResourceTextAttributeValuesByAttributeId) o;
-    return Objects.equal(attributeId, that.attributeId);
+    return Objects.equals(attributeId, that.attributeId);
   }
 
   @Override

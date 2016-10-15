@@ -1,8 +1,8 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class ReferenceAttribute extends Attribute {
@@ -57,12 +57,12 @@ public class ReferenceAttribute extends Attribute {
       return false;
     }
     ReferenceAttribute that = (ReferenceAttribute) o;
-    return Objects.equal(getRangeClassId(), that.getRangeClassId());
+    return Objects.equals(getRangeClassId(), that.getRangeClassId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), getRangeClassId());
+    return Objects.hash(super.hashCode(), getRangeClassId());
   }
 
   @Override

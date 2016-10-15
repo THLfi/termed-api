@@ -1,6 +1,6 @@
 package fi.thl.termed.service.resource;
 
-import com.google.common.base.Predicate;
+import java.util.function.Predicate;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Permission;
@@ -23,7 +23,7 @@ public class ResourcePermissionPredicate implements Predicate<Resource> {
   }
 
   @Override
-  public boolean apply(Resource resource) {
+  public boolean test(Resource resource) {
     return classEvaluator.hasPermission(user, new ClassId(resource), permission);
   }
 

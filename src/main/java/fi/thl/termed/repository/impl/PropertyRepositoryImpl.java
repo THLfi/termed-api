@@ -1,7 +1,8 @@
 package fi.thl.termed.repository.impl;
 
+import java.util.Optional;
+
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -103,10 +104,10 @@ public class PropertyRepositoryImpl extends AbstractRepository<String, Property>
   }
 
   @Override
-  public Optional<Property> get(String id, User user) {
+  public java.util.Optional<Property> get(String id, User user) {
     Optional<Property> o = propertyDao.get(id, user);
-    return o.isPresent() ? Optional.of(new AddPropertyProperties(user).apply(o.get()))
-                         : Optional.<Property>absent();
+    return o.isPresent() ? java.util.Optional.of(new AddPropertyProperties(user).apply(o.get()))
+                         : java.util.Optional.<Property>empty();
   }
 
   private class CreateCopy implements Function<Property, Property> {

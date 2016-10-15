@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.util.RegularExpressions;
 
@@ -59,14 +59,14 @@ public class StrictLangValue {
       return false;
     }
     StrictLangValue that = (StrictLangValue) o;
-    return Objects.equal(lang, that.lang) &&
-           Objects.equal(value, that.value) &&
-           Objects.equal(regex, that.regex);
+    return Objects.equals(lang, that.lang) &&
+           Objects.equals(value, that.value) &&
+           Objects.equals(regex, that.regex);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(lang, value, regex);
+    return Objects.hash(lang, value, regex);
   }
 
   @Override

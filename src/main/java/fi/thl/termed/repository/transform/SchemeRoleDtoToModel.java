@@ -1,6 +1,6 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.collect.Maps;
 
 import java.util.List;

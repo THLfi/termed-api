@@ -1,18 +1,18 @@
 package fi.thl.termed.exchange.tree;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Resource;
@@ -58,7 +58,8 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     ResourceId resourceId = new ResourceId(resource);
 
     jsTree.setId(DigestUtils.sha1Hex(
-        Joiner.on('.').join(Iterables.transform(resourceTree.getPath(), getResourceId))));
+        Joiner.on('.').join(resourceTree.getPath().stream().map(Resource::getId)
+                                .collect(Collectors.toList()))));
     jsTree.setIcon(false);
     jsTree.setText(htmlEscape(getLocalizedLabel(resource)) +
                    smallMuted(htmlEscape(getCode(resource))));
@@ -81,7 +82,7 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     if (children.isEmpty()) {
       jsTree.setChildren(false);
     } else if (addChildrenPredicate.apply(resourceId)) {
-      jsTree.setChildren(Lists.transform(children, this));
+      jsTree.setChildren(children.stream().map(this).collect(Collectors.toList()));
     } else {
       jsTree.setChildren(true);
     }
@@ -93,7 +94,7 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     Collection<StrictLangValue> langValues = resource.getProperties().get(labelAttributeId);
 
     for (StrictLangValue langValue : langValues) {
-      if (Objects.equal(lang, langValue.getLang())) {
+      if (Objects.equals(lang, langValue.getLang())) {
         return langValue.getValue();
       }
     }

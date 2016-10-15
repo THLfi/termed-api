@@ -1,6 +1,5 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -12,13 +11,14 @@ import org.springframework.jdbc.core.RowMapper;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
+import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.collect.MapUtils;
 
 /**
  * Base class to help with implementing a JDBC Dao.

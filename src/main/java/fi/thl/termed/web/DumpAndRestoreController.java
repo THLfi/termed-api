@@ -47,7 +47,7 @@ public class DumpAndRestoreController {
   @ResponseBody
   public SchemeAndResources get(@PathVariable UUID schemeId,
                                 @AuthenticationPrincipal User user) {
-    return schemeAndResourcesService.get(schemeId, user).orNull();
+    return schemeAndResourcesService.get(schemeId, user).get();
   }
 
   @RequestMapping(method = PUT, value = "/restore/{schemeId}", consumes = "application/json;charset=UTF-8")

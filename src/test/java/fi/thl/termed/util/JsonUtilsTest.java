@@ -1,6 +1,5 @@
 package fi.thl.termed.util;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
@@ -65,7 +64,7 @@ public class JsonUtilsTest {
   public void shouldTransformKeys() {
     JsonElement element = p.parse("{'id':1,'name':{'fi':'Testi','en':'Test'}}");
 
-    JsonElement transformed = JsonUtils.transformKeys(element, new Function<String, String>() {
+    JsonElement transformed = JsonUtils.transformKeys(element, new java.util.function.Function<String, String>() {
       public String apply(String key) {
         return key.toUpperCase();
       }

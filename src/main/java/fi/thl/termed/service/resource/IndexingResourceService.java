@@ -1,14 +1,14 @@
 package fi.thl.termed.service.resource;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Permission;
@@ -18,18 +18,18 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.index.Index;
-import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.service.ForwardingService;
-import fi.thl.termed.util.specification.SpecificationQuery;
-import fi.thl.termed.util.specification.SpecificationQuery.Engine;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
+import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery.Engine;
 
 import static com.google.common.collect.Lists.transform;
-import static fi.thl.termed.util.collect.ListUtils.filter;
 
 /**
  * Manages querying and updating full text index of resources
@@ -79,7 +79,10 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
         new ResourceAttributePermissionFilter(
             classEvaluator, textAttrEvaluator, refAttrEvaluator, user, Permission.READ);
 
-    return transform(filter(resources, resourcePermissionPredicate), resourceAttributeFilter);
+    return resources.stream()
+        .filter(resourcePermissionPredicate)
+        .map(resourceAttributeFilter)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -142,7 +145,7 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
   private List<ResourceId> referringResourceIds(ResourceId resourceId) {
     List<ResourceAttributeValueId> keys = referenceAttributeValueDao.getKeys(
         new ResourceReferenceAttributeResourcesByValueId(resourceId));
-    return transform(keys, new GetResourceId());
+    return transform(keys, ResourceAttributeValueId::getResourceId);
   }
 
   private void reindex(Set<ResourceId> affectedIds) {
@@ -155,23 +158,10 @@ public class IndexingResourceService extends ForwardingService<ResourceId, Resou
 
   private void asyncReindex(Set<ResourceId> ids) {
     if (!ids.isEmpty()) {
-      resourceIndex.reindex(ImmutableList.copyOf(ids), new Function<ResourceId, Resource>() {
-        public Resource apply(ResourceId id) {
-          return resourceRepository.get(id, new User("indexer", "", AppRole.ADMIN)).get();
-        }
-      });
+      resourceIndex.reindex(
+          ImmutableList.copyOf(ids),
+          id -> resourceRepository.get(id, new User("indexer", "", AppRole.ADMIN)).get());
     }
-  }
-
-  /**
-   * Helper class to get reference attribute value id.
-   */
-  private class GetResourceId implements Function<ResourceAttributeValueId, ResourceId> {
-
-    public ResourceId apply(ResourceAttributeValueId attrValueId) {
-      return attrValueId.getResourceId();
-    }
-
   }
 
 }

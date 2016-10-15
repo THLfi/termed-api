@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -41,14 +41,14 @@ public class UserSchemeRoleId implements Serializable {
       return false;
     }
     UserSchemeRoleId that = (UserSchemeRoleId) o;
-    return Objects.equal(username, that.username) &&
-           Objects.equal(schemeId, that.schemeId) &&
-           Objects.equal(role, that.role);
+    return Objects.equals(username, that.username) &&
+           Objects.equals(schemeId, that.schemeId) &&
+           Objects.equals(role, that.role);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(username, schemeId, role);
+    return Objects.hash(username, schemeId, role);
   }
 
   @Override

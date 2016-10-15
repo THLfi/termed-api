@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
@@ -20,7 +20,7 @@ public class ResourceReferenceAttributeValuesByResourceId
 
   @Override
   public boolean accept(ResourceAttributeValueId attributeValueId, ResourceId value) {
-    return Objects.equal(attributeValueId.getResourceId(), resourceId);
+    return Objects.equals(attributeValueId.getResourceId(), resourceId);
   }
 
   @Override
@@ -43,7 +43,7 @@ public class ResourceReferenceAttributeValuesByResourceId
     }
     ResourceReferenceAttributeValuesByResourceId that =
         (ResourceReferenceAttributeValuesByResourceId) o;
-    return Objects.equal(resourceId, that.resourceId);
+    return Objects.equals(resourceId, that.resourceId);
   }
 
   @Override

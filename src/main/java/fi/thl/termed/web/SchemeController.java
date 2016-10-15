@@ -1,9 +1,5 @@
 package fi.thl.termed.web;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +10,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -25,7 +24,6 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.util.specification.TrueSpecification;
 
-import static com.google.common.collect.Iterables.tryFind;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -55,7 +53,7 @@ public class SchemeController {
   @ResponseBody
   public Scheme get(@PathVariable("schemeId") UUID schemeId,
                     @AuthenticationPrincipal User user) {
-    return schemeService.get(schemeId, user).orNull();
+    return schemeService.get(schemeId, user).get();
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}",
@@ -65,7 +63,8 @@ public class SchemeController {
                         @PathVariable("classId") String classId,
                         @AuthenticationPrincipal User user) {
     Optional<Scheme> o = schemeService.get(schemeId, user);
-    return o.isPresent() ? Iterables.find(o.get().getClasses(), new ClassIdMatches(classId)) : null;
+    return o.isPresent() ? o.get().getClasses()
+        .stream().filter(new ClassIdMatches(classId)).findFirst().get() : null;
   }
 
   @RequestMapping(method = GET, value = "/{schemeId}/classes/{classId}/textAttributes",
@@ -76,8 +75,9 @@ public class SchemeController {
                                                @AuthenticationPrincipal User user) {
     Optional<Scheme> scheme = schemeService.get(schemeId, user);
     Optional<Class> cls = scheme.isPresent()
-                          ? tryFind(scheme.get().getClasses(), new ClassIdMatches(classId))
-                          : Optional.<Class>absent();
+                          ? scheme.get().getClasses()
+                              .stream().filter(new ClassIdMatches(classId)).findFirst()
+                          : Optional.<Class>empty();
     return cls.isPresent() ? cls.get().getTextAttributes()
                            : Lists.<TextAttribute>newArrayList();
   }
@@ -90,8 +90,9 @@ public class SchemeController {
                                                          @AuthenticationPrincipal User user) {
     Optional<Scheme> scheme = schemeService.get(schemeId, user);
     Optional<Class> cls = scheme.isPresent()
-                          ? tryFind(scheme.get().getClasses(), new ClassIdMatches(classId))
-                          : Optional.<Class>absent();
+                          ? scheme.get().getClasses()
+                              .stream().filter(new ClassIdMatches(classId)).findFirst()
+                          : Optional.<Class>empty();
     return cls.isPresent() ? cls.get().getReferenceAttributes()
                            : Lists.<ReferenceAttribute>newArrayList();
   }
@@ -131,8 +132,8 @@ public class SchemeController {
     }
 
     @Override
-    public boolean apply(Class cls) {
-      return Objects.equal(cls.getId(), id);
+    public boolean test(Class cls) {
+      return Objects.equals(cls.getId(), id);
     }
 
   }

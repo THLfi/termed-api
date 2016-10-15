@@ -1,10 +1,10 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Multimap;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.util.collect.ListUtils;
@@ -146,20 +146,20 @@ public class Class {
       return false;
     }
     Class cls = (Class) o;
-    return Objects.equal(id, cls.id) &&
-           Objects.equal(uri, cls.uri) &&
-           Objects.equal(index, cls.index) &&
-           Objects.equal(getSchemeId(), cls.getSchemeId()) &&
-           Objects.equal(permissions, cls.permissions) &&
-           Objects.equal(properties, cls.properties) &&
-           Objects.equal(textAttributes, cls.textAttributes) &&
-           Objects.equal(referenceAttributes, cls.referenceAttributes);
+    return Objects.equals(id, cls.id) &&
+           Objects.equals(uri, cls.uri) &&
+           Objects.equals(index, cls.index) &&
+           Objects.equals(getSchemeId(), cls.getSchemeId()) &&
+           Objects.equals(permissions, cls.permissions) &&
+           Objects.equals(properties, cls.properties) &&
+           Objects.equals(textAttributes, cls.textAttributes) &&
+           Objects.equals(referenceAttributes, cls.referenceAttributes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, getSchemeId(), permissions, properties, textAttributes,
-                            referenceAttributes);
+    return Objects.hash(id, uri, index, getSchemeId(), permissions, properties, textAttributes,
+                        referenceAttributes);
   }
 
 }

@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.UUID;
 
@@ -24,8 +24,8 @@ public class ReferenceAttributeByUri
 
   @Override
   protected boolean accept(ReferenceAttributeId key, ReferenceAttribute value) {
-    return Objects.equal(key.getDomainId().getSchemeId(), schemeId) &&
-           Objects.equal(value.getUri(), uri);
+    return Objects.equals(key.getDomainId().getSchemeId(), schemeId) &&
+           Objects.equals(value.getUri(), uri);
   }
 
   @Override
@@ -47,13 +47,13 @@ public class ReferenceAttributeByUri
       return false;
     }
     ReferenceAttributeByUri that = (ReferenceAttributeByUri) o;
-    return Objects.equal(schemeId, that.schemeId) &&
-           Objects.equal(uri, that.uri);
+    return Objects.equals(schemeId, that.schemeId) &&
+           Objects.equals(uri, that.uri);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(schemeId, uri);
+    return Objects.hash(schemeId, uri);
   }
 
   @Override

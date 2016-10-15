@@ -1,6 +1,5 @@
 package fi.thl.termed.util.rdf;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 
@@ -13,6 +12,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.LangValue;
 
@@ -90,11 +90,7 @@ public class JenaRdfModel implements RdfModel {
       public boolean apply(Node input) {
         return input.isLiteral();
       }
-    }), new Function<Node, LiteralLabel>() {
-      public LiteralLabel apply(Node input) {
-        return input.getLiteral();
-      }
-    });
+    }), input -> input.getLiteral());
   }
 
   private List<String> uris(List<Node> nodes) {
@@ -102,11 +98,7 @@ public class JenaRdfModel implements RdfModel {
       public boolean apply(Node input) {
         return input.isURI();
       }
-    }), new Function<Node, String>() {
-      public String apply(Node input) {
-        return input.getURI();
-      }
-    });
+    }), input -> input.getURI());
   }
 
   private List<Node> subjects() {
@@ -118,11 +110,7 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> subjects(List<Triple> triples) {
-    return transform(triples, new Function<Triple, Node>() {
-      public Node apply(Triple input) {
-        return input.getSubject();
-      }
-    });
+    return transform(triples, input -> input.getSubject());
   }
 
   private List<Node> predicates(Node subject) {
@@ -130,11 +118,7 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> predicates(List<Triple> triples) {
-    return transform(triples, new Function<Triple, Node>() {
-      public Node apply(Triple input) {
-        return input.getPredicate();
-      }
-    });
+    return transform(triples, input -> input.getPredicate());
   }
 
   private List<Node> objects(Node subject, Node predicate) {
@@ -142,11 +126,7 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> objects(List<Triple> triples) {
-    return transform(triples, new Function<Triple, Node>() {
-      public Node apply(Triple input) {
-        return input.getObject();
-      }
-    });
+    return transform(triples, input -> input.getObject());
   }
 
   @Override

@@ -1,6 +1,5 @@
 package fi.thl.termed.service.resource;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 
 import java.util.Map;
@@ -16,7 +15,8 @@ import fi.thl.termed.util.permission.PermissionEvaluator;
 import static com.google.common.collect.Multimaps.filterEntries;
 import static com.google.common.collect.Multimaps.filterKeys;
 
-public class ResourceAttributePermissionFilter implements Function<Resource, Resource> {
+public class ResourceAttributePermissionFilter implements
+                                               java.util.function.Function<Resource, Resource> {
 
   private PermissionEvaluator<ClassId> classEvaluator;
   private PermissionEvaluator<TextAttributeId> textAttrEvaluator;

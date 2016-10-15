@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
@@ -22,7 +22,7 @@ public class TextAttributePropertiesByAttributeId
 
   @Override
   public boolean accept(PropertyValueId<TextAttributeId> propertyValueId, LangValue value) {
-    return Objects.equal(propertyValueId.getSubjectId(), textAttributeId);
+    return Objects.equals(propertyValueId.getSubjectId(), textAttributeId);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class TextAttributePropertiesByAttributeId
       return false;
     }
     TextAttributePropertiesByAttributeId that = (TextAttributePropertiesByAttributeId) o;
-    return Objects.equal(textAttributeId, that.textAttributeId);
+    return Objects.equals(textAttributeId, that.textAttributeId);
   }
 
   @Override

@@ -1,7 +1,6 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -10,16 +9,18 @@ import com.google.common.collect.Multimap;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueIdDtoToModel;
@@ -27,15 +28,14 @@ import fi.thl.termed.repository.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.repository.transform.ReferenceAttributeValueModelToReferrerDto;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.repository.transform.ResourceTextAttributeValueModelToDto;
-import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
 import fi.thl.termed.spesification.sql.ResourceTextAttributeValuesByResourceId;
 import fi.thl.termed.spesification.sql.SchemePropertiesBySchemeId;
-import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.util.collect.MapUtils;
-import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Maps.difference;
@@ -215,7 +215,7 @@ public class ResourceRepositoryImpl extends AbstractRepository<ResourceId, Resou
   @Override
   public Optional<Resource> get(ResourceId id, User user) {
     return exists(id, user) ? Optional.of(new ResourceLoader(user).apply(id))
-                            : Optional.<Resource>absent();
+                            : Optional.<Resource>empty();
   }
 
   private class ResourceLoader implements Function<ResourceId, Resource> {

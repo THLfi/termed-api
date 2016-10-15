@@ -1,9 +1,9 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -48,13 +48,13 @@ public class ClassId implements Serializable {
       return false;
     }
     ClassId classId = (ClassId) o;
-    return Objects.equal(schemeId, classId.schemeId) &&
-           Objects.equal(id, classId.id);
+    return Objects.equals(schemeId, classId.schemeId) &&
+           Objects.equals(id, classId.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(schemeId, id);
+    return Objects.hash(schemeId, id);
   }
 
   @Override

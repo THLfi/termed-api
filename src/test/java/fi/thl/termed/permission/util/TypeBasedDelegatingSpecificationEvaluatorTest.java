@@ -1,6 +1,6 @@
 package fi.thl.termed.permission.util;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import org.junit.Test;
 
@@ -85,7 +85,7 @@ public class TypeBasedDelegatingSpecificationEvaluatorTest {
 
     @Override
     public boolean accept(String key, TestPerson value) {
-      return Objects.equal(value.name, name);
+      return Objects.equals(value.name, name);
     }
   }
 
@@ -99,7 +99,7 @@ public class TypeBasedDelegatingSpecificationEvaluatorTest {
 
     @Override
     public boolean accept(String key, TestPerson value) {
-      return Objects.equal(value.age, age);
+      return Objects.equals(value.age, age);
     }
   }
 

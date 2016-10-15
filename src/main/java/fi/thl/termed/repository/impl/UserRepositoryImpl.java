@@ -1,24 +1,24 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
 import fi.thl.termed.util.FunctionUtils;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
@@ -93,7 +93,7 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
   public Optional<User> get(String username, User auth) {
     Optional<User> o = userDao.get(username, auth);
     return o.isPresent() ? Optional.of(new AddSchemeRoles(auth).apply(new User(o.get())))
-                         : Optional.<User>absent();
+                         : Optional.<User>empty();
   }
 
   private class CreateCopy implements Function<User, User> {
@@ -138,7 +138,7 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
     @Override
     public SchemeRole apply(UserSchemeRoleId id) {
-      Preconditions.checkArgument(Objects.equal(expectedUsername, id.getUsername()));
+      Preconditions.checkArgument(Objects.equals(expectedUsername, id.getUsername()));
       return new SchemeRole(id.getSchemeId(), id.getRole());
     }
   }

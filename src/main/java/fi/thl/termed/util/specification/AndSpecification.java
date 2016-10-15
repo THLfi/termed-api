@@ -2,7 +2,7 @@ package fi.thl.termed.util.specification;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 
 import org.apache.lucene.search.BooleanClause;
@@ -90,7 +90,7 @@ public class AndSpecification<K extends Serializable, V>
       return false;
     }
     AndSpecification<?, ?> that = (AndSpecification<?, ?>) o;
-    return Objects.equal(specifications, that.specifications);
+    return Objects.equals(specifications, that.specifications);
   }
 
   @Override

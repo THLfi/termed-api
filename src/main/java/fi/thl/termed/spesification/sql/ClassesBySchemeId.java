@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
 
   @Override
   public boolean accept(ClassId classId, Class cls) {
-    return Objects.equal(classId.getSchemeId(), schemeId);
+    return Objects.equals(classId.getSchemeId(), schemeId);
   }
 
   @Override
@@ -43,7 +43,7 @@ public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
       return false;
     }
     ClassesBySchemeId that = (ClassesBySchemeId) o;
-    return Objects.equal(schemeId, that.schemeId);
+    return Objects.equals(schemeId, that.schemeId);
   }
 
   @Override

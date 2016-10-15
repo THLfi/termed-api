@@ -1,6 +1,5 @@
 package fi.thl.termed.exchange.rdf;
 
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -24,7 +23,7 @@ import fi.thl.termed.util.rdf.JenaRdfModel;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;
 
-public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
+public class ResourcesToRdfModel implements java.util.function.Function<List<Resource>, RdfModel> {
 
   private static final String TERMED_NS = "http://termed.thl.fi/schemes/";
 

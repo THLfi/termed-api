@@ -1,8 +1,10 @@
 package fi.thl.termed.exchange.rdf;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
+
+import java.util.Objects;
+import java.util.function.Function;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -104,8 +106,8 @@ public class RdfModelToResources implements Function<RdfModel, List<Resource>> {
     return new Predicate<Resource>() {
       public boolean apply(Resource input) {
         Class type = input.getType();
-        return Objects.equal(type.getId(), requiredType.getId()) &&
-               Objects.equal(type.getSchemeId(), requiredType.getSchemeId());
+        return Objects.equals(type.getId(), requiredType.getId()) &&
+               Objects.equals(type.getSchemeId(), requiredType.getSchemeId());
       }
     };
   }

@@ -1,6 +1,6 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;

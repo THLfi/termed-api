@@ -1,14 +1,14 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.Function;
 
-import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.PropertyValueId;
 
 public class PropertyValueModelToDto<K extends Serializable>
     implements Function<Map<PropertyValueId<K>, LangValue>, Multimap<String, LangValue>> {

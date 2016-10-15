@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.UUID;
 
@@ -22,7 +22,7 @@ public class SchemePermissionsBySchemeId
 
   @Override
   public boolean accept(ObjectRolePermission<UUID> objectRolePermission, GrantedPermission value) {
-    return Objects.equal(objectRolePermission.getObjectId(), schemeId);
+    return Objects.equals(objectRolePermission.getObjectId(), schemeId);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class SchemePermissionsBySchemeId
       return false;
     }
     SchemePermissionsBySchemeId that = (SchemePermissionsBySchemeId) o;
-    return Objects.equal(schemeId, that.schemeId);
+    return Objects.equals(schemeId, that.schemeId);
   }
 
   @Override

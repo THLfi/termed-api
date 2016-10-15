@@ -1,8 +1,7 @@
 package fi.thl.termed.exchange.tree;
 
-import com.google.common.base.Function;
-
 import java.util.List;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;

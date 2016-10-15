@@ -1,7 +1,8 @@
 package fi.thl.termed.util.collect;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.MapDifference;
+
+import java.util.Objects;
 
 public class SimpleValueDifference<V> implements MapDifference.ValueDifference<V> {
 
@@ -26,15 +27,15 @@ public class SimpleValueDifference<V> implements MapDifference.ValueDifference<V
   public boolean equals(Object o) {
     if (o instanceof MapDifference.ValueDifference) {
       MapDifference.ValueDifference<?> valueDifference = (MapDifference.ValueDifference<?>) o;
-      return Objects.equal(leftValue, valueDifference.leftValue()) &&
-             Objects.equal(rightValue, valueDifference.rightValue());
+      return Objects.equals(leftValue, valueDifference.leftValue()) &&
+             Objects.equals(rightValue, valueDifference.rightValue());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(leftValue, rightValue);
+    return Objects.hash(leftValue, rightValue);
   }
 
 }

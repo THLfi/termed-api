@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -28,7 +28,7 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
   private ClassId rangeId;
 
   public ResourceReferences(ResourceId subjectId, ReferenceAttributeId attrId, ClassId rangeId) {
-    Preconditions.checkArgument(Objects.equal(new ClassId(subjectId), attrId.getDomainId()));
+    Preconditions.checkArgument(Objects.equals(new ClassId(subjectId), attrId.getDomainId()));
     this.subjectId = subjectId;
     this.attrId = attrId;
     this.rangeId = rangeId;
@@ -48,12 +48,12 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
+    Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
-    if (Objects.equal(new ClassId(resourceId), rangeId)) {
+    if (Objects.equals(new ClassId(resourceId), rangeId)) {
       for (Map.Entry<String, ResourceId> entry : resource.getReferrerIds().entries()) {
-        if (Objects.equal(entry.getKey(), attrId.getId()) &&
-            Objects.equal(entry.getValue(), subjectId)) {
+        if (Objects.equals(entry.getKey(), attrId.getId()) &&
+            Objects.equals(entry.getValue(), subjectId)) {
           return true;
         }
       }
@@ -81,14 +81,14 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
       return false;
     }
     ResourceReferences that = (ResourceReferences) o;
-    return Objects.equal(subjectId, that.subjectId) &&
-           Objects.equal(attrId, that.attrId) &&
-           Objects.equal(rangeId, that.rangeId);
+    return Objects.equals(subjectId, that.subjectId) &&
+           Objects.equals(attrId, that.attrId) &&
+           Objects.equals(rangeId, that.rangeId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(subjectId, attrId, rangeId);
+    return Objects.hash(subjectId, attrId, rangeId);
   }
 
   @Override

@@ -1,7 +1,8 @@
 package fi.thl.termed.repository.impl;
 
+import java.util.Optional;
+
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
@@ -169,7 +170,7 @@ public class ReferenceAttributeRepositoryImpl
   public Optional<ReferenceAttribute> get(ReferenceAttributeId id, User user) {
     Optional<ReferenceAttribute> o = referenceAttributeDao.get(id, user);
     return o.isPresent() ? Optional.of(populateAttributeFunction(user).apply(o.get()))
-                         : Optional.<ReferenceAttribute>absent();
+                         : Optional.<ReferenceAttribute>empty();
   }
 
   private Function<ReferenceAttribute, ReferenceAttribute> populateAttributeFunction(User user) {

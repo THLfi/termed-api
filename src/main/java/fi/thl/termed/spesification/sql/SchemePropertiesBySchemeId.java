@@ -1,8 +1,8 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.PropertyValueId;
@@ -22,7 +22,7 @@ public class SchemePropertiesBySchemeId
 
   @Override
   public boolean accept(PropertyValueId<UUID> key, LangValue langValue) {
-    return Objects.equal(key.getSubjectId(), schemeId);
+    return Objects.equals(key.getSubjectId(), schemeId);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class SchemePropertiesBySchemeId
       return false;
     }
     SchemePropertiesBySchemeId that = (SchemePropertiesBySchemeId) o;
-    return Objects.equal(schemeId, that.schemeId);
+    return Objects.equals(schemeId, that.schemeId);
   }
 
   @Override

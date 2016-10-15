@@ -1,6 +1,6 @@
 package fi.thl.termed.dao.util;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.Maps;
 
 import org.junit.Test;
@@ -44,8 +44,8 @@ public class SecureDaoTest {
     assertFalse(secureDao.exists("nonexistent_greeting", dummyUser));
 
     assertEquals(data.get("greeting"), secureDao.get("greeting", dummyUser).get());
-    assertEquals(Optional.absent(), secureDao.get("secret_greeting", dummyUser));
-    assertEquals(Optional.absent(), secureDao.get("nonexistent_greeting", dummyUser));
+    assertEquals(Optional.empty(), secureDao.get("secret_greeting", dummyUser));
+    assertEquals(Optional.empty(), secureDao.get("nonexistent_greeting", dummyUser));
   }
 
   @Test

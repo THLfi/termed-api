@@ -1,10 +1,10 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;

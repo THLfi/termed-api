@@ -1,6 +1,6 @@
 package fi.thl.termed.service.scheme;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
@@ -90,7 +90,7 @@ public class SchemeAndResourcesService implements Service<UUID, SchemeAndResourc
           resourceService.get(schemeResourcesQuery(id, currentUser), currentUser)));
     }
 
-    return Optional.absent();
+    return Optional.empty();
   }
 
   private SpecificationQuery<ResourceId, Resource> schemeResourcesQuery(UUID schemeId, User user) {

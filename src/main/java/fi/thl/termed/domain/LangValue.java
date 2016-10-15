@@ -1,8 +1,9 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+
+import java.util.Objects;
 
 /**
  * Class to represent localized string.
@@ -35,13 +36,13 @@ public class LangValue {
       return false;
     }
     LangValue that = (LangValue) o;
-    return Objects.equal(lang, that.lang) &&
-           Objects.equal(value, that.value);
+    return Objects.equals(lang, that.lang) &&
+           Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(lang, value);
+    return Objects.hash(lang, value);
   }
 
   @Override

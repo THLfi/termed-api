@@ -1,17 +1,17 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.RegularExpressions;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 

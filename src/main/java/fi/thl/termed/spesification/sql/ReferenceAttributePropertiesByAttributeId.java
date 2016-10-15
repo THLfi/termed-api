@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
@@ -23,7 +23,7 @@ public class ReferenceAttributePropertiesByAttributeId
 
   @Override
   public boolean accept(PropertyValueId<ReferenceAttributeId> propertyValueId, LangValue value) {
-    return Objects.equal(propertyValueId.getSubjectId(), referenceAttributeId);
+    return Objects.equals(propertyValueId.getSubjectId(), referenceAttributeId);
   }
 
   @Override
@@ -48,7 +48,7 @@ public class ReferenceAttributePropertiesByAttributeId
       return false;
     }
     ReferenceAttributePropertiesByAttributeId that = (ReferenceAttributePropertiesByAttributeId) o;
-    return Objects.equal(referenceAttributeId, that.referenceAttributeId);
+    return Objects.equals(referenceAttributeId, that.referenceAttributeId);
   }
 
   @Override

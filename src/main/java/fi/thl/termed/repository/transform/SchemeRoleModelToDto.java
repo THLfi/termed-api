@@ -1,10 +1,10 @@
 package fi.thl.termed.repository.transform;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;

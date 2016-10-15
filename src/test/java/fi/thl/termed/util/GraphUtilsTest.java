@@ -1,7 +1,8 @@
 package fi.thl.termed.util;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import java.util.Objects;
+import java.util.function.Function;
+
 import com.google.common.collect.Lists;
 
 import org.junit.Test;
@@ -190,7 +191,7 @@ public class GraphUtilsTest {
         return false;
       }
       Node node = (Node) o;
-      return Objects.equal(id, node.id);
+      return Objects.equals(id, node.id);
     }
 
     @Override

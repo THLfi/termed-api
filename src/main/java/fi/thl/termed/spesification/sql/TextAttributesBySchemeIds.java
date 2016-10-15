@@ -2,7 +2,7 @@ package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class TextAttributesBySchemeIds
       return false;
     }
     TextAttributesBySchemeIds that = (TextAttributesBySchemeIds) o;
-    return Objects.equal(schemeIds, that.schemeIds);
+    return Objects.equals(schemeIds, that.schemeIds);
   }
 
   @Override

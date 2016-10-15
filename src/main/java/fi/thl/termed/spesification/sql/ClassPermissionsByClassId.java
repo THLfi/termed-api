@@ -1,7 +1,8 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -21,7 +22,7 @@ public class ClassPermissionsByClassId
 
   @Override
   public boolean accept(ObjectRolePermission<ClassId> objectRolePermission, GrantedPermission value) {
-    return Objects.equal(objectRolePermission.getObjectId(), classId);
+    return Objects.equals(objectRolePermission.getObjectId(), classId);
   }
 
   @Override
@@ -43,7 +44,7 @@ public class ClassPermissionsByClassId
       return false;
     }
     ClassPermissionsByClassId that = (ClassPermissionsByClassId) o;
-    return Objects.equal(classId, that.classId);
+    return Objects.equals(classId, that.classId);
   }
 
   @Override

@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.io.Serializable;
 
@@ -42,14 +42,14 @@ public class PropertyValueId<K extends Serializable> implements Serializable {
       return false;
     }
     PropertyValueId<?> that = (PropertyValueId<?>) o;
-    return Objects.equal(subjectId, that.subjectId) &&
-           Objects.equal(propertyId, that.propertyId) &&
-           Objects.equal(index, that.index);
+    return Objects.equals(subjectId, that.subjectId) &&
+           Objects.equals(propertyId, that.propertyId) &&
+           Objects.equals(index, that.index);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(subjectId, propertyId, index);
+    return Objects.hash(subjectId, propertyId, index);
   }
 
   @Override

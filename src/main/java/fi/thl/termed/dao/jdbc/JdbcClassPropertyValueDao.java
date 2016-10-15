@@ -1,12 +1,11 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
-
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 

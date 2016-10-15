@@ -1,7 +1,5 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.base.Optional;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +39,6 @@ public interface Dao<K extends Serializable, V> {
 
   boolean exists(K key, User user);
 
-  Optional<V> get(K key, User user);
+  java.util.Optional<V> get(K key, User user);
 
 }

@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ public class SchemeByCode extends AbstractSpecification<UUID, Scheme>
 
   @Override
   public boolean accept(UUID key, Scheme value) {
-    return Objects.equal(value.getCode(), code);
+    return Objects.equals(value.getCode(), code);
   }
 
   @Override
@@ -42,7 +42,7 @@ public class SchemeByCode extends AbstractSpecification<UUID, Scheme>
       return false;
     }
     SchemeByCode that = (SchemeByCode) o;
-    return Objects.equal(code, that.code);
+    return Objects.equals(code, that.code);
   }
 
   @Override

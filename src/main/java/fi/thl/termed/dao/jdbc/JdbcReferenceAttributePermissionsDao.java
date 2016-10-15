@@ -1,12 +1,11 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
-
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -90,7 +89,7 @@ public class JdbcReferenceAttributePermissionsDao
 
   @Override
   protected <E> Optional<E> get(ObjectRolePermission<ReferenceAttributeId> id,
-                                RowMapper<E> mapper) {
+                                          RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     ClassId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     return ListUtils.findFirst(jdbcTemplate.query(

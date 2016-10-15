@@ -1,9 +1,9 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,14 +44,14 @@ public class ResourceAttributeValueId implements Serializable {
       return false;
     }
     ResourceAttributeValueId that = (ResourceAttributeValueId) o;
-    return Objects.equal(resourceId, that.resourceId) &&
-           Objects.equal(attributeId, that.attributeId) &&
-           Objects.equal(index, that.index);
+    return Objects.equals(resourceId, that.resourceId) &&
+           Objects.equals(attributeId, that.attributeId) &&
+           Objects.equals(index, that.index);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(resourceId, attributeId, index);
+    return Objects.hash(resourceId, attributeId, index);
   }
 
   @Override

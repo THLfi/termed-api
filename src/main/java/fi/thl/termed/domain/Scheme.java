@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.collect.Multimap;
 
 import java.util.List;
@@ -125,18 +125,18 @@ public class Scheme {
       return false;
     }
     Scheme scheme = (Scheme) o;
-    return Objects.equal(id, scheme.id) &&
-           Objects.equal(code, scheme.code) &&
-           Objects.equal(uri, scheme.uri) &&
-           Objects.equal(roles, scheme.roles) &&
-           Objects.equal(permissions, scheme.permissions) &&
-           Objects.equal(properties, scheme.properties) &&
-           Objects.equal(classes, scheme.classes);
+    return Objects.equals(id, scheme.id) &&
+           Objects.equals(code, scheme.code) &&
+           Objects.equals(uri, scheme.uri) &&
+           Objects.equals(roles, scheme.roles) &&
+           Objects.equals(permissions, scheme.permissions) &&
+           Objects.equals(properties, scheme.properties) &&
+           Objects.equals(classes, scheme.classes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, code, uri, roles, permissions, properties, classes);
+    return Objects.hash(id, code, uri, roles, permissions, properties, classes);
   }
 
 }

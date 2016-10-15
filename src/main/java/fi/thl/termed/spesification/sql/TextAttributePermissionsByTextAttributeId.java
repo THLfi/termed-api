@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -23,7 +23,7 @@ public class TextAttributePermissionsByTextAttributeId
   @Override
   public boolean accept(ObjectRolePermission<TextAttributeId> objectRolePermission,
                         GrantedPermission value) {
-    return Objects.equal(objectRolePermission.getObjectId(), attributeId);
+    return Objects.equals(objectRolePermission.getObjectId(), attributeId);
   }
 
   @Override
@@ -46,7 +46,7 @@ public class TextAttributePermissionsByTextAttributeId
       return false;
     }
     TextAttributePermissionsByTextAttributeId that = (TextAttributePermissionsByTextAttributeId) o;
-    return Objects.equal(attributeId, that.attributeId);
+    return Objects.equals(attributeId, that.attributeId);
   }
 
   @Override

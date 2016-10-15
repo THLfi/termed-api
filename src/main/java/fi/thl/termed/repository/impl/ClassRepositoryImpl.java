@@ -1,7 +1,6 @@
 package fi.thl.termed.repository.impl;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -12,10 +11,10 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
@@ -30,15 +29,15 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.sql.ClassPermissionsByClassId;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.util.FunctionUtils;
-import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.util.collect.MapUtils;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
@@ -50,7 +49,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   private Dao<ClassId, Class> classDao;
   private Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao;
   private Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao;
-  private Dao<ResourceId,Resource> resourceDao;
+  private Dao<ResourceId, Resource> resourceDao;
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
   private AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
@@ -59,7 +58,7 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
       Dao<ClassId, Class> classDao,
       Dao<ObjectRolePermission<ClassId>, GrantedPermission> classPermissionDao,
       Dao<PropertyValueId<ClassId>, LangValue> classPropertyValueDao,
-      Dao<ResourceId,Resource> resourceDao,
+      Dao<ResourceId, Resource> resourceDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     this.classDao = classDao;
@@ -268,10 +267,10 @@ public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
   }
 
   @Override
-  public Optional<Class> get(ClassId id, User user) {
-    Optional<Class> o = classDao.get(id, user);
-    return o.isPresent() ? Optional.of(populateClassFunction(user).apply(o.get()))
-                         : Optional.<Class>absent();
+  public java.util.Optional<Class> get(ClassId id, User user) {
+    java.util.Optional<Class> o = classDao.get(id, user);
+    return o.isPresent() ? java.util.Optional.of(populateClassFunction(user).apply(o.get()))
+                         : java.util.Optional.<Class>empty();
   }
 
   private Function<Class, Class> populateClassFunction(User user) {

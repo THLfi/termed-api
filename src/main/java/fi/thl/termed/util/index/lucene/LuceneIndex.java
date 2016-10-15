@@ -1,7 +1,6 @@
 package fi.thl.termed.util.index.lucene;
 
 import com.google.common.base.Converter;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -36,19 +35,20 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
 
+import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.ToStringFunction;
+import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.specification.SpecificationQuery;
-import fi.thl.termed.util.collect.ListUtils;
-import fi.thl.termed.util.ProgressReporter;
-import fi.thl.termed.util.ToStringFunction;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
 import static java.util.Arrays.asList;
@@ -60,7 +60,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Converter<V, Document> documentConverter;
-  private Function<K, String> keyToString;
+  private java.util.function.Function<K, String> keyToString;
 
   private Directory directory;
   private Analyzer analyzer;
@@ -109,7 +109,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public void reindex(List<K> ids, Function<K, V> objectLoadingFunction) {
+  public void reindex(List<K> ids, java.util.function.Function<K, V> objectLoadingFunction) {
     indexingExecutor.submit(new IndexingTask(ids, objectLoadingFunction));
   }
 
@@ -166,8 +166,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private List<V> query(IndexSearcher searcher, Query query, int max, List<String> orderBy)
       throws IOException, ParseException {
     ScoreDoc[] hits = searcher.search(query, max, sort(orderBy)).scoreDocs;
-    // copy into a new list to fully run transformation so that searcherManager can be released
-    List<Document> documents = copyOf(transform(asList(hits), new ScoreDocLoader(searcher)));
+    List<Document> documents = asList(hits).stream()
+        .map(new ScoreDocLoader(searcher)).collect(Collectors.toList());
     return transform(documents, documentConverter.reverse());
   }
 
@@ -237,7 +237,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     private List<K> ids;
     private Function<K, V> objectLoadingFunction;
 
-    public IndexingTask(List<K> ids, Function<K, V> objectLoadingFunction) {
+    public IndexingTask(List<K> ids, java.util.function.Function<K, V> objectLoadingFunction) {
       this.ids = ids;
       this.objectLoadingFunction = objectLoadingFunction;
     }

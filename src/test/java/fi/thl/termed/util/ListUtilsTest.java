@@ -1,6 +1,6 @@
 package fi.thl.termed.util;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.collect.Lists;
 
 import org.junit.Test;

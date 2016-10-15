@@ -1,6 +1,6 @@
 package fi.thl.termed.exchange.tree;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.collect.Maps;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class IndexedReferenceLoader implements Function<Resource, List<Resource>
 
   // preserve reference order
   private List<Resource> order(List<Resource> references, Iterable<ResourceId> orderedIds) {
-    Map<ResourceId, Resource> referenceIndex = Maps.uniqueIndex(references, new ToResourceId());
+    Map<ResourceId, Resource> referenceIndex = Maps.uniqueIndex(references, ResourceId::new);
     return transform(newArrayList(orderedIds), forMap(referenceIndex));
   }
 

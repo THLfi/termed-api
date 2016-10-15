@@ -40,7 +40,7 @@ public class PropertyController {
   @RequestMapping(method = GET, value = "/{id}", produces = "application/json;charset=UTF-8")
   @ResponseBody
   public Property get(@PathVariable("id") String id, @AuthenticationPrincipal User user) {
-    return propertyService.get(id, user).orNull();
+    return propertyService.get(id, user).get();
   }
 
   @RequestMapping(method = POST, consumes = "application/json;charset=UTF-8")

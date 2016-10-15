@@ -1,17 +1,15 @@
 package fi.thl.termed.exchange.tree;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -19,9 +17,10 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.AbstractExporter;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.GraphUtils;
 import fi.thl.termed.util.Tree;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.service.Service;
 
 /**
  * Export resources with reference/referrer tree
@@ -58,7 +57,7 @@ public class ResourceTreeExporter extends AbstractExporter<ResourceId, Resource,
         referenceAttributeDao.get(referenceAttributeId, user).get();
     ClassId rangeId = new ClassId(referenceAttribute.getRange());
 
-    Function<Resource, List<Resource>> referenceLoadingFunction =
+    java.util.function.Function<Resource, List<Resource>> referenceLoadingFunction =
         referrers ? new IndexedReferrerLoader(service, user, referenceAttributeId, rangeId)
                   : new IndexedReferenceLoader(service, user, referenceAttributeId, rangeId);
 
@@ -71,7 +70,9 @@ public class ResourceTreeExporter extends AbstractExporter<ResourceId, Resource,
     Function<Tree<Resource>, Resource> fromTree =
         new ToResourceTree(attributeId, referrers);
 
-    return Lists.transform(values, Functions.compose(fromTree, toTree));
+    return new ArrayList<>(values).stream()
+        .map(toTree)
+        .map(fromTree).collect(Collectors.toList());
   }
 
   /**
@@ -94,12 +95,14 @@ public class ResourceTreeExporter extends AbstractExporter<ResourceId, Resource,
       if (referrers) {
         Multimap<String, Resource> refs = resource.getReferrers();
         refs.removeAll(attributeId);
-        refs.putAll(attributeId, Iterables.transform(input.getChildren(), this));
+        refs.putAll(attributeId,
+                    input.getChildren().stream().map(this).collect(Collectors.toList()));
         resource.setReferrers(refs);
       } else {
         Multimap<String, Resource> refs = resource.getReferences();
         refs.removeAll(attributeId);
-        refs.putAll(attributeId, Iterables.transform(input.getChildren(), this));
+        refs.putAll(attributeId,
+                    input.getChildren().stream().map(this).collect(Collectors.toList()));
         resource.setReferences(refs);
       }
 

@@ -1,7 +1,7 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -32,9 +32,9 @@ public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
 
   @Override
   public boolean accept(ResourceId resourceId, Resource resource) {
-    Preconditions.checkArgument(Objects.equal(resourceId, new ResourceId(resource)));
-    return Objects.equal(resource.getSchemeId(), schemeId) &&
-           Objects.equal(resource.getUri(), uri);
+    Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
+    return Objects.equals(resource.getSchemeId(), schemeId) &&
+           Objects.equals(resource.getUri(), uri);
   }
 
   @Override
@@ -64,13 +64,13 @@ public class ResourceByUri extends AbstractSpecification<ResourceId, Resource>
       return false;
     }
     ResourceByUri that = (ResourceByUri) o;
-    return Objects.equal(schemeId, that.schemeId) &&
-           Objects.equal(uri, that.uri);
+    return Objects.equals(schemeId, that.schemeId) &&
+           Objects.equals(uri, that.uri);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(schemeId, uri);
+    return Objects.hash(schemeId, uri);
   }
 
   @Override

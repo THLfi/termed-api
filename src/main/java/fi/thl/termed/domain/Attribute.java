@@ -1,9 +1,9 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Multimap;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.util.collect.MultimapUtils;
@@ -109,17 +109,17 @@ public abstract class Attribute {
       return false;
     }
     Attribute attribute = (Attribute) o;
-    return Objects.equal(id, attribute.id) &&
-           Objects.equal(uri, attribute.uri) &&
-           Objects.equal(index, attribute.index) &&
-           Objects.equal(getDomainClassId(), attribute.getDomainClassId()) &&
-           Objects.equal(permissions, attribute.permissions) &&
-           Objects.equal(properties, attribute.properties);
+    return Objects.equals(id, attribute.id) &&
+           Objects.equals(uri, attribute.uri) &&
+           Objects.equals(index, attribute.index) &&
+           Objects.equals(getDomainClassId(), attribute.getDomainClassId()) &&
+           Objects.equals(permissions, attribute.permissions) &&
+           Objects.equals(properties, attribute.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, uri, index, getDomainClassId(), permissions, properties);
+    return Objects.hash(id, uri, index, getDomainClassId(), permissions, properties);
   }
 
   @Override

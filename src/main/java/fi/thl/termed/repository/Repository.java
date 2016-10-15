@@ -1,6 +1,6 @@
 package fi.thl.termed.repository;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 import java.io.Serializable;
 import java.util.List;

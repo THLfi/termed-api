@@ -1,12 +1,11 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
-
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -16,9 +15,9 @@ import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.SchemeRole;
-import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class JdbcClassPermissionsDao
     extends AbstractJdbcDao<ObjectRolePermission<ClassId>, GrantedPermission> {

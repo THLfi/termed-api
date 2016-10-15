@@ -1,6 +1,6 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -87,7 +87,7 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   }
 
   @Override
-  public Optional<V> get(K key) {
+  public java.util.Optional<V> get(K key) {
     return keyValueCache.getUnchecked(key);
   }
 
@@ -103,9 +103,9 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
     }
   }
 
-  private class KeyValueCacheLoader extends CacheLoader<K, Optional<V>> {
+  private class KeyValueCacheLoader extends CacheLoader<K, java.util.Optional<V>> {
 
-    public Optional<V> load(K key) {
+    public java.util.Optional<V> load(K key) {
       return delegate.get(key);
     }
   }

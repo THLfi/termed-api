@@ -1,22 +1,21 @@
 package fi.thl.termed.dao.jdbc;
 
-import com.google.common.base.Optional;
-
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
-import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.specification.SqlSpecification;
 
-import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkState;
 
 public class JdbcSchemeRoleDao extends AbstractJdbcDao<SchemeRole, Empty> {
@@ -39,7 +38,7 @@ public class JdbcSchemeRoleDao extends AbstractJdbcDao<SchemeRole, Empty> {
 
   @Override
   public void delete(SchemeRole id) {
-    checkState(equal(id.getSchemeId(), id.getSchemeId()));
+    checkState(Objects.equals(id.getSchemeId(), id.getSchemeId()));
 
     jdbcTemplate.update(
         "delete from scheme_role where scheme_id = ? and role = ?",

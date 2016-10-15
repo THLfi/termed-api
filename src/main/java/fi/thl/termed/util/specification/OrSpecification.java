@@ -2,7 +2,6 @@ package fi.thl.termed.util.specification;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import org.apache.lucene.search.BooleanClause;
@@ -13,6 +12,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -90,7 +90,7 @@ public class OrSpecification<K extends Serializable, V>
       return false;
     }
     OrSpecification<?, ?> that = (OrSpecification<?, ?>) o;
-    return Objects.equal(specifications, that.specifications);
+    return Objects.equals(specifications, that.specifications);
   }
 
   @Override
