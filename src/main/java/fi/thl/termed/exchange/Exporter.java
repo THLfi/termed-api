@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 /**
  * Typically a wrapper for service where values are converted to exported type before returning.

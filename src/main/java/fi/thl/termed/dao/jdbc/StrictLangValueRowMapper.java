@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 public class StrictLangValueRowMapper implements RowMapper<StrictLangValue> {
 

@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
@@ -33,8 +33,8 @@ import fi.thl.termed.repository.impl.ResourceRepositoryImpl;
 import fi.thl.termed.repository.impl.SchemeRepositoryImpl;
 import fi.thl.termed.repository.impl.TextAttributeRepositoryImpl;
 import fi.thl.termed.repository.impl.UserRepositoryImpl;
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 /**
  * Configures Repositories. A Repository is intended to abstract persisting of complex objects.

@@ -10,6 +10,8 @@ import com.google.gson.reflect.TypeToken;
 
 import org.junit.Test;
 
+import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
+
 import static org.junit.Assert.assertEquals;
 
 public class MultimapTypeAdapterFactoryTest {

@@ -7,11 +7,13 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.dao.MemoryBasedSystemDao;
+import fi.thl.termed.util.dao.SecureDao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

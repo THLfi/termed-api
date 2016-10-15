@@ -13,6 +13,10 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import fi.thl.termed.util.json.JsonObjectEntryTransformer;
+import fi.thl.termed.util.json.JsonPredicates;
+import fi.thl.termed.util.json.JsonUtils;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

@@ -12,8 +12,8 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class TextAttributesBySchemeIds
     extends AbstractSpecification<TextAttributeId, TextAttribute>

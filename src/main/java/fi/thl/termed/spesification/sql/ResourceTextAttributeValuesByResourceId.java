@@ -5,9 +5,9 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.domain.StrictLangValue;
 
 public class ResourceTextAttributeValuesByResourceId
     extends AbstractSpecification<ResourceAttributeValueId, StrictLangValue>

@@ -17,7 +17,7 @@ import java.util.UUID;
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.Tree;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;

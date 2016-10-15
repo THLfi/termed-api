@@ -6,9 +6,9 @@ import org.junit.Test;
 
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.permission.common.TypeBasedDelegatingSpecificationEvaluator;
-import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.TypeBasedDelegatingSpecificationEvaluator;
+import fi.thl.termed.util.specification.AbstractSpecification;
 
 import static org.junit.Assert.assertEquals;
 

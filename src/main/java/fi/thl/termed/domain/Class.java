@@ -7,9 +7,8 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.ListUtils;
-import fi.thl.termed.util.MultimapUtils;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.collect.MultimapUtils;
 
 public class Class {
 

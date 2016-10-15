@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 public class LangValueRowMapper implements RowMapper<LangValue> {
 

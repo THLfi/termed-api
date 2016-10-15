@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.dao.SystemDao;
-import fi.thl.termed.dao.util.SecureDao;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.dao.SecureDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
@@ -38,11 +38,11 @@ import fi.thl.termed.domain.function.ResourceAttributeValueIdToTextAttributeId;
 import fi.thl.termed.domain.function.ResourceIdToClassId;
 import fi.thl.termed.domain.function.ResourceToClassId;
 import fi.thl.termed.domain.function.SchemeRoleToSchemeId;
-import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.permission.common.MappingPermissionEvaluator;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.MappingPermissionEvaluator;
+import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 /**
  * Configures DAOs, typically with some sort of permission evaluating strategy.

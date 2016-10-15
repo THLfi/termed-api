@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import fi.thl.termed.util.collect.ListUtils;
+
 import static org.junit.Assert.assertEquals;
 
 public class ListUtilsTest {

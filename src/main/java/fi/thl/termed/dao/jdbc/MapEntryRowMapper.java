@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-import fi.thl.termed.util.MapUtils;
+import fi.thl.termed.util.collect.MapUtils;
 
 public class MapEntryRowMapper<K, V> implements RowMapper<Map.Entry<K, V>> {
 

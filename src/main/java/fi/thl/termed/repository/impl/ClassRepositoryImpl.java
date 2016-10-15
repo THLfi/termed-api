@@ -12,7 +12,7 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.GrantedPermission;
@@ -30,20 +30,20 @@ import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
 import fi.thl.termed.repository.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.repository.transform.RolePermissionsModelToDto;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.sql.ClassPermissionsByClassId;
 import fi.thl.termed.spesification.sql.ClassPropertiesByClassId;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.util.FunctionUtils;
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.MapUtils;
+import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.util.collect.MapUtils;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.difference;
-import static fi.thl.termed.util.MapUtils.newLinkedHashMap;
+import static fi.thl.termed.util.collect.MapUtils.newLinkedHashMap;
 
 public class ClassRepositoryImpl extends AbstractRepository<ClassId, Class> {
 

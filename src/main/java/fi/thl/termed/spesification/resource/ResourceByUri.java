@@ -13,9 +13,9 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.LuceneSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 

@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeAndResources;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.util.TrueSpecification;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.TrueSpecification;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;

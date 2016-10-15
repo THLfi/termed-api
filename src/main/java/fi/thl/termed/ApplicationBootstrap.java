@@ -16,16 +16,16 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.index.Index;
+import fi.thl.termed.util.index.Index;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.util.TrueSpecification;
-import fi.thl.termed.util.ResourceUtils;
+import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.TrueSpecification;
+import fi.thl.termed.util.io.ResourceUtils;
 import fi.thl.termed.util.UUIDs;
 
 /**

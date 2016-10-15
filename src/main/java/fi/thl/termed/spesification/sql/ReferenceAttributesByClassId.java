@@ -6,8 +6,8 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
 
 public class ReferenceAttributesByClassId
     extends AbstractSpecification<ReferenceAttributeId, ReferenceAttribute>

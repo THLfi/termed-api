@@ -6,8 +6,7 @@ import com.google.common.collect.Multimap;
 
 import java.util.UUID;
 
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.MultimapUtils;
+import fi.thl.termed.util.collect.MultimapUtils;
 
 public abstract class Attribute {
 

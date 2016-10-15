@@ -19,7 +19,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.rdf.JenaRdfModel;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;

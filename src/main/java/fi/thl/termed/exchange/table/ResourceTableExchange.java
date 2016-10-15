@@ -12,8 +12,8 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.AbstractExchange;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.util.JsonUtils;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.json.JsonUtils;
 import fi.thl.termed.util.TableUtils;
 
 /**

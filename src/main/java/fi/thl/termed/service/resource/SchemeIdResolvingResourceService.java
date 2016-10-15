@@ -5,13 +5,13 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.service.common.ForwardingService;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.spesification.sql.SchemeByCode;
 import fi.thl.termed.spesification.sql.SchemeByUri;
 import fi.thl.termed.util.ErrorCode;

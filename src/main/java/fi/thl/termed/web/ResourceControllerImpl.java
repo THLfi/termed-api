@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
@@ -15,20 +15,20 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
 import fi.thl.termed.spesification.sql.ClassesBySchemeId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesBySchemeId;
-import fi.thl.termed.spesification.util.FalseSpecification;
-import fi.thl.termed.spesification.util.OrSpecification;
-import fi.thl.termed.spesification.util.TrueSpecification;
+import fi.thl.termed.util.specification.FalseSpecification;
+import fi.thl.termed.util.specification.OrSpecification;
+import fi.thl.termed.util.specification.TrueSpecification;
 
-import static fi.thl.termed.spesification.SpecificationQuery.Engine.LUCENE;
-import static fi.thl.termed.spesification.SpecificationQuery.Engine.SQL;
+import static fi.thl.termed.util.specification.SpecificationQuery.Engine.LUCENE;
+import static fi.thl.termed.util.specification.SpecificationQuery.Engine.SQL;
 
 public class ResourceControllerImpl implements ResourceController {
 

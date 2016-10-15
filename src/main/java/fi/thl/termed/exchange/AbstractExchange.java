@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
+import fi.thl.termed.util.service.Service;
 
 /**
  * Abstract Exchange (Exporter and Importer)

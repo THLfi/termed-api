@@ -21,9 +21,9 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.util.TrueSpecification;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.TrueSpecification;
 
 import static com.google.common.collect.Iterables.tryFind;
 import static org.springframework.http.HttpStatus.NO_CONTENT;

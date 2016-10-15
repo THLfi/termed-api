@@ -6,8 +6,8 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ClassPermissionsByClassId
     extends AbstractSpecification<ObjectRolePermission<ClassId>, GrantedPermission>

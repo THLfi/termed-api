@@ -6,8 +6,8 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
 
 public class SchemeByCode extends AbstractSpecification<UUID, Scheme>
     implements SqlSpecification<UUID, Scheme> {

@@ -11,12 +11,12 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
 import fi.thl.termed.util.FunctionUtils;
 

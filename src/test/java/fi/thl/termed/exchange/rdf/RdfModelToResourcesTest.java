@@ -20,7 +20,7 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.util.MultimapTypeAdapterFactory;
+import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
 import fi.thl.termed.util.rdf.JenaRdfModel;
 import fi.thl.termed.util.rdf.RdfModel;
 

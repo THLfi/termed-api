@@ -18,7 +18,7 @@ import fi.thl.termed.Application;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 import static org.junit.Assert.assertEquals;
 

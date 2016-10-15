@@ -11,7 +11,7 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.PermissionEvaluator;
 
 import static com.google.common.collect.Multimaps.filterEntries;
 import static com.google.common.collect.Multimaps.filterKeys;

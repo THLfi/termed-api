@@ -11,14 +11,14 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.resource.ResourceReferences;
 
 import static com.google.common.base.Functions.forMap;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
-import static fi.thl.termed.spesification.SpecificationQuery.Engine.LUCENE;
+import static fi.thl.termed.util.specification.SpecificationQuery.Engine.LUCENE;
 
 /**
  * Load resource references from index.

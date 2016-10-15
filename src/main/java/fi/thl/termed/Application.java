@@ -14,8 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
-import fi.thl.termed.util.DateTypeAdapter;
-import fi.thl.termed.util.MultimapTypeAdapterFactory;
+import fi.thl.termed.util.json.DateTypeAdapter;
+import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
 import fi.thl.termed.util.rdf.JenaModelMessageConverter;
 
 @SpringBootApplication

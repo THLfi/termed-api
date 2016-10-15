@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static com.jayway.restassured.RestAssured.given;
-import static fi.thl.termed.util.JsonUtils.getJsonResource;
+import static fi.thl.termed.util.json.JsonUtils.getJsonResource;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 

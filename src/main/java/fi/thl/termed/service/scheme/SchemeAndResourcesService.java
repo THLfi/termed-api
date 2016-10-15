@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
@@ -15,12 +15,12 @@ import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeAndResources;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.sql.ClassesBySchemeId;
-import fi.thl.termed.spesification.util.OrSpecification;
+import fi.thl.termed.util.specification.OrSpecification;
 
 public class SchemeAndResourcesService implements Service<UUID, SchemeAndResources> {
 

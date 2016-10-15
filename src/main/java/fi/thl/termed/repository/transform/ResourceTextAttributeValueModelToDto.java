@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 public class ResourceTextAttributeValueModelToDto
     implements

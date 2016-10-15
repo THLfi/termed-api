@@ -11,19 +11,19 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.transform.PropertyValueDtoToModel;
 import fi.thl.termed.repository.transform.PropertyValueModelToDto;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.spesification.sql.PropertyPropertiesByPropertyId;
 import fi.thl.termed.util.FunctionUtils;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 import static com.google.common.collect.ImmutableList.copyOf;
-import static fi.thl.termed.util.MapUtils.leftValues;
+import static fi.thl.termed.util.collect.MapUtils.leftValues;
 
 public class PropertyRepositoryImpl extends AbstractRepository<String, Property> {
 

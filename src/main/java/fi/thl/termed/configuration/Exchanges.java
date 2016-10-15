@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -21,7 +21,7 @@ import fi.thl.termed.exchange.rdf.ResourceRdfExchange;
 import fi.thl.termed.exchange.table.ResourceTableExchange;
 import fi.thl.termed.exchange.tree.ResourceContextJsTreeExporter;
 import fi.thl.termed.exchange.tree.ResourceTreeExporter;
-import fi.thl.termed.service.Service;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.rdf.RdfModel;
 
 /**

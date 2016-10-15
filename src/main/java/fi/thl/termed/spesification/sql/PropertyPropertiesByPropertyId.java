@@ -4,9 +4,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.domain.LangValue;
 
 public class PropertyPropertiesByPropertyId
     extends AbstractSpecification<PropertyValueId<String>, LangValue>

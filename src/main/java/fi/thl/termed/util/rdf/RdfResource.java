@@ -6,7 +6,7 @@ import com.google.common.collect.Multimap;
 
 import java.util.Collections;
 
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 /**
  * Class to represent RDF resource with literal and object properties. Object property values are

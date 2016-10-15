@@ -12,9 +12,9 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.ListUtils;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcResourceTextAttributeValueDao

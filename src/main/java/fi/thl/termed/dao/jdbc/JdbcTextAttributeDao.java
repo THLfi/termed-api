@@ -15,8 +15,8 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.ListUtils;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {

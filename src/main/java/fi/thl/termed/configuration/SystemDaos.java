@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.dao.jdbc.JdbcClassDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPropertyValueDao;
@@ -28,7 +28,7 @@ import fi.thl.termed.dao.jdbc.JdbcTextAttributePermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePropertyValueDao;
 import fi.thl.termed.dao.jdbc.JdbcUserDao;
 import fi.thl.termed.dao.jdbc.JdbcUserSchemeRoleDao;
-import fi.thl.termed.dao.util.CachedSystemDao;
+import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
@@ -47,8 +47,8 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.util.LangValue;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 /**
  * Configures system DAOs which are at the lowest level of the application. A system DAO typically

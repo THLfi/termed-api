@@ -14,11 +14,11 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 import static com.google.common.collect.Lists.transform;
 import static com.hp.hpl.jena.graph.Node.createURI;
-import static fi.thl.termed.util.ListUtils.filter;
+import static fi.thl.termed.util.collect.ListUtils.filter;
 
 public class JenaRdfModel implements RdfModel {
 

@@ -6,9 +6,9 @@ import com.google.common.base.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.domain.LangValue;
 
 public class ReferenceAttributePropertiesByAttributeId
     extends AbstractSpecification<PropertyValueId<ReferenceAttributeId>, LangValue>

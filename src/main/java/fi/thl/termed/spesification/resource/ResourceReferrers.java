@@ -15,8 +15,8 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.LuceneSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 

@@ -11,8 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.util.MultimapUtils;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.util.collect.MultimapUtils;
 
 public class Resource implements Auditable {
 

@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import fi.thl.termed.util.ListUtils;
+import fi.thl.termed.util.collect.ListUtils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

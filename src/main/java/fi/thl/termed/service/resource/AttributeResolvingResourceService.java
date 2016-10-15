@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -16,13 +16,13 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.service.common.ForwardingService;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.spesification.resource.ResourceByCode;
 import fi.thl.termed.spesification.resource.ResourceByUri;
 import fi.thl.termed.spesification.sql.ReferenceAttributesByClassId;
 import fi.thl.termed.spesification.sql.TextAttributesByClassId;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 
 /**

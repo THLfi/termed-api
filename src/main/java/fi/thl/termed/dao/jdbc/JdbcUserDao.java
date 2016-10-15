@@ -12,8 +12,8 @@ import javax.sql.DataSource;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.ListUtils;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.collect.ListUtils;
 
 public class JdbcUserDao extends AbstractJdbcDao<String, User> {
 

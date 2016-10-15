@@ -6,7 +6,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.PermissionEvaluator;
 
 public class ResourcePermissionPredicate implements Predicate<Resource> {
 

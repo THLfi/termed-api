@@ -8,7 +8,7 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Permission;
@@ -18,18 +18,18 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.index.Index;
-import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.service.common.ForwardingService;
-import fi.thl.termed.spesification.SpecificationQuery;
-import fi.thl.termed.spesification.SpecificationQuery.Engine;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery.Engine;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeResourcesByValueId;
 import fi.thl.termed.spesification.sql.ResourceReferenceAttributeValuesByResourceId;
 
 import static com.google.common.collect.Lists.transform;
-import static fi.thl.termed.util.ListUtils.filter;
+import static fi.thl.termed.util.collect.ListUtils.filter;
 
 /**
  * Manages querying and updating full text index of resources

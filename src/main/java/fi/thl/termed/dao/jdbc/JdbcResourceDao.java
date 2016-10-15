@@ -14,8 +14,8 @@ import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.ListUtils;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
 public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {

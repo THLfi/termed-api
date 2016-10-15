@@ -7,8 +7,8 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class TextAttributePermissionsByTextAttributeId
     extends AbstractSpecification<ObjectRolePermission<TextAttributeId>, GrantedPermission>

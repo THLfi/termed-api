@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

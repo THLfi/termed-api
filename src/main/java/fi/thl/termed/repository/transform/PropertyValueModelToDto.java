@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 
 public class PropertyValueModelToDto<K extends Serializable>
     implements Function<Map<PropertyValueId<K>, LangValue>, Multimap<String, LangValue>> {

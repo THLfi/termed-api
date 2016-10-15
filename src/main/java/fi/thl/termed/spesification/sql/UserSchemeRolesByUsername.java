@@ -5,8 +5,8 @@ import com.google.common.base.Objects;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.AbstractSpecification;
-import fi.thl.termed.spesification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class UserSchemeRolesByUsername extends AbstractSpecification<UserSchemeRoleId, Empty>
     implements SqlSpecification<UserSchemeRoleId, Empty> {

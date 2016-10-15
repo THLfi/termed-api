@@ -15,10 +15,10 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.dao.SystemDao;
-import fi.thl.termed.spesification.Specification;
-import fi.thl.termed.spesification.SqlSpecification;
-import fi.thl.termed.util.MapUtils;
+import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.collect.MapUtils;
 
 /**
  * Base class to help with implementing a JDBC Dao.

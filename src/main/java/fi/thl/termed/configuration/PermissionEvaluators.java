@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.UUID;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.GrantedPermission;
@@ -18,18 +18,18 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.permission.PermissionEvaluator;
-import fi.thl.termed.permission.common.AppRolePermissionEvaluator;
-import fi.thl.termed.permission.common.DaoPermissionEvaluator;
-import fi.thl.termed.permission.common.DisjunctionPermissionEvaluator;
-import fi.thl.termed.permission.common.TypeBasedDelegatingSpecificationEvaluator;
-import fi.thl.termed.spesification.Specification;
+import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.permission.AppRolePermissionEvaluator;
+import fi.thl.termed.util.permission.DaoPermissionEvaluator;
+import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
+import fi.thl.termed.util.permission.TypeBasedDelegatingSpecificationEvaluator;
+import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.spesification.resource.ResourceReferences;
 import fi.thl.termed.spesification.resource.ResourceReferrers;
 import fi.thl.termed.spesification.resource.ResourcesByClassId;
 import fi.thl.termed.spesification.resource.ResourcesByTextAttributeValuePrefix;
-import fi.thl.termed.spesification.util.AndSpecification;
-import fi.thl.termed.spesification.util.OrSpecification;
+import fi.thl.termed.util.specification.AndSpecification;
+import fi.thl.termed.util.specification.OrSpecification;
 
 /**
  * Configures permission evaluators which are the base for authorizing object access.

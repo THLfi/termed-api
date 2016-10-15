@@ -11,7 +11,7 @@ import java.util.Map;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 

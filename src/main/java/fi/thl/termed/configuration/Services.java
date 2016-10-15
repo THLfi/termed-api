@@ -6,8 +6,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Property;
@@ -21,13 +21,13 @@ import fi.thl.termed.domain.SchemeAndResources;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.index.Index;
-import fi.thl.termed.permission.PermissionEvaluator;
+import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.service.common.LoggingService;
-import fi.thl.termed.service.common.RepositoryService;
-import fi.thl.termed.service.common.TransactionalService;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.LoggingService;
+import fi.thl.termed.util.service.RepositoryService;
+import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.service.resource.AttributeResolvingResourceService;
 import fi.thl.termed.service.resource.IdResolvingResourceService;
 import fi.thl.termed.service.resource.IndexingResourceService;
@@ -36,7 +36,7 @@ import fi.thl.termed.service.scheme.IndexingSchemeService;
 import fi.thl.termed.service.scheme.ResolvingSchemeService;
 import fi.thl.termed.service.scheme.SchemeAndResourcesService;
 import fi.thl.termed.service.scheme.ValidatingSchemeService;
-import fi.thl.termed.util.StrictLangValue;
+import fi.thl.termed.domain.StrictLangValue;
 
 /**
  * Configures Services.

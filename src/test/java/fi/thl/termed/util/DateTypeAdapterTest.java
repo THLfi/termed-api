@@ -2,12 +2,13 @@ package fi.thl.termed.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonNull;
 
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.util.Date;
+
+import fi.thl.termed.util.json.DateTypeAdapter;
 
 import static org.junit.Assert.assertEquals;
 

@@ -10,7 +10,7 @@ import java.util.Map;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.util.SimpleValueDifference;
+import fi.thl.termed.util.collect.SimpleValueDifference;
 
 public abstract class AbstractRepository<K extends Serializable, V> implements Repository<K, V> {
 

@@ -7,7 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.dao.Dao;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.JsTree;
@@ -21,7 +21,7 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.exchange.Exchange;
 import fi.thl.termed.exchange.Exporter;
-import fi.thl.termed.service.Service;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.web.DumpAndRestoreController;
 import fi.thl.termed.web.PropertyController;

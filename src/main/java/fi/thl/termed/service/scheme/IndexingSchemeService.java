@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import fi.thl.termed.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.index.Index;
+import fi.thl.termed.util.index.Index;
 import fi.thl.termed.repository.Repository;
-import fi.thl.termed.service.Service;
-import fi.thl.termed.service.common.ForwardingService;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
 
 /**

@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.SpecificationQuery;
+import fi.thl.termed.util.specification.SpecificationQuery;
 
 public interface Repository<K extends Serializable, V> {
 

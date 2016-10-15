@@ -19,7 +19,7 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.util.LangValue;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;
 import fi.thl.termed.util.rdf.URIs;
@@ -27,7 +27,7 @@ import fi.thl.termed.util.rdf.URIs;
 import static com.google.common.base.Functions.forMap;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.collect.Lists.transform;
-import static fi.thl.termed.util.ListUtils.filter;
+import static fi.thl.termed.util.collect.ListUtils.filter;
 
 /**
  * Function to transform rdf model into list of resources conforming to provided scheme.

@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.index.Index;
-import fi.thl.termed.index.lucene.LuceneIndex;
-import fi.thl.termed.index.lucene.ResourceDocumentConverter;
+import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.index.lucene.LuceneIndex;
+import fi.thl.termed.service.resource.ResourceDocumentConverter;
 
 /**
  * Configures indexes.

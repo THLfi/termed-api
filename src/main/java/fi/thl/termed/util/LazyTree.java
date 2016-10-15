@@ -9,6 +9,8 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 
+import fi.thl.termed.util.collect.ListUtils;
+
 /**
  * Lazy loading implementation of a Tree. Checks for loops against the current path to avoid
  * infinite cycles.
