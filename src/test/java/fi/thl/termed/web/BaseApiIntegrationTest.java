@@ -8,24 +8,19 @@ import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 
-import fi.thl.termed.Application;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.util.UUIDs;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebAppConfiguration
-@IntegrationTest("server.port:0")
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
   protected String testUsername = "test";
