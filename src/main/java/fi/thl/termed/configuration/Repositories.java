@@ -5,11 +5,11 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.UUID;
 
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -20,10 +20,9 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeRole;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.UserSchemeRoleId;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.repository.impl.AbstractRepository;
 import fi.thl.termed.repository.impl.ClassRepositoryImpl;
@@ -32,22 +31,13 @@ import fi.thl.termed.repository.impl.ReferenceAttributeRepositoryImpl;
 import fi.thl.termed.repository.impl.ResourceRepositoryImpl;
 import fi.thl.termed.repository.impl.SchemeRepositoryImpl;
 import fi.thl.termed.repository.impl.TextAttributeRepositoryImpl;
-import fi.thl.termed.repository.impl.UserRepositoryImpl;
-import fi.thl.termed.domain.LangValue;
-import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.dao.Dao;
 
 /**
  * Configures Repositories. A Repository is intended to abstract persisting of complex objects.
  */
 @Configuration
 public class Repositories {
-
-  @Bean
-  public Repository<String, User> userRepository(
-      Dao<String, User> userDao,
-      Dao<UserSchemeRoleId, Empty> userSchemeRoleDao) {
-    return new UserRepositoryImpl(userDao, userSchemeRoleDao);
-  }
 
   @Bean
   public Repository<String, Property> propertyRepository(

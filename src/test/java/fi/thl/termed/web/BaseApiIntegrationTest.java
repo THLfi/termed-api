@@ -16,8 +16,8 @@ import javax.annotation.Resource;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.repository.Repository;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.service.Service;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -29,7 +29,7 @@ public abstract class BaseApiIntegrationTest {
   @Value("${local.server.port}")
   protected int serverPort;
   @Resource
-  protected Repository<String, User> userRepository;
+  protected Service<String, User> userRepository;
   @Resource
   protected PasswordEncoder passwordEncoder;
 

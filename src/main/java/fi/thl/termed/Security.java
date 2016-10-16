@@ -6,16 +6,17 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 import javax.annotation.Resource;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.repository.Repository;
+import fi.thl.termed.util.service.Service;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +24,7 @@ import fi.thl.termed.repository.Repository;
 public class Security extends WebSecurityConfigurerAdapter {
 
   @Resource
-  private Repository<String, User> userRepository;
+  private Service<String, User> userService;
   @Resource
   private PasswordEncoder passwordEncoder;
 
@@ -38,15 +39,10 @@ public class Security extends WebSecurityConfigurerAdapter {
 
   @Override
   public void configure(AuthenticationManagerBuilder auth) throws Exception {
-    UserDetailsService userDetailsService = new UserDetailsService() {
-      public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        java.util.Optional<User> user =
-            userRepository.get(username, new User("authenticator", "", AppRole.SUPERUSER));
-        if (user.isPresent()) {
-          return user.get();
-        }
-        throw new UsernameNotFoundException("");
-      }
+    UserDetailsService userDetailsService = username -> {
+      Optional<User> user = userService.get(
+          username, new User("authenticator", "", AppRole.SUPERUSER));
+      return user.orElseThrow(() -> new UsernameNotFoundException(""));
     };
 
     auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);

@@ -1,4 +1,4 @@
-package fi.thl.termed.dao.jdbc;
+package fi.thl.termed.component.user;
 
 import java.util.Optional;
 
@@ -16,7 +16,7 @@ import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 
-public class JdbcUserDao extends AbstractJdbcDao<String, User> {
+class JdbcUserDao extends AbstractJdbcDao<String, User> {
 
   public JdbcUserDao(DataSource dataSource) {
     super(dataSource);

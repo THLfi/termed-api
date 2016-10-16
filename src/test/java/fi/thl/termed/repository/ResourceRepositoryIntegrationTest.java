@@ -22,6 +22,7 @@ import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.service.Service;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
@@ -40,7 +41,7 @@ public class ResourceRepositoryIntegrationTest {
   private Repository<ResourceId, Resource> resourceRepository;
 
   @javax.annotation.Resource
-  private Repository<String, User> userRepository;
+  private Service<String, User> userRepository;
 
   @javax.annotation.Resource
   private PasswordEncoder passwordEncoder;

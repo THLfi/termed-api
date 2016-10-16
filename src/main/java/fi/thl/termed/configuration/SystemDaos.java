@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.dao.jdbc.JdbcClassDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcClassPropertyValueDao;
@@ -26,13 +25,11 @@ import fi.thl.termed.dao.jdbc.JdbcSchemeRoleDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributeDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePermissionsDao;
 import fi.thl.termed.dao.jdbc.JdbcTextAttributePropertyValueDao;
-import fi.thl.termed.dao.jdbc.JdbcUserDao;
-import fi.thl.termed.dao.jdbc.JdbcUserSchemeRoleDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -43,12 +40,11 @@ import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.SchemeRole;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.domain.LangValue;
-import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.dao.CachedSystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 
 /**
  * Configures system DAOs which are at the lowest level of the application. A system DAO typically
@@ -56,16 +52,6 @@ import fi.thl.termed.domain.StrictLangValue;
  */
 @Configuration
 public class SystemDaos {
-
-  @Bean
-  public SystemDao<String, User> userSystemDao(DataSource dataSource) {
-    return CachedSystemDao.create(new JdbcUserDao(dataSource));
-  }
-
-  @Bean
-  public SystemDao<UserSchemeRoleId, Empty> userSchemeRoleSystemDao(DataSource dataSource) {
-    return CachedSystemDao.create(new JdbcUserSchemeRoleDao(dataSource));
-  }
 
   @Bean
   public SystemDao<String, Property> propertySystemDao(DataSource dataSource) {

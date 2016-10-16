@@ -1,4 +1,4 @@
-package fi.thl.termed.repository.impl;
+package fi.thl.termed.component.user;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -10,23 +10,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserSchemeRoleId;
-import fi.thl.termed.spesification.sql.UserSchemeRolesByUsername;
-import fi.thl.termed.util.FunctionUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.service.AbstractRepositoryService;
 import fi.thl.termed.util.specification.SpecificationQuery;
 
-public class UserRepositoryImpl extends AbstractRepository<String, User> {
+class UserRepositoryService extends AbstractRepositoryService<String, User> {
 
   private Dao<String, User> userDao;
   private Dao<UserSchemeRoleId, Empty> userSchemeRoleDao;
 
-  public UserRepositoryImpl(Dao<String, User> userDao,
-                            Dao<UserSchemeRoleId, Empty> userSchemeRoleDao) {
+  public UserRepositoryService(Dao<String, User> userDao,
+                               Dao<UserSchemeRoleId, Empty> userSchemeRoleDao) {
     this.userDao = userDao;
     this.userSchemeRoleDao = userSchemeRoleDao;
   }
@@ -42,7 +42,7 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
     for (SchemeRole schemeRole : user.getSchemeRoles()) {
       userSchemeRoleDao.insert(new UserSchemeRoleId(
-          username, schemeRole.getSchemeId(), schemeRole.getRole()), null, auth);
+          username, schemeRole.getSchemeId(), schemeRole.getRole()), Empty.INSTANCE, auth);
     }
   }
 
@@ -59,13 +59,8 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
     }
     for (SchemeRole addedRole : Sets.difference(newRoles, oldRoles)) {
       userSchemeRoleDao.insert(new UserSchemeRoleId(
-          username, addedRole.getSchemeId(), addedRole.getRole()), null, auth);
+          username, addedRole.getSchemeId(), addedRole.getRole()), Empty.INSTANCE, auth);
     }
-  }
-
-  @Override
-  public void delete(String username, User auth) {
-    delete(username, get(username, auth).get(), auth);
   }
 
   @Override
@@ -85,43 +80,24 @@ public class UserRepositoryImpl extends AbstractRepository<String, User> {
 
   @Override
   public List<User> get(SpecificationQuery<String, User> specification, User auth) {
-    return Lists.transform(userDao.getValues(specification.getSpecification(), auth),
-                           FunctionUtils.pipe(new CreateCopy(), new AddSchemeRoles(auth)));
+    return userDao.getValues(specification.getSpecification(), auth).stream()
+        .map(user -> populateValue(user, auth))
+        .collect(Collectors.toList());
   }
 
   @Override
   public Optional<User> get(String username, User auth) {
-    Optional<User> o = userDao.get(username, auth);
-    return o.isPresent() ? Optional.of(new AddSchemeRoles(auth).apply(new User(o.get())))
-                         : Optional.<User>empty();
+    return userDao.get(username, auth).map(user -> populateValue(user, auth));
   }
 
-  private class CreateCopy implements Function<User, User> {
+  private User populateValue(User user, User auth) {
+    user = new User(user);
 
-    public User apply(User user) {
-      return new User(user);
-    }
+    user.setSchemeRoles(Lists.transform(
+        userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername()), auth),
+        new ToSchemeRole(user.getUsername())));
 
-  }
-
-  /**
-   * Adds scheme roles to user object.
-   */
-  private class AddSchemeRoles implements Function<User, User> {
-
-    private User auth;
-
-    public AddSchemeRoles(User auth) {
-      this.auth = auth;
-    }
-
-    @Override
-    public User apply(User user) {
-      user.setSchemeRoles(Lists.transform(
-          userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername()), auth),
-          new ToSchemeRole(user.getUsername())));
-      return user;
-    }
+    return user;
   }
 
   /**

@@ -23,6 +23,7 @@ import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.repository.Repository;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.util.specification.TrueSpecification;
 import fi.thl.termed.util.io.ResourceUtils;
@@ -47,7 +48,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private PasswordEncoder passwordEncoder;
 
   @Resource
-  private Repository<String, User> userRepository;
+  private Service<String, User> userRepository;
   @Resource
   private Repository<String, Property> propertyRepository;
   @Resource

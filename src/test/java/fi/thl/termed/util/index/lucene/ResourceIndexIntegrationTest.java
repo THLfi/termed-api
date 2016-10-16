@@ -31,6 +31,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.repository.Repository;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SpecificationQuery;
 import fi.thl.termed.util.UUIDs;
@@ -52,7 +53,7 @@ public class ResourceIndexIntegrationTest {
   private Index<ResourceId, Resource> resourceIndex;
 
   @javax.annotation.Resource
-  private Repository<String, User> userRepository;
+  private Service<String, User> userRepository;
 
   @javax.annotation.Resource
   private PasswordEncoder passwordEncoder;

@@ -1,4 +1,4 @@
-package fi.thl.termed.dao.jdbc;
+package fi.thl.termed.component.user;
 
 import java.util.Optional;
 
@@ -17,7 +17,7 @@ import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.UUIDs;
 
-public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Empty> {
+class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Empty> {
 
   public JdbcUserSchemeRoleDao(DataSource dataSource) {
     super(dataSource);
