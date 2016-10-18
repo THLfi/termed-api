@@ -22,15 +22,9 @@ import static fi.thl.termed.domain.Permission.UPDATE;
 
 public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> {
 
-  public enum ReportLevel {
-    LOG, THROW
-  }
-
   private Logger log = LoggerFactory.getLogger(getClass());
-
   private SystemDao<K, V> delegate;
   private PermissionEvaluator<K> evaluator;
-
   private ReportLevel reportLevel;
 
   public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator) {
@@ -108,13 +102,23 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   }
 
   private void reportFailedAuthorization(User user, K key, Permission permission) {
-    if (reportLevel == ReportLevel.LOG || reportLevel == ReportLevel.THROW) {
-      log.warn("Access denied: {} has no {} permission for {}",
-               user.getUsername(), permission, key);
-    }
-    if (reportLevel == ReportLevel.THROW) {
+    if (reportLevel == ReportLevel.SILENT) {
+      log.trace(formatErrorMessage(user, key, permission));
+    } else if (reportLevel == ReportLevel.LOG) {
+      log.warn(formatErrorMessage(user, key, permission));
+    } else if (reportLevel == ReportLevel.THROW) {
+      log.error(formatErrorMessage(user, key, permission));
       throw new AccessDeniedException("Access is denied");
     }
+  }
+
+  private String formatErrorMessage(User user, K key, Permission permission) {
+    return String.format("Access denied: %s has no %s permission for %s",
+                         user.getUsername(), permission, key);
+  }
+
+  public enum ReportLevel {
+    SILENT, LOG, THROW
   }
 
 }
