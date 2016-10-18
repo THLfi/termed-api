@@ -1,4 +1,4 @@
-package fi.thl.termed.util.rdf;
+package fi.thl.termed.web.rdf;
 
 import java.util.List;
 
@@ -19,6 +19,6 @@ public interface RdfModel {
   /**
    * Save resources with literal and object properties (i.e. all triples describing a resource).
    */
-  void save(List<RdfResource> resources);
+  RdfModel save(List<RdfResource> resources);
 
 }

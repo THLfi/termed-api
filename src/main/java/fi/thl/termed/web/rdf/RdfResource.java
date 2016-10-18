@@ -1,4 +1,4 @@
-package fi.thl.termed.util.rdf;
+package fi.thl.termed.web.rdf;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedHashMultimap;

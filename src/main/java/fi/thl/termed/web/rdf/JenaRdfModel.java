@@ -1,24 +1,19 @@
-package fi.thl.termed.util.rdf;
+package fi.thl.termed.web.rdf;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
-
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.impl.LiteralLabel;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.LangValue;
 
-import static com.google.common.collect.Lists.transform;
-import static com.hp.hpl.jena.graph.Node.createURI;
-import static fi.thl.termed.util.collect.ListUtils.filter;
 
 public class JenaRdfModel implements RdfModel {
 
@@ -50,24 +45,14 @@ public class JenaRdfModel implements RdfModel {
 
   @Override
   public List<RdfResource> find(String predicateUri, String objectUri) {
-    List<RdfResource> resources = Lists.newArrayList();
-
-    for (Node subject : subjects(predicateUri, objectUri)) {
-      resources.add(toRdfResource(subject));
-    }
-
-    return resources;
+    return subjects(predicateUri, objectUri).stream()
+        .map(this::toRdfResource).collect(Collectors.toList());
   }
 
   @Override
   public List<RdfResource> find() {
-    List<RdfResource> resources = Lists.newArrayList();
-
-    for (Node subject : subjects()) {
-      resources.add(toRdfResource(subject));
-    }
-
-    return resources;
+    return subjects().stream()
+        .map(this::toRdfResource).collect(Collectors.toList());
   }
 
   private RdfResource toRdfResource(Node subject) {
@@ -86,19 +71,13 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<LiteralLabel> literals(List<Node> nodes) {
-    return transform(filter(nodes, new Predicate<Node>() {
-      public boolean apply(Node input) {
-        return input.isLiteral();
-      }
-    }), input -> input.getLiteral());
+    return nodes.stream().filter(Node::isLiteral).map(Node::getLiteral)
+        .collect(Collectors.toList());
   }
 
   private List<String> uris(List<Node> nodes) {
-    return transform(filter(nodes, new Predicate<Node>() {
-      public boolean apply(Node input) {
-        return input.isURI();
-      }
-    }), input -> input.getURI());
+    return nodes.stream().filter(Node::isURI).map(Node::getURI)
+        .collect(Collectors.toList());
   }
 
   private List<Node> subjects() {
@@ -106,11 +85,13 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> subjects(String predicateUri, String objectUri) {
-    return subjects(graph.find(Node.ANY, createURI(predicateUri), createURI(objectUri)).toList());
+    return subjects(graph.find(Node.ANY,
+                               NodeFactory.createURI(predicateUri),
+                               NodeFactory.createURI(objectUri)).toList());
   }
 
   private List<Node> subjects(List<Triple> triples) {
-    return transform(triples, input -> input.getSubject());
+    return triples.stream().map(Triple::getSubject).collect(Collectors.toList());
   }
 
   private List<Node> predicates(Node subject) {
@@ -118,7 +99,7 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> predicates(List<Triple> triples) {
-    return transform(triples, input -> input.getPredicate());
+    return triples.stream().map(Triple::getPredicate).collect(Collectors.toList());
   }
 
   private List<Node> objects(Node subject, Node predicate) {
@@ -126,29 +107,30 @@ public class JenaRdfModel implements RdfModel {
   }
 
   private List<Node> objects(List<Triple> triples) {
-    return transform(triples, input -> input.getObject());
+    return triples.stream().map(Triple::getObject).collect(Collectors.toList());
   }
 
   @Override
-  public void save(List<RdfResource> resources) {
+  public JenaRdfModel save(List<RdfResource> resources) {
     for (RdfResource resource : resources) {
-      Node subject = Node.createURI(resource.getUri());
+      Node subject = NodeFactory.createURI(resource.getUri());
 
       for (Map.Entry<String, LangValue> entry : resource.getLiterals().entries()) {
         LangValue langValue = entry.getValue();
         graph.add(Triple.create(
             subject,
-            Node.createURI(entry.getKey()),
-            Node.createLiteral(langValue.getValue(), langValue.getLang(), false)));
+            NodeFactory.createURI(entry.getKey()),
+            NodeFactory.createLiteral(langValue.getValue(), langValue.getLang(), false)));
       }
 
       for (Map.Entry<String, String> entry : resource.getObjects().entries()) {
         graph.add(Triple.create(
             subject,
-            Node.createURI(entry.getKey()),
-            Node.createURI(entry.getValue())));
+            NodeFactory.createURI(entry.getKey()),
+            NodeFactory.createURI(entry.getValue())));
       }
     }
+    return this;
   }
 
 }

@@ -3,7 +3,6 @@ package fi.thl.termed.web;
 import com.google.gson.JsonObject;
 
 import org.apache.http.HttpStatus;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,7 +16,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 
 public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
-  @Ignore("Not yet implemented")
   @Test
   public void shouldSaveRdfVocabulary() throws IOException {
     String schemeId = UUID.randomUUID().toString();

@@ -1,4 +1,4 @@
-package fi.thl.termed.util.rdf;
+package fi.thl.termed.util;
 
 public final class URIs {
 
