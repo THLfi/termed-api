@@ -5,13 +5,11 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
-import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ClassPermissionsByClassId
-    extends AbstractSpecification<ObjectRolePermission<ClassId>, GrantedPermission>
     implements SqlSpecification<ObjectRolePermission<ClassId>, GrantedPermission> {
 
   private ClassId classId;
@@ -21,7 +19,7 @@ public class ClassPermissionsByClassId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<ClassId> objectRolePermission, GrantedPermission value) {
+  public boolean test(ObjectRolePermission<ClassId> objectRolePermission, GrantedPermission value) {
     return Objects.equals(objectRolePermission.getObjectId(), classId);
   }
 

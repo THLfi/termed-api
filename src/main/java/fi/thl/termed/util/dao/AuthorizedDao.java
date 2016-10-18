@@ -28,18 +28,18 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private SystemDao<K, V> systemDao;
+  private SystemDao<K, V> delegate;
   private PermissionEvaluator<K> evaluator;
 
   private ReportLevel reportLevel;
 
-  public AuthorizedDao(SystemDao<K, V> systemDao, PermissionEvaluator<K> evaluator) {
-    this(systemDao, evaluator, ReportLevel.THROW);
+  public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator) {
+    this(delegate, evaluator, ReportLevel.LOG);
   }
 
-  public AuthorizedDao(SystemDao<K, V> systemDao, PermissionEvaluator<K> evaluator,
+  public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator,
                        ReportLevel reportLevel) {
-    this.systemDao = systemDao;
+    this.delegate = delegate;
     this.evaluator = evaluator;
     this.reportLevel = reportLevel;
   }
@@ -47,7 +47,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   @Override
   public void insert(K key, V val, User user) {
     if (evaluator.hasPermission(user, key, INSERT)) {
-      systemDao.insert(key, val);
+      delegate.insert(key, val);
     } else {
       reportFailedAuthorization(user, key, INSERT);
     }
@@ -56,7 +56,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   @Override
   public void update(K key, V val, User user) {
     if (evaluator.hasPermission(user, key, UPDATE)) {
-      systemDao.update(key, val);
+      delegate.update(key, val);
     } else {
       reportFailedAuthorization(user, key, UPDATE);
     }
@@ -65,7 +65,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   @Override
   public void delete(K key, User user) {
     if (evaluator.hasPermission(user, key, DELETE)) {
-      systemDao.delete(key);
+      delegate.delete(key);
     } else {
       reportFailedAuthorization(user, key, DELETE);
     }
@@ -75,7 +75,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   public Map<K, V> getMap(Specification<K, V> specification, User user) {
     Map<K, V> filtered = Maps.newLinkedHashMap();
 
-    for (Map.Entry<K, V> entry : systemDao.getMap(specification).entrySet()) {
+    for (Map.Entry<K, V> entry : delegate.getMap(specification).entrySet()) {
       K key = entry.getKey();
       V value = entry.getValue();
 
@@ -92,7 +92,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   @Override
   public Optional<V> get(K key, User user) {
     if (evaluator.hasPermission(user, key, READ)) {
-      return systemDao.get(key);
+      return delegate.get(key);
     }
     reportFailedAuthorization(user, key, READ);
     return Optional.empty();
@@ -101,7 +101,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   @Override
   public boolean exists(K key, User user) {
     if (evaluator.hasPermission(user, key, READ)) {
-      return systemDao.exists(key);
+      return delegate.exists(key);
     }
     reportFailedAuthorization(user, key, READ);
     return false;

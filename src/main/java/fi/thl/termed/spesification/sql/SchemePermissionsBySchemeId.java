@@ -1,17 +1,15 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 
+import java.util.Objects;
 import java.util.UUID;
 
-import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
-import fi.thl.termed.util.specification.AbstractSpecification;
+import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class SchemePermissionsBySchemeId
-    extends AbstractSpecification<ObjectRolePermission<UUID>, GrantedPermission>
     implements SqlSpecification<ObjectRolePermission<UUID>, GrantedPermission> {
 
   private UUID schemeId;
@@ -21,7 +19,7 @@ public class SchemePermissionsBySchemeId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<UUID> objectRolePermission, GrantedPermission value) {
+  public boolean test(ObjectRolePermission<UUID> objectRolePermission, GrantedPermission value) {
     return Objects.equals(objectRolePermission.getObjectId(), schemeId);
   }
 

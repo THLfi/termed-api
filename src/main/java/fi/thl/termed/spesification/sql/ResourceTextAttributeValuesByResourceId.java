@@ -6,12 +6,10 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ResourceTextAttributeValuesByResourceId
-    extends AbstractSpecification<ResourceAttributeValueId, StrictLangValue>
     implements SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
 
   private ResourceId resourceId;
@@ -21,7 +19,7 @@ public class ResourceTextAttributeValuesByResourceId
   }
 
   @Override
-  public boolean accept(ResourceAttributeValueId attributeValueId, StrictLangValue langValue) {
+  public boolean test(ResourceAttributeValueId attributeValueId, StrictLangValue langValue) {
     return Objects.equals(attributeValueId.getResourceId(), resourceId);
   }
 

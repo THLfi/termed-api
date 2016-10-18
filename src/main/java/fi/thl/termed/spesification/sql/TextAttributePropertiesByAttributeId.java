@@ -7,11 +7,9 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.domain.LangValue;
 
 public class TextAttributePropertiesByAttributeId
-    extends AbstractSpecification<PropertyValueId<TextAttributeId>, LangValue>
     implements SqlSpecification<PropertyValueId<TextAttributeId>, LangValue> {
 
   private TextAttributeId textAttributeId;
@@ -21,7 +19,7 @@ public class TextAttributePropertiesByAttributeId
   }
 
   @Override
-  public boolean accept(PropertyValueId<TextAttributeId> propertyValueId, LangValue value) {
+  public boolean test(PropertyValueId<TextAttributeId> propertyValueId, LangValue value) {
     return Objects.equals(propertyValueId.getSubjectId(), textAttributeId);
   }
 

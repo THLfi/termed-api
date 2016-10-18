@@ -1,16 +1,14 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
 
-public class SchemeByUri extends AbstractSpecification<UUID, Scheme>
-    implements SqlSpecification<UUID, Scheme> {
+public class SchemeByUri implements SqlSpecification<UUID, Scheme> {
 
   private String uri;
 
@@ -19,7 +17,7 @@ public class SchemeByUri extends AbstractSpecification<UUID, Scheme>
   }
 
   @Override
-  public boolean accept(UUID key, Scheme value) {
+  public boolean test(UUID key, Scheme value) {
     return Objects.equals(value.getCode(), uri);
   }
 

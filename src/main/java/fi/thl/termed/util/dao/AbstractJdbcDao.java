@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
@@ -70,10 +69,10 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
   @Override
   public Map<K, V> getMap(Specification<K, V> specification) {
     if (specification instanceof SqlSpecification) {
-      return MapUtils.newLinkedHashMap(get((SqlSpecification<K, V>) specification, entryMapper));
+      return ImmutableMap.copyOf(get((SqlSpecification<K, V>) specification, entryMapper));
     } else {
       log.warn("Scanning through all entries as SqlSpecification is not provided.");
-      return Maps.filterEntries(getMap(), specification);
+      return Maps.filterEntries(getMap(), e -> specification.test(e.getKey(), e.getValue()));
     }
   }
 

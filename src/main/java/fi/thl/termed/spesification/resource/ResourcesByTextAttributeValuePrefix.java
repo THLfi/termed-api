@@ -15,15 +15,13 @@ import java.util.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
 public class ResourcesByTextAttributeValuePrefix
-    extends AbstractSpecification<ResourceId, Resource>
     implements LuceneSpecification<ResourceId, Resource> {
 
   private final TextAttributeId attributeId;
@@ -43,7 +41,7 @@ public class ResourcesByTextAttributeValuePrefix
   }
 
   @Override
-  public boolean accept(ResourceId resourceId, Resource resource) {
+  public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
     if (Objects.equals(new ClassId(resourceId), attributeId.getDomainId())) {

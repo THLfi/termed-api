@@ -11,13 +11,10 @@ import org.apache.lucene.search.Query;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Predicates.instanceOf;
-import static com.google.common.collect.Iterables.all;
 
 public class OrSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
@@ -28,14 +25,10 @@ public class OrSpecification<K extends Serializable, V>
     this.specifications = checkNotNull(specifications);
   }
 
-  public List<Specification<K, V>> getSpecifications() {
-    return specifications;
-  }
-
   @Override
-  public boolean apply(Map.Entry<K, V> entry) {
+  public boolean test(K k, V v) {
     for (Specification<K, V> specification : specifications) {
-      if (specification.apply(entry)) {
+      if (specification.test(k, v)) {
         return true;
       }
     }
@@ -44,7 +37,7 @@ public class OrSpecification<K extends Serializable, V>
 
   @Override
   public Query luceneQuery() {
-    checkState(all(specifications, instanceOf(LuceneSpecification.class)));
+    checkState(specifications.stream().allMatch(s -> s instanceof LuceneSpecification));
 
     BooleanQuery query = new BooleanQuery();
 
@@ -57,7 +50,7 @@ public class OrSpecification<K extends Serializable, V>
 
   @Override
   public String sqlQueryTemplate() {
-    checkState(all(specifications, instanceOf(SqlSpecification.class)));
+    checkState(specifications.stream().allMatch(s -> s instanceof SqlSpecification));
 
     List<String> query = Lists.newArrayList();
 
@@ -70,7 +63,7 @@ public class OrSpecification<K extends Serializable, V>
 
   @Override
   public Object[] sqlQueryParameters() {
-    checkState(all(specifications, instanceOf(SqlSpecification.class)));
+    checkState(specifications.stream().allMatch(s -> s instanceof SqlSpecification));
 
     List<Object> queryParameters = Lists.newArrayList();
 

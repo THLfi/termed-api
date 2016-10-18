@@ -5,49 +5,66 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.Query;
 
-public class LoggingService<K extends Serializable, V> extends ForwardingService<K, V> {
+public class LoggingService<K extends Serializable, V> implements Service<K, V> {
 
-  private Logger log = LoggerFactory.getLogger(getClass());
-  private Class<V> valueClass;
+  private Service<K, V> delegate;
+  private Logger log;
 
-  public LoggingService(Service<K, V> delegate, Class<V> valueClass) {
-    super(delegate);
-    this.valueClass = valueClass;
+  public LoggingService(Service<K, V> delegate, String loggerName) {
+    this.delegate = delegate;
+    this.log = LoggerFactory.getLogger(loggerName);
+  }
+
+  public LoggingService(Service<K, V> delegate, Class<?> loggerName) {
+    this.delegate = delegate;
+    this.log = LoggerFactory.getLogger(loggerName);
   }
 
   @Override
   public List<K> save(List<V> values, User user) {
-    log.info("{} save {} values (user: {})", valueClass.getSimpleName(), values.size(),
-             user.getUsername());
-    return super.save(values, user);
+    log.info("save {} values (user: {})", values.size(), user.getUsername());
+    return delegate.save(values, user);
   }
 
   @Override
   public K save(V value, User user) {
-    log.info("{} save {} (user: {})", valueClass.getSimpleName(), value, user.getUsername());
-    return super.save(value, user);
+    log.info("save {} (user: {})", value, user.getUsername());
+    return delegate.save(value, user);
   }
 
   @Override
   public void delete(K id, User user) {
-    log.info("{} delete {} (user: {})", valueClass.getSimpleName(), id, user.getUsername());
-    super.delete(id, user);
+    log.info("delete {} (user: {})", id, user.getUsername());
+    delegate.delete(id, user);
   }
 
   @Override
-  public List<V> get(SpecificationQuery<K, V> specification, User user) {
-    log.info("{} get {} (user: {})", valueClass.getSimpleName(), specification, user.getUsername());
-    return super.get(specification, user);
+  public List<V> get(List<K> ids, User user) {
+    log.info("get {} (user: {})", ids.size(), user.getUsername());
+    return delegate.get(ids, user);
   }
 
   @Override
-  public java.util.Optional<V> get(K id, User user) {
-    log.info("{} get {} (user: {})", valueClass.getSimpleName(), id, user.getUsername());
-    return super.get(id, user);
+  public List<V> get(Query<K, V> specification, User user) {
+    log.info("get {} (user: {})", specification, user.getUsername());
+    return delegate.get(specification, user);
+  }
+
+  @Override
+  public List<K> getKeys(Query<K, V> specification, User user) {
+    log.info("getKeys {} (user: {})", specification, user.getUsername());
+    return delegate.getKeys(specification, user);
+  }
+
+  @Override
+  public Optional<V> get(K id, User user) {
+    log.info("get {} (user: {})", id, user.getUsername());
+    return delegate.get(id, user);
   }
 
 }

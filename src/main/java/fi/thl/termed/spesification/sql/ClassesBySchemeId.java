@@ -1,17 +1,15 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
 
-public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
-    implements SqlSpecification<ClassId, Class> {
+public class ClassesBySchemeId implements SqlSpecification<ClassId, Class> {
 
   private UUID schemeId;
 
@@ -20,7 +18,7 @@ public class ClassesBySchemeId extends AbstractSpecification<ClassId, Class>
   }
 
   @Override
-  public boolean accept(ClassId classId, Class cls) {
+  public boolean test(ClassId classId, Class cls) {
     return Objects.equals(classId.getSchemeId(), schemeId);
   }
 

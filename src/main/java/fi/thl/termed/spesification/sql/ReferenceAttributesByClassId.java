@@ -1,16 +1,15 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
 
 public class ReferenceAttributesByClassId
-    extends AbstractSpecification<ReferenceAttributeId, ReferenceAttribute>
     implements SqlSpecification<ReferenceAttributeId, ReferenceAttribute> {
 
   private ClassId classId;
@@ -20,7 +19,7 @@ public class ReferenceAttributesByClassId
   }
 
   @Override
-  public boolean accept(ReferenceAttributeId key, ReferenceAttribute value) {
+  public boolean test(ReferenceAttributeId key, ReferenceAttribute value) {
     return Objects.equals(key.getDomainId(), classId);
   }
 

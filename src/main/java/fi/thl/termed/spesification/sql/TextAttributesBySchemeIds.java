@@ -2,22 +2,19 @@ package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class TextAttributesBySchemeIds
-    extends AbstractSpecification<TextAttributeId, TextAttribute>
-    implements SqlSpecification<TextAttributeId, TextAttribute> {
+public class TextAttributesBySchemeIds implements SqlSpecification<TextAttributeId, TextAttribute> {
 
   private Set<UUID> schemeIds;
 
@@ -26,7 +23,7 @@ public class TextAttributesBySchemeIds
   }
 
   @Override
-  public boolean accept(TextAttributeId key, TextAttribute value) {
+  public boolean test(TextAttributeId key, TextAttribute value) {
     return schemeIds.contains(key.getDomainId().getSchemeId());
   }
 

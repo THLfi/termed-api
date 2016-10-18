@@ -1,18 +1,16 @@
 package fi.thl.termed.util.dao;
 
-import java.util.Optional;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import fi.thl.termed.util.specification.Specification;
 
@@ -21,25 +19,17 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   private static final int DEFAULT_SPECIFICATION_CACHE_SIZE = 1000;
   private static final int DEFAULT_KEY_VALUE_CACHE_SIZE = 10000;
 
-  private Logger log = LoggerFactory.getLogger(getClass());
-
-  private LoadingCache<Specification<K, V>, List<K>> specificationCache;
-  private LoadingCache<K, Optional<V>> keyValueCache;
+  private Cache<Specification<K, V>, List<K>> specificationCache;
+  private Cache<K, Optional<V>> keyValueCache;
 
   private SystemDao<K, V> delegate;
 
   public CachedSystemDao(SystemDao<K, V> delegate) {
     this.delegate = delegate;
     this.specificationCache = CacheBuilder.newBuilder()
-        .maximumSize(DEFAULT_SPECIFICATION_CACHE_SIZE)
-        .build(new SpecificationCacheLoader());
+        .maximumSize(DEFAULT_SPECIFICATION_CACHE_SIZE).build();
     this.keyValueCache = CacheBuilder.newBuilder()
-        .maximumSize(DEFAULT_KEY_VALUE_CACHE_SIZE)
-        .build(new KeyValueCacheLoader());
-  }
-
-  public static <K extends Serializable, V> CachedSystemDao<K, V> create(SystemDao<K, V> delegate) {
-    return new CachedSystemDao<K, V>(delegate);
+        .maximumSize(DEFAULT_KEY_VALUE_CACHE_SIZE).build();
   }
 
   @Override
@@ -65,49 +55,40 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
 
   @Override
   public Map<K, V> getMap(Specification<K, V> specification) {
-    Map<K, V> results = Maps.newLinkedHashMap();
-    for (K key : getKeys(specification)) {
-      results.put(key, get(key).get());
-    }
+    Map<K, V> results = new LinkedHashMap<>();
+    getKeys(specification).forEach(
+        key -> get(key).ifPresent(value -> results.put(key, value)));
     return results;
   }
 
   @Override
   public List<K> getKeys(Specification<K, V> specification) {
-    return specificationCache.getUnchecked(specification);
+    try {
+      return specificationCache.get(specification, () -> delegate.getKeys(specification));
+    } catch (ExecutionException e) {
+      throw new UncheckedExecutionException(e);
+    }
   }
 
   @Override
   public List<V> getValues(Specification<K, V> specification) {
-    List<V> values = Lists.newArrayList();
-    for (K key : getKeys(specification)) {
-      values.add(get(key).get());
-    }
+    List<V> values = new ArrayList<>();
+    getKeys(specification).forEach(key -> get(key).ifPresent(values::add));
     return values;
   }
 
   @Override
-  public java.util.Optional<V> get(K key) {
-    return keyValueCache.getUnchecked(key);
+  public Optional<V> get(K key) {
+    try {
+      return keyValueCache.get(key, () -> delegate.get(key));
+    } catch (ExecutionException e) {
+      throw new UncheckedExecutionException(e);
+    }
   }
 
   @Override
   public boolean exists(K key) {
     return get(key).isPresent() || delegate.exists(key);
-  }
-
-  private class SpecificationCacheLoader extends CacheLoader<Specification<K, V>, List<K>> {
-
-    public List<K> load(Specification<K, V> specification) {
-      return delegate.getKeys(specification);
-    }
-  }
-
-  private class KeyValueCacheLoader extends CacheLoader<K, java.util.Optional<V>> {
-
-    public java.util.Optional<V> load(K key) {
-      return delegate.get(key);
-    }
   }
 
 }

@@ -15,13 +15,11 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
-public class ResourceReferrers extends AbstractSpecification<ResourceId, Resource>
-    implements LuceneSpecification<ResourceId, Resource> {
+public class ResourceReferrers implements LuceneSpecification<ResourceId, Resource> {
 
   private ResourceId objectId;
   private ReferenceAttributeId attrId;
@@ -41,7 +39,7 @@ public class ResourceReferrers extends AbstractSpecification<ResourceId, Resourc
   }
 
   @Override
-  public boolean accept(ResourceId resourceId, Resource resource) {
+  public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
     if (Objects.equals(new ClassId(resourceId), attrId.getDomainId())) {

@@ -5,13 +5,11 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import java.util.UUID;
 
-import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class SchemePropertiesBySchemeId
-    extends AbstractSpecification<PropertyValueId<UUID>, LangValue>
     implements SqlSpecification<PropertyValueId<UUID>, LangValue> {
 
   private UUID schemeId;
@@ -21,7 +19,7 @@ public class SchemePropertiesBySchemeId
   }
 
   @Override
-  public boolean accept(PropertyValueId<UUID> key, LangValue langValue) {
+  public boolean test(PropertyValueId<UUID> key, LangValue langValue) {
     return Objects.equals(key.getSubjectId(), schemeId);
   }
 

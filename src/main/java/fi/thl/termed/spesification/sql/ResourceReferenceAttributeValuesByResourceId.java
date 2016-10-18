@@ -5,11 +5,9 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ResourceReferenceAttributeValuesByResourceId
-    extends AbstractSpecification<ResourceAttributeValueId, ResourceId>
     implements SqlSpecification<ResourceAttributeValueId, ResourceId> {
 
   private ResourceId resourceId;
@@ -19,7 +17,7 @@ public class ResourceReferenceAttributeValuesByResourceId
   }
 
   @Override
-  public boolean accept(ResourceAttributeValueId attributeValueId, ResourceId value) {
+  public boolean test(ResourceAttributeValueId attributeValueId, ResourceId value) {
     return Objects.equals(attributeValueId.getResourceId(), resourceId);
   }
 

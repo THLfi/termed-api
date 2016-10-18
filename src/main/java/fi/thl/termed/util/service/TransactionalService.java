@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.Query;
 
 public class TransactionalService<K extends Serializable, V> extends ForwardingService<K, V> {
 
@@ -30,7 +30,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
   }
 
   @Override
-  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
+  public List<V> get(Query<K, V> specification, User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<V> values;
     try {

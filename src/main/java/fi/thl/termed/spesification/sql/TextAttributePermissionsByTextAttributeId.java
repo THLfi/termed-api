@@ -1,17 +1,16 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class TextAttributePermissionsByTextAttributeId
-    extends AbstractSpecification<ObjectRolePermission<TextAttributeId>, GrantedPermission>
     implements SqlSpecification<ObjectRolePermission<TextAttributeId>, GrantedPermission> {
 
   private TextAttributeId attributeId;
@@ -21,8 +20,8 @@ public class TextAttributePermissionsByTextAttributeId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<TextAttributeId> objectRolePermission,
-                        GrantedPermission value) {
+  public boolean test(ObjectRolePermission<TextAttributeId> objectRolePermission,
+                      GrantedPermission value) {
     return Objects.equals(objectRolePermission.getObjectId(), attributeId);
   }
 

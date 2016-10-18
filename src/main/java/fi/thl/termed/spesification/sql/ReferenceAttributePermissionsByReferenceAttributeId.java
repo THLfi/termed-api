@@ -1,17 +1,16 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ReferenceAttributePermissionsByReferenceAttributeId
-    extends AbstractSpecification<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission>
     implements SqlSpecification<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> {
 
   private ReferenceAttributeId attributeId;
@@ -21,8 +20,8 @@ public class ReferenceAttributePermissionsByReferenceAttributeId
   }
 
   @Override
-  public boolean accept(ObjectRolePermission<ReferenceAttributeId> objectRolePermission,
-                        GrantedPermission value) {
+  public boolean test(ObjectRolePermission<ReferenceAttributeId> objectRolePermission,
+                      GrantedPermission value) {
     return Objects.equals(objectRolePermission.getObjectId(), attributeId);
   }
 

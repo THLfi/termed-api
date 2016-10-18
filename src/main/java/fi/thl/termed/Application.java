@@ -1,5 +1,6 @@
 package fi.thl.termed;
 
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -34,6 +35,11 @@ public class Application extends SpringBootServletInitializer {
   }
 
   @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  @Bean
   public Gson gson() {
     return new GsonBuilder().setPrettyPrinting()
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
@@ -42,8 +48,8 @@ public class Application extends SpringBootServletInitializer {
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+  public EventBus eventBus() {
+    return new EventBus();
   }
 
 }

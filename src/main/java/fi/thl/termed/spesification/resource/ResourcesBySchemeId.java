@@ -1,22 +1,21 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
 
-public class ResourcesBySchemeId extends AbstractSpecification<ResourceId, Resource>
+public class ResourcesBySchemeId
     implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
   private final UUID schemeId;
@@ -30,7 +29,7 @@ public class ResourcesBySchemeId extends AbstractSpecification<ResourceId, Resou
   }
 
   @Override
-  public boolean accept(ResourceId resourceId, Resource resource) {
+  public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
     return Objects.equals(resourceId.getSchemeId(), schemeId);
   }

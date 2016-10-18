@@ -13,13 +13,12 @@ import java.util.Objects;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
-public class ResourcesByClassId extends AbstractSpecification<ResourceId, Resource>
+public class ResourcesByClassId
     implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
   private final ClassId classId;
@@ -33,7 +32,7 @@ public class ResourcesByClassId extends AbstractSpecification<ResourceId, Resour
   }
 
   @Override
-  public boolean accept(ResourceId resourceId, Resource resource) {
+  public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
     return Objects.equals(resourceId.getSchemeId(), classId.getSchemeId()) &&
            Objects.equals(resourceId.getTypeId(), classId.getId());

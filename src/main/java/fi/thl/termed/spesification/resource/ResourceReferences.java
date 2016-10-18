@@ -1,7 +1,6 @@
 package fi.thl.termed.spesification.resource;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -10,18 +9,17 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.Map;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
-public class ResourceReferences extends AbstractSpecification<ResourceId, Resource>
-    implements LuceneSpecification<ResourceId, Resource> {
+public class ResourceReferences implements LuceneSpecification<ResourceId, Resource> {
 
   private ResourceId subjectId;
   private ReferenceAttributeId attrId;
@@ -47,7 +45,7 @@ public class ResourceReferences extends AbstractSpecification<ResourceId, Resour
   }
 
   @Override
-  public boolean accept(ResourceId resourceId, Resource resource) {
+  public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
     if (Objects.equals(new ClassId(resourceId), rangeId)) {

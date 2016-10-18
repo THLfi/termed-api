@@ -1,16 +1,15 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ClassPropertiesByClassId
-    extends AbstractSpecification<PropertyValueId<ClassId>, LangValue>
     implements SqlSpecification<PropertyValueId<ClassId>, LangValue> {
 
   private ClassId classId;
@@ -20,7 +19,7 @@ public class ClassPropertiesByClassId
   }
 
   @Override
-  public boolean accept(PropertyValueId<ClassId> key, LangValue value) {
+  public boolean test(PropertyValueId<ClassId> key, LangValue value) {
     return Objects.equals(key.getSubjectId(), classId);
   }
 

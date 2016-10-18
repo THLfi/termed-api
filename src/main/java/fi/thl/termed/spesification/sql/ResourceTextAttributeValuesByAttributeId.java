@@ -1,17 +1,16 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ResourceAttributeValueId;
-import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ResourceTextAttributeValuesByAttributeId
-    extends AbstractSpecification<ResourceAttributeValueId, StrictLangValue>
     implements SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
 
   private TextAttributeId attributeId;
@@ -25,7 +24,7 @@ public class ResourceTextAttributeValuesByAttributeId
   }
 
   @Override
-  protected boolean accept(ResourceAttributeValueId attributeValueId, StrictLangValue value) {
+  public boolean test(ResourceAttributeValueId attributeValueId, StrictLangValue value) {
     TextAttributeId valueAttributeId =
         new TextAttributeId(new ClassId(attributeValueId.getResourceId()),
                             attributeValueId.getAttributeId());

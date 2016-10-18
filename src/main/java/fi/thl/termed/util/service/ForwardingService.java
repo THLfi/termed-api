@@ -2,9 +2,10 @@ package fi.thl.termed.util.service;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.Query;
 
 /**
  * A service which simply forwards all requests to a delegate (decorator pattern).
@@ -18,33 +19,38 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> save(List<V> values, User currentUser) {
-    return delegate.save(values, currentUser);
+  public List<K> save(List<V> values, User user) {
+    return delegate.save(values, user);
   }
 
   @Override
-  public K save(V value, User currentUser) {
-    return delegate.save(value, currentUser);
+  public K save(V value, User user) {
+    return delegate.save(value, user);
   }
 
   @Override
-  public void delete(K id, User currentUser) {
-    delegate.delete(id, currentUser);
+  public void delete(K id, User user) {
+    delegate.delete(id, user);
   }
 
   @Override
-  public List<V> get(SpecificationQuery<K, V> specification, User currentUser) {
-    return delegate.get(specification, currentUser);
+  public List<V> get(Query<K, V> specification, User user) {
+    return delegate.get(specification, user);
   }
 
   @Override
-  public List<V> get(List<K> ids, User currentUser) {
-    return delegate.get(ids, currentUser);
+  public List<K> getKeys(Query<K, V> specification, User user) {
+    return delegate.getKeys(specification, user);
   }
 
   @Override
-  public java.util.Optional<V> get(K id, User currentUser) {
-    return delegate.get(id, currentUser);
+  public List<V> get(List<K> ids, User user) {
+    return delegate.get(ids, user);
+  }
+
+  @Override
+  public Optional<V> get(K id, User user) {
+    return delegate.get(id, user);
   }
 
 }

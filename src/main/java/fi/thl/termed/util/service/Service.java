@@ -2,9 +2,10 @@ package fi.thl.termed.util.service;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.SpecificationQuery;
+import fi.thl.termed.util.specification.Query;
 
 /**
  * Generic interface for services.
@@ -26,7 +27,12 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get specified values. Values are expected to be fully populated.
    */
-  List<V> get(SpecificationQuery<K, V> specification, User currentUser);
+  List<V> get(Query<K, V> specification, User currentUser);
+
+  /**
+   * Get specified values. Values are expected to be fully populated.
+   */
+  List<K> getKeys(Query<K, V> specification, User currentUser);
 
   /**
    * Get values by ids. Values are expected to be fully populated.
@@ -36,6 +42,6 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get value by id. Value is expected to be fully populated.
    */
-  java.util.Optional<V> get(K id, User currentUser);
+  Optional<V> get(K id, User currentUser);
 
 }

@@ -13,7 +13,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
@@ -45,8 +44,8 @@ import fi.thl.termed.util.ToStringFunction;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.SpecificationQuery;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.transform;
@@ -60,7 +59,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Converter<V, Document> documentConverter;
-  private java.util.function.Function<K, String> keyToString;
+  private Function<K, String> keyToString;
 
   private Directory directory;
   private Analyzer analyzer;
@@ -144,10 +143,11 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public List<V> query(SpecificationQuery<K, V> specificationQuery) {
+  public List<V> query(Query<K, V> specificationQuery) {
     try {
       Specification<K, V> specification = specificationQuery.getSpecification();
-      Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
+      org.apache.lucene.search.Query query =
+          ((LuceneSpecification<K, V>) specification).luceneQuery();
       log.trace("query: {}", query);
       IndexSearcher searcher = searcherManager.acquire();
       try {
@@ -163,7 +163,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private List<V> query(IndexSearcher searcher, Query query, int max, List<String> orderBy)
+  private List<V> query(IndexSearcher searcher, org.apache.lucene.search.Query query, int max,
+                        List<String> orderBy)
       throws IOException, ParseException {
     ScoreDoc[] hits = searcher.search(query, max, sort(orderBy)).scoreDocs;
     List<Document> documents = asList(hits).stream()

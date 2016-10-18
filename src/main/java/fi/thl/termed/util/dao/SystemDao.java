@@ -3,14 +3,10 @@ package fi.thl.termed.util.dao;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import fi.thl.termed.util.specification.Specification;
 
-/**
- * Lower level api to handle object persisting. Typically there is one Dao for each persisted type.
- * Database backed DAOs should operate on one table only. Repositories should handle more complex
- * object graphs using DAOs and other Repositories.
- */
 public interface SystemDao<K extends Serializable, V> {
 
   void insert(Map<K, V> map);
@@ -43,6 +39,6 @@ public interface SystemDao<K extends Serializable, V> {
 
   boolean exists(K key);
 
-  java.util.Optional<V> get(K key);
+  Optional<V> get(K key);
 
 }

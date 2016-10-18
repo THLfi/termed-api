@@ -7,11 +7,9 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.SchemeRole;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Empty>
-    implements SqlSpecification<SchemeRole, Empty> {
+public class SchemeRolesBySchemeId implements SqlSpecification<SchemeRole, Empty> {
 
   private UUID schemeId;
 
@@ -20,7 +18,7 @@ public class SchemeRolesBySchemeId extends AbstractSpecification<SchemeRole, Emp
   }
 
   @Override
-  public boolean accept(SchemeRole schemeRole, Empty value) {
+  public boolean test(SchemeRole schemeRole, Empty value) {
     return Objects.equals(schemeRole.getSchemeId(), schemeId);
   }
 

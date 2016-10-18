@@ -1,15 +1,14 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ResourceReferenceAttributeResourcesByValueId
-    extends AbstractSpecification<ResourceAttributeValueId, ResourceId>
     implements SqlSpecification<ResourceAttributeValueId, ResourceId> {
 
   private ResourceId valueId;
@@ -19,7 +18,7 @@ public class ResourceReferenceAttributeResourcesByValueId
   }
 
   @Override
-  public boolean accept(ResourceAttributeValueId key, ResourceId value) {
+  public boolean test(ResourceAttributeValueId key, ResourceId value) {
     return Objects.equals(value, valueId);
   }
 

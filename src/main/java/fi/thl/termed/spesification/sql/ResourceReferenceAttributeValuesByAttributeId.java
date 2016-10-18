@@ -1,17 +1,16 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.util.specification.AbstractSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class ResourceReferenceAttributeValuesByAttributeId
-    extends AbstractSpecification<ResourceAttributeValueId, ResourceId>
     implements SqlSpecification<ResourceAttributeValueId, ResourceId> {
 
   private ReferenceAttributeId attributeId;
@@ -25,7 +24,7 @@ public class ResourceReferenceAttributeValuesByAttributeId
   }
 
   @Override
-  protected boolean accept(ResourceAttributeValueId attributeValueId, ResourceId value) {
+  public boolean test(ResourceAttributeValueId attributeValueId, ResourceId value) {
     ReferenceAttributeId valueAttributeId =
         new ReferenceAttributeId(new ClassId(attributeValueId.getResourceId()),
                                  attributeValueId.getAttributeId());

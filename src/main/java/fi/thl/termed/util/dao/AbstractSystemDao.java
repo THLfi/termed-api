@@ -1,79 +1,66 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.TrueSpecification;
+import fi.thl.termed.util.specification.MatchAll;
 
 public abstract class AbstractSystemDao<K extends Serializable, V> implements SystemDao<K, V> {
 
   @Override
   public void insert(Map<K, V> map) {
-    for (Map.Entry<K, V> entry : map.entrySet()) {
-      insert(entry.getKey(), entry.getValue());
-    }
+    map.forEach(this::insert);
   }
 
   @Override
   public void update(Map<K, V> map) {
-    for (Map.Entry<K, V> entry : map.entrySet()) {
-      update(entry.getKey(), entry.getValue());
-    }
+    map.forEach(this::update);
   }
 
   @Override
   public void delete(List<K> keys) {
-    for (K key : keys) {
-      delete(key);
-    }
+    keys.forEach(this::delete);
   }
 
   @Override
   public Map<K, V> getMap() {
-    return getMap(new TrueSpecification<K, V>());
+    return getMap(new MatchAll<>());
   }
 
   @Override
   public Map<K, V> getMap(List<K> keys) {
-    Map<K, V> map = Maps.newLinkedHashMap();
-    for (K key : keys) {
-      map.put(key, get(key).get());
-    }
-    return map;
+    Map<K, V> results = new LinkedHashMap<>();
+    keys.forEach(key -> get(key).ifPresent(value -> results.put(key, value)));
+    return results;
   }
 
   @Override
   public List<K> getKeys() {
-    return getKeys(new TrueSpecification<K, V>());
+    return getKeys(new MatchAll<>());
   }
 
   @Override
   public List<K> getKeys(Specification<K, V> specification) {
-    return Lists.newArrayList(getMap(specification).keySet());
+    return new ArrayList<>(getMap(specification).keySet());
   }
 
   @Override
   public List<V> getValues() {
-    return getValues(new TrueSpecification<K, V>());
+    return getValues(new MatchAll<>());
   }
 
   @Override
   public List<V> getValues(Specification<K, V> specification) {
-    return Lists.newArrayList(getMap(specification).values());
+    return new ArrayList<>(getMap(specification).values());
   }
 
   @Override
   public List<V> getValues(List<K> keys) {
-    List<V> values = Lists.newArrayList();
-    for (K key : keys) {
-      values.add(get(key).get());
-    }
-    return values;
+    return new ArrayList<>(getMap(keys).values());
   }
 
 }

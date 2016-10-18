@@ -1,17 +1,16 @@
 package fi.thl.termed.spesification.sql;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.util.specification.AbstractSpecification;
-import fi.thl.termed.domain.LangValue;
 
 public class ReferenceAttributePropertiesByAttributeId
-    extends AbstractSpecification<PropertyValueId<ReferenceAttributeId>, LangValue>
     implements SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
   private ReferenceAttributeId referenceAttributeId;
@@ -22,7 +21,7 @@ public class ReferenceAttributePropertiesByAttributeId
   }
 
   @Override
-  public boolean accept(PropertyValueId<ReferenceAttributeId> propertyValueId, LangValue value) {
+  public boolean test(PropertyValueId<ReferenceAttributeId> propertyValueId, LangValue value) {
     return Objects.equals(propertyValueId.getSubjectId(), referenceAttributeId);
   }
 

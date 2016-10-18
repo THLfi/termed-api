@@ -1,10 +1,11 @@
 package fi.thl.termed.util.dao;
 
-import java.util.Optional;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import fi.thl.termed.util.specification.Specification;
 
@@ -16,7 +17,7 @@ public class MemoryBasedSystemDao<K extends Serializable, V> extends AbstractSys
   private Map<K, V> data;
 
   public MemoryBasedSystemDao() {
-    this(Maps.<K, V>newLinkedHashMap());
+    this(new LinkedHashMap<>());
   }
 
   public MemoryBasedSystemDao(Map<K, V> data) {
@@ -40,7 +41,7 @@ public class MemoryBasedSystemDao<K extends Serializable, V> extends AbstractSys
 
   @Override
   public Map<K, V> getMap(Specification<K, V> specification) {
-    return Maps.filterEntries(data, specification);
+    return Maps.filterEntries(data, e -> specification.test(e.getKey(), e.getValue()));
   }
 
   @Override
