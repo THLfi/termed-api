@@ -1,6 +1,4 @@
-package fi.thl.termed.spesification.sql;
-
-import com.google.common.base.MoreObjects;
+package fi.thl.termed.service.scheme.internal;
 
 import java.util.Objects;
 
@@ -8,15 +6,14 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class ReferenceAttributePropertiesByAttributeId
-    implements SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
+    extends AbstractSqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
   private ReferenceAttributeId referenceAttributeId;
 
-  public ReferenceAttributePropertiesByAttributeId(
-      ReferenceAttributeId referenceAttributeId) {
+  public ReferenceAttributePropertiesByAttributeId(ReferenceAttributeId referenceAttributeId) {
     this.referenceAttributeId = referenceAttributeId;
   }
 
@@ -36,30 +33,6 @@ public class ReferenceAttributePropertiesByAttributeId
     return new Object[]{domainId.getSchemeId(),
                         domainId.getId(),
                         referenceAttributeId.getId()};
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ReferenceAttributePropertiesByAttributeId that = (ReferenceAttributePropertiesByAttributeId) o;
-    return Objects.equals(referenceAttributeId, that.referenceAttributeId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(referenceAttributeId);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("referenceAttributeId", referenceAttributeId)
-        .toString();
   }
 
 }

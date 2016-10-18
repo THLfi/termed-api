@@ -1,16 +1,15 @@
-package fi.thl.termed.spesification.sql;
+package fi.thl.termed.service.scheme.internal;
 
-import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
+import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.SqlSpecification;
-import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class TextAttributePropertiesByAttributeId
-    implements SqlSpecification<PropertyValueId<TextAttributeId>, LangValue> {
+    extends AbstractSqlSpecification<PropertyValueId<TextAttributeId>, LangValue> {
 
   private TextAttributeId textAttributeId;
 
@@ -32,30 +31,6 @@ public class TextAttributePropertiesByAttributeId
   public Object[] sqlQueryParameters() {
     ClassId domainId = textAttributeId.getDomainId();
     return new Object[]{domainId.getSchemeId(), domainId.getId(), textAttributeId.getId()};
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    TextAttributePropertiesByAttributeId that = (TextAttributePropertiesByAttributeId) o;
-    return Objects.equals(textAttributeId, that.textAttributeId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(textAttributeId);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("textAttributeId", textAttributeId)
-        .toString();
   }
 
 }

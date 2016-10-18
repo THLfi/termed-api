@@ -23,8 +23,6 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.spesification.sql.ReferenceAttributePermissionsByReferenceAttributeId;
-import fi.thl.termed.spesification.sql.ReferenceAttributePropertiesByAttributeId;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;

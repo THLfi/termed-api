@@ -1,16 +1,14 @@
-package fi.thl.termed.spesification.sql;
-
-import com.google.common.base.MoreObjects;
+package fi.thl.termed.service.resource.internal;
 
 import java.util.Objects;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class ResourceTextAttributeValuesByResourceId
-    implements SqlSpecification<ResourceAttributeValueId, StrictLangValue> {
+    extends AbstractSqlSpecification<ResourceAttributeValueId, StrictLangValue> {
 
   private ResourceId resourceId;
 
@@ -31,30 +29,6 @@ public class ResourceTextAttributeValuesByResourceId
   @Override
   public Object[] sqlQueryParameters() {
     return new Object[]{resourceId.getSchemeId(), resourceId.getTypeId(), resourceId.getId()};
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ResourceTextAttributeValuesByResourceId that = (ResourceTextAttributeValuesByResourceId) o;
-    return Objects.equals(resourceId, that.resourceId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(resourceId);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("resourceId", resourceId)
-        .toString();
   }
 
 }
