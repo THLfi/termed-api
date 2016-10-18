@@ -40,7 +40,7 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 @RestController
-@RequestMapping(value = "/api/schemes/{schemeId}")
+@RequestMapping("/api/schemes/{schemeId}")
 public class ResourceRdfReadController {
 
   private Logger log = LoggerFactory.getLogger(getClass());
@@ -57,7 +57,7 @@ public class ResourceRdfReadController {
   @Autowired
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
 
-  @GetRdfMapping(path = "/resources")
+  @GetRdfMapping("/resources")
   public Model get(@PathVariable("schemeId") UUID schemeId,
                    @RequestParam(value = "query", required = false, defaultValue = "") String query,
                    @AuthenticationPrincipal User currentUser) {
@@ -74,7 +74,7 @@ public class ResourceRdfReadController {
                                 .apply(resources)).getModel();
   }
 
-  @GetRdfMapping(path = "/classes/{typeId}/resources/{id}")
+  @GetRdfMapping("/classes/{typeId}/resources/{id}")
   public Model get(@PathVariable("schemeId") UUID schemeId,
                    @PathVariable("typeId") String typeId,
                    @PathVariable("id") UUID id,

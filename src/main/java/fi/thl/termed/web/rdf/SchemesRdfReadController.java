@@ -18,7 +18,7 @@ import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 
 @RestController
-@RequestMapping(value = "/api/schemes")
+@RequestMapping("/api/schemes")
 public class SchemesRdfReadController {
 
   @Autowired

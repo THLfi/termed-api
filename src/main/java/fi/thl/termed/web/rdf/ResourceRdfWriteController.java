@@ -25,7 +25,7 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
-@RequestMapping(value = "/api/schemes/{schemeId}/resources")
+@RequestMapping("/api/schemes/{schemeId}/resources")
 public class ResourceRdfWriteController {
 
   private Logger log = LoggerFactory.getLogger(getClass());
