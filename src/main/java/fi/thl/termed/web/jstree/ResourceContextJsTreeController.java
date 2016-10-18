@@ -19,7 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;

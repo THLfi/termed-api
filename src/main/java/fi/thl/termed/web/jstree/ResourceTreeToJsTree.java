@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.StrictLangValue;
