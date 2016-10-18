@@ -28,7 +28,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.spesification.resource.ResourcesBySchemeId;
+import fi.thl.termed.service.resource.specification.ResourcesBySchemeId;
 import fi.thl.termed.util.TableUtils;
 import fi.thl.termed.util.json.JsonUtils;
 import fi.thl.termed.util.service.Service;

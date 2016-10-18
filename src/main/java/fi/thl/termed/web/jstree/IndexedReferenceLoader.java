@@ -11,6 +11,7 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.resource.specification.ResourceReferences;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Query;
 
@@ -41,7 +42,7 @@ public class IndexedReferenceLoader implements Function<Resource, List<Resource>
   public List<Resource> apply(Resource resource) {
     List<Resource> references = resourceService.get(
         new Query<>(
-            new GetResourceReferences(new ResourceId(resource), attributeId, rangeId), LUCENE), user);
+            new ResourceReferences(new ResourceId(resource), attributeId, rangeId), LUCENE), user);
     return order(references, resource.getReferenceIds().get(attributeId.getId()));
   }
 

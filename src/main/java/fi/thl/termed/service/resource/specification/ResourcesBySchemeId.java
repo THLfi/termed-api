@@ -1,59 +1,52 @@
-package fi.thl.termed.spesification.resource;
+package fi.thl.termed.service.resource.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.Objects;
+import java.util.UUID;
 
-import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-import static org.apache.lucene.search.BooleanClause.Occur.MUST;
-
-public class ResourcesByClassId
+public class ResourcesBySchemeId
     implements LuceneSpecification<ResourceId, Resource>, SqlSpecification<ResourceId, Resource> {
 
-  private final ClassId classId;
+  private final UUID schemeId;
 
-  public ResourcesByClassId(ClassId classId) {
-    this.classId = classId;
+  public ResourcesBySchemeId(UUID schemeId) {
+    this.schemeId = schemeId;
   }
 
-  public ClassId getClassId() {
-    return classId;
+  public UUID getSchemeId() {
+    return schemeId;
   }
 
   @Override
   public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
-    return Objects.equals(resourceId.getSchemeId(), classId.getSchemeId()) &&
-           Objects.equals(resourceId.getTypeId(), classId.getId());
+    return Objects.equals(resourceId.getSchemeId(), schemeId);
   }
 
   @Override
   public Query luceneQuery() {
-    BooleanQuery query = new BooleanQuery();
-    query.add(new TermQuery(new Term("scheme.id", classId.getSchemeId().toString())), MUST);
-    query.add(new TermQuery(new Term("type.id", classId.getId())), MUST);
-    return query;
+    return new TermQuery(new Term("scheme.id", schemeId.toString()));
   }
 
   @Override
   public String sqlQueryTemplate() {
-    return "scheme_id = ? and type_id = ?";
+    return "scheme_id = ?";
   }
 
   @Override
   public Object[] sqlQueryParameters() {
-    return new Object[]{classId.getSchemeId(), classId.getId()};
+    return new Object[]{schemeId};
   }
 
   @Override
@@ -64,19 +57,19 @@ public class ResourcesByClassId
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ResourcesByClassId that = (ResourcesByClassId) o;
-    return Objects.equals(classId, that.classId);
+    ResourcesBySchemeId that = (ResourcesBySchemeId) o;
+    return Objects.equals(schemeId, that.schemeId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(classId);
+    return Objects.hash(schemeId);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("classId", classId)
+        .add("schemeId", schemeId)
         .toString();
   }
 

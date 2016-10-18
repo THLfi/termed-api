@@ -1,4 +1,4 @@
-package fi.thl.termed.spesification.resource;
+package fi.thl.termed.service.resource.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

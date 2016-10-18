@@ -1,7 +1,6 @@
-package fi.thl.termed.web.jstree;
+package fi.thl.termed.service.resource.specification;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
@@ -10,6 +9,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.Map;
+import java.util.Objects;
 
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -19,33 +19,39 @@ import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
-public class GetResourceReferrers implements LuceneSpecification<ResourceId, Resource> {
+public class ResourceReferences implements LuceneSpecification<ResourceId, Resource> {
 
-  private ResourceId objectId;
+  private ResourceId subjectId;
   private ReferenceAttributeId attrId;
+  private ClassId rangeId;
 
-  public GetResourceReferrers(ResourceId objectId, ReferenceAttributeId attrId, ClassId rangeId) {
-    Preconditions.checkArgument(Objects.equals(new ClassId(objectId), rangeId));
-    this.objectId = objectId;
+  public ResourceReferences(ResourceId subjectId, ReferenceAttributeId attrId, ClassId rangeId) {
+    Preconditions.checkArgument(Objects.equals(new ClassId(subjectId), attrId.getDomainId()));
+    this.subjectId = subjectId;
     this.attrId = attrId;
+    this.rangeId = rangeId;
   }
 
   public ReferenceAttributeId getAttrId() {
     return attrId;
   }
 
-  public ResourceId getObjectId() {
-    return objectId;
+  public ResourceId getSubjectId() {
+    return subjectId;
+  }
+
+  public ClassId getRangeId() {
+    return rangeId;
   }
 
   @Override
   public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
 
-    if (Objects.equals(new ClassId(resourceId), attrId.getDomainId())) {
-      for (Map.Entry<String, ResourceId> entry : resource.getReferenceIds().entries()) {
+    if (Objects.equals(new ClassId(resourceId), rangeId)) {
+      for (Map.Entry<String, ResourceId> entry : resource.getReferrerIds().entries()) {
         if (Objects.equals(entry.getKey(), attrId.getId()) &&
-            Objects.equals(entry.getValue(), objectId)) {
+            Objects.equals(entry.getValue(), subjectId)) {
           return true;
         }
       }
@@ -57,10 +63,10 @@ public class GetResourceReferrers implements LuceneSpecification<ResourceId, Res
   @Override
   public Query luceneQuery() {
     BooleanQuery query = new BooleanQuery();
-    ClassId domainId = attrId.getDomainId();
-    query.add(new TermQuery(new Term("scheme.id", domainId.getSchemeId().toString())), MUST);
-    query.add(new TermQuery(new Term("type.id", domainId.getId())), MUST);
-    query.add(new TermQuery(new Term(attrId.getId() + ".resourceId", objectId.toString())), MUST);
+    query.add(new TermQuery(new Term("scheme.id", rangeId.getSchemeId().toString())), MUST);
+    query.add(new TermQuery(new Term("type.id", rangeId.getId())), MUST);
+    query.add(new TermQuery(new Term("referrers." + attrId.getId() + ".resourceId",
+                                     subjectId.toString())), MUST);
     return query;
   }
 
@@ -72,21 +78,23 @@ public class GetResourceReferrers implements LuceneSpecification<ResourceId, Res
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    GetResourceReferrers that = (GetResourceReferrers) o;
-    return Objects.equals(objectId, that.objectId) &&
-           Objects.equals(attrId, that.attrId);
+    ResourceReferences that = (ResourceReferences) o;
+    return Objects.equals(subjectId, that.subjectId) &&
+           Objects.equals(attrId, that.attrId) &&
+           Objects.equals(rangeId, that.rangeId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(objectId, attrId);
+    return Objects.hash(subjectId, attrId, rangeId);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("objectId", objectId)
+        .add("subjectId", subjectId)
         .add("attrId", attrId)
+        .add("rangeId", rangeId)
         .toString();
   }
 
