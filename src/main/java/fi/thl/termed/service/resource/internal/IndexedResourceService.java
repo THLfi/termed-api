@@ -18,7 +18,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.event.ApplicationReadyEvent;
+import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.ForwardingService;
