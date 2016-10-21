@@ -166,7 +166,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private List<V> query(IndexSearcher searcher, org.apache.lucene.search.Query query, int max,
                         List<String> orderBy)
       throws IOException, ParseException {
-    ScoreDoc[] hits = searcher.search(query, max, sort(orderBy)).scoreDocs;
+    ScoreDoc[] hits = searcher.search(
+        query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy)).scoreDocs;
     List<Document> documents = asList(hits).stream()
         .map(new ScoreDocLoader(searcher)).collect(Collectors.toList());
     return transform(documents, documentConverter.reverse());
