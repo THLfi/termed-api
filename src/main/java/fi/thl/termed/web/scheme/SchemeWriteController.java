@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
@@ -31,10 +32,16 @@ public class SchemeWriteController {
   @Autowired
   private Service<UUID, Scheme> schemeService;
 
-  @PostJsonMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @PostJsonMapping(params = "batch!=true", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Scheme save(@RequestBody Scheme scheme, @AuthenticationPrincipal User user) {
     return schemeService.get(schemeService.save(scheme, user), user)
         .orElseThrow(NotFoundException::new);
+  }
+
+  @PostJsonMapping(params = "batch=true", produces = {})
+  @ResponseStatus(NO_CONTENT)
+  public void save(@RequestBody List<Scheme> schemes, @AuthenticationPrincipal User currentUser) {
+    schemeService.save(schemes, currentUser);
   }
 
   @PutJsonMapping(path = "/{schemeId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
