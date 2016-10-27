@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import fi.thl.termed.util.collect.MultimapUtils;
 
-public class Property {
+public class Property implements Identifiable<String> {
 
   private String id;
 
@@ -32,6 +32,11 @@ public class Property {
     this.uri = property.uri;
     this.index = property.index;
     this.properties = property.properties;
+  }
+
+  @Override
+  public String identifier() {
+    return id;
   }
 
   public String getId() {

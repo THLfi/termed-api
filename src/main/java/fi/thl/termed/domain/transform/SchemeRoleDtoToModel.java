@@ -1,24 +1,24 @@
 package fi.thl.termed.domain.transform;
 
-import java.util.function.Function;
 import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.SchemeRole;
 
 public class SchemeRoleDtoToModel implements Function<List<String>, Map<SchemeRole, Empty>> {
 
-  private UUID schemeId;
+  private SchemeId schemeId;
 
-  public SchemeRoleDtoToModel(UUID schemeId) {
+  public SchemeRoleDtoToModel(SchemeId schemeId) {
     this.schemeId = schemeId;
   }
 
-  public static SchemeRoleDtoToModel create(UUID schemeId) {
+  public static SchemeRoleDtoToModel create(SchemeId schemeId) {
     return new SchemeRoleDtoToModel(schemeId);
   }
 

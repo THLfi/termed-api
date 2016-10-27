@@ -26,7 +26,7 @@ public class ResourceByCode
   private String code;
 
   public ResourceByCode(UUID schemeId, String typeId, String code) {
-    this(new ClassId(schemeId, typeId), code);
+    this(new ClassId(typeId, schemeId), code);
   }
 
   public ResourceByCode(ClassId classId, String code) {
@@ -37,7 +37,7 @@ public class ResourceByCode
   @Override
   public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
-    return Objects.equals(resource.getSchemeId(), classId.getSchemeId()) &&
+    return Objects.equals(resource.getTypeSchemeId(), classId.getSchemeId()) &&
            Objects.equals(resource.getTypeId(), classId.getId()) &&
            Objects.equals(resource.getCode(), code);
   }
@@ -45,7 +45,7 @@ public class ResourceByCode
   @Override
   public Query luceneQuery() {
     BooleanQuery query = new BooleanQuery();
-    query.add(new TermQuery(new Term("scheme.id", classId.getSchemeId().toString())), MUST);
+    query.add(new TermQuery(new Term("type.scheme.id", classId.getSchemeId().toString())), MUST);
     query.add(new TermQuery(new Term("type.id", classId.getId())), MUST);
     query.add(new TermQuery(new Term("coded", code)), MUST);
     return query;

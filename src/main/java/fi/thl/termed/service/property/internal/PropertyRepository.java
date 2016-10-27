@@ -35,11 +35,6 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  protected String extractKey(Property property) {
-    return property.getId();
-  }
-
-  @Override
   public void insert(String id, Property property, User user) {
     propertyDao.insert(id, property, user);
     insertProperties(id, property.getProperties(), user);

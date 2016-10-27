@@ -1,0 +1,202 @@
+[
+  {
+    "id": "194a6da0-9e1a-4f4c-be21-0fcfd44e81e8",
+    "code": "animals",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Animals"
+        },
+        {
+          "lang": "fi",
+          "value": "Eläimet"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7b0ae701-d8c9-463d-9707-48e92494bb59",
+    "code": "invertebrates",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Invertebrates"
+        },
+        {
+          "lang": "fi",
+          "value": "Selkärangattomat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "194a6da0-9e1a-4f4c-be21-0fcfd44e81e8"
+        }
+      ]
+    }
+  },
+  {
+    "id": "26e6d6e4-6189-4c83-b2d9-637044fbdb65",
+    "code": "vertebrates",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Vertebrates"
+        },
+        {
+          "lang": "fi",
+          "value": "Selkärankaiset"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "194a6da0-9e1a-4f4c-be21-0fcfd44e81e8"
+        }
+      ]
+    }
+  },
+  {
+    "id": "dba6b7eb-5905-49a6-84de-b32ea8608ec9",
+    "code": "birds",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Birds"
+        },
+        {
+          "lang": "fi",
+          "value": "Linnut"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "26e6d6e4-6189-4c83-b2d9-637044fbdb65"
+        }
+      ]
+    }
+  },
+  {
+    "id": "b91e6f65-0aca-4055-b2dc-b35106f6aa7c",
+    "code": "mammals",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Mammals"
+        },
+        {
+          "lang": "fi",
+          "value": "Nisäkkäät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "26e6d6e4-6189-4c83-b2d9-637044fbdb65"
+        }
+      ]
+    }
+  },
+  {
+    "id": "0aa44b72-1101-44d1-b058-5e70c43c8b8c",
+    "code": "reptiles",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Reptiles"
+        },
+        {
+          "lang": "fi",
+          "value": "Matelijat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "26e6d6e4-6189-4c83-b2d9-637044fbdb65"
+        }
+      ]
+    }
+  },
+  {
+    "id": "41dd2ea2-e59c-4ecd-ba4c-83202b49199e",
+    "code": "rodents",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Rodents"
+        },
+        {
+          "lang": "fi",
+          "value": "Jyrsijät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "b91e6f65-0aca-4055-b2dc-b35106f6aa7c"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ca1cf5d0-5cb2-4563-aa8d-d22e16bc18f0",
+    "code": "beavers",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Beavers"
+        },
+        {
+          "lang": "fi",
+          "value": "Majavat"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "41dd2ea2-e59c-4ecd-ba4c-83202b49199e"
+        }
+      ]
+    }
+  },
+  {
+    "id": "fa77f1da-2b5a-42e2-994d-655b39080e8e",
+    "code": "voles",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "Voles"
+        },
+        {
+          "lang": "fi",
+          "value": "Myyrät"
+        }
+      ]
+    },
+    "references": {
+      "broader": [
+        {
+          "id": "41dd2ea2-e59c-4ecd-ba4c-83202b49199e"
+        }
+      ]
+    }
+  }
+]

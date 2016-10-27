@@ -32,14 +32,14 @@ public class ResourceByUri
   @Override
   public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
-    return Objects.equals(resource.getSchemeId(), schemeId) &&
+    return Objects.equals(resource.getTypeSchemeId(), schemeId) &&
            Objects.equals(resource.getUri(), uri);
   }
 
   @Override
   public Query luceneQuery() {
     BooleanQuery query = new BooleanQuery();
-    query.add(new TermQuery(new Term("scheme.id", schemeId.toString())), MUST);
+    query.add(new TermQuery(new Term("type.scheme.id", schemeId.toString())), MUST);
     query.add(new TermQuery(new Term("uri", uri)), MUST);
     return query;
   }

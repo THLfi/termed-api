@@ -1,25 +1,31 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import fi.thl.termed.util.RegularExpressions;
 
-public class TextAttribute extends Attribute {
+public class TextAttribute extends Attribute implements Identifiable<TextAttributeId> {
 
   private String regex;
 
-  public TextAttribute(Class domain, String id) {
-    super(domain, id);
+  public TextAttribute(String id, ClassId domain) {
+    super(id, domain);
   }
 
-  public TextAttribute(Class domain, String id, String uri) {
-    super(domain, id, uri);
+  public TextAttribute(String id, String uri, ClassId domain) {
+    super(id, uri, domain);
   }
 
   public TextAttribute(TextAttribute textAttribute) {
     super(textAttribute);
     this.regex = textAttribute.regex;
+  }
+
+  @Override
+  public TextAttributeId identifier() {
+    return new TextAttributeId(getDomain(), getId());
   }
 
   public String getRegex() {

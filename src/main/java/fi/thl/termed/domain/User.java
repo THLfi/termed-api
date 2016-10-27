@@ -14,7 +14,7 @@ import fi.thl.termed.util.collect.ListUtils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class User implements UserDetails {
+public class User implements UserDetails, Identifiable<String> {
 
   private String username;
   private String password;
@@ -40,6 +40,11 @@ public class User implements UserDetails {
     this.password = user.password;
     this.appRole = user.appRole;
     this.schemeRoles = user.schemeRoles;
+  }
+
+  @Override
+  public String identifier() {
+    return username;
   }
 
   @Override

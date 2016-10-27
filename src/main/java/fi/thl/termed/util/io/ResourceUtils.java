@@ -10,7 +10,7 @@ public final class ResourceUtils {
   private ResourceUtils() {
   }
 
-  public static String getResourceToString(String resourceName) {
+  public static String resourceToString(String resourceName) {
     try {
       return Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);
     } catch (IOException e) {

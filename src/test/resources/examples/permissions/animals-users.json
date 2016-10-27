@@ -5,7 +5,9 @@
     "appRole": "USER",
     "schemeRoles": [
       {
-        "schemeId": "9d92c840-7422-4055-b5a1-8e5d87d161ff",
+        "scheme": {
+          "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
+        },
         "role": "editor"
       }
     ]
@@ -16,7 +18,9 @@
     "appRole": "USER",
     "schemeRoles": [
       {
-        "schemeId": "9d92c840-7422-4055-b5a1-8e5d87d161ff",
+        "scheme": {
+          "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
+        },
         "role": "reviewer"
       }
     ]
@@ -27,7 +31,9 @@
     "appRole": "USER",
     "schemeRoles": [
       {
-        "schemeId": "9d92c840-7422-4055-b5a1-8e5d87d161ff",
+        "scheme": {
+          "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
+        },
         "role": "visitor"
       }
     ]

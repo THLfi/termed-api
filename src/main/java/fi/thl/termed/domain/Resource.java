@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import fi.thl.termed.util.collect.MultimapUtils;
 
-public class Resource implements Auditable {
+public class Resource implements Auditable, Identifiable<ResourceId> {
 
   private UUID id;
   private String code;
@@ -23,13 +23,12 @@ public class Resource implements Auditable {
   private String lastModifiedBy;
   private Date lastModifiedDate;
 
-  private Scheme scheme;
-  private Class type;
+  private ClassId type;
 
   private Multimap<String, Permission> permissions;
   private Multimap<String, StrictLangValue> properties;
-  private Multimap<String, Resource> references;
-  private Multimap<String, Resource> referrers;
+  private Multimap<String, ResourceId> references;
+  private Multimap<String, ResourceId> referrers;
 
   public Resource() {
   }
@@ -39,15 +38,8 @@ public class Resource implements Auditable {
   }
 
   public Resource(ResourceId resourceId) {
-    this.scheme = new Scheme(resourceId.getSchemeId());
-    this.type = new Class(new Scheme(resourceId.getSchemeId()), resourceId.getTypeId());
     this.id = resourceId.getId();
-  }
-
-  public Resource(Scheme scheme, Class type, UUID id) {
-    this.scheme = scheme;
-    this.type = type;
-    this.id = id;
+    this.type = resourceId.getType();
   }
 
   public Resource(Resource resource) {
@@ -58,12 +50,16 @@ public class Resource implements Auditable {
     this.createdDate = resource.createdDate;
     this.lastModifiedBy = resource.lastModifiedBy;
     this.lastModifiedDate = resource.lastModifiedDate;
-    this.scheme = resource.scheme;
     this.type = resource.type;
     this.permissions = resource.permissions;
     this.properties = resource.properties;
     this.references = resource.references;
     this.referrers = resource.referrers;
+  }
+
+  @Override
+  public ResourceId identifier() {
+    return new ResourceId(this);
   }
 
   public UUID getId() {
@@ -122,24 +118,16 @@ public class Resource implements Auditable {
     this.lastModifiedDate = lastModifiedDate;
   }
 
-  public Scheme getScheme() {
-    return scheme;
-  }
-
-  public void setScheme(Scheme scheme) {
-    this.scheme = scheme;
-  }
-
-  public UUID getSchemeId() {
-    return scheme != null ? scheme.getId() : null;
-  }
-
-  public Class getType() {
+  public ClassId getType() {
     return type;
   }
 
-  public void setType(Class type) {
+  public void setType(ClassId type) {
     this.type = type;
+  }
+
+  public UUID getTypeSchemeId() {
+    return type != null ? type.getSchemeId() : null;
   }
 
   public String getTypeId() {
@@ -178,26 +166,21 @@ public class Resource implements Auditable {
     properties.put(attributeId, langValue);
   }
 
-  public Multimap<String, Resource> getReferences() {
+  public Multimap<String, ResourceId> getReferences() {
     return MultimapUtils.nullToEmpty(references);
   }
 
-  public void setReferences(Multimap<String, Resource> references) {
+  public void setReferences(Multimap<String, ResourceId> references) {
     this.references = references;
   }
 
-  public Multimap<String, ResourceId> getReferenceIds() {
-    return Multimaps.transformValues(
-        getReferences(), r -> new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId()));
-  }
-
-  public void addReferences(String attributeId, List<Resource> references) {
-    for (Resource reference : references) {
+  public void addReferences(String attributeId, List<ResourceId> references) {
+    for (ResourceId reference : references) {
       addReference(attributeId, reference);
     }
   }
 
-  public void addReference(String attributeId, Resource reference) {
+  public void addReference(String attributeId, ResourceId reference) {
     if (references == null) {
       references = LinkedHashMultimap.create();
     }
@@ -205,25 +188,12 @@ public class Resource implements Auditable {
     references.put(attributeId, reference);
   }
 
-  public Multimap<String, Resource> getReferrers() {
+  public Multimap<String, ResourceId> getReferrers() {
     return MultimapUtils.nullToEmpty(referrers);
   }
 
-  public void setReferrers(Multimap<String, Resource> referrers) {
+  public void setReferrers(Multimap<String, ResourceId> referrers) {
     this.referrers = referrers;
-  }
-
-  public Multimap<String, ResourceId> getReferrerIds() {
-    return Multimaps.transformValues(
-        getReferrers(), r -> new ResourceId(r.getSchemeId(), r.getTypeId(), r.getId()));
-  }
-
-  public void addReferrer(String attributeId, Resource referrer) {
-    if (referrers == null) {
-      referrers = LinkedHashMultimap.create();
-    }
-
-    referrers.put(attributeId, referrer);
   }
 
   @Override
@@ -236,11 +206,10 @@ public class Resource implements Auditable {
         .add("createdDate", createdDate)
         .add("lastModifiedBy", lastModifiedBy)
         .add("lastModifiedDate", lastModifiedDate)
-        .add("schemeId", getSchemeId())
-        .add("typeId", getTypeId())
+        .add("type", type)
         .add("permissions", permissions)
         .add("properties", properties)
-        .add("references", getReferenceIds())
+        .add("references", references)
         .toString();
   }
 
@@ -260,11 +229,10 @@ public class Resource implements Auditable {
            Objects.equals(createdDate, resource.createdDate) &&
            Objects.equals(lastModifiedBy, resource.lastModifiedBy) &&
            Objects.equals(lastModifiedDate, resource.lastModifiedDate) &&
-           Objects.equals(getSchemeId(), resource.getSchemeId()) &&
-           Objects.equals(getTypeId(), resource.getTypeId()) &&
+           Objects.equals(type, resource.type) &&
            Objects.equals(permissions, resource.permissions) &&
            Objects.equals(properties, resource.properties) &&
-           Objects.equals(getReferenceIds(), resource.getReferenceIds());
+           Objects.equals(references, resource.references);
   }
 
   @Override
@@ -276,11 +244,10 @@ public class Resource implements Auditable {
                         createdDate,
                         lastModifiedBy,
                         lastModifiedDate,
-                        getSchemeId(),
-                        getTypeId(),
+                        type,
                         permissions,
                         properties,
-                        getReferenceIds());
+                        references);
   }
 
 }

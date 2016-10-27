@@ -27,7 +27,7 @@ public class ResourceReferenceAttributeResourcesByValueId
 
   @Override
   public Object[] sqlQueryParameters() {
-    return new Object[]{valueId.getSchemeId(), valueId.getTypeId(), valueId.getId()};
+    return new Object[]{valueId.getTypeSchemeId(), valueId.getTypeId(), valueId.getId()};
   }
 
 }

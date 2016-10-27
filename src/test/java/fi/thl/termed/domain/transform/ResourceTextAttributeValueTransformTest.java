@@ -18,8 +18,8 @@ public class ResourceTextAttributeValueTransformTest {
 
   @Test
   public void shouldTransformTextAttributeValueDtoToModelAndBack() {
-    ResourceId resourceId = new ResourceId(UUIDs.nameUUIDFromString("SchemeID"), "TypeId",
-                                           UUIDs.nameUUIDFromString("ResourceId"));
+    ResourceId resourceId = new ResourceId(UUIDs.nameUUIDFromString("ResourceId"), "TypeId",
+                                           UUIDs.nameUUIDFromString("SchemeID"));
 
     Multimap<String, StrictLangValue> propertyDto =
         ImmutableSetMultimap.<String, StrictLangValue>builder()

@@ -9,6 +9,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
@@ -77,7 +78,7 @@ public class JdbcSchemeRoleDao extends AbstractJdbcDao<SchemeRole, Empty> {
 
   @Override
   protected RowMapper<SchemeRole> buildKeyMapper() {
-    return (rs, rowNum) -> new SchemeRole(UUIDs.fromString(rs.getString("scheme_id")),
+    return (rs, rowNum) -> new SchemeRole(new SchemeId(UUIDs.fromString(rs.getString("scheme_id"))),
                                           rs.getString("role"));
   }
 

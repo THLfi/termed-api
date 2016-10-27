@@ -15,20 +15,20 @@ public abstract class Attribute {
 
   private Integer index;
 
-  private Class domain;
+  private ClassId domain;
 
   private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
 
-  public Attribute(Class domain, String id) {
-    this.domain = domain;
+  public Attribute(String id, ClassId domain) {
     this.id = id;
+    this.domain = domain;
   }
 
-  public Attribute(Class domain, String id, String uri) {
-    this.domain = domain;
+  public Attribute(String id, String uri, ClassId domain) {
     this.id = id;
     this.uri = uri;
+    this.domain = domain;
   }
 
   public Attribute(Attribute attribute) {
@@ -64,12 +64,12 @@ public abstract class Attribute {
     this.index = index;
   }
 
-  public Class getDomain() {
+  public ClassId getDomain() {
     return domain;
   }
 
-  public ClassId getDomainClassId() {
-    return new ClassId(domain);
+  public void setDomain(ClassId domain) {
+    this.domain = domain;
   }
 
   public UUID getDomainSchemeId() {
@@ -78,10 +78,6 @@ public abstract class Attribute {
 
   public String getDomainId() {
     return domain != null ? domain.getId() : null;
-  }
-
-  public void setDomain(Class domain) {
-    this.domain = domain;
   }
 
   public Multimap<String, Permission> getPermissions() {
@@ -112,14 +108,14 @@ public abstract class Attribute {
     return Objects.equals(id, attribute.id) &&
            Objects.equals(uri, attribute.uri) &&
            Objects.equals(index, attribute.index) &&
-           Objects.equals(getDomainClassId(), attribute.getDomainClassId()) &&
+           Objects.equals(domain, attribute.domain) &&
            Objects.equals(permissions, attribute.permissions) &&
            Objects.equals(properties, attribute.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, uri, index, getDomainClassId(), permissions, properties);
+    return Objects.hash(id, uri, index, domain, permissions, properties);
   }
 
   @Override
@@ -132,7 +128,7 @@ public abstract class Attribute {
         .add("id", id)
         .add("uri", uri)
         .add("index", index)
-        .add("domainId", getDomainClassId())
+        .add("domain", domain)
         .add("permissions", permissions)
         .add("properties", properties);
   }

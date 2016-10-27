@@ -2,19 +2,31 @@ package fi.thl.termed.util.index;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import fi.thl.termed.util.specification.Query;
 
 public interface Index<K extends Serializable, V> {
 
-  void reindex(List<K> ids, java.util.function.Function<K, V> objectLoadingFunction);
+  /**
+   * Index values, may be processed parallel/async. If provider gives an empty Optional, any
+   * previous values will be removed from this index.
+   */
+  void index(List<K> keys, Function<K, Optional<V>> valueProvider);
 
-  void reindex(K key, V object);
+  void index(K key, V value);
 
-  List<V> query(Query<K, V> specification);
+  void delete(K key);
 
-  void deleteFromIndex(K id);
+  boolean isEmpty();
 
-  int indexSize();
+  List<V> get(Query<K, V> specification);
+
+  List<K> getKeys(Query<K, V> specification);
+
+  List<V> get(List<K> ids);
+
+  Optional<V> get(K id);
 
 }

@@ -12,20 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.class_.specification.ClassesBySchemeId;
 import fi.thl.termed.service.resource.specification.ResourcesByClassId;
 import fi.thl.termed.service.resource.specification.ResourcesByTextAttributeValuePrefix;
-import fi.thl.termed.service.scheme.specification.ClassesBySchemeId;
-import fi.thl.termed.service.scheme.specification.TextAttributesByClassId;
-import fi.thl.termed.service.scheme.specification.TextAttributesBySchemeId;
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.MatchAll;
 import fi.thl.termed.util.specification.MatchNone;
@@ -46,10 +43,7 @@ public class ResourceReadController {
   private Service<ResourceId, Resource> resourceService;
 
   @Autowired
-  private Dao<ClassId, Class> classDao;
-
-  @Autowired
-  private Dao<TextAttributeId, TextAttribute> textAttributeDao;
+  private Service<ClassId, Class> classService;
 
   @GetJsonMapping("/resources")
   public List<Resource> get(
@@ -90,7 +84,7 @@ public class ResourceReadController {
       @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @AuthenticationPrincipal User currentUser) {
 
-    ClassId classId = new ClassId(schemeId, typeId);
+    ClassId classId = new ClassId(typeId, schemeId);
     Specification<ResourceId, Resource> specification =
         query.isEmpty() ? resourcesBy(classId(classId, currentUser))
                         : resourcesBy(textAttributeIds(classId, currentUser), tokenize(query));
@@ -103,7 +97,7 @@ public class ResourceReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User currentUser) {
-    return resourceService.get(new ResourceId(schemeId, typeId, id), currentUser)
+    return resourceService.get(new ResourceId(id, typeId, schemeId), currentUser)
         .orElseThrow(NotFoundException::new);
   }
 
@@ -137,28 +131,38 @@ public class ResourceReadController {
     return new OrSpecification<>(specifications);
   }
 
-  private List<ClassId> classIds(User user) {
-    return classDao.getKeys(new MatchAll<>(), user);
-  }
 
   private List<ClassId> classIds(UUID schemeId, User user) {
-    return classDao.getKeys(new ClassesBySchemeId(schemeId), user);
-  }
-
-  private ClassId classId(ClassId classId, User user) {
-    return classDao.exists(classId, user) ? classId : null;
-  }
-
-  private List<TextAttributeId> textAttributeIds(User user) {
-    return textAttributeDao.getKeys(new MatchAll<>(), user);
+    return classService.getKeys(new Query<>(new ClassesBySchemeId(schemeId)), user);
   }
 
   private List<TextAttributeId> textAttributeIds(UUID schemeId, User user) {
-    return textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId), user);
+    return classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user).stream()
+        .flatMap(cls -> cls.getTextAttributes().stream())
+        .map(TextAttributeId::new)
+        .collect(Collectors.toList());
+  }
+
+  private List<ClassId> classIds(User user) {
+    return classService.getKeys(new Query<>(new MatchAll<>()), user);
+  }
+
+  private ClassId classId(ClassId classId, User user) {
+    return classService.get(classId, user).map(ClassId::new).orElse(null);
+  }
+
+  private List<TextAttributeId> textAttributeIds(User user) {
+    return classService.get(new Query<>(new MatchAll<>()), user).stream()
+        .flatMap(cls -> cls.getTextAttributes().stream())
+        .map(TextAttributeId::new)
+        .collect(Collectors.toList());
   }
 
   private List<TextAttributeId> textAttributeIds(ClassId classId, User user) {
-    return textAttributeDao.getKeys(new TextAttributesByClassId(classId), user);
+    return classService.get(classId, user).orElseThrow(NotFoundException::new)
+        .getTextAttributes().stream()
+        .map(TextAttributeId::new)
+        .collect(Collectors.toList());
   }
 
   private List<String> tokenize(String query) {

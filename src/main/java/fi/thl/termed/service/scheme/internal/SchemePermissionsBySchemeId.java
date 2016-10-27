@@ -1,23 +1,24 @@
 package fi.thl.termed.service.scheme.internal;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class SchemePermissionsBySchemeId
-    extends AbstractSqlSpecification<ObjectRolePermission<UUID>, GrantedPermission> {
+    extends AbstractSqlSpecification<ObjectRolePermission<SchemeId>, GrantedPermission> {
 
-  private UUID schemeId;
+  private SchemeId schemeId;
 
-  public SchemePermissionsBySchemeId(UUID schemeId) {
+  public SchemePermissionsBySchemeId(SchemeId schemeId) {
     this.schemeId = schemeId;
   }
 
   @Override
-  public boolean test(ObjectRolePermission<UUID> objectRolePermission, GrantedPermission value) {
+  public boolean test(ObjectRolePermission<SchemeId> objectRolePermission,
+                      GrantedPermission value) {
     return Objects.equals(objectRolePermission.getObjectId(), schemeId);
   }
 
@@ -28,7 +29,7 @@ public class SchemePermissionsBySchemeId
 
   @Override
   public Object[] sqlQueryParameters() {
-    return new Object[]{schemeId};
+    return new Object[]{schemeId.getId()};
   }
 
 }

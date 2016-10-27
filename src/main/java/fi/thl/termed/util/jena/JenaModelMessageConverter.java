@@ -24,7 +24,7 @@ public class JenaModelMessageConverter extends AbstractHttpMessageConverter<Mode
   private Map<MediaType, String> mediaTypes = ImmutableMap.<MediaType, String>builder()
       .put(new MediaType("application", "n-triples", Charsets.UTF_8), "N-TRIPLE")
       .put(new MediaType("application", "rdf+xml", Charsets.UTF_8), "RDF/XML")
-      .put(new MediaType("application", "json+ld", Charsets.UTF_8), "JSON-LD")
+      .put(new MediaType("application", "ld+json", Charsets.UTF_8), "JSON-LD")
       .put(new MediaType("text", "turtle", Charsets.UTF_8), "TURTLE")
       .put(new MediaType("text", "n3", Charsets.UTF_8), "N3")
       .build();

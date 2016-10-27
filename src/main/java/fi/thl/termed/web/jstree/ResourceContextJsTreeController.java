@@ -18,16 +18,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.ReferenceAttribute;
-import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.resource.util.IndexedReferenceLoader;
+import fi.thl.termed.service.resource.util.IndexedReferrerLoader;
 import fi.thl.termed.util.GraphUtils;
 import fi.thl.termed.util.Tree;
 import fi.thl.termed.util.collect.ListUtils;
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -40,9 +38,6 @@ public class ResourceContextJsTreeController {
   @Autowired
   private Service<ResourceId, Resource> resourceService;
 
-  @Autowired
-  private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
-
   @GetJsonMapping
   public List<JsTree> getContextJsTrees(
       @PathVariable("schemeId") UUID schemeId,
@@ -53,24 +48,13 @@ public class ResourceContextJsTreeController {
       @RequestParam(value = "referrers", defaultValue = "true") boolean referrers,
       @AuthenticationPrincipal User user) {
 
-    Resource resource = resourceService.get(new ResourceId(schemeId, typeId, resourceId), user)
+    Resource resource = resourceService.get(new ResourceId(resourceId, typeId, schemeId), user)
         .orElseThrow(NotFoundException::new);
 
-    ClassId domainId = new ClassId(resource);
-    ReferenceAttributeId referenceAttributeId = new ReferenceAttributeId(domainId, attributeId);
-    ReferenceAttribute referenceAttribute =
-        referenceAttributeDao.get(referenceAttributeId, user).orElseThrow(NotFoundException::new);
-
-    if (referenceAttribute == null) {
-      return Lists.newArrayList();
-    }
-
-    ClassId rangeId = new ClassId(referenceAttribute.getRange());
-
     Function<Resource, List<Resource>> referenceLoadingFunction =
-        new IndexedReferenceLoader(resourceService, user, referenceAttributeId, rangeId);
+        new IndexedReferenceLoader(resourceService, user, attributeId);
     Function<Resource, List<Resource>> referrerLoadingFunction =
-        new IndexedReferrerLoader(resourceService, user, referenceAttributeId, rangeId);
+        new IndexedReferrerLoader(resourceService, user, attributeId);
 
     Set<Resource> roots = Sets.newLinkedHashSet();
     Set<ResourceId> pathIds = Sets.newHashSet();

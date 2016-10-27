@@ -1,10 +1,6 @@
 package fi.thl.termed.service.resource.internal;
 
-import com.google.common.base.Converter;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -24,6 +20,7 @@ import java.util.zip.DataFormatException;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.index.lucene.LuceneConstants;
 import fi.thl.termed.util.index.lucene.LuceneException;
 
@@ -38,16 +35,13 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
   }
 
   @Override
-  protected Document doForward(Resource r) {
+  public Document apply(Resource r) {
     Document doc = new Document();
 
-    Resource cachedResource = new Resource(r);
-    cachedResource.setReferences(truncateValues(r.getReferences()));
-    cachedResource.setReferrers(ImmutableMultimap.<String, Resource>of());
     doc.add(new StoredField(LuceneConstants.CACHED_RESULT_FIELD,
-                            CompressionTools.compressString(gson.toJson(cachedResource))));
+                            CompressionTools.compressString(gson.toJson(r))));
 
-    doc.add(stringField("scheme.id", r.getSchemeId()));
+    doc.add(stringField("type.scheme.id", r.getTypeSchemeId()));
     doc.add(stringField("type.id", r.getTypeId()));
     doc.add(stringField("id", r.getId()));
     doc.add(stringField("code", r.getCode()));
@@ -67,31 +61,26 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
       }
     }
 
-    for (Map.Entry<String, Resource> entry : r.getReferences().entries()) {
+    for (Map.Entry<String, ResourceId> entry : r.getReferences().entries()) {
       String property = entry.getKey();
-      Resource value = entry.getValue();
+      ResourceId value = entry.getValue();
 
-      doc.add(stringField(property + ".resourceId", new ResourceId(value).toString()));
+      doc.add(stringField(property + ".resourceId", value.toString()));
 
       doc.add(stringField(property + ".id", value.getId()));
       doc.add(stringField(property + ".type.id", value.getTypeId()));
-      doc.add(stringField(property + ".scheme.id", value.getSchemeId()));
-      doc.add(stringField(property + ".code", value.getCode()));
-      doc.add(stringField(property + ".uri", value.getUri()));
+      doc.add(stringField(property + ".type.scheme.id", value.getTypeSchemeId()));
     }
 
-    for (Map.Entry<String, Resource> entry : r.getReferrers().entries()) {
+    for (Map.Entry<String, ResourceId> entry : r.getReferrers().entries()) {
       String property = entry.getKey();
-      Resource value = entry.getValue();
+      ResourceId value = entry.getValue();
 
-      doc.add(stringField("referrers." + property + ".resourceId",
-                          new ResourceId(value).toString()));
+      doc.add(stringField("referrers." + property + ".resourceId", value.toString()));
 
       doc.add(stringField("referrers." + property + ".id", value.getId()));
       doc.add(stringField("referrers." + property + ".type.id", value.getTypeId()));
-      doc.add(stringField("referrers." + property + ".scheme.id", value.getSchemeId()));
-      doc.add(stringField("referrers." + property + ".code", value.getCode()));
-      doc.add(stringField("referrers." + property + ".uri", value.getUri()));
+      doc.add(stringField("referrers." + property + ".type.scheme.id", value.getTypeSchemeId()));
     }
 
     return doc;
@@ -109,17 +98,8 @@ public class ResourceDocumentConverter extends Converter<Resource, Document> {
     return new StringField(name, value != null ? value.toString() : "", Field.Store.NO);
   }
 
-  private Multimap<String, Resource> truncateValues(Multimap<String, Resource> multimap) {
-    return Multimaps.transformValues(multimap, value -> {
-      Resource truncated = new Resource(new ResourceId(value));
-      truncated.setCode(value.getCode());
-      truncated.setUri(value.getUri());
-      return truncated;
-    });
-  }
-
   @Override
-  protected Resource doBackward(Document document) {
+  public Resource applyInverse(Document document) {
     String cachedJsonResource;
 
     try {

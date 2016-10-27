@@ -11,35 +11,36 @@ import javax.sql.DataSource;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.SchemeRole;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
 public class JdbcSchemePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<UUID>, GrantedPermission> {
+    extends AbstractJdbcDao<ObjectRolePermission<SchemeId>, GrantedPermission> {
 
   public JdbcSchemePermissionsDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(ObjectRolePermission<UUID> id, GrantedPermission value) {
+  public void insert(ObjectRolePermission<SchemeId> id, GrantedPermission value) {
     jdbcTemplate.update(
         "insert into scheme_permission (scheme_id, role, permission) values (?, ?, ?)",
-        id.getObjectId(), id.getRole(), id.getPermission().toString());
+        id.getObjectId().getId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
-  public void update(ObjectRolePermission<UUID> id, GrantedPermission value) {
+  public void update(ObjectRolePermission<SchemeId> id, GrantedPermission value) {
     // NOP (permission doesn't have a separate value)
   }
 
   @Override
-  public void delete(ObjectRolePermission<UUID> id) {
+  public void delete(ObjectRolePermission<SchemeId> id) {
     jdbcTemplate.update(
         "delete from scheme_permission where scheme_id = ? and role = ? and permission = ?",
-        id.getObjectId(), id.getRole(), id.getPermission().toString());
+        id.getObjectId().getId(), id.getRole(), id.getPermission().toString());
   }
 
   @Override
@@ -49,7 +50,7 @@ public class JdbcSchemePermissionsDao
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<ObjectRolePermission<UUID>, GrantedPermission> specification,
+      SqlSpecification<ObjectRolePermission<SchemeId>, GrantedPermission> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from scheme_permission where %s",
@@ -58,29 +59,29 @@ public class JdbcSchemePermissionsDao
   }
 
   @Override
-  public boolean exists(ObjectRolePermission<UUID> id) {
+  public boolean exists(ObjectRolePermission<SchemeId> id) {
     return jdbcTemplate.queryForObject(
         "select count(*) from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         Long.class,
-        id.getObjectId(),
+        id.getObjectId().getId(),
         id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
   @Override
-  protected <E> Optional<E> get(ObjectRolePermission<UUID> id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ObjectRolePermission<SchemeId> id, RowMapper<E> mapper) {
     return jdbcTemplate.query(
         "select * from scheme_permission where scheme_id = ? and role = ? and permission = ?",
         mapper,
-        id.getObjectId(),
+        id.getObjectId().getId(),
         id.getRole(),
         id.getPermission().toString()).stream().findFirst();
   }
 
   @Override
-  protected RowMapper<ObjectRolePermission<UUID>> buildKeyMapper() {
+  protected RowMapper<ObjectRolePermission<SchemeId>> buildKeyMapper() {
     return (rs, rowNum) -> {
-      UUID schemeId = UUIDs.fromString(rs.getString("scheme_id"));
+      SchemeId schemeId = new SchemeId(UUIDs.fromString(rs.getString("scheme_id")));
       return new ObjectRolePermission<>(schemeId,
                                         new SchemeRole(schemeId, rs.getString("role")),
                                         Permission.valueOf(rs.getString("permission")));

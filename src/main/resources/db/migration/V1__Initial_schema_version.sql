@@ -77,8 +77,7 @@ CREATE TABLE class (
   uri varchar(2000),
   index integer,
   CONSTRAINT class_pkey PRIMARY KEY (scheme_id, id),
-  CONSTRAINT class_scheme_id_fkey
-    FOREIGN KEY (scheme_id) REFERENCES scheme(id) ON DELETE CASCADE,
+  CONSTRAINT class_scheme_id_fkey FOREIGN KEY (scheme_id) REFERENCES scheme(id),
   CONSTRAINT class_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]*$'),
   CONSTRAINT class_scheme_id_uri_unique UNIQUE (scheme_id, uri)
 );

@@ -26,12 +26,12 @@ public class JdbcResourceReferenceAttributeValueDao
 
     jdbcTemplate.update(
         "insert into resource_reference_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, value_scheme_id, value_type_id, value_id) values (?, ?, ?, ?, ?, ?, ?, ?)",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
         id.getIndex(),
-        value.getSchemeId(),
+        value.getTypeSchemeId(),
         value.getTypeId(),
         value.getId());
   }
@@ -42,10 +42,10 @@ public class JdbcResourceReferenceAttributeValueDao
 
     jdbcTemplate.update(
         "update resource_reference_attribute_value set value_scheme_id = ?, value_type_id = ?, value_id = ? where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
-        value.getSchemeId(),
+        value.getTypeSchemeId(),
         value.getTypeId(),
         value.getId(),
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -58,7 +58,7 @@ public class JdbcResourceReferenceAttributeValueDao
 
     jdbcTemplate.update(
         "delete from resource_reference_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -86,7 +86,7 @@ public class JdbcResourceReferenceAttributeValueDao
     return jdbcTemplate.queryForObject(
         "select count(*) from resource_reference_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         Long.class,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -100,7 +100,7 @@ public class JdbcResourceReferenceAttributeValueDao
     return jdbcTemplate.query(
         "select * from resource_reference_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         mapper,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -110,9 +110,9 @@ public class JdbcResourceReferenceAttributeValueDao
   @Override
   protected RowMapper<ResourceAttributeValueId> buildKeyMapper() {
     return (rs, rowNum) -> new ResourceAttributeValueId(
-        new ResourceId(UUIDs.fromString(rs.getString("scheme_id")),
-                       rs.getString("resource_type_id"),
-                       UUIDs.fromString(rs.getString("resource_id"))),
+        new ResourceId(UUIDs.fromString(rs.getString("resource_id")),
+                       rs.getString("resource_type_id"), UUIDs.fromString(rs.getString("scheme_id"))
+        ),
         rs.getString("attribute_id"),
         rs.getInt("index")
     );
@@ -120,9 +120,10 @@ public class JdbcResourceReferenceAttributeValueDao
 
   @Override
   protected RowMapper<ResourceId> buildValueMapper() {
-    return (rs, rowNum) -> new ResourceId(UUIDs.fromString(rs.getString("value_scheme_id")),
+    return (rs, rowNum) -> new ResourceId(UUIDs.fromString(rs.getString("value_id")),
                                           rs.getString("value_type_id"),
-                                          UUIDs.fromString(rs.getString("value_id")));
+                                          UUIDs.fromString(rs.getString("value_scheme_id"))
+    );
   }
 
 }

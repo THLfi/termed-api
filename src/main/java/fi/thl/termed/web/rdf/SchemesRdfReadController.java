@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.MatchAll;
@@ -22,7 +22,7 @@ import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 public class SchemesRdfReadController {
 
   @Autowired
-  private Service<UUID, Scheme> schemeService;
+  private Service<SchemeId, Scheme> schemeService;
 
   @Autowired
   private Service<String, Property> propertyService;

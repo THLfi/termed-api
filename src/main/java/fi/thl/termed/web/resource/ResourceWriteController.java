@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Class;
+import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
@@ -39,8 +39,7 @@ public class ResourceWriteController {
       @RequestBody List<Resource> resources,
       @AuthenticationPrincipal User currentUser) {
     for (Resource resource : resources) {
-      resource.setScheme(new Scheme(schemeId));
-      resource.setType(new Class(new Scheme(schemeId), typeId));
+      resource.setType(new ClassId(typeId, new SchemeId(schemeId)));
     }
     resourceService.save(resources, currentUser);
   }
@@ -51,8 +50,7 @@ public class ResourceWriteController {
       @PathVariable("typeId") String typeId,
       @RequestBody Resource resource,
       @AuthenticationPrincipal User currentUser) {
-    resource.setScheme(new Scheme(schemeId));
-    resource.setType(new Class(new Scheme(schemeId), typeId));
+    resource.setType(new ClassId(typeId, new SchemeId(schemeId)));
     ResourceId resourceId = resourceService.save(resource, currentUser);
     return resourceService.get(resourceId, currentUser).get();
   }
@@ -64,7 +62,7 @@ public class ResourceWriteController {
       @RequestBody List<Resource> resources,
       @AuthenticationPrincipal User currentUser) {
     for (Resource resource : resources) {
-      resource.setScheme(new Scheme(schemeId));
+      resource.setType(new ClassId(resource.getTypeId(), schemeId));
     }
     resourceService.save(resources, currentUser);
   }
@@ -74,7 +72,7 @@ public class ResourceWriteController {
       @PathVariable("schemeId") UUID schemeId,
       @RequestBody Resource resource,
       @AuthenticationPrincipal User currentUser) {
-    resource.setScheme(new Scheme(schemeId));
+    resource.setType(new ClassId(resource.getTypeId(), schemeId));
     ResourceId resourceId = resourceService.save(resource, currentUser);
     return resourceService.get(resourceId, currentUser).get();
   }
@@ -102,8 +100,7 @@ public class ResourceWriteController {
       @PathVariable("id") UUID id,
       @RequestBody Resource resource,
       @AuthenticationPrincipal User currentUser) {
-    resource.setScheme(new Scheme(schemeId));
-    resource.setType(new Class(new Scheme(schemeId), typeId));
+    resource.setType(new ClassId(typeId, new SchemeId(schemeId)));
     resource.setId(id);
     ResourceId resourceId = resourceService.save(resource, currentUser);
     return resourceService.get(resourceId, currentUser).get();
@@ -116,7 +113,7 @@ public class ResourceWriteController {
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User currentUser) {
-    resourceService.delete(new ResourceId(schemeId, typeId, id), currentUser);
+    resourceService.delete(new ResourceId(id, typeId, schemeId), currentUser);
   }
 
 

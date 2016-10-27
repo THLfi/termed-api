@@ -21,30 +21,33 @@ public class LuceneIndexTest {
 
   @Before
   public void setUp() {
-    this.index = new LuceneIndex<>("", new DocumentJsonConverter<>(new Gson(), TestObject.class));
-    index.reindex(1, new TestObject(1, "First", "This is an example body about dogs"));
-    index.reindex(2, new TestObject(2, "Second", "This is an example body about cats"));
-    index.reindex(3, new TestObject(3, "Third", "This is an example body about horses"));
+    this.index = new LuceneIndex<>(
+        "",
+        new JsonStringConverter<>(Integer.class),
+        new JsonDocumentConverter<>(new Gson(), TestObject.class));
+    index.index(1, new TestObject(1, "First", "This is an example body about dogs"));
+    index.index(2, new TestObject(2, "Second", "This is an example body about cats"));
+    index.index(3, new TestObject(3, "Third", "This is an example body about horses"));
     index.refreshBlocking();
   }
 
   @Test
   public void shouldFindById() {
-    assertEquals("This is an example body about cats", index.query(term("id", "2")).get(0).body);
+    assertEquals("This is an example body about cats", index.get(term("id", "2")).get(0).body);
   }
 
   @Test
   public void shouldFindByContents() {
-    assertEquals("First", index.query(term("title", "First")).get(0).title);
-    assertEquals(new Integer(3), index.query(term("body", "horses")).get(0).id);
+    assertEquals("First", index.get(term("title", "First")).get(0).title);
+    assertEquals(new Integer(3), index.get(term("body", "horses")).get(0).id);
   }
 
   @Test
   public void shouldNotFindDeleted() {
-    assertEquals(new Integer(3), index.query(term("body", "horses")).get(0).id);
-    index.deleteFromIndex(3);
+    assertEquals(new Integer(3), index.get(term("body", "horses")).get(0).id);
+    index.delete(3);
     index.refreshBlocking();
-    assertTrue(index.query(term("body", "horses")).isEmpty());
+    assertTrue(index.get(term("body", "horses")).isEmpty());
   }
 
   private <K extends Serializable, V> Query<K, V> term(String field, String value) {

@@ -30,7 +30,7 @@ public interface Service<K extends Serializable, V> {
   List<V> get(Query<K, V> specification, User currentUser);
 
   /**
-   * Get specified values. Values are expected to be fully populated.
+   * Get specified keys.
    */
   List<K> getKeys(Query<K, V> specification, User currentUser);
 

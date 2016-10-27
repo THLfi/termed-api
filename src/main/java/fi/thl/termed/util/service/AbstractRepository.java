@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import fi.thl.termed.domain.Identifiable;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.SimpleValueDifference;
 import fi.thl.termed.util.specification.Query;
@@ -16,7 +17,8 @@ import fi.thl.termed.util.specification.Query;
 /**
  * For implementing a service that persists objects.
  */
-public abstract class AbstractRepository<K extends Serializable, V> implements Service<K, V> {
+public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
+    implements Service<K, V> {
 
   @Override
   public List<K> save(List<V> values, User user) {
@@ -26,7 +28,7 @@ public abstract class AbstractRepository<K extends Serializable, V> implements S
     Map<K, MapDifference.ValueDifference<V>> updates = new LinkedHashMap<>();
 
     for (V value : values) {
-      K key = extractKey(value);
+      K key = value.identifier();
 
       if (!exists(key, user)) {
         inserts.put(key, value);
@@ -45,7 +47,7 @@ public abstract class AbstractRepository<K extends Serializable, V> implements S
 
   @Override
   public K save(V value, User user) {
-    K key = extractKey(value);
+    K key = value.identifier();
 
     if (!exists(key, user)) {
       insert(key, value, user);
@@ -81,8 +83,6 @@ public abstract class AbstractRepository<K extends Serializable, V> implements S
     }
     return values;
   }
-
-  protected abstract K extractKey(V value);
 
   protected abstract boolean exists(K key, User user);
 

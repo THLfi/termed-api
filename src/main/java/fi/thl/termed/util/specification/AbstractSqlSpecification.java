@@ -32,7 +32,7 @@ public abstract class AbstractSqlSpecification<K extends Serializable, V>
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("sqlQueryTemplate", sqlQueryTemplate())
-        .add("sqlQueryParameters", sqlQueryParameters())
+        .add("sqlQueryParameters", Arrays.asList(sqlQueryParameters()))
         .toString();
   }
 

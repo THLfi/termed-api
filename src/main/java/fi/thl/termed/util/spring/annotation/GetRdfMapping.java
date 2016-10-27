@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Documented
 @RequestMapping(method = RequestMethod.GET, produces = {"application/n-triples;charset=UTF-8",
                                                         "application/rdf+xml;charset=UTF-8",
-                                                        "application/json+ld;charset=UTF-8",
+                                                        "application/ld+json;charset=UTF-8",
                                                         "text/turtle;charset=UTF-8",
                                                         "text/n3;charset=UTF-8"})
 public @interface GetRdfMapping {

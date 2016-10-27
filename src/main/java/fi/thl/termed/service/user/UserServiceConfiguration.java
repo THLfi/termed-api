@@ -12,7 +12,7 @@ import fi.thl.termed.service.user.internal.UserRepository;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.UserSchemeRoleId;
+import fi.thl.termed.domain.UserSchemeRole;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
@@ -31,12 +31,12 @@ public class UserServiceConfiguration {
 
     SystemDao<String, User> userDao =
         new CachedSystemDao<>(new JdbcUserDao(dataSource));
-    SystemDao<UserSchemeRoleId, Empty> userSchemeRoleDao =
+    SystemDao<UserSchemeRole, Empty> userSchemeRoleDao =
         new CachedSystemDao<>(new JdbcUserSchemeRoleDao(dataSource));
 
     PermissionEvaluator<String> userPermissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER;
-    PermissionEvaluator<UserSchemeRoleId> userSchemeRolePermissionEvaluator =
+    PermissionEvaluator<UserSchemeRole> userSchemeRolePermissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER;
 
     Service<String, User> service =

@@ -1,23 +1,23 @@
 package fi.thl.termed.service.scheme.internal;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class SchemePropertiesBySchemeId
-    extends AbstractSqlSpecification<PropertyValueId<UUID>, LangValue> {
+    extends AbstractSqlSpecification<PropertyValueId<SchemeId>, LangValue> {
 
-  private UUID schemeId;
+  private SchemeId schemeId;
 
-  public SchemePropertiesBySchemeId(UUID schemeId) {
+  public SchemePropertiesBySchemeId(SchemeId schemeId) {
     this.schemeId = schemeId;
   }
 
   @Override
-  public boolean test(PropertyValueId<UUID> key, LangValue langValue) {
+  public boolean test(PropertyValueId<SchemeId> key, LangValue langValue) {
     return Objects.equals(key.getSubjectId(), schemeId);
   }
 
@@ -28,7 +28,7 @@ public class SchemePropertiesBySchemeId
 
   @Override
   public Object[] sqlQueryParameters() {
-    return new Object[]{schemeId};
+    return new Object[]{schemeId.getId()};
   }
 
 }

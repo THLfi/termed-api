@@ -5,19 +5,18 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ReferenceAttribute extends Attribute {
+public class ReferenceAttribute extends Attribute implements Identifiable<ReferenceAttributeId> {
 
-  private Class range;
+  private ClassId range;
 
-  public ReferenceAttribute(Class domain, Class range, String id) {
-    super(domain, id);
+  public ReferenceAttribute(String id, ClassId domain, ClassId range) {
+    super(id, domain);
     this.range = range;
   }
 
-  public ReferenceAttribute(Class domain, Class range, String id, String uri) {
-    super(domain, id);
+  public ReferenceAttribute(String id, String uri, ClassId domain, ClassId range) {
+    super(id, uri, domain);
     this.range = range;
-    this.setUri(uri);
   }
 
   public ReferenceAttribute(ReferenceAttribute referenceAttribute) {
@@ -25,16 +24,17 @@ public class ReferenceAttribute extends Attribute {
     this.range = referenceAttribute.range;
   }
 
-  public Class getRange() {
+  @Override
+  public ReferenceAttributeId identifier() {
+    return new ReferenceAttributeId(getDomain(), getId());
+  }
+
+  public ClassId getRange() {
     return range;
   }
 
-  public void setRange(Class range) {
+  public void setRange(ClassId range) {
     this.range = range;
-  }
-
-  public ClassId getRangeClassId() {
-    return new ClassId(range);
   }
 
   public UUID getRangeSchemeId() {
@@ -57,17 +57,17 @@ public class ReferenceAttribute extends Attribute {
       return false;
     }
     ReferenceAttribute that = (ReferenceAttribute) o;
-    return Objects.equals(getRangeClassId(), that.getRangeClassId());
+    return Objects.equals(range, that.range);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), getRangeClassId());
+    return Objects.hash(super.hashCode(), range);
   }
 
   @Override
   public MoreObjects.ToStringHelper toStringHelper() {
-    return super.toStringHelper().add("rangeId", getRangeClassId());
+    return super.toStringHelper().add("range", range);
   }
 
 }

@@ -66,13 +66,13 @@ public class ResourceTreeToJsTree implements Function<Tree<Resource>, JsTree> {
     jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(resourceId),
                                     "selected", selectedPredicate.apply(resourceId)));
 
-    String conceptUrl = "/schemes/" + resource.getSchemeId() +
+    String conceptUrl = "/schemes/" + resource.getTypeSchemeId() +
                         "/classes/" + resource.getTypeId() +
                         "/resources/" + resource.getId();
 
     jsTree.setLinkElementAttributes(ImmutableMap.of("href", conceptUrl));
     jsTree.setListElementAttributes(
-        ImmutableMap.of("resourceSchemeId", resource.getSchemeId().toString(),
+        ImmutableMap.of("resourceSchemeId", resource.getTypeSchemeId().toString(),
                         "resourceTypeId", resource.getTypeId(),
                         "resourceId", resource.getId().toString()));
 

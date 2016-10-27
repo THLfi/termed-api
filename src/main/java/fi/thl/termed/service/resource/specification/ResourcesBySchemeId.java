@@ -31,12 +31,12 @@ public class ResourcesBySchemeId
   @Override
   public boolean test(ResourceId resourceId, Resource resource) {
     Preconditions.checkArgument(Objects.equals(resourceId, new ResourceId(resource)));
-    return Objects.equals(resourceId.getSchemeId(), schemeId);
+    return Objects.equals(resourceId.getTypeSchemeId(), schemeId);
   }
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("scheme.id", schemeId.toString()));
+    return new TermQuery(new Term("type.scheme.id", schemeId.toString()));
   }
 
   @Override

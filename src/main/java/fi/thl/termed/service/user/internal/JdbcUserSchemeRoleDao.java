@@ -8,32 +8,33 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Empty;
-import fi.thl.termed.domain.UserSchemeRoleId;
+import fi.thl.termed.domain.SchemeId;
+import fi.thl.termed.domain.UserSchemeRole;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Empty> {
+public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRole, Empty> {
 
   public JdbcUserSchemeRoleDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(UserSchemeRoleId id, Empty value) {
+  public void insert(UserSchemeRole id, Empty value) {
     jdbcTemplate.update(
         "insert into user_scheme_role (username, scheme_id, role) values (?, ?, ?)",
         id.getUsername(), id.getSchemeId(), id.getRole());
   }
 
   @Override
-  public void update(UserSchemeRoleId id, Empty value) {
+  public void update(UserSchemeRole id, Empty value) {
     // NOP (user scheme role doesn't have a separate value)
   }
 
   @Override
-  public void delete(UserSchemeRoleId id) {
+  public void delete(UserSchemeRole id) {
     jdbcTemplate.update(
         "delete from user_scheme_role where username = ? and scheme_id = ? and role = ?",
         id.getUsername(), id.getSchemeId(), id.getRole());
@@ -45,7 +46,7 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Emp
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<UserSchemeRoleId, Empty> specification,
+  protected <E> List<E> get(SqlSpecification<UserSchemeRole, Empty> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from user_scheme_role where %s",
@@ -54,7 +55,7 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Emp
   }
 
   @Override
-  public boolean exists(UserSchemeRoleId id) {
+  public boolean exists(UserSchemeRole id) {
     return jdbcTemplate.queryForObject(
         "select count(*) from user_scheme_role where username = ? and scheme_id = ? and role = ?",
         Long.class,
@@ -64,7 +65,7 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Emp
   }
 
   @Override
-  protected <E> Optional<E> get(UserSchemeRoleId id, RowMapper<E> mapper) {
+  protected <E> Optional<E> get(UserSchemeRole id, RowMapper<E> mapper) {
     return ListUtils.findFirst(jdbcTemplate.query(
         "select * from user_scheme_role where username = ? and scheme_id = ? and role = ?",
         mapper,
@@ -74,10 +75,11 @@ public class JdbcUserSchemeRoleDao extends AbstractJdbcDao<UserSchemeRoleId, Emp
   }
 
   @Override
-  protected RowMapper<UserSchemeRoleId> buildKeyMapper() {
-    return (rs, rowNum) -> new UserSchemeRoleId(rs.getString("username"),
-                                                UUIDs.fromString(rs.getString("scheme_id")),
-                                                rs.getString("role"));
+  protected RowMapper<UserSchemeRole> buildKeyMapper() {
+    return (rs, rowNum) -> new UserSchemeRole(
+        rs.getString("username"),
+        new SchemeId(UUIDs.fromString(rs.getString("scheme_id"))),
+        rs.getString("role"));
   }
 
   @Override

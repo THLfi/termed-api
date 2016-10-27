@@ -7,12 +7,11 @@ import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.function.Function;
 
-import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 
 public class ReferenceAttributeValueIdDtoToModel
-    implements Function<Multimap<String, Resource>, Map<ResourceAttributeValueId, ResourceId>> {
+    implements Function<Multimap<String, ResourceId>, Map<ResourceAttributeValueId, ResourceId>> {
 
   private ResourceId resourceId;
 
@@ -25,16 +24,15 @@ public class ReferenceAttributeValueIdDtoToModel
   }
 
   @Override
-  public Map<ResourceAttributeValueId, ResourceId> apply(Multimap<String, Resource> input) {
+  public Map<ResourceAttributeValueId, ResourceId> apply(Multimap<String, ResourceId> input) {
 
     Map<ResourceAttributeValueId, ResourceId> result = Maps.newLinkedHashMap();
 
     for (String attributeId : input.keySet()) {
       int index = 0;
 
-      for (Resource value : Sets.newLinkedHashSet(input.get(attributeId))) {
-        result.put(new ResourceAttributeValueId(resourceId, attributeId, index++),
-                   new ResourceId(value));
+      for (ResourceId value : Sets.newLinkedHashSet(input.get(attributeId))) {
+        result.put(new ResourceAttributeValueId(resourceId, attributeId, index++), value);
       }
     }
 

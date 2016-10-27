@@ -27,7 +27,7 @@ public class JdbcResourceTextAttributeValueDao
 
     jdbcTemplate.update(
         "insert into resource_text_attribute_value (scheme_id, resource_type_id, resource_id, attribute_id, index, lang, value, regex) values (?, ?, ?, ?, ?, ?, ?, ?)",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -46,7 +46,7 @@ public class JdbcResourceTextAttributeValueDao
         langValue.getLang(),
         langValue.getValue(),
         langValue.getRegex(),
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -59,7 +59,7 @@ public class JdbcResourceTextAttributeValueDao
 
     jdbcTemplate.update(
         "delete from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -89,7 +89,7 @@ public class JdbcResourceTextAttributeValueDao
     return jdbcTemplate.queryForObject(
         "select count(*) from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         Long.class,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -103,7 +103,7 @@ public class JdbcResourceTextAttributeValueDao
     return jdbcTemplate.query(
         "select * from resource_text_attribute_value where scheme_id = ? and resource_type_id = ? and resource_id = ? and attribute_id = ? and index = ?",
         mapper,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         id.getAttributeId(),
@@ -113,9 +113,9 @@ public class JdbcResourceTextAttributeValueDao
   @Override
   protected RowMapper<ResourceAttributeValueId> buildKeyMapper() {
     return (rs, rowNum) -> new ResourceAttributeValueId(
-        new ResourceId(UUIDs.fromString(rs.getString("scheme_id")),
-                       rs.getString("resource_type_id"),
-                       UUIDs.fromString(rs.getString("resource_id"))),
+        new ResourceId(UUIDs.fromString(rs.getString("resource_id")),
+                       rs.getString("resource_type_id"), UUIDs.fromString(rs.getString("scheme_id"))
+        ),
         rs.getString("attribute_id"),
         rs.getInt("index")
     );

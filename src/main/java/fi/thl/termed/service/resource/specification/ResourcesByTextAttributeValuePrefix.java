@@ -62,7 +62,7 @@ public class ResourcesByTextAttributeValuePrefix
   public Query luceneQuery() {
     ClassId domainId = attributeId.getDomainId();
     BooleanQuery query = new BooleanQuery();
-    query.add(new TermQuery(new Term("scheme.id", domainId.getSchemeId().toString())), MUST);
+    query.add(new TermQuery(new Term("type.scheme.id", domainId.getSchemeId().toString())), MUST);
     query.add(new TermQuery(new Term("type.id", domainId.getId())), MUST);
     query.add(new PrefixQuery(new Term(attributeId.getId(), value)), MUST);
     return query;

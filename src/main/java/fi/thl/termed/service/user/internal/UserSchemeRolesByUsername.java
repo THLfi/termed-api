@@ -3,10 +3,10 @@ package fi.thl.termed.service.user.internal;
 import java.util.Objects;
 
 import fi.thl.termed.domain.Empty;
-import fi.thl.termed.domain.UserSchemeRoleId;
+import fi.thl.termed.domain.UserSchemeRole;
 import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
-public class UserSchemeRolesByUsername extends AbstractSqlSpecification<UserSchemeRoleId, Empty> {
+public class UserSchemeRolesByUsername extends AbstractSqlSpecification<UserSchemeRole, Empty> {
 
   private String username;
 
@@ -15,7 +15,7 @@ public class UserSchemeRolesByUsername extends AbstractSqlSpecification<UserSche
   }
 
   @Override
-  public boolean test(UserSchemeRoleId id, Empty value) {
+  public boolean test(UserSchemeRole id, Empty value) {
     return Objects.equals(id.getUsername(), username);
   }
 

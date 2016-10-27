@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "prefLabel": [
+      {
+        "lang": "en",
+        "value": "New scheme"
+      },
+      {
+        "lang": "fi",
+        "value": "Uusi sanasto"
+      }
+    ]
+  }
+}

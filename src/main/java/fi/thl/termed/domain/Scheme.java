@@ -1,16 +1,16 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.collect.Multimap;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.MultimapUtils;
 
-public class Scheme {
+public class Scheme implements Identifiable<SchemeId> {
 
   private UUID id;
   private String code;
@@ -19,8 +19,6 @@ public class Scheme {
   private List<String> roles;
   private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
-
-  private List<Class> classes;
 
   public Scheme(UUID id) {
     this.id = id;
@@ -44,7 +42,11 @@ public class Scheme {
     this.roles = scheme.roles;
     this.permissions = scheme.permissions;
     this.properties = scheme.properties;
-    this.classes = scheme.classes;
+  }
+
+  @Override
+  public SchemeId identifier() {
+    return new SchemeId(this);
   }
 
   public UUID getId() {
@@ -95,14 +97,6 @@ public class Scheme {
     this.properties = properties;
   }
 
-  public List<Class> getClasses() {
-    return ListUtils.nullToEmpty(classes);
-  }
-
-  public void setClasses(List<Class> classes) {
-    this.classes = classes;
-  }
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -112,7 +106,6 @@ public class Scheme {
         .add("roles", roles)
         .add("permissions", permissions)
         .add("properties", properties)
-        .add("classes", classes)
         .toString();
   }
 
@@ -130,13 +123,12 @@ public class Scheme {
            Objects.equals(uri, scheme.uri) &&
            Objects.equals(roles, scheme.roles) &&
            Objects.equals(permissions, scheme.permissions) &&
-           Objects.equals(properties, scheme.properties) &&
-           Objects.equals(classes, scheme.classes);
+           Objects.equals(properties, scheme.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, code, uri, roles, permissions, properties, classes);
+    return Objects.hash(id, code, uri, roles, permissions, properties);
   }
 
 }

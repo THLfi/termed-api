@@ -7,10 +7,9 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.domain.Class;
+import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
@@ -25,7 +24,7 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
   public void insert(ResourceId resourceId, Resource resource) {
     jdbcTemplate.update(
         "insert into resource (scheme_id, type_id, id, code, uri, created_by, created_date, last_modified_by, last_modified_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId(),
         resource.getCode(),
@@ -46,7 +45,7 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
         resource.getCreatedDate(),
         resource.getLastModifiedBy(),
         resource.getLastModifiedDate(),
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId());
   }
@@ -55,7 +54,7 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
   public void delete(ResourceId resourceId) {
     jdbcTemplate.update(
         "delete from resource where scheme_id = ? and type_id = ? and id = ?",
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId());
   }
@@ -78,7 +77,7 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
     return jdbcTemplate.queryForObject(
         "select count(*) from resource where scheme_id = ? and type_id = ? and id = ?",
         Long.class,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId()) > 0;
   }
@@ -88,26 +87,25 @@ public class JdbcResourceDao extends AbstractJdbcDao<ResourceId, Resource> {
     return jdbcTemplate.query(
         "select * from resource where scheme_id = ? and type_id = ? and id = ?",
         mapper,
-        resourceId.getSchemeId(),
+        resourceId.getTypeSchemeId(),
         resourceId.getTypeId(),
         resourceId.getId()).stream().findFirst();
   }
 
   @Override
   protected RowMapper<ResourceId> buildKeyMapper() {
-    return (rs, rowNum) -> new ResourceId(UUIDs.fromString(rs.getString("scheme_id")),
+    return (rs, rowNum) -> new ResourceId(UUIDs.fromString(rs.getString("id")),
                                           rs.getString("type_id"),
-                                          UUIDs.fromString(rs.getString("id")));
+                                          UUIDs.fromString(rs.getString("scheme_id"))
+    );
   }
 
   @Override
   protected RowMapper<Resource> buildValueMapper() {
     return (rs, rowNum) -> {
-      Scheme scheme = new Scheme(UUIDs.fromString(rs.getString("scheme_id")));
-
       Resource resource = new Resource(UUIDs.fromString(rs.getString("id")));
-      resource.setScheme(scheme);
-      resource.setType(new Class(scheme, rs.getString("type_id")));
+      resource.setType(new ClassId(
+          rs.getString("type_id"), UUIDs.fromString(rs.getString("scheme_id"))));
 
       resource.setCode(rs.getString("code"));
       resource.setUri(rs.getString("uri"));

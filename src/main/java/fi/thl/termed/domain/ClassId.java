@@ -10,33 +10,45 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ClassId implements Serializable {
 
-  private final UUID schemeId;
-
   private final String id;
 
+  private final SchemeId scheme;
+
   public ClassId(Resource resource) {
-    this(resource.getSchemeId(), resource.getTypeId());
+    this(resource.getType());
   }
 
   public ClassId(ResourceId resourceId) {
-    this(resourceId.getSchemeId(), resourceId.getTypeId());
+    this(resourceId.getType());
+  }
+
+  public ClassId(ClassId classId) {
+    this(classId.getId(), classId.getScheme());
   }
 
   public ClassId(Class cls) {
-    this(cls.getSchemeId(), cls.getId());
+    this(cls.getId(), cls.getScheme());
   }
 
-  public ClassId(UUID schemeId, String id) {
-    this.schemeId = checkNotNull(schemeId, "schemeId can't be null in %s", getClass());
+  public ClassId(String id, UUID schemeId) {
+    this(id, new SchemeId(schemeId));
+  }
+
+  public ClassId(String id, SchemeId scheme) {
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
-  }
-
-  public UUID getSchemeId() {
-    return schemeId;
+    this.scheme = checkNotNull(scheme, "scheme can't be null in %s", getClass());
   }
 
   public String getId() {
     return id;
+  }
+
+  public SchemeId getScheme() {
+    return scheme;
+  }
+
+  public UUID getSchemeId() {
+    return scheme != null ? scheme.getId() : null;
   }
 
   @Override
@@ -48,20 +60,20 @@ public class ClassId implements Serializable {
       return false;
     }
     ClassId classId = (ClassId) o;
-    return Objects.equals(schemeId, classId.schemeId) &&
-           Objects.equals(id, classId.id);
+    return Objects.equals(id, classId.id) &&
+           Objects.equals(scheme, classId.scheme);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(schemeId, id);
+    return Objects.hash(id, scheme);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("schemeId", schemeId)
         .add("id", id)
+        .add("scheme", scheme)
         .toString();
   }
 

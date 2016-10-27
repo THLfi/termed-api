@@ -4,36 +4,36 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {
+public class JdbcSchemeDao extends AbstractJdbcDao<SchemeId, Scheme> {
 
   public JdbcSchemeDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(UUID id, Scheme scheme) {
+  public void insert(SchemeId id, Scheme scheme) {
     jdbcTemplate.update("insert into scheme (id, code, uri) values (?, ?, ?)",
-                        id, scheme.getCode(), scheme.getUri());
+                        id.getId(), scheme.getCode(), scheme.getUri());
   }
 
   @Override
-  public void update(UUID id, Scheme scheme) {
+  public void update(SchemeId id, Scheme scheme) {
     jdbcTemplate.update("update scheme set code = ?, uri = ? where id = ?",
-                        scheme.getCode(), scheme.getUri(), id);
+                        scheme.getCode(), scheme.getUri(), id.getId());
   }
 
   @Override
-  public void delete(UUID id) {
-    jdbcTemplate.update("delete from scheme where id = ?", id);
+  public void delete(SchemeId id) {
+    jdbcTemplate.update("delete from scheme where id = ?", id.getId());
   }
 
   @Override
@@ -42,7 +42,7 @@ public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<UUID, Scheme> specification,
+  protected <E> List<E> get(SqlSpecification<SchemeId, Scheme> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from scheme where %s",
@@ -51,19 +51,20 @@ public class JdbcSchemeDao extends AbstractJdbcDao<UUID, Scheme> {
   }
 
   @Override
-  public boolean exists(UUID id) {
+  public boolean exists(SchemeId id) {
     return jdbcTemplate.queryForObject("select count(*) from scheme where id = ?",
-                                       Long.class, id) > 0;
+                                       Long.class, id.getId()) > 0;
   }
 
   @Override
-  protected <E> Optional<E> get(UUID id, RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from scheme where id = ?", mapper, id).stream().findFirst();
+  protected <E> Optional<E> get(SchemeId id, RowMapper<E> mapper) {
+    return jdbcTemplate.query("select * from scheme where id = ?", mapper, id.getId()).stream()
+        .findFirst();
   }
 
   @Override
-  protected RowMapper<UUID> buildKeyMapper() {
-    return (rs, rowNum) -> UUIDs.fromString(rs.getString("id"));
+  protected RowMapper<SchemeId> buildKeyMapper() {
+    return (rs, rowNum) -> new SchemeId(UUIDs.fromString(rs.getString("id")));
   }
 
   @Override

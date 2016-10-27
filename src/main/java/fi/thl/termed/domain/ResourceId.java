@@ -1,41 +1,50 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ResourceId implements Serializable {
 
-  private final UUID schemeId;
+  private UUID id;
 
-  private final String typeId;
-
-  private final UUID id;
+  private ClassId type;
 
   public ResourceId(Resource resource) {
-    this(resource.getSchemeId(), resource.getTypeId(), resource.getId());
+    this(resource.getId(), resource.getTypeId(), resource.getTypeSchemeId());
   }
 
-  public ResourceId(UUID schemeId, String typeId, UUID id) {
-    this.schemeId = checkNotNull(schemeId, "schemeId can't be null in %s", getClass());
-    this.typeId = checkNotNull(typeId, "typeId can't be null in %s", getClass());
+  public ResourceId(UUID id, String typeId, UUID schemeId) {
+    this(id, new ClassId(typeId, new SchemeId(schemeId)));
+  }
+
+  public ResourceId(UUID id, ClassId type) {
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
-  }
-
-  public UUID getSchemeId() {
-    return schemeId;
-  }
-
-  public String getTypeId() {
-    return typeId;
+    this.type = checkNotNull(type, "type can't be null in %s", getClass());
   }
 
   public UUID getId() {
     return id;
+  }
+
+  public void setType(ClassId type) {
+    this.type = type;
+  }
+
+  public ClassId getType() {
+    return type;
+  }
+
+  public UUID getTypeSchemeId() {
+    return type != null ? type.getSchemeId() : null;
+  }
+
+  public String getTypeId() {
+    return type != null ? type.getId() : null;
   }
 
   @Override
@@ -47,22 +56,20 @@ public class ResourceId implements Serializable {
       return false;
     }
     ResourceId that = (ResourceId) o;
-    return Objects.equals(schemeId, that.schemeId) &&
-           Objects.equals(typeId, that.typeId) &&
-           Objects.equals(id, that.id);
+    return Objects.equals(id, that.id) && Objects.equals(type, that.type);
+
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(schemeId, typeId, id);
+    return Objects.hash(type, id);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("schemeId", schemeId)
-        .add("typeId", typeId)
         .add("id", id)
+        .add("type", type)
         .toString();
   }
 

@@ -9,6 +9,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.permission.PermissionEvaluator;
@@ -75,7 +76,7 @@ public class ResourceAttributePermissionFilter implements Function<Resource, Res
    * Accepts a resource reference entry in the reference multimap if 1) reference attribute is
    * permitted and 2) value is permitted
    */
-  private class AcceptReferenceEntryPredicate implements Predicate<Map.Entry<String, Resource>> {
+  private class AcceptReferenceEntryPredicate implements Predicate<Map.Entry<String, ResourceId>> {
 
     private ClassId typeId;
 
@@ -84,9 +85,9 @@ public class ResourceAttributePermissionFilter implements Function<Resource, Res
     }
 
     @Override
-    public boolean apply(Map.Entry<String, Resource> entry) {
+    public boolean apply(Map.Entry<String, ResourceId> entry) {
       String attributeId = entry.getKey();
-      Resource reference = entry.getValue();
+      ResourceId reference = entry.getValue();
 
       ReferenceAttributeId refAttrId = new ReferenceAttributeId(typeId, attributeId);
       ClassId refTypeId = new ClassId(reference);
@@ -100,12 +101,12 @@ public class ResourceAttributePermissionFilter implements Function<Resource, Res
    * Accepts a resource referrer entry in the referrers multimap if 1) reference attribute is
    * permitted and 2) value is permitted
    */
-  private class AcceptReferrerEntryPredicate implements Predicate<Map.Entry<String, Resource>> {
+  private class AcceptReferrerEntryPredicate implements Predicate<Map.Entry<String, ResourceId>> {
 
     @Override
-    public boolean apply(Map.Entry<String, Resource> entry) {
+    public boolean apply(Map.Entry<String, ResourceId> entry) {
       String attributeId = entry.getKey();
-      Resource referrer = entry.getValue();
+      ResourceId referrer = entry.getValue();
 
       ClassId refTypeId = new ClassId(referrer);
       ReferenceAttributeId refAttrId = new ReferenceAttributeId(refTypeId, attributeId);

@@ -8,52 +8,35 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.AppRole;
-import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.util.index.Index;
-import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
+import fi.thl.termed.util.specification.MatchAllQuery;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Query.Engine;
 
 public class IndexedResourceService extends ForwardingService<ResourceId, Resource> {
 
   private Index<ResourceId, Resource> index;
-
-  private PermissionEvaluator<ClassId> classEvaluator;
-  private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
-  private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
-
   private User indexer = new User("indexer", "", AppRole.ADMIN);
 
   public IndexedResourceService(
-      Service<ResourceId, Resource> delegate,
-      Index<ResourceId, Resource> index,
-      PermissionEvaluator<ClassId> classEvaluator,
-      PermissionEvaluator<TextAttributeId> textAttrEvaluator,
-      PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {
+      Service<ResourceId, Resource> delegate, Index<ResourceId, Resource> index) {
     super(delegate);
     this.index = index;
-    this.classEvaluator = classEvaluator;
-    this.textAttrEvaluator = textAttrEvaluator;
-    this.refAttrEvaluator = refAttrEvaluator;
   }
 
   @Subscribe
   public void initIndexOn(ApplicationReadyEvent e) {
-    if (index.indexSize() == 0) {
-      index.reindex(super.getKeys(new Query<>(new MatchAll<>()), indexer),
-                    k -> super.get(k, indexer).get());
+    if (index.isEmpty()) {
+      // reindex all
+      index.index(super.getKeys(new MatchAllQuery<>(), indexer), key -> super.get(key, indexer));
     }
   }
 
@@ -91,25 +74,26 @@ public class IndexedResourceService extends ForwardingService<ResourceId, Resour
 
   @Override
   public void delete(ResourceId resourceId, User user) {
-    Set<ResourceId> reindexSet = resourceRelatedIds(resourceId);
+    Set<ResourceId> reindexSet = Sets.newHashSet();
+
+    reindexSet.add(resourceId);
+    reindexSet.addAll(resourceRelatedIds(resourceId));
+
     super.delete(resourceId, user);
-    index.deleteFromIndex(resourceId);
+
     asyncReindex(reindexSet);
   }
 
   @Override
   public List<Resource> get(Query<ResourceId, Resource> specification, User user) {
-    return specification.getEngine() == Query.Engine.LUCENE
-           ? filter(index.query(specification), user, Permission.READ)
-           : super.get(specification, user);
+    return specification.getEngine() == Engine.LUCENE ? index.get(specification)
+                                                      : super.get(specification, user);
   }
 
-  private List<Resource> filter(List<Resource> resources, User user, Permission permission) {
-    return resources.stream()
-        .filter(new ResourcePermissionPredicate(classEvaluator, user, permission))
-        .map(new ResourceAttributePermissionFilter(
-            classEvaluator, textAttrEvaluator, refAttrEvaluator, user, permission))
-        .collect(Collectors.toList());
+  @Override
+  public List<ResourceId> getKeys(Query<ResourceId, Resource> specification, User user) {
+    return specification.getEngine() == Engine.LUCENE ? index.getKeys(specification)
+                                                      : super.getKeys(specification, user);
   }
 
   private Set<ResourceId> resourceRelatedIds(ResourceId resourceId) {
@@ -117,8 +101,8 @@ public class IndexedResourceService extends ForwardingService<ResourceId, Resour
     Optional<Resource> resourceOptional = super.get(resourceId, indexer);
 
     if (resourceOptional.isPresent()) {
-      refValues.addAll(resourceOptional.get().getReferenceIds().values());
-      refValues.addAll(resourceOptional.get().getReferrerIds().values());
+      refValues.addAll(resourceOptional.get().getReferences().values());
+      refValues.addAll(resourceOptional.get().getReferrers().values());
     }
 
     return refValues;
@@ -126,14 +110,19 @@ public class IndexedResourceService extends ForwardingService<ResourceId, Resour
 
   private void reindex(Set<ResourceId> ids) {
     for (ResourceId id : ids) {
-      index.reindex(id, super.get(id, indexer).get());
+      Optional<Resource> resource = super.get(id, indexer);
+      if (resource.isPresent()) {
+        index.index(id, resource.get());
+      } else {
+        index.delete(id);
+      }
     }
   }
 
   private void asyncReindex(Set<ResourceId> ids) {
     if (!ids.isEmpty()) {
-      index.reindex(ImmutableList.copyOf(ids), id -> {
-        return IndexedResourceService.super.get(id, indexer).get();
+      index.index(ImmutableList.copyOf(ids), id -> {
+        return IndexedResourceService.super.get(id, indexer);
       });
     }
   }

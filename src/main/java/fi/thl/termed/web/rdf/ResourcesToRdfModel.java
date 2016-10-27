@@ -1,11 +1,11 @@
 package fi.thl.termed.web.rdf;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -15,6 +15,7 @@ import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.Resource;
+import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
@@ -27,9 +28,10 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
   private static final String TERMED_NS = "http://termed.thl.fi/schemes/";
 
   // caches
-  private Map<ClassId, Class> classes = Maps.newHashMap();
-  private Map<TextAttributeId, TextAttribute> textAttributes = Maps.newHashMap();
-  private Map<ReferenceAttributeId, ReferenceAttribute> referenceAttributes = Maps.newHashMap();
+  private Map<ClassId, Class> classes = new HashMap<>();
+  private Map<TextAttributeId, TextAttribute> textAttributes = new HashMap<>();
+  private Map<ReferenceAttributeId, ReferenceAttribute> referenceAttributes = new HashMap<>();
+  private Map<ResourceId, Resource> resources = new HashMap<>();
 
   public ResourcesToRdfModel(List<Class> classList) {
     loadClassCache(classList);
@@ -56,11 +58,13 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
   }
 
   @Override
-  public RdfModel apply(List<Resource> resources) {
+  public RdfModel apply(List<Resource> resourceList) {
     List<RdfResource> rdfResources = Lists.newArrayList();
 
-    for (Resource resource : resources) {
-      RdfResource rdfResource = new RdfResource(getResourceUri(resource));
+    resourceList.forEach(r -> resources.put(new ResourceId(r), r));
+
+    for (Resource resource : resourceList) {
+      RdfResource rdfResource = new RdfResource(getResourceUri(new ResourceId(resource)));
       rdfResource.addObject(RDF.type.getURI(), getClassUri(new ClassId(resource)));
 
       for (Map.Entry<String, StrictLangValue> entry : resource.getProperties().entries()) {
@@ -70,8 +74,8 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
         rdfResource.addLiteral(attributeUri, langValue.getLang(), langValue.getValue());
       }
 
-      for (Map.Entry<String, Resource> entry : resource.getReferences().entries()) {
-        Resource value = entry.getValue();
+      for (Map.Entry<String, ResourceId> entry : resource.getReferences().entries()) {
+        ResourceId value = entry.getValue();
         String attributeUri = getReferenceAttributeUri(
             new ReferenceAttributeId(new ClassId(resource), entry.getKey()));
         rdfResource.addObject(attributeUri, getResourceUri(value));
@@ -108,12 +112,12 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
                         "/referenceAttributes/" + attributeId.getId());
   }
 
-  private String getResourceUri(Resource resource) {
-    ClassId typeId = new ClassId(resource);
+  private String getResourceUri(ResourceId resourceId) {
+    Resource resource = resources.get(resourceId);
     return firstNonNull(emptyToNull(resource.getUri()),
-                        TERMED_NS + typeId.getSchemeId() +
-                        "/classes/" + typeId.getId() +
-                        "/resources/" + resource.getId());
+                        TERMED_NS + resourceId.getTypeSchemeId() +
+                        "/classes/" + resourceId.getId() +
+                        "/resources/" + resourceId.getId());
   }
 
 }

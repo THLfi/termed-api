@@ -24,9 +24,9 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
-import fi.thl.termed.domain.Scheme;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.resource.specification.ResourcesBySchemeId;
 import fi.thl.termed.util.TableUtils;
@@ -56,7 +56,7 @@ public class ResourceCsvController {
     for (Map<String, String> row : TableUtils.toMapped(rows)) {
       resources.add(gson.fromJson(JsonUtils.unflatten(row), Resource.class));
     }
-    resources.forEach(r -> r.setScheme(new Scheme(schemeId)));
+    resources.forEach(r -> r.setType(new ClassId(r.getTypeId(), schemeId)));
     resourceService.save(resources, currentUser);
   }
 

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import fi.thl.termed.domain.Scheme;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
@@ -30,12 +31,19 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 public class SchemeWriteController {
 
   @Autowired
-  private Service<UUID, Scheme> schemeService;
+  private Service<SchemeId, Scheme> schemeService;
 
-  @PostJsonMapping(params = "batch!=true", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @PostJsonMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Scheme save(@RequestBody Scheme scheme, @AuthenticationPrincipal User user) {
     return schemeService.get(schemeService.save(scheme, user), user)
         .orElseThrow(NotFoundException::new);
+  }
+
+  @PostJsonMapping(params = "returnIdOnly=true", produces = MediaType.TEXT_PLAIN_VALUE)
+  public String saveAndReturnIdOnly(@RequestBody Scheme scheme,
+                                    @AuthenticationPrincipal User user) {
+    return schemeService.get(schemeService.save(scheme, user), user)
+        .orElseThrow(NotFoundException::new).getId().toString();
   }
 
   @PostJsonMapping(params = "batch=true", produces = {})
@@ -57,7 +65,7 @@ public class SchemeWriteController {
   @ResponseStatus(NO_CONTENT)
   public void delete(@PathVariable("schemeId") UUID schemeId,
                      @AuthenticationPrincipal User user) {
-    schemeService.delete(schemeId, user);
+    schemeService.delete(new SchemeId(schemeId), user);
   }
 
 }

@@ -70,7 +70,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultProperties() {
-    List<Property> properties = gson.fromJson(ResourceUtils.getResourceToString(
+    List<Property> properties = gson.fromJson(ResourceUtils.resourceToString(
         "default/properties.json"), new TypeToken<List<Property>>() {
     }.getType());
     int index = 0;

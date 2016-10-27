@@ -1,7 +1,5 @@
 package fi.thl.termed.web;
 
-import com.google.gson.JsonObject;
-
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
@@ -9,7 +7,6 @@ import java.io.IOException;
 import java.util.UUID;
 
 import fi.thl.termed.util.io.ResourceUtils;
-import fi.thl.termed.util.json.JsonUtils;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -20,27 +17,32 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
   public void shouldSaveRdfVocabulary() throws IOException {
     String schemeId = UUID.randomUUID().toString();
 
-    JsonObject skosScheme = JsonUtils.getJsonResource("examples/nasa/skos.json").getAsJsonObject();
-    skosScheme.addProperty("id", schemeId);
-
-    String exampleVocabulary = ResourceUtils.getResourceToString("examples/nasa/access.skos");
-
-    // save a new skos meta scheme
+    // save scheme
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/json")
-        .body(skosScheme.toString())
+        .body(ResourceUtils.resourceToString("examples/nasa/example-scheme.json"))
         .when()
-        .post("/api/schemes")
+        .put("/api/schemes/" + schemeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(schemeId));
 
-    // save the rdf skos vocabulary, saves only properties defined on skos.json
+    // save scheme classes
+    given()
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json")
+        .body(ResourceUtils.resourceToString("examples/nasa/example-classes.json"))
+        .when()
+        .post("/api/schemes/" + schemeId + "/classes?batch=true")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // save scheme resources
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/rdf+xml")
-        .body(exampleVocabulary)
+        .body(ResourceUtils.resourceToString("examples/nasa/example-resources.rdf"))
         .when()
         .post("/api/schemes/" + schemeId + "/resources")
         .then()

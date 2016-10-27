@@ -16,20 +16,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Class;
 import fi.thl.termed.domain.ClassId;
 import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.Scheme;
-import fi.thl.termed.domain.TextAttribute;
+import fi.thl.termed.domain.SchemeId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.class_.specification.ClassesBySchemeId;
 import fi.thl.termed.service.resource.specification.ResourcesByClassId;
 import fi.thl.termed.service.resource.specification.ResourcesByTextAttributeValuePrefix;
-import fi.thl.termed.service.scheme.specification.ClassesBySchemeId;
-import fi.thl.termed.service.scheme.specification.TextAttributesBySchemeId;
-import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Query;
@@ -46,46 +45,42 @@ public class ResourceRdfReadController {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  private Service<UUID, Scheme> schemeService;
+  private Service<SchemeId, Scheme> schemeService;
 
   @Autowired
   private Service<ResourceId, Resource> resourceService;
 
   @Autowired
-  private Dao<ClassId, Class> classDao;
-
-  @Autowired
-  private Dao<TextAttributeId, TextAttribute> textAttributeDao;
+  private Service<ClassId, Class> classService;
 
   @GetRdfMapping("/resources")
   public Model get(@PathVariable("schemeId") UUID schemeId,
                    @RequestParam(value = "query", required = false, defaultValue = "") String query,
-                   @AuthenticationPrincipal User currentUser) {
-    log.info("Exporting RDF-model {} (user: {})", schemeId, currentUser.getUsername());
-    Scheme scheme = schemeService.get(schemeId, currentUser).orElseThrow(NotFoundException::new);
+                   @AuthenticationPrincipal User user) {
+    log.info("Exporting RDF-model {} (user: {})", schemeId, user.getUsername());
+    schemeService.get(new SchemeId(schemeId), user).orElseThrow(NotFoundException::new);
 
     Specification<ResourceId, Resource> specification =
-        query.isEmpty() ? resourcesBy(classIds(schemeId, currentUser))
-                        : resourcesBy(textAttributeIds(schemeId, currentUser), tokenize(query));
-    List<Resource> resources = resourceService.get(
-        new Query<>(specification, LUCENE), currentUser);
+        query.isEmpty() ? resourcesBy(classIds(schemeId, user))
+                        : resourcesBy(textAttributeIds(schemeId, user), tokenize(query));
+    List<Resource> resources = resourceService.get(new Query<>(specification, LUCENE), user);
+    List<Class> classes = classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user);
 
-    return new JenaRdfModel(new ResourcesToRdfModel(scheme.getClasses())
-                                .apply(resources)).getModel();
+    return new JenaRdfModel(new ResourcesToRdfModel(classes).apply(resources)).getModel();
   }
 
   @GetRdfMapping("/classes/{typeId}/resources/{id}")
   public Model get(@PathVariable("schemeId") UUID schemeId,
                    @PathVariable("typeId") String typeId,
                    @PathVariable("id") UUID id,
-                   @AuthenticationPrincipal User currentUser) {
-    Scheme scheme = schemeService.get(schemeId, currentUser)
-        .orElseThrow(NotFoundException::new);
-    List<Resource> resource = resourceService.get(new ResourceId(schemeId, typeId, id), currentUser)
-        .map(Collections::singletonList)
-        .orElseThrow(NotFoundException::new);
-    return new JenaRdfModel(new ResourcesToRdfModel(scheme.getClasses())
-                                .apply(resource)).getModel();
+                   @AuthenticationPrincipal User user) {
+    schemeService.get(new SchemeId(schemeId), user).orElseThrow(NotFoundException::new);
+
+    List<Resource> resource = resourceService.get(new ResourceId(id, typeId, schemeId), user)
+        .map(Collections::singletonList).orElseThrow(NotFoundException::new);
+    List<Class> classes = classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user);
+
+    return new JenaRdfModel(new ResourcesToRdfModel(classes).apply(resource)).getModel();
   }
 
   private Specification<ResourceId, Resource> resourcesBy(List<ClassId> classIds) {
@@ -106,11 +101,14 @@ public class ResourceRdfReadController {
   }
 
   private List<ClassId> classIds(UUID schemeId, User user) {
-    return classDao.getKeys(new ClassesBySchemeId(schemeId), user);
+    return classService.getKeys(new Query<>(new ClassesBySchemeId(schemeId)), user);
   }
 
   private List<TextAttributeId> textAttributeIds(UUID schemeId, User user) {
-    return textAttributeDao.getKeys(new TextAttributesBySchemeId(schemeId), user);
+    return classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user).stream()
+        .flatMap(cls -> cls.getTextAttributes().stream())
+        .map(TextAttributeId::new)
+        .collect(Collectors.toList());
   }
 
   private List<String> tokenize(String query) {

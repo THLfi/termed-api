@@ -1,7 +1,5 @@
 package fi.thl.termed.util.service;
 
-import java.util.Optional;
-
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -9,6 +7,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
@@ -35,10 +34,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     List<V> values;
     try {
       values = super.get(specification, currentUser);
-    } catch (RuntimeException e) {
-      manager.rollback(tx);
-      throw e;
-    } catch (Error e) {
+    } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
     }
@@ -52,10 +48,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     Optional<V> value;
     try {
       value = super.get(id, currentUser);
-    } catch (RuntimeException e) {
-      manager.rollback(tx);
-      throw e;
-    } catch (Error e) {
+    } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
     }
@@ -69,10 +62,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     List<K> keys;
     try {
       keys = super.save(values, currentUser);
-    } catch (RuntimeException e) {
-      manager.rollback(tx);
-      throw e;
-    } catch (Error e) {
+    } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
     }
@@ -86,10 +76,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     K key;
     try {
       key = super.save(value, currentUser);
-    } catch (RuntimeException e) {
-      manager.rollback(tx);
-      throw e;
-    } catch (Error e) {
+    } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
     }
@@ -102,10 +89,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     TransactionStatus tx = manager.getTransaction(definition);
     try {
       super.delete(id, currentUser);
-    } catch (RuntimeException e) {
-      manager.rollback(tx);
-      throw e;
-    } catch (Error e) {
+    } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
     }

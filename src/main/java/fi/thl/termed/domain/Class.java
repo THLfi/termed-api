@@ -5,12 +5,13 @@ import com.google.common.collect.Multimap;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.MultimapUtils;
 
-public class Class {
+public class Class implements Identifiable<ClassId> {
 
   private String id;
 
@@ -18,7 +19,7 @@ public class Class {
 
   private Integer index;
 
-  private Scheme scheme;
+  private SchemeId scheme;
 
   private Multimap<String, Permission> permissions;
 
@@ -28,20 +29,20 @@ public class Class {
 
   private List<ReferenceAttribute> referenceAttributes;
 
-  public Class(Scheme scheme, String id) {
-    this.scheme = scheme;
+  public Class(String id, SchemeId scheme) {
     this.id = id;
+    this.scheme = scheme;
   }
 
-  public Class(Scheme scheme, String id, String uri) {
-    this.scheme = scheme;
+  public Class(String id, String uri, SchemeId scheme) {
     this.id = id;
     this.uri = uri;
+    this.scheme = scheme;
   }
 
   public Class(ClassId classId) {
-    this.scheme = new Scheme(classId.getSchemeId());
     this.id = classId.getId();
+    this.scheme = classId.getScheme();
   }
 
   public Class(Class cls) {
@@ -53,6 +54,11 @@ public class Class {
     this.properties = cls.properties;
     this.textAttributes = cls.textAttributes;
     this.referenceAttributes = cls.referenceAttributes;
+  }
+
+  @Override
+  public ClassId identifier() {
+    return new ClassId(getId(), getScheme());
   }
 
   public String getId() {
@@ -79,11 +85,11 @@ public class Class {
     this.index = index;
   }
 
-  public Scheme getScheme() {
+  public SchemeId getScheme() {
     return scheme;
   }
 
-  public void setScheme(Scheme scheme) {
+  public void setScheme(SchemeId scheme) {
     this.scheme = scheme;
   }
 
@@ -119,6 +125,10 @@ public class Class {
     return ListUtils.nullToEmpty(referenceAttributes);
   }
 
+  public Optional<ReferenceAttribute> getReferenceAttribute(String attributeId) {
+    return getReferenceAttributes().stream().filter(a -> a.getId().equals(attributeId)).findFirst();
+  }
+
   public void setReferenceAttributes(List<ReferenceAttribute> referenceAttributes) {
     this.referenceAttributes = referenceAttributes;
   }
@@ -129,7 +139,7 @@ public class Class {
         .add("id", id)
         .add("uri", uri)
         .add("index", index)
-        .add("schemeId", getSchemeId())
+        .add("scheme", scheme)
         .add("permissions", permissions)
         .add("properties", properties)
         .add("textAttributes", textAttributes)
@@ -149,7 +159,7 @@ public class Class {
     return Objects.equals(id, cls.id) &&
            Objects.equals(uri, cls.uri) &&
            Objects.equals(index, cls.index) &&
-           Objects.equals(getSchemeId(), cls.getSchemeId()) &&
+           Objects.equals(scheme, cls.scheme) &&
            Objects.equals(permissions, cls.permissions) &&
            Objects.equals(properties, cls.properties) &&
            Objects.equals(textAttributes, cls.textAttributes) &&
@@ -158,7 +168,7 @@ public class Class {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, uri, index, getSchemeId(), permissions, properties, textAttributes,
+    return Objects.hash(id, uri, index, scheme, permissions, properties, textAttributes,
                         referenceAttributes);
   }
 
