@@ -28,10 +28,10 @@ public class Application extends SpringBootServletInitializer {
 
   @Bean
   public HttpMessageConverters messageConverters(Gson gson) {
+    JenaModelMessageConverter jenaModelMessageConverter = new JenaModelMessageConverter();
     GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
     gsonHttpMessageConverter.setGson(gson);
-    JenaModelMessageConverter jenaModelMessageConverter = new JenaModelMessageConverter();
-    return new HttpMessageConverters(gsonHttpMessageConverter, jenaModelMessageConverter);
+    return new HttpMessageConverters(jenaModelMessageConverter, gsonHttpMessageConverter);
   }
 
   @Bean
