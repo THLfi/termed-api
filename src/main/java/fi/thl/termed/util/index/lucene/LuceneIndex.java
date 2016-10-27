@@ -162,7 +162,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       try {
         TotalHitCountCollector hitCountCollector = new TotalHitCountCollector();
         searcher.search(new MatchAllDocsQuery(), hitCountCollector);
-        return hitCountCollector.getTotalHits() > 0;
+        return hitCountCollector.getTotalHits() == 0;
       } finally {
         searcherManager.release(searcher);
       }
