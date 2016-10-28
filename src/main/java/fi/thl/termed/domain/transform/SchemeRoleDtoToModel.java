@@ -18,10 +18,6 @@ public class SchemeRoleDtoToModel implements Function<List<String>, Map<SchemeRo
     this.schemeId = schemeId;
   }
 
-  public static SchemeRoleDtoToModel create(SchemeId schemeId) {
-    return new SchemeRoleDtoToModel(schemeId);
-  }
-
   @Override
   public Map<SchemeRole, Empty> apply(List<String> roles) {
     Map<SchemeRole, Empty> map = Maps.newHashMap();

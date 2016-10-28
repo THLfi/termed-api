@@ -16,8 +16,9 @@ import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
+import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToReferrerModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
-import fi.thl.termed.domain.transform.ReferenceAttributeValueModelToReferrerDto;
+import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
 import fi.thl.termed.domain.transform.ResourceTextAttributeValueDtoToModel;
 import fi.thl.termed.domain.transform.ResourceTextAttributeValueModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
@@ -82,18 +83,17 @@ public class ResourceRepository extends AbstractRepository<ResourceId, Resource>
   private void insertTextAttrValues(ResourceId id,
                                     Multimap<String, StrictLangValue> properties, User user) {
     textAttributeValueDao.insert(
-        ResourceTextAttributeValueDtoToModel.create(id).apply(properties), user);
+        new ResourceTextAttributeValueDtoToModel(id).apply(properties), user);
   }
 
   private void insertRefAttrValues(ResourceId id, Multimap<String, ResourceId> references,
                                    User user) {
     referenceAttributeValueDao.insert(
-        ReferenceAttributeValueIdDtoToModel.create(id).apply(references), user);
+        new ReferenceAttributeValueIdDtoToModel(id).apply(references), user);
   }
 
   @Override
-  public void update(ResourceId id, Resource newResource, Resource oldResource,
-                     User user) {
+  public void update(ResourceId id, Resource newResource, Resource oldResource, User user) {
     addLastModifiedInfo(newResource, oldResource, user);
     resourceDao.update(id, newResource, user);
     updateTextAttrValues(id, newResource.getProperties(), oldResource.getProperties(), user);
@@ -114,9 +114,9 @@ public class ResourceRepository extends AbstractRepository<ResourceId, Resource>
                                     User user) {
 
     Map<ResourceAttributeValueId, StrictLangValue> newMappedProperties =
-        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(newProperties);
+        new ResourceTextAttributeValueDtoToModel(resourceId).apply(newProperties);
     Map<ResourceAttributeValueId, StrictLangValue> oldMappedProperties =
-        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(oldProperties);
+        new ResourceTextAttributeValueDtoToModel(resourceId).apply(oldProperties);
 
     MapDifference<ResourceAttributeValueId, StrictLangValue> diff =
         difference(newMappedProperties, oldMappedProperties);
@@ -127,14 +127,14 @@ public class ResourceRepository extends AbstractRepository<ResourceId, Resource>
   }
 
   private void updateRefAttrValues(ResourceId resourceId,
-                                   Multimap<String, ResourceId> oldRefs,
                                    Multimap<String, ResourceId> newRefs,
+                                   Multimap<String, ResourceId> oldRefs,
                                    User user) {
 
     Map<ResourceAttributeValueId, ResourceId> newMappedRefs =
-        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(oldRefs);
+        new ReferenceAttributeValueIdDtoToModel(resourceId).apply(newRefs);
     Map<ResourceAttributeValueId, ResourceId> oldMappedRefs =
-        ReferenceAttributeValueIdDtoToModel.create(resourceId).apply(newRefs);
+        new ReferenceAttributeValueIdDtoToModel(resourceId).apply(oldRefs);
 
     MapDifference<ResourceAttributeValueId, ResourceId> diff =
         difference(newMappedRefs, oldMappedRefs);
@@ -147,20 +147,28 @@ public class ResourceRepository extends AbstractRepository<ResourceId, Resource>
   @Override
   public void delete(ResourceId resourceId, Resource resource, User user) {
     deleteRefAttrValues(resourceId, resource.getReferences(), user);
+    deleteInverseRefAttrValues(resourceId, resource.getReferrers(), user);
     deleteTextAttrValues(resourceId, resource.getProperties(), user);
     resourceDao.delete(resourceId, user);
   }
 
   private void deleteRefAttrValues(ResourceId id, Multimap<String, ResourceId> refs, User user) {
     Map<ResourceAttributeValueId, ResourceId> mappedRefs =
-        ReferenceAttributeValueIdDtoToModel.create(id).apply(refs);
+        new ReferenceAttributeValueIdDtoToModel(id).apply(refs);
+    referenceAttributeValueDao.delete(ImmutableList.copyOf(mappedRefs.keySet()), user);
+  }
+
+  private void deleteInverseRefAttrValues(ResourceId id, Multimap<String, ResourceId> refs,
+                                          User user) {
+    Map<ResourceAttributeValueId, ResourceId> mappedRefs =
+        new ReferenceAttributeValueIdDtoToReferrerModel(id).apply(refs);
     referenceAttributeValueDao.delete(ImmutableList.copyOf(mappedRefs.keySet()), user);
   }
 
   private void deleteTextAttrValues(ResourceId id, Multimap<String, StrictLangValue> properties,
                                     User user) {
     Map<ResourceAttributeValueId, StrictLangValue> mappedProperties =
-        ResourceTextAttributeValueDtoToModel.create(id).apply(properties);
+        new ResourceTextAttributeValueDtoToModel(id).apply(properties);
     textAttributeValueDao.delete(ImmutableList.copyOf(mappedProperties.keySet()), user);
   }
 
@@ -191,16 +199,16 @@ public class ResourceRepository extends AbstractRepository<ResourceId, Resource>
     resource = new Resource(resource);
 
     resource.setProperties(
-        ResourceTextAttributeValueModelToDto.create().apply(textAttributeValueDao.getMap(
+        new ResourceTextAttributeValueModelToDto().apply(textAttributeValueDao.getMap(
             new ResourceTextAttributeValuesByResourceId(new ResourceId(resource)), user)));
 
     resource.setReferences(
-        ReferenceAttributeValueIdModelToDto.create()
+        new ReferenceAttributeValueIdModelToDto()
             .apply(referenceAttributeValueDao.getMap(
                 new ResourceReferenceAttributeValuesByResourceId(new ResourceId(resource)), user)));
 
     resource.setReferrers(
-        ReferenceAttributeValueModelToReferrerDto.create()
+        new ReferenceAttributeValueIdModelToReferrerDto()
             .apply(referenceAttributeValueDao.getMap(
                 new ResourceReferenceAttributeResourcesByValueId(new ResourceId(resource)), user)));
 

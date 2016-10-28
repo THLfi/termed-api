@@ -56,13 +56,13 @@ public class ReferenceAttributeRepository
   private void insertPermissions(ReferenceAttributeId attributeId,
                                  Multimap<String, Permission> permissions, User user) {
     ClassId domainId = attributeId.getDomainId();
-    permissionDao.insert(RolePermissionsDtoToModel.create(
+    permissionDao.insert(new RolePermissionsDtoToModel<>(
         domainId.getScheme(), attributeId).apply(permissions), user);
   }
 
   private void insertProperties(ReferenceAttributeId attributeId,
                                 Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(PropertyValueDtoToModel.create(attributeId).apply(properties), user);
+    propertyValueDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
   }
 
   @Override
@@ -82,9 +82,9 @@ public class ReferenceAttributeRepository
     ClassId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
-        RolePermissionsDtoToModel.create(domainId.getScheme(), attrId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), attrId).apply(newPermissions);
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
-        RolePermissionsDtoToModel.create(domainId.getScheme(), attrId).apply(oldPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), attrId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -99,9 +99,9 @@ public class ReferenceAttributeRepository
                                 User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(attributeId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(newPropertyMultimap);
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(attributeId).apply(oldPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -122,14 +122,14 @@ public class ReferenceAttributeRepository
                                  User user) {
     ClassId domainId = id.getDomainId();
     permissionDao.delete(ImmutableList.copyOf(
-        RolePermissionsDtoToModel.create(domainId.getScheme(), id)
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), id)
             .apply(permissions).keySet()), user);
   }
 
   private void deleteProperties(ReferenceAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
     propertyValueDao.delete(ImmutableList.copyOf(
-        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
   @Override
@@ -159,12 +159,12 @@ public class ReferenceAttributeRepository
   private ReferenceAttribute populateValue(ReferenceAttribute attribute, User user) {
     attribute = new ReferenceAttribute(attribute);
 
-    attribute.setPermissions(RolePermissionsModelToDto.<ReferenceAttributeId>create().apply(
+    attribute.setPermissions(new RolePermissionsModelToDto<ReferenceAttributeId>().apply(
         permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
             new ReferenceAttributeId(attribute)), user)));
 
     attribute.setProperties(
-        PropertyValueModelToDto.<ReferenceAttributeId>create().apply(propertyValueDao.getMap(
+        new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyValueDao.getMap(
             new ReferenceAttributePropertiesByAttributeId(
                 new ReferenceAttributeId(attribute)), user)));
 

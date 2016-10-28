@@ -59,18 +59,18 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
   }
 
   private void insertRoles(SchemeId schemeId, List<String> roles, User user) {
-    schemeRoleDao.insert(SchemeRoleDtoToModel.create(schemeId).apply(roles), user);
+    schemeRoleDao.insert(new SchemeRoleDtoToModel(schemeId).apply(roles), user);
   }
 
   private void insertPermissions(SchemeId schemeId, Multimap<String, Permission> permissions,
                                  User user) {
     schemePermissionDao.insert(
-        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(schemeId, schemeId).apply(permissions), user);
   }
 
   private void insertProperties(SchemeId schemeId, Multimap<String, LangValue> properties,
                                 User user) {
-    schemePropertyValueDao.insert(PropertyValueDtoToModel.create(schemeId).apply(properties), user);
+    schemePropertyValueDao.insert(new PropertyValueDtoToModel<>(schemeId).apply(properties), user);
   }
 
   @Override
@@ -83,8 +83,8 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
 
   private void updateRoles(SchemeId scheme, List<String> newRoles, List<String> oldRoles,
                            User user) {
-    Map<SchemeRole, Empty> newRolesMap = SchemeRoleDtoToModel.create(scheme).apply(newRoles);
-    Map<SchemeRole, Empty> oldRolesMap = SchemeRoleDtoToModel.create(scheme).apply(oldRoles);
+    Map<SchemeRole, Empty> newRolesMap = new SchemeRoleDtoToModel(scheme).apply(newRoles);
+    Map<SchemeRole, Empty> oldRolesMap = new SchemeRoleDtoToModel(scheme).apply(oldRoles);
 
     MapDifference<SchemeRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
 
@@ -98,9 +98,9 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
                                  User user) {
 
     Map<ObjectRolePermission<SchemeId>, GrantedPermission> newPermissionMap =
-        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(schemeId, schemeId).apply(newPermissions);
     Map<ObjectRolePermission<SchemeId>, GrantedPermission> oldPermissionMap =
-        RolePermissionsDtoToModel.create(schemeId, schemeId).apply(oldPermissions);
+        new RolePermissionsDtoToModel<>(schemeId, schemeId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<SchemeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -115,9 +115,9 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
                                 User user) {
 
     Map<PropertyValueId<SchemeId>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(schemeId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(schemeId).apply(newPropertyMultimap);
     Map<PropertyValueId<SchemeId>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(schemeId).apply(oldPropertyMultimap);
+        new PropertyValueDtoToModel<>(schemeId).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<SchemeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -137,17 +137,17 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
 
   private void deleteRoles(SchemeId id, List<String> roles, User user) {
     schemeRoleDao.delete(ImmutableList.copyOf(
-        SchemeRoleDtoToModel.create(id).apply(roles).keySet()), user);
+        new SchemeRoleDtoToModel(id).apply(roles).keySet()), user);
   }
 
   private void deletePermissions(SchemeId id, Multimap<String, Permission> permissions, User user) {
     schemePermissionDao.delete(ImmutableList.copyOf(
-        RolePermissionsDtoToModel.create(id, id).apply(permissions).keySet()), user);
+        new RolePermissionsDtoToModel<>(id, id).apply(permissions).keySet()), user);
   }
 
   private void deleteProperties(SchemeId id, Multimap<String, LangValue> properties, User user) {
     schemePropertyValueDao.delete(ImmutableList.copyOf(
-        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
   @Override
@@ -175,14 +175,14 @@ public class SchemeRepository extends AbstractRepository<SchemeId, Scheme> {
   private Scheme populateValue(Scheme scheme, User user) {
     scheme = new Scheme(scheme);
 
-    scheme.setRoles(SchemeRoleModelToDto.create().apply(schemeRoleDao.getMap(
+    scheme.setRoles(new SchemeRoleModelToDto().apply(schemeRoleDao.getMap(
         new SchemeRolesBySchemeId(scheme.getId()), user)));
 
-    scheme.setPermissions(RolePermissionsModelToDto.<SchemeId>create().apply(
+    scheme.setPermissions(new RolePermissionsModelToDto<SchemeId>().apply(
         schemePermissionDao.getMap(new SchemePermissionsBySchemeId(new SchemeId(scheme)), user)));
 
     scheme.setProperties(
-        PropertyValueModelToDto.<SchemeId>create().apply(schemePropertyValueDao.getMap(
+        new PropertyValueModelToDto<SchemeId>().apply(schemePropertyValueDao.getMap(
             new SchemePropertiesBySchemeId(new SchemeId(scheme)), user)));
 
     return scheme;

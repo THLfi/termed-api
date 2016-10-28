@@ -13,10 +13,6 @@ import fi.thl.termed.domain.PropertyValueId;
 public class PropertyValueModelToDto<K extends Serializable>
     implements Function<Map<PropertyValueId<K>, LangValue>, Multimap<String, LangValue>> {
 
-  public static <K extends Serializable> PropertyValueModelToDto<K> create() {
-    return new PropertyValueModelToDto<K>();
-  }
-
   @Override
   public Multimap<String, LangValue> apply(Map<PropertyValueId<K>, LangValue> input) {
     Multimap<String, LangValue> map = LinkedHashMultimap.create();

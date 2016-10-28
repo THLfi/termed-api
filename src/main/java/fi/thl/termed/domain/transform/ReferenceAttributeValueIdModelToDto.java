@@ -1,20 +1,16 @@
 package fi.thl.termed.domain.transform;
 
-import java.util.function.Function;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 
 public class ReferenceAttributeValueIdModelToDto
     implements Function<Map<ResourceAttributeValueId, ResourceId>, Multimap<String, ResourceId>> {
-
-  public static ReferenceAttributeValueIdModelToDto create() {
-    return new ReferenceAttributeValueIdModelToDto();
-  }
 
   @Override
   public Multimap<String, ResourceId> apply(Map<ResourceAttributeValueId, ResourceId> input) {

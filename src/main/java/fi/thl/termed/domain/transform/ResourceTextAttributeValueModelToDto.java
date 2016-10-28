@@ -15,10 +15,6 @@ public class ResourceTextAttributeValueModelToDto
     implements
     Function<Map<ResourceAttributeValueId, StrictLangValue>, Multimap<String, StrictLangValue>> {
 
-  public static ResourceTextAttributeValueModelToDto create() {
-    return new ResourceTextAttributeValueModelToDto();
-  }
-
   @Nullable
   public Multimap<String, StrictLangValue> apply(
       Map<ResourceAttributeValueId, StrictLangValue> input) {

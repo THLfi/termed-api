@@ -9,12 +9,8 @@ import java.util.function.Function;
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.ResourceId;
 
-public class ReferenceAttributeValueModelToReferrerDto
+public class ReferenceAttributeValueIdModelToReferrerDto
     implements Function<Map<ResourceAttributeValueId, ResourceId>, Multimap<String, ResourceId>> {
-
-  public static ReferenceAttributeValueModelToReferrerDto create() {
-    return new ReferenceAttributeValueModelToReferrerDto();
-  }
 
   @Override
   public Multimap<String, ResourceId> apply(Map<ResourceAttributeValueId, ResourceId> input) {

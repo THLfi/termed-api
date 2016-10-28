@@ -25,10 +25,6 @@ public class ResourceTextAttributeValueDtoToModel
     this.resourceId = resourceId;
   }
 
-  public static ResourceTextAttributeValueDtoToModel create(ResourceId resourceId) {
-    return new ResourceTextAttributeValueDtoToModel(resourceId);
-  }
-
   @Override
   public Map<ResourceAttributeValueId, StrictLangValue> apply(
       Multimap<String, StrictLangValue> input) {

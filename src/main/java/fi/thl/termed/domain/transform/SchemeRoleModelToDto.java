@@ -11,10 +11,6 @@ import fi.thl.termed.domain.SchemeRole;
 
 public class SchemeRoleModelToDto implements Function<Map<SchemeRole, Empty>, List<String>> {
 
-  public static SchemeRoleModelToDto create() {
-    return new SchemeRoleModelToDto();
-  }
-
   @Override
   public List<String> apply(Map<SchemeRole, Empty> map) {
     List<String> roles = Lists.newArrayList();

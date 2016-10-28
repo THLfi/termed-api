@@ -25,11 +25,6 @@ public class RolePermissionsDtoToModel<K extends Serializable>
     this.objectId = objectId;
   }
 
-  public static <K extends Serializable> RolePermissionsDtoToModel<K> create(
-      SchemeId schemeId, K objectId) {
-    return new RolePermissionsDtoToModel<K>(schemeId, objectId);
-  }
-
   @Override
   public Map<ObjectRolePermission<K>, GrantedPermission> apply(
       Multimap<String, Permission> rolePermissions) {

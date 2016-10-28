@@ -55,14 +55,14 @@ public class TextAttributeRepository
 
   private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
-    propertyValueDao.insert(PropertyValueDtoToModel.create(id).apply(properties), user);
+    propertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertPermissions(TextAttributeId id, Multimap<String, Permission> permissions,
                                  User user) {
     ClassId domainId = id.getDomainId();
     permissionDao.insert(
-        RolePermissionsDtoToModel.create(domainId.getScheme(), id).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), id).apply(permissions), user);
   }
 
   @Override
@@ -82,9 +82,9 @@ public class TextAttributeRepository
     ClassId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> newPermissionMap =
-        RolePermissionsDtoToModel.create(domainId.getScheme(), attrId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), attrId).apply(newPermissions);
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> oldPermissionMap =
-        RolePermissionsDtoToModel.create(domainId.getScheme(), attrId).apply(oldPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), attrId).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<TextAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -99,9 +99,9 @@ public class TextAttributeRepository
                                 User user) {
 
     Map<PropertyValueId<TextAttributeId>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(attributeId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(newPropertyMultimap);
     Map<PropertyValueId<TextAttributeId>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(attributeId).apply(oldPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -122,14 +122,14 @@ public class TextAttributeRepository
                                  User user) {
     ClassId domainId = id.getDomainId();
     permissionDao.delete(ImmutableList.copyOf(
-        RolePermissionsDtoToModel.create(domainId.getScheme(), id)
+        new RolePermissionsDtoToModel<>(domainId.getScheme(), id)
             .apply(permissions).keySet()), user);
   }
 
   private void deleteProperties(TextAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
     propertyValueDao.delete(ImmutableList.copyOf(
-        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
   @Override
@@ -159,12 +159,12 @@ public class TextAttributeRepository
   private TextAttribute populateValue(TextAttribute attribute, User user) {
     attribute = new TextAttribute(attribute);
 
-    attribute.setPermissions(RolePermissionsModelToDto.<TextAttributeId>create().apply(
+    attribute.setPermissions(new RolePermissionsModelToDto<TextAttributeId>().apply(
         permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
             new TextAttributeId(attribute)), user)));
 
     attribute.setProperties(
-        PropertyValueModelToDto.<TextAttributeId>create()
+        new PropertyValueModelToDto<TextAttributeId>()
             .apply(propertyValueDao.getMap(new TextAttributePropertiesByAttributeId(
                 new TextAttributeId(attribute)), user)));
 

@@ -52,11 +52,11 @@ public class ResourceTextAttributeValueTransformTest {
             .build();
 
     Map<ResourceAttributeValueId, StrictLangValue> actualPropertyModel =
-        ResourceTextAttributeValueDtoToModel.create(resourceId).apply(propertyDto);
+        new ResourceTextAttributeValueDtoToModel(resourceId).apply(propertyDto);
     Assert.assertEquals(propertyModel, actualPropertyModel);
 
     Multimap<String, StrictLangValue> actualPropertyDto =
-        ResourceTextAttributeValueModelToDto.create().apply(propertyModel);
+        new ResourceTextAttributeValueModelToDto().apply(propertyModel);
     Assert.assertEquals(propertyDto, actualPropertyDto);
   }
 

@@ -15,10 +15,6 @@ public class RolePermissionsModelToDto<K extends Serializable>
     implements
     Function<Map<ObjectRolePermission<K>, GrantedPermission>, Multimap<String, Permission>> {
 
-  public static <K extends Serializable> RolePermissionsModelToDto<K> create() {
-    return new RolePermissionsModelToDto<K>();
-  }
-
   @Override
   public Multimap<String, Permission> apply(Map<ObjectRolePermission<K>, GrantedPermission> input) {
     Multimap<String, Permission> map = LinkedHashMultimap.create();

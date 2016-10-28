@@ -41,7 +41,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   private void insertProperties(String id, Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(PropertyValueDtoToModel.create(id).apply(properties), user);
+    propertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   @Override
@@ -56,9 +56,9 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
                                 User user) {
 
     Map<PropertyValueId<String>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(propertyId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(propertyId).apply(newPropertyMultimap);
     Map<PropertyValueId<String>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(propertyId).apply(oldPropertyMultimap);
+        new PropertyValueDtoToModel<>(propertyId).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<String>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -76,7 +76,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
 
   private void deleteProperties(String id, Multimap<String, LangValue> properties, User user) {
     propertyValueDao.delete(ImmutableList.copyOf(
-        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
   @Override
@@ -105,7 +105,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
     property = new Property(property);
 
     property.setProperties(
-        PropertyValueModelToDto.<String>create().apply(propertyValueDao.getMap(
+        new PropertyValueModelToDto<String>().apply(propertyValueDao.getMap(
             new PropertyPropertiesByPropertyId(property.getId()), user)));
 
     return property;

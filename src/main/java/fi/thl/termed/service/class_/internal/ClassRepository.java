@@ -91,11 +91,11 @@ public class ClassRepository extends AbstractRepository<ClassId, Class> {
 
   private void insertPermissions(ClassId id, Multimap<String, Permission> permissions, User user) {
     classPermissionDao.insert(
-        RolePermissionsDtoToModel.create(id.getScheme(), id).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(id.getScheme(), id).apply(permissions), user);
   }
 
   private void insertProperties(ClassId id, Multimap<String, LangValue> properties, User user) {
-    classPropertyValueDao.insert(PropertyValueDtoToModel.create(id).apply(properties), user);
+    classPropertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertTextAttributes(ClassId id, List<TextAttribute> attrs, User user) {
@@ -142,9 +142,9 @@ public class ClassRepository extends AbstractRepository<ClassId, Class> {
                                  User user) {
 
     Map<ObjectRolePermission<ClassId>, GrantedPermission> newPermissionMap =
-        RolePermissionsDtoToModel.create(id.getScheme(), id).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(id.getScheme(), id).apply(newPermissions);
     Map<ObjectRolePermission<ClassId>, GrantedPermission> oldPermissionMap =
-        RolePermissionsDtoToModel.create(id.getScheme(), id).apply(oldPermissions);
+        new RolePermissionsDtoToModel<>(id.getScheme(), id).apply(oldPermissions);
 
     MapDifference<ObjectRolePermission<ClassId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -159,9 +159,9 @@ public class ClassRepository extends AbstractRepository<ClassId, Class> {
                                 User user) {
 
     Map<PropertyValueId<ClassId>, LangValue> newProperties =
-        PropertyValueDtoToModel.create(id).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(id).apply(newPropertyMultimap);
     Map<PropertyValueId<ClassId>, LangValue> oldProperties =
-        PropertyValueDtoToModel.create(id).apply(oldPropertyMultimap);
+        new PropertyValueDtoToModel<>(id).apply(oldPropertyMultimap);
 
     MapDifference<PropertyValueId<ClassId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -223,12 +223,12 @@ public class ClassRepository extends AbstractRepository<ClassId, Class> {
 
   private void deletePermissions(ClassId id, Multimap<String, Permission> permissions, User user) {
     classPermissionDao.delete(ImmutableList.copyOf(
-        RolePermissionsDtoToModel.create(id.getScheme(), id).apply(permissions).keySet()), user);
+        new RolePermissionsDtoToModel<>(id.getScheme(), id).apply(permissions).keySet()), user);
   }
 
   private void deleteProperties(ClassId id, Multimap<String, LangValue> properties, User user) {
     classPropertyValueDao.delete(ImmutableList.copyOf(
-        PropertyValueDtoToModel.create(id).apply(properties).keySet()), user);
+        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
   private void deleteTextAttributes(ClassId id, List<TextAttribute> textAttributes, User user) {
@@ -268,12 +268,12 @@ public class ClassRepository extends AbstractRepository<ClassId, Class> {
     cls = new Class(cls);
 
     cls.setPermissions(
-        RolePermissionsModelToDto.<ClassId>create().apply(
+        new RolePermissionsModelToDto<ClassId>().apply(
             classPermissionDao.getMap(new ClassPermissionsByClassId(
                 new ClassId(cls.getId(), cls.getSchemeId())), user)));
 
     cls.setProperties(
-        PropertyValueModelToDto.<ClassId>create().apply(
+        new PropertyValueModelToDto<ClassId>().apply(
             classPropertyValueDao.getMap(new ClassPropertiesByClassId(
                 new ClassId(cls.getId(), cls.getSchemeId())), user)));
 
