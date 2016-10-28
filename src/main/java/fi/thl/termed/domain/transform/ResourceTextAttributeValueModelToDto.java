@@ -6,8 +6,6 @@ import com.google.common.collect.Multimap;
 import java.util.Map;
 import java.util.function.Function;
 
-import javax.annotation.Nullable;
-
 import fi.thl.termed.domain.ResourceAttributeValueId;
 import fi.thl.termed.domain.StrictLangValue;
 
@@ -15,7 +13,7 @@ public class ResourceTextAttributeValueModelToDto
     implements
     Function<Map<ResourceAttributeValueId, StrictLangValue>, Multimap<String, StrictLangValue>> {
 
-  @Nullable
+  @Override
   public Multimap<String, StrictLangValue> apply(
       Map<ResourceAttributeValueId, StrictLangValue> input) {
     Multimap<String, StrictLangValue> map = LinkedHashMultimap.create();
