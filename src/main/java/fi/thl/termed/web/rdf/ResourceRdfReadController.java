@@ -66,7 +66,8 @@ public class ResourceRdfReadController {
     List<Resource> resources = resourceService.get(new Query<>(specification, LUCENE), user);
     List<Class> classes = classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user);
 
-    return new JenaRdfModel(new ResourcesToRdfModel(classes).apply(resources)).getModel();
+    return new JenaRdfModel(new ResourcesToRdfModel(
+        classes, resourceId -> resourceService.get(resourceId, user)).apply(resources)).getModel();
   }
 
   @GetRdfMapping("/classes/{typeId}/resources/{id}")
@@ -80,7 +81,8 @@ public class ResourceRdfReadController {
         .map(Collections::singletonList).orElseThrow(NotFoundException::new);
     List<Class> classes = classService.get(new Query<>(new ClassesBySchemeId(schemeId)), user);
 
-    return new JenaRdfModel(new ResourcesToRdfModel(classes).apply(resource)).getModel();
+    return new JenaRdfModel(new ResourcesToRdfModel(
+        classes, resourceId -> resourceService.get(resourceId, user)).apply(resource)).getModel();
   }
 
   private Specification<ResourceId, Resource> resourcesBy(List<ClassId> classIds) {

@@ -8,6 +8,7 @@ import org.apache.jena.vocabulary.RDF;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import fi.thl.termed.domain.Class;
@@ -31,10 +32,12 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
   private Map<ClassId, Class> classes = new HashMap<>();
   private Map<TextAttributeId, TextAttribute> textAttributes = new HashMap<>();
   private Map<ReferenceAttributeId, ReferenceAttribute> referenceAttributes = new HashMap<>();
-  private Map<ResourceId, Resource> resources = new HashMap<>();
+  private Function<ResourceId, Optional<Resource>> resourceLoader;
 
-  public ResourcesToRdfModel(List<Class> classList) {
+  public ResourcesToRdfModel(List<Class> classList,
+                             Function<ResourceId, Optional<Resource>> resourceLoader) {
     loadClassCache(classList);
+    this.resourceLoader = resourceLoader;
   }
 
   private void loadClassCache(List<Class> classList) {
@@ -60,8 +63,6 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
   @Override
   public RdfModel apply(List<Resource> resourceList) {
     List<RdfResource> rdfResources = Lists.newArrayList();
-
-    resourceList.forEach(r -> resources.put(new ResourceId(r), r));
 
     for (Resource resource : resourceList) {
       RdfResource rdfResource = new RdfResource(getResourceUri(new ResourceId(resource)));
@@ -113,8 +114,8 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
   }
 
   private String getResourceUri(ResourceId resourceId) {
-    Resource resource = resources.get(resourceId);
-    return firstNonNull(emptyToNull(resource.getUri()),
+    Optional<Resource> resource = resourceLoader.apply(resourceId);
+    return firstNonNull(emptyToNull(resource.isPresent() ? resource.get().getUri() : ""),
                         TERMED_NS + resourceId.getTypeSchemeId() +
                         "/classes/" + resourceId.getId() +
                         "/resources/" + resourceId.getId());
