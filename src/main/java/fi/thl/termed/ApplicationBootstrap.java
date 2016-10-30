@@ -15,15 +15,18 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import javax.annotation.PreDestroy;
+
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
+import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.io.ResourceUtils;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.specification.MatchAll;
+import fi.thl.termed.util.specification.Query;
 
 /**
  * If no users found, adds default user (admin). Adds default properties (defined in
@@ -78,6 +81,11 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
       property.setIndex(index++);
     }
     propertyComponent.save(properties, initializer);
+  }
+
+  @PreDestroy
+  public void destroy() {
+    eventBus.post(new ApplicationShutdownEvent());
   }
 
 }

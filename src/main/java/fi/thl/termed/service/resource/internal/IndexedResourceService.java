@@ -14,6 +14,7 @@ import fi.thl.termed.domain.Resource;
 import fi.thl.termed.domain.ResourceId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
+import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
@@ -38,6 +39,11 @@ public class IndexedResourceService extends ForwardingService<ResourceId, Resour
       // reindex all
       index.index(super.getKeys(new MatchAllQuery<>(), indexer), key -> super.get(key, indexer));
     }
+  }
+
+  @Subscribe
+  public void closeIndexOn(ApplicationShutdownEvent e) {
+    index.close();
   }
 
   @Override

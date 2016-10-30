@@ -37,8 +37,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.annotation.PreDestroy;
-
 import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.collect.ListUtils;
@@ -262,8 +260,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  @PreDestroy
-  protected void close() {
+  public void close() {
     log.debug("Closing {}", getClass().getSimpleName());
 
     try {

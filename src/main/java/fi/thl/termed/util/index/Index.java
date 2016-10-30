@@ -29,4 +29,6 @@ public interface Index<K extends Serializable, V> {
 
   Optional<V> get(K id);
 
+  void close();
+
 }
