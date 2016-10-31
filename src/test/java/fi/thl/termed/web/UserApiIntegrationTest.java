@@ -15,10 +15,10 @@ import static org.hamcrest.core.IsNot.not;
 public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   private String exampleUserUsername = "user";
-  private String exampleUserPassword = "password";
-  private String exampleUserData = "{ 'username':'" + exampleUserUsername +
-                                   "','password':'" + exampleUserPassword +
-                                   "','appRole' :'USER'}";
+  private String exampleUserPassword = UUIDs.randomUUIDString();
+  private String exampleUserData = String.format(
+      "{ 'username': '%s', 'password': '%s', 'appRole': 'USER' }",
+      exampleUserUsername, exampleUserPassword);
 
   private String testAdminUsername = "testAdmin";
   private String testAdminPassword = UUIDs.randomUUIDString();
