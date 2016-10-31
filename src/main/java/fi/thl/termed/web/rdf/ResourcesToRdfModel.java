@@ -117,7 +117,7 @@ public class ResourcesToRdfModel implements Function<List<Resource>, RdfModel> {
     Optional<Resource> resource = resourceLoader.apply(resourceId);
     return firstNonNull(emptyToNull(resource.isPresent() ? resource.get().getUri() : ""),
                         TERMED_NS + resourceId.getTypeSchemeId() +
-                        "/classes/" + resourceId.getId() +
+                        "/classes/" + resourceId.getTypeId() +
                         "/resources/" + resourceId.getId());
   }
 
