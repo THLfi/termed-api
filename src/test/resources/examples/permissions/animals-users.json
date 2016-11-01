@@ -3,9 +3,9 @@
     "username": "editor",
     "password": "editor",
     "appRole": "USER",
-    "schemeRoles": [
+    "graphRoles": [
       {
-        "scheme": {
+        "graph": {
           "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
         },
         "role": "editor"
@@ -16,9 +16,9 @@
     "username": "reviewer",
     "password": "reviewer",
     "appRole": "USER",
-    "schemeRoles": [
+    "graphRoles": [
       {
-        "scheme": {
+        "graph": {
           "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
         },
         "role": "reviewer"
@@ -29,9 +29,9 @@
     "username": "visitor",
     "password": "visitor",
     "appRole": "USER",
-    "schemeRoles": [
+    "graphRoles": [
       {
-        "scheme": {
+        "graph": {
           "id": "9d92c840-7422-4055-b5a1-8e5d87d161ff"
         },
         "role": "visitor"

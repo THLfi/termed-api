@@ -7,28 +7,28 @@ import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.function.Function;
 
-import fi.thl.termed.domain.ResourceAttributeValueId;
-import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.domain.NodeAttributeValueId;
+import fi.thl.termed.domain.NodeId;
 
 public class ReferenceAttributeValueIdDtoToReferrerModel
-    implements Function<Multimap<String, ResourceId>, Map<ResourceAttributeValueId, ResourceId>> {
+    implements Function<Multimap<String, NodeId>, Map<NodeAttributeValueId, NodeId>> {
 
-  private ResourceId resourceId;
+  private NodeId nodeId;
 
-  public ReferenceAttributeValueIdDtoToReferrerModel(ResourceId resourceId) {
-    this.resourceId = resourceId;
+  public ReferenceAttributeValueIdDtoToReferrerModel(NodeId nodeId) {
+    this.nodeId = nodeId;
   }
 
   @Override
-  public Map<ResourceAttributeValueId, ResourceId> apply(Multimap<String, ResourceId> referrers) {
+  public Map<NodeAttributeValueId, NodeId> apply(Multimap<String, NodeId> referrers) {
 
-    Map<ResourceAttributeValueId, ResourceId> result = Maps.newLinkedHashMap();
+    Map<NodeAttributeValueId, NodeId> result = Maps.newLinkedHashMap();
 
     for (String attributeId : referrers.keySet()) {
       int index = 0;
 
-      for (ResourceId value : Sets.newLinkedHashSet(referrers.get(attributeId))) {
-        result.put(new ResourceAttributeValueId(value, attributeId, index++), resourceId);
+      for (NodeId value : Sets.newLinkedHashSet(referrers.get(attributeId))) {
+        result.put(new NodeAttributeValueId(value, attributeId, index++), nodeId);
       }
     }
 

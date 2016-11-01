@@ -10,12 +10,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ObjectRolePermission<K extends Serializable> implements Serializable {
 
   private final K objectId;
-  private final SchemeRole schemeRole;
+  private final GraphRole graphRole;
   private final Permission permission;
 
-  public ObjectRolePermission(K objectId, SchemeRole schemeRole, Permission permission) {
+  public ObjectRolePermission(K objectId, GraphRole graphRole, Permission permission) {
     this.objectId = checkNotNull(objectId, "objectId can't be null in %s", getClass());
-    this.schemeRole = checkNotNull(schemeRole, "schemeRole can't be null in %s", getClass());
+    this.graphRole = checkNotNull(graphRole, "graphRole can't be null in %s", getClass());
     this.permission = checkNotNull(permission, "permission can't be null in %s", getClass());
   }
 
@@ -23,12 +23,12 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     return objectId;
   }
 
-  public SchemeRole getSchemeRole() {
-    return schemeRole;
+  public GraphRole getGraphRole() {
+    return graphRole;
   }
 
   public String getRole() {
-    return schemeRole != null ? schemeRole.getRole() : null;
+    return graphRole != null ? graphRole.getRole() : null;
   }
 
   public Permission getPermission() {
@@ -45,20 +45,20 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     }
     ObjectRolePermission<?> that = (ObjectRolePermission<?>) o;
     return Objects.equals(objectId, that.objectId) &&
-           Objects.equals(schemeRole, that.schemeRole) &&
+           Objects.equals(graphRole, that.graphRole) &&
            Objects.equals(permission, that.permission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(objectId, schemeRole, permission);
+    return Objects.hash(objectId, graphRole, permission);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("objectId", objectId)
-        .add("schemeRole", schemeRole)
+        .add("graphRole", graphRole)
         .add("permission", permission)
         .toString();
   }

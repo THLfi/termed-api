@@ -7,12 +7,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 import fi.thl.termed.service.user.internal.JdbcUserDao;
-import fi.thl.termed.service.user.internal.JdbcUserSchemeRoleDao;
+import fi.thl.termed.service.user.internal.JdbcUserGraphRoleDao;
 import fi.thl.termed.service.user.internal.UserRepository;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.UserSchemeRole;
+import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
@@ -31,18 +31,18 @@ public class UserServiceConfiguration {
 
     SystemDao<String, User> userDao =
         new CachedSystemDao<>(new JdbcUserDao(dataSource));
-    SystemDao<UserSchemeRole, Empty> userSchemeRoleDao =
-        new CachedSystemDao<>(new JdbcUserSchemeRoleDao(dataSource));
+    SystemDao<UserGraphRole, Empty> userGraphRoleDao =
+        new CachedSystemDao<>(new JdbcUserGraphRoleDao(dataSource));
 
     PermissionEvaluator<String> userPermissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER;
-    PermissionEvaluator<UserSchemeRole> userSchemeRolePermissionEvaluator =
+    PermissionEvaluator<UserGraphRole> userGraphRolePermissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER;
 
     Service<String, User> service =
         new UserRepository(
             new AuthorizedDao<>(userDao, userPermissionEvaluator, THROW),
-            new AuthorizedDao<>(userSchemeRoleDao, userSchemeRolePermissionEvaluator, THROW));
+            new AuthorizedDao<>(userGraphRoleDao, userGraphRolePermissionEvaluator, THROW));
 
     return new TransactionalService<>(service, transactionManager);
   }

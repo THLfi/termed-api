@@ -7,28 +7,28 @@ import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.function.Function;
 
-import fi.thl.termed.domain.ResourceAttributeValueId;
-import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.domain.NodeAttributeValueId;
+import fi.thl.termed.domain.NodeId;
 
 public class ReferenceAttributeValueIdDtoToModel
-    implements Function<Multimap<String, ResourceId>, Map<ResourceAttributeValueId, ResourceId>> {
+    implements Function<Multimap<String, NodeId>, Map<NodeAttributeValueId, NodeId>> {
 
-  private ResourceId resourceId;
+  private NodeId nodeId;
 
-  public ReferenceAttributeValueIdDtoToModel(ResourceId resourceId) {
-    this.resourceId = resourceId;
+  public ReferenceAttributeValueIdDtoToModel(NodeId nodeId) {
+    this.nodeId = nodeId;
   }
 
   @Override
-  public Map<ResourceAttributeValueId, ResourceId> apply(Multimap<String, ResourceId> input) {
+  public Map<NodeAttributeValueId, NodeId> apply(Multimap<String, NodeId> input) {
 
-    Map<ResourceAttributeValueId, ResourceId> result = Maps.newLinkedHashMap();
+    Map<NodeAttributeValueId, NodeId> result = Maps.newLinkedHashMap();
 
     for (String attributeId : input.keySet()) {
       int index = 0;
 
-      for (ResourceId value : Sets.newLinkedHashSet(input.get(attributeId))) {
-        result.put(new ResourceAttributeValueId(resourceId, attributeId, index++), value);
+      for (NodeId value : Sets.newLinkedHashSet(input.get(attributeId))) {
+        result.put(new NodeAttributeValueId(nodeId, attributeId, index++), value);
       }
     }
 

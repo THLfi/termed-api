@@ -24,11 +24,11 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import fi.thl.termed.domain.ClassId;
-import fi.thl.termed.domain.Resource;
-import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.resource.specification.ResourcesBySchemeId;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.util.TableUtils;
 import fi.thl.termed.util.json.JsonUtils;
 import fi.thl.termed.util.service.Service;
@@ -37,37 +37,37 @@ import fi.thl.termed.util.specification.Query;
 import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 @RestController
-@RequestMapping("/api/schemes/{schemeId}/resources")
+@RequestMapping("/api/graphs/{graphId}/nodes")
 public class ResourceCsvController {
 
   @Autowired
-  private Service<ResourceId, Resource> resourceService;
+  private Service<NodeId, Node> nodeService;
 
   @Autowired
   private Gson gson;
 
   @PostMapping(consumes = "text/csv;charset=UTF-8")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void post(@PathVariable("schemeId") UUID schemeId,
+  public void post(@PathVariable("graphId") UUID graphId,
                    @AuthenticationPrincipal User currentUser,
                    HttpServletRequest request) throws IOException {
     List<String[]> rows = new CSVReader(request.getReader()).readAll();
-    List<Resource> resources = Lists.newArrayList();
+    List<Node> nodes = Lists.newArrayList();
     for (Map<String, String> row : TableUtils.toMapped(rows)) {
-      resources.add(gson.fromJson(JsonUtils.unflatten(row), Resource.class));
+      nodes.add(gson.fromJson(JsonUtils.unflatten(row), Node.class));
     }
-    resources.forEach(r -> r.setType(new ClassId(r.getTypeId(), schemeId)));
-    resourceService.save(resources, currentUser);
+    nodes.forEach(r -> r.setType(new TypeId(r.getTypeId(), graphId)));
+    nodeService.save(nodes, currentUser);
   }
 
   @GetMapping(produces = "text/csv;charset=UTF-8")
-  public void get(@PathVariable("schemeId") UUID schemeId,
+  public void get(@PathVariable("graphId") UUID graphId,
                   @AuthenticationPrincipal User currentUser,
                   HttpServletResponse response) throws IOException {
-    List<Resource> resources = resourceService.get(
-        new Query<>(new ResourcesBySchemeId(schemeId), LUCENE), currentUser);
+    List<Node> nodes = nodeService.get(
+        new Query<>(new NodesByGraphId(graphId), LUCENE), currentUser);
     List<Map<String, String>> rows = Lists.newArrayList();
-    resources.forEach(r -> rows.add(JsonUtils.flatten(gson.toJsonTree(r, Resource.class))));
+    nodes.forEach(r -> rows.add(JsonUtils.flatten(gson.toJsonTree(r, Node.class))));
     new CSVWriter(response.getWriter()).writeAll(TableUtils.toTable(rows));
   }
 

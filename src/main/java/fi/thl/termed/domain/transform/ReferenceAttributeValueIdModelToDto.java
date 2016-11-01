@@ -6,17 +6,17 @@ import com.google.common.collect.Multimap;
 import java.util.Map;
 import java.util.function.Function;
 
-import fi.thl.termed.domain.ResourceAttributeValueId;
-import fi.thl.termed.domain.ResourceId;
+import fi.thl.termed.domain.NodeAttributeValueId;
+import fi.thl.termed.domain.NodeId;
 
 public class ReferenceAttributeValueIdModelToDto
-    implements Function<Map<ResourceAttributeValueId, ResourceId>, Multimap<String, ResourceId>> {
+    implements Function<Map<NodeAttributeValueId, NodeId>, Multimap<String, NodeId>> {
 
   @Override
-  public Multimap<String, ResourceId> apply(Map<ResourceAttributeValueId, ResourceId> input) {
-    Multimap<String, ResourceId> map = LinkedHashMultimap.create();
+  public Multimap<String, NodeId> apply(Map<NodeAttributeValueId, NodeId> input) {
+    Multimap<String, NodeId> map = LinkedHashMultimap.create();
 
-    for (Map.Entry<ResourceAttributeValueId, ResourceId> entry : input.entrySet()) {
+    for (Map.Entry<NodeAttributeValueId, NodeId> entry : input.entrySet()) {
       map.put(entry.getKey().getAttributeId(), entry.getValue());
     }
 

@@ -35,7 +35,7 @@ public class UserWriteController {
       userService.save(new User(userDatum.getUsername(),
                                 passwordEncoder.encode(userDatum.getPassword()),
                                 userDatum.getAppRole(),
-                                userDatum.getSchemeRoles()),
+                                userDatum.getGraphRoles()),
                        currentUser);
     }
   }
@@ -46,7 +46,7 @@ public class UserWriteController {
     userService.save(new User(userData.getUsername(),
                               passwordEncoder.encode(userData.getPassword()),
                               userData.getAppRole(),
-                              userData.getSchemeRoles()),
+                              userData.getGraphRoles()),
                      currentUser);
   }
 

@@ -8,20 +8,20 @@ import java.util.Map;
 import java.util.function.Function;
 
 import fi.thl.termed.domain.GrantedPermission;
+import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.SchemeId;
-import fi.thl.termed.domain.SchemeRole;
 
 public class RolePermissionsDtoToModel<K extends Serializable>
     implements
     Function<Multimap<String, Permission>, Map<ObjectRolePermission<K>, GrantedPermission>> {
 
-  private SchemeId schemeId;
+  private GraphId graphId;
   private K objectId;
 
-  public RolePermissionsDtoToModel(SchemeId schemeId, K objectId) {
-    this.schemeId = schemeId;
+  public RolePermissionsDtoToModel(GraphId graphId, K objectId) {
+    this.graphId = graphId;
     this.objectId = objectId;
   }
 
@@ -32,8 +32,8 @@ public class RolePermissionsDtoToModel<K extends Serializable>
 
     for (Map.Entry<String, Permission> rolePermission : rolePermissions.entries()) {
       model.put(
-          new ObjectRolePermission<K>(objectId, new SchemeRole(schemeId, rolePermission.getKey()),
-                                      rolePermission.getValue()),
+          new ObjectRolePermission<>(objectId, new GraphRole(graphId, rolePermission.getKey()),
+                                     rolePermission.getValue()),
           null);
     }
 

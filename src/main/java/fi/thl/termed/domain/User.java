@@ -20,13 +20,13 @@ public class User implements UserDetails, Identifiable<String> {
   private String password;
 
   private AppRole appRole;
-  private List<SchemeRole> schemeRoles;
+  private List<GraphRole> graphRoles;
 
-  public User(String username, String password, AppRole appRole, List<SchemeRole> schemeRoles) {
+  public User(String username, String password, AppRole appRole, List<GraphRole> graphRoles) {
     this.username = checkNotNull(username, "username can't be null in %s", getClass());
     this.password = checkNotNull(password, "password can't be null in %s", getClass());
     this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
-    this.schemeRoles = schemeRoles;
+    this.graphRoles = graphRoles;
   }
 
   public User(String username, String password, AppRole appRole) {
@@ -39,7 +39,7 @@ public class User implements UserDetails, Identifiable<String> {
     this.username = user.username;
     this.password = user.password;
     this.appRole = user.appRole;
-    this.schemeRoles = user.schemeRoles;
+    this.graphRoles = user.graphRoles;
   }
 
   @Override
@@ -66,12 +66,12 @@ public class User implements UserDetails, Identifiable<String> {
     return appRole;
   }
 
-  public List<SchemeRole> getSchemeRoles() {
-    return ListUtils.nullToEmpty(schemeRoles);
+  public List<GraphRole> getGraphRoles() {
+    return ListUtils.nullToEmpty(graphRoles);
   }
 
-  public void setSchemeRoles(List<SchemeRole> schemeRoles) {
-    this.schemeRoles = schemeRoles;
+  public void setGraphRoles(List<GraphRole> graphRoles) {
+    this.graphRoles = graphRoles;
   }
 
   @Override

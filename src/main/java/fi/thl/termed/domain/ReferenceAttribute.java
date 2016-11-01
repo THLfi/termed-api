@@ -7,14 +7,14 @@ import java.util.UUID;
 
 public class ReferenceAttribute extends Attribute implements Identifiable<ReferenceAttributeId> {
 
-  private ClassId range;
+  private TypeId range;
 
-  public ReferenceAttribute(String id, ClassId domain, ClassId range) {
+  public ReferenceAttribute(String id, TypeId domain, TypeId range) {
     super(id, domain);
     this.range = range;
   }
 
-  public ReferenceAttribute(String id, String uri, ClassId domain, ClassId range) {
+  public ReferenceAttribute(String id, String uri, TypeId domain, TypeId range) {
     super(id, uri, domain);
     this.range = range;
   }
@@ -29,16 +29,16 @@ public class ReferenceAttribute extends Attribute implements Identifiable<Refere
     return new ReferenceAttributeId(getDomain(), getId());
   }
 
-  public ClassId getRange() {
+  public TypeId getRange() {
     return range;
   }
 
-  public void setRange(ClassId range) {
+  public void setRange(TypeId range) {
     this.range = range;
   }
 
-  public UUID getRangeSchemeId() {
-    return range != null ? range.getSchemeId() : null;
+  public UUID getRangeGraphId() {
+    return range != null ? range.getGraphId() : null;
   }
 
   public String getRangeId() {

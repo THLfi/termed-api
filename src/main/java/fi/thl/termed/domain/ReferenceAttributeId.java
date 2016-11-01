@@ -6,7 +6,7 @@ public class ReferenceAttributeId extends AttributeId {
     super(attribute);
   }
 
-  public ReferenceAttributeId(ClassId domainId, String id) {
+  public ReferenceAttributeId(TypeId domainId, String id) {
     super(domainId, id);
   }
 

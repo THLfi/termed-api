@@ -5,7 +5,7 @@ import java.io.Serializable;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.SchemeRole;
+import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.dao.SystemDao;
 
@@ -20,8 +20,8 @@ public class DaoPermissionEvaluator<E extends Serializable> implements Permissio
 
   @Override
   public boolean hasPermission(User user, E object, Permission permission) {
-    for (SchemeRole schemeRole : user.getSchemeRoles()) {
-      if (permissionDao.exists(new ObjectRolePermission<>(object, schemeRole, permission))) {
+    for (GraphRole graphRole : user.getGraphRoles()) {
+      if (permissionDao.exists(new ObjectRolePermission<>(object, graphRole, permission))) {
         return true;
       }
     }

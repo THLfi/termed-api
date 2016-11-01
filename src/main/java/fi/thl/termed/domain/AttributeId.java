@@ -9,20 +9,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class AttributeId implements Serializable {
 
-  private final ClassId domainId;
+  private final TypeId domainId;
 
   private final String id;
 
   public AttributeId(Attribute attribute) {
-    this(new ClassId(attribute.getDomain()), attribute.getId());
+    this(new TypeId(attribute.getDomain()), attribute.getId());
   }
 
-  public AttributeId(ClassId domainId, String id) {
+  public AttributeId(TypeId domainId, String id) {
     this.domainId = checkNotNull(domainId, "domainId can't be null in %s", getClass());
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
   }
 
-  public ClassId getDomainId() {
+  public TypeId getDomainId() {
     return domainId;
   }
 

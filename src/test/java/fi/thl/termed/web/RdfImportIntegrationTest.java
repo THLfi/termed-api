@@ -15,36 +15,36 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
   public void shouldSaveRdfVocabulary() throws IOException {
-    String schemeId = UUID.randomUUID().toString();
+    String graphId = UUID.randomUUID().toString();
 
-    // save scheme
+    // save graph
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/json")
-        .body(ResourceUtils.resourceToString("examples/nasa/example-scheme.json"))
+        .body(ResourceUtils.resourceToString("examples/nasa/example-graph.json"))
         .when()
-        .put("/api/schemes/" + schemeId)
+        .put("/api/graphs/" + graphId)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(schemeId));
+        .body("id", equalTo(graphId));
 
-    // save scheme classes
+    // save graph types
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/json")
-        .body(ResourceUtils.resourceToString("examples/nasa/example-classes.json"))
+        .body(ResourceUtils.resourceToString("examples/nasa/example-types.json"))
         .when()
-        .post("/api/schemes/" + schemeId + "/classes?batch=true")
+        .post("/api/graphs/" + graphId + "/types?batch=true")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    // save scheme resources
+    // save graph nodes
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/rdf+xml")
-        .body(ResourceUtils.resourceToString("examples/nasa/example-resources.rdf"))
+        .body(ResourceUtils.resourceToString("examples/nasa/example-nodes.rdf"))
         .when()
-        .post("/api/schemes/" + schemeId + "/resources")
+        .post("/api/graphs/" + graphId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
   }

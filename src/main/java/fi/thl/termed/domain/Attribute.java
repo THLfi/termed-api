@@ -15,17 +15,17 @@ public abstract class Attribute {
 
   private Integer index;
 
-  private ClassId domain;
+  private TypeId domain;
 
   private Multimap<String, Permission> permissions;
   private Multimap<String, LangValue> properties;
 
-  public Attribute(String id, ClassId domain) {
+  public Attribute(String id, TypeId domain) {
     this.id = id;
     this.domain = domain;
   }
 
-  public Attribute(String id, String uri, ClassId domain) {
+  public Attribute(String id, String uri, TypeId domain) {
     this.id = id;
     this.uri = uri;
     this.domain = domain;
@@ -64,16 +64,16 @@ public abstract class Attribute {
     this.index = index;
   }
 
-  public ClassId getDomain() {
+  public TypeId getDomain() {
     return domain;
   }
 
-  public void setDomain(ClassId domain) {
+  public void setDomain(TypeId domain) {
     this.domain = domain;
   }
 
-  public UUID getDomainSchemeId() {
-    return domain != null ? domain.getSchemeId() : null;
+  public UUID getDomainGraphId() {
+    return domain != null ? domain.getGraphId() : null;
   }
 
   public String getDomainId() {

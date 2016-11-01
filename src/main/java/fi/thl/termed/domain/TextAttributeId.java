@@ -6,7 +6,7 @@ public class TextAttributeId extends AttributeId {
     super(attribute);
   }
 
-  public TextAttributeId(ClassId domainId, String id) {
+  public TextAttributeId(TypeId domainId, String id) {
     super(domainId, id);
   }
 

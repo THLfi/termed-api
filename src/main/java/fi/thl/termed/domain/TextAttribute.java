@@ -10,11 +10,11 @@ public class TextAttribute extends Attribute implements Identifiable<TextAttribu
 
   private String regex;
 
-  public TextAttribute(String id, ClassId domain) {
+  public TextAttribute(String id, TypeId domain) {
     super(id, domain);
   }
 
-  public TextAttribute(String id, String uri, ClassId domain) {
+  public TextAttribute(String id, String uri, TypeId domain) {
     super(id, uri, domain);
   }
 

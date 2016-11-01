@@ -1,19 +1,19 @@
 #!/bin/sh
 
-SCHEME_ID=`curl -X POST \
+GRAPH_ID=`curl -X POST \
                 -H "Content-Type: application/json" \
                 -u admin:admin \
-                -d @animals-scheme.json \
-                http://localhost:8080/api/schemes?returnIdOnly=true`
+                -d @animals-graph.json \
+                http://localhost:8080/api/graphs?returnIdOnly=true`
 
 curl -X POST \
      -H "Content-Type: application/json" \
      -u admin:admin \
-     -d @animals-classes.json \
-     http://localhost:8080/api/schemes/$SCHEME_ID/classes?batch=true
+     -d @animals-types.json \
+     http://localhost:8080/api/graphs/$GRAPH_ID/types?batch=true
 
 curl -X POST \
      -H "Content-Type: application/json" \
      -u admin:admin \
-     -d @animals-resources.json \
-     http://localhost:8080/api/schemes/$SCHEME_ID/classes/Concept/resources?batch=true
+     -d @animals-nodes.json \
+     http://localhost:8080/api/graphs/$GRAPH_ID/types/Concept/nodes?batch=true

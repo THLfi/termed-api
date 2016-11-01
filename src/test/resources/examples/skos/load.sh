@@ -1,13 +1,13 @@
 #!/bin/sh
 
-SCHEME_ID=`curl -X POST \
+GRAPH_ID=`curl -X POST \
                 -H "Content-Type: application/json" \
                 -u admin:admin \
-                -d @example-skos-scheme.json \
-                http://localhost:8080/api/schemes?returnIdOnly=true`
+                -d @example-skos-graph.json \
+                http://localhost:8080/api/graphs?returnIdOnly=true`
 
 curl -X POST \
      -H "Content-Type: application/json" \
      -u admin:admin \
-     -d @example-skos-classes.json \
-     http://localhost:8080/api/schemes/$SCHEME_ID/classes?batch=true
+     -d @example-skos-types.json \
+     http://localhost:8080/api/graphs/$GRAPH_ID/types?batch=true

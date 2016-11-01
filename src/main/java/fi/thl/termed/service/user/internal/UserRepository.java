@@ -13,9 +13,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Empty;
-import fi.thl.termed.domain.SchemeRole;
+import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.UserSchemeRole;
+import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Query;
@@ -23,20 +23,20 @@ import fi.thl.termed.util.specification.Query;
 public class UserRepository extends AbstractRepository<String, User> {
 
   private Dao<String, User> userDao;
-  private Dao<UserSchemeRole, Empty> userSchemeRoleDao;
+  private Dao<UserGraphRole, Empty> userGraphRoleDao;
 
-  public UserRepository(Dao<String, User> userDao, Dao<UserSchemeRole, Empty> userSchemeRoleDao) {
+  public UserRepository(Dao<String, User> userDao, Dao<UserGraphRole, Empty> userGraphRoleDao) {
     this.userDao = userDao;
-    this.userSchemeRoleDao = userSchemeRoleDao;
+    this.userGraphRoleDao = userGraphRoleDao;
   }
 
   @Override
   public void insert(String username, User user, User auth) {
     userDao.insert(username, user, auth);
 
-    for (SchemeRole schemeRole : user.getSchemeRoles()) {
-      userSchemeRoleDao.insert(new UserSchemeRole(
-          username, schemeRole.getScheme(), schemeRole.getRole()), Empty.INSTANCE, auth);
+    for (GraphRole graphRole : user.getGraphRoles()) {
+      userGraphRoleDao.insert(new UserGraphRole(
+          username, graphRole.getGraph(), graphRole.getRole()), Empty.INSTANCE, auth);
     }
   }
 
@@ -44,24 +44,24 @@ public class UserRepository extends AbstractRepository<String, User> {
   public void update(String username, User newUser, User oldUser, User auth) {
     userDao.update(username, newUser, auth);
 
-    Set<SchemeRole> newRoles = ImmutableSet.copyOf(newUser.getSchemeRoles());
-    Set<SchemeRole> oldRoles = ImmutableSet.copyOf(oldUser.getSchemeRoles());
+    Set<GraphRole> newRoles = ImmutableSet.copyOf(newUser.getGraphRoles());
+    Set<GraphRole> oldRoles = ImmutableSet.copyOf(oldUser.getGraphRoles());
 
-    for (SchemeRole removedRole : Sets.difference(oldRoles, newRoles)) {
-      userSchemeRoleDao.delete(new UserSchemeRole(
-          username, removedRole.getScheme(), removedRole.getRole()), auth);
+    for (GraphRole removedRole : Sets.difference(oldRoles, newRoles)) {
+      userGraphRoleDao.delete(new UserGraphRole(
+          username, removedRole.getGraph(), removedRole.getRole()), auth);
     }
-    for (SchemeRole addedRole : Sets.difference(newRoles, oldRoles)) {
-      userSchemeRoleDao.insert(new UserSchemeRole(
-          username, addedRole.getScheme(), addedRole.getRole()), Empty.INSTANCE, auth);
+    for (GraphRole addedRole : Sets.difference(newRoles, oldRoles)) {
+      userGraphRoleDao.insert(new UserGraphRole(
+          username, addedRole.getGraph(), addedRole.getRole()), Empty.INSTANCE, auth);
     }
   }
 
   @Override
   public void delete(String username, User user, User auth) {
-    for (SchemeRole schemeRole : user.getSchemeRoles()) {
-      userSchemeRoleDao.delete(new UserSchemeRole(
-          username, schemeRole.getScheme(), schemeRole.getRole()), auth);
+    for (GraphRole graphRole : user.getGraphRoles()) {
+      userGraphRoleDao.delete(new UserGraphRole(
+          username, graphRole.getGraph(), graphRole.getRole()), auth);
     }
 
     userDao.delete(username, auth);
@@ -92,29 +92,29 @@ public class UserRepository extends AbstractRepository<String, User> {
   private User populateValue(User user, User auth) {
     user = new User(user);
 
-    user.setSchemeRoles(Lists.transform(
-        userSchemeRoleDao.getKeys(new UserSchemeRolesByUsername(user.getUsername()), auth),
-        new ToSchemeRole(user.getUsername())));
+    user.setGraphRoles(Lists.transform(
+        userGraphRoleDao.getKeys(new UserGraphRolesByUsername(user.getUsername()), auth),
+        new ToGraphRole(user.getUsername())));
 
     return user;
   }
 
   /**
-   * Transforms user scheme role tuple to scheme role. Checks that username in the tuple matches the
+   * Transforms user graph role tuple to graph role. Checks that username in the tuple matches the
    * expected username.
    */
-  private class ToSchemeRole implements Function<UserSchemeRole, SchemeRole> {
+  private class ToGraphRole implements Function<UserGraphRole, GraphRole> {
 
     private String expectedUsername;
 
-    public ToSchemeRole(String expectedUsername) {
+    public ToGraphRole(String expectedUsername) {
       this.expectedUsername = expectedUsername;
     }
 
     @Override
-    public SchemeRole apply(UserSchemeRole id) {
+    public GraphRole apply(UserGraphRole id) {
       Preconditions.checkArgument(Objects.equals(expectedUsername, id.getUsername()));
-      return new SchemeRole(id.getScheme(), id.getRole());
+      return new GraphRole(id.getGraph(), id.getRole());
     }
   }
 
