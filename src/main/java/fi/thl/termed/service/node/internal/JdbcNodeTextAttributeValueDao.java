@@ -26,7 +26,7 @@ public class JdbcNodeTextAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "insert into node_text_attribute_value (graph_id, node_type_id, node_id, attribute_id, index, lang, value, regex) values (?, ?, ?, ?, ?, ?, ?, ?)",
+        "insert into node_text_attribute_value (node_graph_id, node_type_id, node_id, attribute_id, index, lang, value, regex) values (?, ?, ?, ?, ?, ?, ?, ?)",
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
@@ -42,7 +42,7 @@ public class JdbcNodeTextAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "update node_text_attribute_value set lang = ?, value = ?, regex = ? where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "update node_text_attribute_value set lang = ?, value = ?, regex = ? where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         langValue.getRegex(),
@@ -58,7 +58,7 @@ public class JdbcNodeTextAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "delete from node_text_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "delete from node_text_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
@@ -87,7 +87,7 @@ public class JdbcNodeTextAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from node_text_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "select count(*) from node_text_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         Long.class,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
@@ -101,7 +101,7 @@ public class JdbcNodeTextAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     return jdbcTemplate.query(
-        "select * from node_text_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "select * from node_text_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         mapper,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
@@ -114,7 +114,7 @@ public class JdbcNodeTextAttributeValueDao
   protected RowMapper<NodeAttributeValueId> buildKeyMapper() {
     return (rs, rowNum) -> new NodeAttributeValueId(
         new NodeId(UUIDs.fromString(rs.getString("node_id")),
-                   rs.getString("node_type_id"), UUIDs.fromString(rs.getString("graph_id"))),
+                   rs.getString("node_type_id"), UUIDs.fromString(rs.getString("node_graph_id"))),
         rs.getString("attribute_id"),
         rs.getInt("index")
     );

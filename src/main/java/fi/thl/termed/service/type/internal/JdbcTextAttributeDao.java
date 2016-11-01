@@ -26,7 +26,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
     TypeId domainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into text_attribute (graph_id, domain_id, id, uri, regex, index) values (?, ?, ?, ?, ?, ?)",
+        "insert into text_attribute (domain_graph_id, domain_id, id, uri, regex, index) values (?, ?, ?, ?, ?, ?)",
         domainId.getGraphId(),
         domainId.getId(),
         textAttributeId.getId(),
@@ -40,7 +40,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
     TypeId domainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update text_attribute set uri = ?, regex = ?, index = ? where graph_id = ? and domain_id = ? and id = ?",
+        "update text_attribute set uri = ?, regex = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
         textAttribute.getUri(),
         textAttribute.getRegex(),
         textAttribute.getIndex(),
@@ -54,7 +54,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
     TypeId domainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from text_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "delete from text_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         domainId.getGraphId(),
         domainId.getId(),
         textAttributeId.getId());
@@ -79,7 +79,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
     TypeId domainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "select count(*) from text_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         Long.class,
         domainId.getGraphId(),
         domainId.getId(),
@@ -91,7 +91,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
     TypeId domainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.query(
-        "select * from text_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "select * from text_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getGraphId(),
         domainId.getId(),
@@ -102,7 +102,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   protected RowMapper<TextAttributeId> buildKeyMapper() {
     return (rs, rowNum) -> {
       TypeId domainId =
-          new TypeId(rs.getString("domain_id"), UUIDs.fromString(rs.getString("graph_id")));
+          new TypeId(rs.getString("domain_id"), UUIDs.fromString(rs.getString("domain_graph_id")));
       return new TextAttributeId(domainId, rs.getString("id"));
     };
   }
@@ -110,7 +110,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   @Override
   protected RowMapper<TextAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("graph_id")));
+      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("domain_graph_id")));
       TypeId domain = new TypeId(rs.getString("domain_id"), domainGraph);
 
       TextAttribute textAttribute = new TextAttribute(rs.getString("id"), domain);

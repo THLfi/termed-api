@@ -29,7 +29,7 @@ public class JdbcReferenceAttributeDao
     TypeId domainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into reference_attribute (graph_id, domain_id, id, uri, range_graph_id, range_id, index) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into reference_attribute (domain_graph_id, domain_id, id, uri, range_graph_id, range_id, index) values (?, ?, ?, ?, ?, ?, ?)",
         domainId.getGraphId(),
         domainId.getId(),
         referenceAttributeId.getId(),
@@ -46,7 +46,7 @@ public class JdbcReferenceAttributeDao
     TypeId domainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update reference_attribute set uri = ?, range_graph_id = ?, range_id = ?, index = ? where graph_id = ? and domain_id = ? and id = ?",
+        "update reference_attribute set uri = ?, range_graph_id = ?, range_id = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
         referenceAttribute.getUri(),
         referenceAttribute.getRangeGraphId(),
         referenceAttribute.getRangeId(),
@@ -61,7 +61,7 @@ public class JdbcReferenceAttributeDao
     TypeId domainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from reference_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "delete from reference_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         domainId.getGraphId(),
         domainId.getId(),
         referenceAttributeId.getId());
@@ -87,7 +87,7 @@ public class JdbcReferenceAttributeDao
     TypeId domainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "select count(*) from reference_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         Long.class,
         domainId.getGraphId(),
         domainId.getId(),
@@ -100,7 +100,7 @@ public class JdbcReferenceAttributeDao
     TypeId domainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.query(
-        "select * from reference_attribute where graph_id = ? and domain_id = ? and id = ?",
+        "select * from reference_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getGraphId(),
         domainId.getId(),
@@ -111,7 +111,7 @@ public class JdbcReferenceAttributeDao
   protected RowMapper<ReferenceAttributeId> buildKeyMapper() {
     return (rs, rowNum) -> {
       TypeId domainId = new TypeId(
-          rs.getString("domain_id"), UUIDs.fromString(rs.getString("graph_id")));
+          rs.getString("domain_id"), UUIDs.fromString(rs.getString("domain_graph_id")));
       return new ReferenceAttributeId(domainId, rs.getString("id"));
     };
   }
@@ -119,7 +119,7 @@ public class JdbcReferenceAttributeDao
   @Override
   protected RowMapper<ReferenceAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("graph_id")));
+      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("domain_graph_id")));
       TypeId domain = new TypeId(rs.getString("domain_id"), domainGraph);
 
       GraphId rangeGraph = new GraphId(UUIDs.fromString(rs.getString("range_graph_id")));

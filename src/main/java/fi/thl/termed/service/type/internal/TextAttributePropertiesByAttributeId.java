@@ -24,7 +24,7 @@ public class TextAttributePropertiesByAttributeId
 
   @Override
   public String sqlQueryTemplate() {
-    return "text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ?";
+    return "text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ?";
   }
 
   @Override

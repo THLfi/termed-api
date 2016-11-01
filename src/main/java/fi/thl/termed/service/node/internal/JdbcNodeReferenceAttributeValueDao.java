@@ -25,7 +25,7 @@ public class JdbcNodeReferenceAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "insert into node_reference_attribute_value (graph_id, node_type_id, node_id, attribute_id, index, value_graph_id, value_type_id, value_id) values (?, ?, ?, ?, ?, ?, ?, ?)",
+        "insert into node_reference_attribute_value (node_graph_id, node_type_id, node_id, attribute_id, index, value_graph_id, value_type_id, value_id) values (?, ?, ?, ?, ?, ?, ?, ?)",
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
@@ -41,7 +41,7 @@ public class JdbcNodeReferenceAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "update node_reference_attribute_value set value_graph_id = ?, value_type_id = ?, value_id = ? where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "update node_reference_attribute_value set value_graph_id = ?, value_type_id = ?, value_id = ? where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         value.getTypeGraphId(),
         value.getTypeId(),
         value.getId(),
@@ -57,7 +57,7 @@ public class JdbcNodeReferenceAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     jdbcTemplate.update(
-        "delete from node_reference_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "delete from node_reference_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
@@ -84,7 +84,7 @@ public class JdbcNodeReferenceAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from node_reference_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "select count(*) from node_reference_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         Long.class,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
@@ -98,7 +98,7 @@ public class JdbcNodeReferenceAttributeValueDao
     NodeId nodeId = id.getNodeId();
 
     return jdbcTemplate.query(
-        "select * from node_reference_attribute_value where graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
+        "select * from node_reference_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         mapper,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
@@ -111,7 +111,7 @@ public class JdbcNodeReferenceAttributeValueDao
   protected RowMapper<NodeAttributeValueId> buildKeyMapper() {
     return (rs, rowNum) -> new NodeAttributeValueId(
         new NodeId(UUIDs.fromString(rs.getString("node_id")),
-                   rs.getString("node_type_id"), UUIDs.fromString(rs.getString("graph_id"))),
+                   rs.getString("node_type_id"), UUIDs.fromString(rs.getString("node_graph_id"))),
         rs.getString("attribute_id"),
         rs.getInt("index")
     );

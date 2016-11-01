@@ -2,10 +2,10 @@ package fi.thl.termed.service.type.internal;
 
 import java.util.Objects;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
 public class ReferenceAttributePropertiesByAttributeId
@@ -24,7 +24,7 @@ public class ReferenceAttributePropertiesByAttributeId
 
   @Override
   public String sqlQueryTemplate() {
-    return "reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ?";
+    return "reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ?";
   }
 
   @Override

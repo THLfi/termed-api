@@ -30,7 +30,7 @@ public class JdbcReferenceAttributePermissionsDao
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     jdbcTemplate.update(
-        "insert into reference_attribute_permission (reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id, role, permission) values (?, ?, ?, ?, ?)",
+        "insert into reference_attribute_permission (reference_attribute_domain_graph_id, reference_attribute_domain_id, reference_attribute_id, role, permission) values (?, ?, ?, ?, ?)",
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
@@ -48,7 +48,7 @@ public class JdbcReferenceAttributePermissionsDao
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     jdbcTemplate.update(
-        "delete from reference_attribute_permission where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
+        "delete from reference_attribute_permission where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
@@ -76,7 +76,7 @@ public class JdbcReferenceAttributePermissionsDao
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute_permission where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
+        "select count(*) from reference_attribute_permission where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
         Long.class,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
@@ -91,7 +91,7 @@ public class JdbcReferenceAttributePermissionsDao
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
     return jdbcTemplate.query(
-        "select * from reference_attribute_permission where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
+        "select * from reference_attribute_permission where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and role = ? and permission = ?",
         mapper,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
@@ -104,7 +104,7 @@ public class JdbcReferenceAttributePermissionsDao
   protected RowMapper<ObjectRolePermission<ReferenceAttributeId>> buildKeyMapper() {
     return (rs, rowNum) -> {
       GraphId graphId = new GraphId(
-          UUIDs.fromString(rs.getString("reference_attribute_graph_id")));
+          UUIDs.fromString(rs.getString("reference_attribute_domain_graph_id")));
       TypeId domainId = new TypeId(rs.getString("reference_attribute_domain_id"), graphId);
       ReferenceAttributeId referenceAttributeId = new ReferenceAttributeId(
           domainId, rs.getString("reference_attribute_id"));

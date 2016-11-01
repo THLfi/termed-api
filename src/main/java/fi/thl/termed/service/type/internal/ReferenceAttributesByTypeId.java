@@ -23,7 +23,7 @@ public class ReferenceAttributesByTypeId
 
   @Override
   public String sqlQueryTemplate() {
-    return "graph_id = ? and domain_id = ?";
+    return "domain_graph_id = ? and domain_id = ?";
   }
 
   @Override

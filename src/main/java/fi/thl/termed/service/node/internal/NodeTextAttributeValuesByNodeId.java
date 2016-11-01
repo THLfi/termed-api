@@ -23,7 +23,7 @@ public class NodeTextAttributeValuesByNodeId
 
   @Override
   public String sqlQueryTemplate() {
-    return "graph_id = ? and node_type_id = ? and node_id = ?";
+    return "node_graph_id = ? and node_type_id = ? and node_id = ?";
   }
 
   @Override

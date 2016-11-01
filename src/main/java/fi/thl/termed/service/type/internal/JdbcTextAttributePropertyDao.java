@@ -28,7 +28,7 @@ public class JdbcTextAttributePropertyDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into text_attribute_property (text_attribute_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into text_attribute_property (text_attribute_domain_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
@@ -44,7 +44,7 @@ public class JdbcTextAttributePropertyDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update text_attribute_property set lang = ?, value = ? where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "update text_attribute_property set lang = ?, value = ? where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         textAttributeDomainId.getGraphId(),
@@ -60,7 +60,7 @@ public class JdbcTextAttributePropertyDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "delete from text_attribute_property where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
@@ -90,7 +90,7 @@ public class JdbcTextAttributePropertyDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select count(*) from text_attribute_property where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
@@ -106,7 +106,7 @@ public class JdbcTextAttributePropertyDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.query(
-        "select * from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select * from text_attribute_property where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
@@ -120,7 +120,7 @@ public class JdbcTextAttributePropertyDao
     return (rs, rowNum) -> {
 
       TypeId domainId = new TypeId(rs.getString("text_attribute_domain_id"),
-                                   UUIDs.fromString(rs.getString("text_attribute_graph_id"))
+                                   UUIDs.fromString(rs.getString("text_attribute_domain_graph_id"))
       );
 
       TextAttributeId textAttributeId =
