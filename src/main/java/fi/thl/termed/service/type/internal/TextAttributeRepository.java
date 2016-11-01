@@ -35,15 +35,15 @@ public class TextAttributeRepository
 
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
   private Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
-  private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao;
+  private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyDao;
 
   public TextAttributeRepository(
       Dao<TextAttributeId, TextAttribute> textAttributeDao,
       Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao,
-      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyValueDao) {
+      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyDao) {
     this.textAttributeDao = textAttributeDao;
     this.permissionDao = permissionDao;
-    this.propertyValueDao = propertyValueDao;
+    this.propertyDao = propertyDao;
   }
 
   @Override
@@ -55,7 +55,7 @@ public class TextAttributeRepository
 
   private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
-    propertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
+    propertyDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertPermissions(TextAttributeId id, Multimap<String, Permission> permissions,
@@ -106,9 +106,9 @@ public class TextAttributeRepository
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
-    propertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
-    propertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    propertyDao.insert(diff.entriesOnlyOnLeft(), user);
+    propertyDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    propertyDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   @Override
@@ -128,7 +128,7 @@ public class TextAttributeRepository
 
   private void deleteProperties(TextAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
-    propertyValueDao.delete(ImmutableList.copyOf(
+    propertyDao.delete(ImmutableList.copyOf(
         new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
@@ -165,7 +165,7 @@ public class TextAttributeRepository
 
     attribute.setProperties(
         new PropertyValueModelToDto<TextAttributeId>()
-            .apply(propertyValueDao.getMap(new TextAttributePropertiesByAttributeId(
+            .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
                 new TextAttributeId(attribute)), user)));
 
     return attribute;

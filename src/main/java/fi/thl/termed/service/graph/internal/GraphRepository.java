@@ -38,16 +38,16 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   private Dao<GraphId, Graph> graphDao;
   private Dao<GraphRole, Empty> graphRoleDao;
   private Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao;
-  private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyValueDao;
+  private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao;
 
   public GraphRepository(Dao<GraphId, Graph> graphDao,
                          Dao<GraphRole, Empty> graphRoleDao,
                          Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao,
-                         Dao<PropertyValueId<GraphId>, LangValue> graphPropertyValueDao) {
+                         Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao) {
     this.graphDao = graphDao;
     this.graphRoleDao = graphRoleDao;
     this.graphPermissionDao = graphPermissionDao;
-    this.graphPropertyValueDao = graphPropertyValueDao;
+    this.graphPropertyDao = graphPropertyDao;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
 
   private void insertProperties(GraphId graphId, Multimap<String, LangValue> properties,
                                 User user) {
-    graphPropertyValueDao.insert(new PropertyValueDtoToModel<>(graphId).apply(properties), user);
+    graphPropertyDao.insert(new PropertyValueDtoToModel<>(graphId).apply(properties), user);
   }
 
   @Override
@@ -122,9 +122,9 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     MapDifference<PropertyValueId<GraphId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    graphPropertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
-    graphPropertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
-    graphPropertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    graphPropertyDao.insert(diff.entriesOnlyOnLeft(), user);
+    graphPropertyDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    graphPropertyDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   @Override
@@ -146,7 +146,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void deleteProperties(GraphId id, Multimap<String, LangValue> properties, User user) {
-    graphPropertyValueDao.delete(ImmutableList.copyOf(
+    graphPropertyDao.delete(ImmutableList.copyOf(
         new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
@@ -182,7 +182,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
         graphPermissionDao.getMap(new GraphPermissionsByGraphId(new GraphId(graph)), user)));
 
     graph.setProperties(
-        new PropertyValueModelToDto<GraphId>().apply(graphPropertyValueDao.getMap(
+        new PropertyValueModelToDto<GraphId>().apply(graphPropertyDao.getMap(
             new GraphPropertiesByGraphId(new GraphId(graph)), user)));
 
     return graph;

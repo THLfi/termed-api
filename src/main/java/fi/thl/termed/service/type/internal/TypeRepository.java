@@ -43,7 +43,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private Dao<TypeId, Type> typeDao;
   private Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao;
-  private Dao<PropertyValueId<TypeId>, LangValue> typePropertyValueDao;
+  private Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao;
 
   private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
   private AbstractRepository<ReferenceAttributeId, ReferenceAttribute>
@@ -52,12 +52,12 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   public TypeRepository(
       Dao<TypeId, Type> typeDao,
       Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao,
-      Dao<PropertyValueId<TypeId>, LangValue> typePropertyValueDao,
+      Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao,
       AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
       AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     this.typeDao = typeDao;
     this.typePermissionDao = typePermissionDao;
-    this.typePropertyValueDao = typePropertyValueDao;
+    this.typePropertyDao = typePropertyDao;
     this.textAttributeRepository = textAttributeRepository;
     this.referenceAttributeRepository = referenceAttributeRepository;
   }
@@ -95,7 +95,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void insertProperties(TypeId id, Multimap<String, LangValue> properties, User user) {
-    typePropertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
+    typePropertyDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertTextAttributes(TypeId id, List<TextAttribute> attrs, User user) {
@@ -166,9 +166,9 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     MapDifference<PropertyValueId<TypeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    typePropertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
-    typePropertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
-    typePropertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    typePropertyDao.insert(diff.entriesOnlyOnLeft(), user);
+    typePropertyDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    typePropertyDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   private void updateTextAttributes(TypeId id,
@@ -227,7 +227,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void deleteProperties(TypeId id, Multimap<String, LangValue> properties, User user) {
-    typePropertyValueDao.delete(ImmutableList.copyOf(
+    typePropertyDao.delete(ImmutableList.copyOf(
         new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
@@ -274,7 +274,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     cls.setProperties(
         new PropertyValueModelToDto<TypeId>().apply(
-            typePropertyValueDao.getMap(new TypePropertiesByTypeId(
+            typePropertyDao.getMap(new TypePropertiesByTypeId(
                 new TypeId(cls.getId(), cls.getGraphId())), user)));
 
     cls.setTextAttributes(textAttributeRepository.get(

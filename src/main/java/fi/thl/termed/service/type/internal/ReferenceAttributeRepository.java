@@ -35,15 +35,15 @@ public class ReferenceAttributeRepository
 
   private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
   private Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
-  private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao;
+  private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao;
 
   public ReferenceAttributeRepository(
       Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
       Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
-      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyValueDao) {
+      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao) {
     this.referenceAttributeDao = referenceAttributeDao;
     this.permissionDao = permissionDao;
-    this.propertyValueDao = propertyValueDao;
+    this.propertyDao = propertyDao;
   }
 
   @Override
@@ -62,7 +62,7 @@ public class ReferenceAttributeRepository
 
   private void insertProperties(ReferenceAttributeId attributeId,
                                 Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
+    propertyDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
   }
 
   @Override
@@ -106,9 +106,9 @@ public class ReferenceAttributeRepository
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
-    propertyValueDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
-    propertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    propertyDao.insert(diff.entriesOnlyOnLeft(), user);
+    propertyDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
+    propertyDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
   @Override
@@ -128,7 +128,7 @@ public class ReferenceAttributeRepository
 
   private void deleteProperties(ReferenceAttributeId id, Multimap<String, LangValue> properties,
                                 User user) {
-    propertyValueDao.delete(ImmutableList.copyOf(
+    propertyDao.delete(ImmutableList.copyOf(
         new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
 
@@ -164,7 +164,7 @@ public class ReferenceAttributeRepository
             new ReferenceAttributeId(attribute)), user)));
 
     attribute.setProperties(
-        new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyValueDao.getMap(
+        new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyDao.getMap(
             new ReferenceAttributePropertiesByAttributeId(
                 new ReferenceAttributeId(attribute)), user)));
 
