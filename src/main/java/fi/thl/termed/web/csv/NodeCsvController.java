@@ -38,7 +38,7 @@ import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 @RestController
 @RequestMapping("/api/graphs/{graphId}/nodes")
-public class ResourceCsvController {
+public class NodeCsvController {
 
   @Autowired
   private Service<NodeId, Node> nodeService;
