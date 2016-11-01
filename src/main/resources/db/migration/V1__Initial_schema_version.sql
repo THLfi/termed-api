@@ -32,19 +32,19 @@ CREATE TABLE property (
   CONSTRAINT property_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]+$')
 );
 
-CREATE TABLE property_property_value (
+CREATE TABLE property_property (
   subject_id varchar(255),
   property_id varchar(255),
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT property_property_value_pkey PRIMARY KEY (subject_id, property_id, index),
+  CONSTRAINT property_property_pkey PRIMARY KEY (subject_id, property_id, index),
   CONSTRAINT property_property_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES property(id),
   CONSTRAINT property_property_property_id_fkey FOREIGN KEY (property_id) REFERENCES property(id),
   CONSTRAINT property_property_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX property_property_value_subject_id_idx ON property_property_value(subject_id);
+CREATE INDEX property_property_subject_id_idx ON property_property(subject_id);
 
 CREATE TABLE graph (
   id uuid,
@@ -55,21 +55,21 @@ CREATE TABLE graph (
   CONSTRAINT graph_code_unique UNIQUE (code)
 );
 
-CREATE TABLE graph_property_value (
+CREATE TABLE graph_property (
   graph_id uuid,
   property_id varchar(255),
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT graph_property_value_pkey PRIMARY KEY (graph_id, property_id, index),
-  CONSTRAINT graph_property_value_graph_id_fkey
+  CONSTRAINT graph_property_pkey PRIMARY KEY (graph_id, property_id, index),
+  CONSTRAINT graph_property_graph_id_fkey
     FOREIGN KEY (graph_id) REFERENCES graph(id) ON DELETE CASCADE,
-  CONSTRAINT graph_property_value_property_id_fkey
+  CONSTRAINT graph_property_property_id_fkey
     FOREIGN KEY (property_id) REFERENCES property(id),
-  CONSTRAINT graph_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT graph_property_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX graph_property_value_graph_id_idx ON graph_property_value(graph_id);
+CREATE INDEX graph_property_graph_id_idx ON graph_property(graph_id);
 
 CREATE TABLE type (
   graph_id uuid,
@@ -84,24 +84,24 @@ CREATE TABLE type (
 
 CREATE INDEX type_graph_id_idx ON type(graph_id);
 
-CREATE TABLE type_property_value (
+CREATE TABLE type_property (
   type_graph_id uuid,
   type_id varchar(255),
   property_id varchar(255),
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT type_property_value_pkey
+  CONSTRAINT type_property_pkey
     PRIMARY KEY (type_graph_id, type_id, property_id, index),
-  CONSTRAINT type_property_value_type_graph_id_type_id_fkey
+  CONSTRAINT type_property_type_fkey
     FOREIGN KEY (type_graph_id, type_id)
     REFERENCES type(graph_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT type_property_value_property_id_fkey
+  CONSTRAINT type_property_property_id_fkey
     FOREIGN KEY (property_id) REFERENCES property(id),
-  CONSTRAINT type_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT type_property_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX type_property_value_type_id_idx ON type_property_value(type_graph_id, type_id);
+CREATE INDEX type_property_type_id_idx ON type_property(type_graph_id, type_id);
 
 CREATE TABLE text_attribute (
   graph_id uuid,
@@ -124,7 +124,7 @@ CREATE INDEX text_attribute_graph_id_idx
 CREATE INDEX text_attribute_type_id_idx
     ON text_attribute(graph_id, domain_id);
 
-CREATE TABLE text_attribute_property_value (
+CREATE TABLE text_attribute_property (
   text_attribute_graph_id uuid,
   text_attribute_domain_id varchar(255),
   text_attribute_id varchar(255),
@@ -132,18 +132,18 @@ CREATE TABLE text_attribute_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT text_attribute_property_value_pkey
+  CONSTRAINT text_attribute_property_pkey
     PRIMARY KEY (text_attribute_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index),
-  CONSTRAINT text_attribute_property_value_subject_fkey
+  CONSTRAINT text_attribute_property_subject_fkey
     FOREIGN KEY (text_attribute_graph_id, text_attribute_domain_id, text_attribute_id)
     REFERENCES text_attribute(graph_id, domain_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT text_attribute_property_value_property_fkey
+  CONSTRAINT text_attribute_property_property_fkey
     FOREIGN KEY (property_id) REFERENCES property(id),
-  CONSTRAINT text_attribute_property_value_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
+  CONSTRAINT text_attribute_property_lang_fkey FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX text_attribute_property_value_subject_id_idx
-    ON text_attribute_property_value(text_attribute_graph_id, text_attribute_domain_id, text_attribute_id);
+CREATE INDEX text_attribute_property_subject_id_idx
+    ON text_attribute_property(text_attribute_graph_id, text_attribute_domain_id, text_attribute_id);
 
 CREATE TABLE reference_attribute (
   graph_id uuid,
@@ -170,7 +170,7 @@ CREATE INDEX reference_attribute_graph_id_idx
 CREATE INDEX reference_attribute_type_id_idx
     ON reference_attribute(graph_id, domain_id);
 
-CREATE TABLE reference_attribute_property_value (
+CREATE TABLE reference_attribute_property (
   reference_attribute_graph_id uuid,
   reference_attribute_domain_id varchar(255),
   reference_attribute_id varchar(255),
@@ -178,19 +178,19 @@ CREATE TABLE reference_attribute_property_value (
   index integer,
   lang varchar(2) NOT NULL,
   value text NOT NULL,
-  CONSTRAINT reference_attribute_property_value_pkey
+  CONSTRAINT reference_attribute_property_pkey
     PRIMARY KEY (reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id, property_id, index),
-  CONSTRAINT reference_attribute_property_value_subject_fkey
+  CONSTRAINT reference_attribute_property_subject_fkey
     FOREIGN KEY (reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id)
     REFERENCES reference_attribute(graph_id, domain_id, id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT reference_attribute_property_value_property_fkey
+  CONSTRAINT reference_attribute_property_property_fkey
     FOREIGN KEY (property_id) REFERENCES property(id),
-  CONSTRAINT reference_attribute_property_value_lang_fkey
+  CONSTRAINT reference_attribute_property_lang_fkey
     FOREIGN KEY (lang) REFERENCES lang(lang)
 );
 
-CREATE INDEX reference_attribute_property_value_subject_id_idx
-    ON reference_attribute_property_value(reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id);
+CREATE INDEX reference_attribute_property_subject_id_idx
+    ON reference_attribute_property(reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id);
 
 --
 -- Node tables (the actual data)

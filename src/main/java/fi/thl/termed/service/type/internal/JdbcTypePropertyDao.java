@@ -14,9 +14,9 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<TypeId>, LangValue> {
+public class JdbcTypePropertyDao extends AbstractJdbcDao<PropertyValueId<TypeId>, LangValue> {
 
-  public JdbcTypePropertyValueDao(DataSource dataSource) {
+  public JdbcTypePropertyDao(DataSource dataSource) {
     super(dataSource);
   }
 
@@ -25,7 +25,7 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
     TypeId typeId = id.getSubjectId();
 
     jdbcTemplate.update(
-        "insert into type_property_value (type_graph_id, type_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?)",
+        "insert into type_property (type_graph_id, type_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?)",
         typeId.getGraphId(),
         typeId.getId(),
         id.getPropertyId(),
@@ -39,7 +39,7 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
     TypeId typeId = id.getSubjectId();
 
     jdbcTemplate.update(
-        "update type_property_value set lang = ?, value = ? where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
+        "update type_property set lang = ?, value = ? where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         typeId.getGraphId(),
@@ -53,7 +53,7 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
     TypeId typeId = id.getSubjectId();
 
     jdbcTemplate.update(
-        "delete from type_property_value where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
+        "delete from type_property where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         typeId.getGraphId(),
         typeId.getId(),
         id.getPropertyId(),
@@ -62,14 +62,14 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
 
   @Override
   protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from type_property_value", mapper);
+    return jdbcTemplate.query("select * from type_property", mapper);
   }
 
   @Override
   protected <E> List<E> get(SqlSpecification<PropertyValueId<TypeId>, LangValue> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        String.format("select * from type_property_value where %s order by index",
+        String.format("select * from type_property where %s order by index",
                       specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
@@ -79,7 +79,7 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
     TypeId typeId = id.getSubjectId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from type_property_value where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
+        "select count(*) from type_property where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         Long.class,
         typeId.getGraphId(),
         typeId.getId(),
@@ -92,7 +92,7 @@ public class JdbcTypePropertyValueDao extends AbstractJdbcDao<PropertyValueId<Ty
     TypeId typeId = id.getSubjectId();
 
     return jdbcTemplate.query(
-        "select * from type_property_value where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
+        "select * from type_property where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         mapper,
         typeId.getGraphId(),
         typeId.getId(),

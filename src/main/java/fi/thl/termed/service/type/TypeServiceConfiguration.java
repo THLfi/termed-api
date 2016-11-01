@@ -22,13 +22,13 @@ import fi.thl.termed.service.type.internal.TypeRepository;
 import fi.thl.termed.service.type.internal.InitializingTypeService;
 import fi.thl.termed.service.type.internal.JdbcTypeDao;
 import fi.thl.termed.service.type.internal.JdbcTypePermissionsDao;
-import fi.thl.termed.service.type.internal.JdbcTypePropertyValueDao;
+import fi.thl.termed.service.type.internal.JdbcTypePropertyDao;
 import fi.thl.termed.service.type.internal.JdbcReferenceAttributeDao;
 import fi.thl.termed.service.type.internal.JdbcReferenceAttributePermissionsDao;
-import fi.thl.termed.service.type.internal.JdbcReferenceAttributePropertyValueDao;
+import fi.thl.termed.service.type.internal.JdbcReferenceAttributePropertyDao;
 import fi.thl.termed.service.type.internal.JdbcTextAttributeDao;
 import fi.thl.termed.service.type.internal.JdbcTextAttributePermissionsDao;
-import fi.thl.termed.service.type.internal.JdbcTextAttributePropertyValueDao;
+import fi.thl.termed.service.type.internal.JdbcTextAttributePropertyDao;
 import fi.thl.termed.service.type.internal.ReferenceAttributeRepository;
 import fi.thl.termed.service.type.internal.TextAttributeRepository;
 import fi.thl.termed.util.dao.AuthorizedDao;
@@ -128,7 +128,7 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<PropertyValueId<TypeId>, LangValue> typePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcTypePropertyValueDao(dataSource));
+    return new CachedSystemDao<>(new JdbcTypePropertyDao(dataSource));
   }
 
   // text attributes
@@ -170,7 +170,7 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcTextAttributePropertyValueDao(dataSource));
+    return new CachedSystemDao<>(new JdbcTextAttributePropertyDao(dataSource));
   }
 
   // reference attributes
@@ -214,7 +214,7 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcReferenceAttributePropertyValueDao(dataSource));
+    return new CachedSystemDao<>(new JdbcReferenceAttributePropertyDao(dataSource));
   }
 
   /**

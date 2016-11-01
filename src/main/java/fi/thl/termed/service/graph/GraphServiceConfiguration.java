@@ -19,7 +19,7 @@ import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.service.graph.internal.InitializingGraphService;
 import fi.thl.termed.service.graph.internal.JdbcGraphDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphPermissionsDao;
-import fi.thl.termed.service.graph.internal.JdbcGraphPropertyValueDao;
+import fi.thl.termed.service.graph.internal.JdbcGraphPropertyDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphRoleDao;
 import fi.thl.termed.service.graph.internal.GraphRepository;
 import fi.thl.termed.util.dao.AuthorizedDao;
@@ -107,7 +107,7 @@ public class GraphServiceConfiguration {
   }
 
   private SystemDao<PropertyValueId<GraphId>, LangValue> graphPropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcGraphPropertyValueDao(dataSource));
+    return new CachedSystemDao<>(new JdbcGraphPropertyDao(dataSource));
   }
 
   /**

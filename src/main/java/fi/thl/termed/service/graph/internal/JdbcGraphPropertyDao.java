@@ -14,17 +14,16 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcGraphPropertyValueDao
-    extends AbstractJdbcDao<PropertyValueId<GraphId>, LangValue> {
+public class JdbcGraphPropertyDao extends AbstractJdbcDao<PropertyValueId<GraphId>, LangValue> {
 
-  public JdbcGraphPropertyValueDao(DataSource dataSource) {
+  public JdbcGraphPropertyDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
   public void insert(PropertyValueId<GraphId> id, LangValue langValue) {
     jdbcTemplate.update(
-        "insert into graph_property_value (graph_id, property_id, index, lang, value) values (?, ?, ?, ?, ?)",
+        "insert into graph_property (graph_id, property_id, index, lang, value) values (?, ?, ?, ?, ?)",
         id.getSubjectId().getId(),
         id.getPropertyId(),
         id.getIndex(),
@@ -35,7 +34,7 @@ public class JdbcGraphPropertyValueDao
   @Override
   public void update(PropertyValueId<GraphId> id, LangValue langValue) {
     jdbcTemplate.update(
-        "update graph_property_value set lang = ?, value = ? where graph_id = ? and property_id = ? and index = ?",
+        "update graph_property set lang = ?, value = ? where graph_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         id.getSubjectId().getId(),
@@ -46,20 +45,20 @@ public class JdbcGraphPropertyValueDao
   @Override
   public void delete(PropertyValueId<GraphId> id) {
     jdbcTemplate.update(
-        "delete from graph_property_value where graph_id = ? and property_id = ? and index = ?",
+        "delete from graph_property where graph_id = ? and property_id = ? and index = ?",
         id.getSubjectId().getId(), id.getPropertyId(), id.getIndex());
   }
 
   @Override
   protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from graph_property_value", mapper);
+    return jdbcTemplate.query("select * from graph_property", mapper);
   }
 
   @Override
   protected <E> List<E> get(SqlSpecification<PropertyValueId<GraphId>, LangValue> specification,
                             RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        String.format("select * from graph_property_value where %s order by index",
+        String.format("select * from graph_property where %s order by index",
                       specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
@@ -67,7 +66,7 @@ public class JdbcGraphPropertyValueDao
   @Override
   public boolean exists(PropertyValueId<GraphId> id) {
     return jdbcTemplate.queryForObject(
-        "select count(*) from graph_property_value where graph_id = ? and property_id = ? and index = ?",
+        "select count(*) from graph_property where graph_id = ? and property_id = ? and index = ?",
         Long.class,
         id.getSubjectId().getId(),
         id.getPropertyId(),
@@ -77,7 +76,7 @@ public class JdbcGraphPropertyValueDao
   @Override
   protected <E> Optional<E> get(PropertyValueId<GraphId> id, RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        "select * from graph_property_value where graph_id = ? and property_id = ? and index = ?",
+        "select * from graph_property where graph_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId().getId(),
         id.getPropertyId(),

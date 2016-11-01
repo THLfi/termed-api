@@ -15,10 +15,10 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcReferenceAttributePropertyValueDao
+public class JdbcReferenceAttributePropertyDao
     extends AbstractJdbcDao<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
-  public JdbcReferenceAttributePropertyValueDao(DataSource dataSource) {
+  public JdbcReferenceAttributePropertyDao(DataSource dataSource) {
     super(dataSource);
   }
 
@@ -28,7 +28,7 @@ public class JdbcReferenceAttributePropertyValueDao
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into reference_attribute_property_value (reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into reference_attribute_property (reference_attribute_graph_id, reference_attribute_domain_id, reference_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
@@ -44,7 +44,7 @@ public class JdbcReferenceAttributePropertyValueDao
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update reference_attribute_property_value set lang = ?, value = ? where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "update reference_attribute_property set lang = ?, value = ? where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         referenceAttributeDomainId.getGraphId(),
@@ -60,7 +60,7 @@ public class JdbcReferenceAttributePropertyValueDao
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from reference_attribute_property_value where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "delete from reference_attribute_property where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
@@ -70,7 +70,7 @@ public class JdbcReferenceAttributePropertyValueDao
 
   @Override
   protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from reference_attribute_property_value", mapper);
+    return jdbcTemplate.query("select * from reference_attribute_property", mapper);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class JdbcReferenceAttributePropertyValueDao
       SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        String.format("select * from reference_attribute_property_value where %s order by index",
+        String.format("select * from reference_attribute_property where %s order by index",
                       specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
 
@@ -90,7 +90,7 @@ public class JdbcReferenceAttributePropertyValueDao
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from reference_attribute_property_value where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "select count(*) from reference_attribute_property where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
@@ -106,7 +106,7 @@ public class JdbcReferenceAttributePropertyValueDao
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.query(
-        "select * from reference_attribute_property_value where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
+        "select * from reference_attribute_property where reference_attribute_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),

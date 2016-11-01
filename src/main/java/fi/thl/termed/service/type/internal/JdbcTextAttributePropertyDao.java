@@ -15,10 +15,10 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class JdbcTextAttributePropertyValueDao
+public class JdbcTextAttributePropertyDao
     extends AbstractJdbcDao<PropertyValueId<TextAttributeId>, LangValue> {
 
-  public JdbcTextAttributePropertyValueDao(DataSource dataSource) {
+  public JdbcTextAttributePropertyDao(DataSource dataSource) {
     super(dataSource);
   }
 
@@ -28,7 +28,7 @@ public class JdbcTextAttributePropertyValueDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "insert into text_attribute_property_value (text_attribute_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
+        "insert into text_attribute_property (text_attribute_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index, lang, value) values (?, ?, ?, ?, ?, ?, ?)",
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
@@ -44,7 +44,7 @@ public class JdbcTextAttributePropertyValueDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "update text_attribute_property_value set lang = ?, value = ? where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "update text_attribute_property set lang = ?, value = ? where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         langValue.getLang(),
         langValue.getValue(),
         textAttributeDomainId.getGraphId(),
@@ -60,7 +60,7 @@ public class JdbcTextAttributePropertyValueDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     jdbcTemplate.update(
-        "delete from text_attribute_property_value where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "delete from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
@@ -70,7 +70,7 @@ public class JdbcTextAttributePropertyValueDao
 
   @Override
   protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from text_attribute_property_value", mapper);
+    return jdbcTemplate.query("select * from text_attribute_property", mapper);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class JdbcTextAttributePropertyValueDao
       SqlSpecification<PropertyValueId<TextAttributeId>, LangValue> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
-        String.format("select * from text_attribute_property_value where %s order by index",
+        String.format("select * from text_attribute_property where %s order by index",
                       specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
@@ -90,7 +90,7 @@ public class JdbcTextAttributePropertyValueDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute_property_value where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select count(*) from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
@@ -106,7 +106,7 @@ public class JdbcTextAttributePropertyValueDao
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
     return jdbcTemplate.query(
-        "select * from text_attribute_property_value where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
+        "select * from text_attribute_property where text_attribute_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),

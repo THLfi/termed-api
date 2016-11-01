@@ -7,7 +7,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 import fi.thl.termed.service.property.internal.JdbcPropertyDao;
-import fi.thl.termed.service.property.internal.JdbcPropertyPropertyValueDao;
+import fi.thl.termed.service.property.internal.JdbcPropertyPropertyDao;
 import fi.thl.termed.service.property.internal.PropertyRepository;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.LangValue;
@@ -34,7 +34,7 @@ public class PropertyServiceConfiguration {
     SystemDao<String, Property> propertyDao =
         new CachedSystemDao<>(new JdbcPropertyDao(dataSource));
     SystemDao<PropertyValueId<String>, LangValue> propertyPropertyDao =
-        new CachedSystemDao<>(new JdbcPropertyPropertyValueDao(dataSource));
+        new CachedSystemDao<>(new JdbcPropertyPropertyDao(dataSource));
 
     PermissionEvaluator<String> propertyEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER || p == Permission.READ;
