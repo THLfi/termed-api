@@ -10,9 +10,9 @@ import org.apache.lucene.search.TermQuery;
 
 import java.util.Objects;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
@@ -25,10 +25,6 @@ public class NodesByTypeId
 
   public NodesByTypeId(TypeId typeId) {
     this.typeId = typeId;
-  }
-
-  public TypeId getTypeId() {
-    return typeId;
   }
 
   @Override

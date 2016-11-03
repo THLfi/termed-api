@@ -12,11 +12,11 @@ import org.apache.lucene.search.TermQuery;
 import java.util.Map;
 import java.util.Objects;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
@@ -30,14 +30,6 @@ public class NodesByTextAttributeValuePrefix
   public NodesByTextAttributeValuePrefix(TextAttributeId attributeId, String value) {
     this.attributeId = attributeId;
     this.value = value;
-  }
-
-  public TextAttributeId getAttributeId() {
-    return attributeId;
-  }
-
-  public String getValue() {
-    return value;
   }
 
   @Override
