@@ -1,4 +1,4 @@
-package fi.thl.termed.web.csv;
+package fi.thl.termed.web.node.csv;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;

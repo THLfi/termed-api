@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.web.node.rdf;
 
 import com.google.common.collect.Lists;
 
@@ -20,6 +20,9 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.util.jena.JenaRdfModel;
+import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.util.rdf.RdfResource;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.emptyToNull;

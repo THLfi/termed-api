@@ -1,4 +1,4 @@
-package fi.thl.termed.web.node;
+package fi.thl.termed.web.node.json;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

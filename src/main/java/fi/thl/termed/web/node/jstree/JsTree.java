@@ -1,4 +1,4 @@
-package fi.thl.termed.web.jstree;
+package fi.thl.termed.web.node.jstree;
 
 import com.google.gson.annotations.SerializedName;
 

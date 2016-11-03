@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.web.graph.rdf;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -12,6 +12,9 @@ import java.util.function.Function;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.Graph;
+import fi.thl.termed.util.jena.JenaRdfModel;
+import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.util.rdf.RdfResource;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.emptyToNull;

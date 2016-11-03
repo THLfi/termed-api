@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.web.node.rdf;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;
@@ -21,6 +21,8 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.StringUtils;
 import fi.thl.termed.util.URIs;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.util.rdf.RdfResource;
 
 /**
  * Function to transform rdf model into list of nodes conforming to provided graph.

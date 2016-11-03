@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.web.node.rdf;
 
 import com.google.common.collect.Lists;
 
@@ -29,6 +29,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByTextAttributeValuePrefix;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Query;

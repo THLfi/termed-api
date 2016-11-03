@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.util.jena;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.util.rdf.RdfModel;
+import fi.thl.termed.util.rdf.RdfResource;
 
 
 public class JenaRdfModel implements RdfModel {

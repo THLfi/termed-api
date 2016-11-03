@@ -1,4 +1,4 @@
-package fi.thl.termed.web.node;
+package fi.thl.termed.web.node.json;
 
 import com.google.common.collect.Lists;
 

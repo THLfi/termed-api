@@ -1,4 +1,4 @@
-package fi.thl.termed.web.jstree;
+package fi.thl.termed.web.node.jstree;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;

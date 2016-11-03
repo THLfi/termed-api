@@ -1,10 +1,10 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.util.rdf;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 
-import java.util.Collections;
+import java.util.Set;
 
 import fi.thl.termed.domain.LangValue;
 
@@ -16,9 +16,9 @@ public class RdfResource {
 
   private String uri;
 
-  private Multimap<String, LangValue> literals;
+  private SetMultimap<String, LangValue> literals;
 
-  private Multimap<String, String> objects;
+  private SetMultimap<String, String> objects;
 
   public RdfResource(String uri) {
     this.uri = uri;
@@ -30,26 +30,24 @@ public class RdfResource {
     return uri;
   }
 
-  public Multimap<String, LangValue> getLiterals() {
+  public SetMultimap<String, LangValue> getLiterals() {
     return literals;
   }
 
-  public Iterable<LangValue> getLiterals(String predicateUri) {
-    return literals.containsKey(predicateUri) ? literals.get(predicateUri)
-                                              : Collections.<LangValue>emptyList();
+  public Set<LangValue> getLiterals(String predicateUri) {
+    return literals.get(predicateUri);
   }
 
   public void addLiteral(String predicateURI, String lang, String value) {
     literals.put(predicateURI, new LangValue(lang, value));
   }
 
-  public Multimap<String, String> getObjects() {
+  public SetMultimap<String, String> getObjects() {
     return objects;
   }
 
-  public Iterable<String> getObjects(String predicateUri) {
-    return objects.containsKey(predicateUri) ? objects.get(predicateUri)
-                                             : Collections.<String>emptySet();
+  public Set<String> getObjects(String predicateUri) {
+    return objects.get(predicateUri);
   }
 
   public void addObject(String predicateUri, String objectUri) {

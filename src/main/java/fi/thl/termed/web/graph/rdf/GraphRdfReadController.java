@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.web.graph.rdf;
 
 import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.MatchAll;
 import fi.thl.termed.util.specification.Query;

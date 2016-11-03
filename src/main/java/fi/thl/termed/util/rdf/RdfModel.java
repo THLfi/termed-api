@@ -1,4 +1,4 @@
-package fi.thl.termed.web.rdf;
+package fi.thl.termed.util.rdf;
 
 import java.util.List;
 
