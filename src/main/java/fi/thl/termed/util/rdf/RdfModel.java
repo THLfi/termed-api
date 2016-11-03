@@ -1,6 +1,7 @@
 package fi.thl.termed.util.rdf;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RdfModel {
 
@@ -10,6 +11,11 @@ public interface RdfModel {
    * "http://xmlns.com/foaf/0.1/Person");
    */
   List<RdfResource> find(String predicateUri, String objectUri);
+
+  /**
+   * Find resource by uri
+   */
+  Optional<RdfResource> find(String subjectUri);
 
   /**
    * List all subjects.

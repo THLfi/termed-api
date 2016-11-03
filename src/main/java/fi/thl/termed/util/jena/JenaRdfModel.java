@@ -10,6 +10,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.LangValue;
@@ -57,6 +58,11 @@ public class JenaRdfModel implements RdfModel {
         .map(this::toRdfResource).collect(Collectors.toList());
   }
 
+  @Override
+  public Optional<RdfResource> find(String subjectUri) {
+    return subjects(subjectUri).stream().map(this::toRdfResource).findFirst();
+  }
+
   private RdfResource toRdfResource(Node subject) {
     RdfResource resource = new RdfResource(
         subject.isURI() ? subject.getURI() : subject.getBlankNodeLabel());
@@ -90,6 +96,11 @@ public class JenaRdfModel implements RdfModel {
     return subjects(graph.find(Node.ANY,
                                NodeFactory.createURI(predicateUri),
                                NodeFactory.createURI(objectUri)).toList());
+  }
+
+  private List<Node> subjects(String subjectUri) {
+    return subjects(graph.find(NodeFactory.createURI(subjectUri),
+                               Node.ANY, Node.ANY).toList());
   }
 
   private List<Node> subjects(List<Triple> triples) {
