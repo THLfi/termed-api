@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
 
 public interface Index<K extends Serializable, V> {
 
@@ -21,9 +22,9 @@ public interface Index<K extends Serializable, V> {
 
   boolean isEmpty();
 
-  List<V> get(Query<K, V> specification);
+  Results<V> get(Query<K, V> specification);
 
-  List<K> getKeys(Query<K, V> specification);
+  Results<K> getKeys(Query<K, V> specification);
 
   List<V> get(List<K> ids);
 

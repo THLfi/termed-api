@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
@@ -30,8 +30,10 @@ public class GraphRdfReadController {
 
   @GetRdfMapping
   public Model get(@AuthenticationPrincipal User currentUser) {
-    List<Graph> graphs = graphService.get(new Query<>(new MatchAll<>()), currentUser);
-    List<Property> properties = propertyService.get(new Query<>(new MatchAll<>()), currentUser);
+    List<Graph> graphs = graphService.get(
+        new Query<>(new MatchAll<>()), currentUser).getValues();
+    List<Property> properties = propertyService.get(
+        new Query<>(new MatchAll<>()), currentUser).getValues();
     return new JenaRdfModel(new GraphsToRdfModel(properties).apply(graphs)).getModel();
   }
 

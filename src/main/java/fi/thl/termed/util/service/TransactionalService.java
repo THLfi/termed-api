@@ -11,8 +11,11 @@ import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
 
-public class TransactionalService<K extends Serializable, V> extends ForwardingService<K, V> {
+public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
+
+  private Service<K, V> delegate;
 
   private PlatformTransactionManager manager;
   private TransactionDefinition definition;
@@ -23,17 +26,45 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
 
   public TransactionalService(Service<K, V> delegate, PlatformTransactionManager manager,
                               TransactionDefinition definition) {
-    super(delegate);
+    this.delegate = delegate;
     this.manager = manager;
     this.definition = definition;
   }
 
   @Override
-  public List<V> get(Query<K, V> specification, User currentUser) {
+  public Results<V> get(Query<K, V> specification, User currentUser) {
+    TransactionStatus tx = manager.getTransaction(definition);
+    Results<V> results;
+    try {
+      results = delegate.get(specification, currentUser);
+    } catch (RuntimeException | Error e) {
+      manager.rollback(tx);
+      throw e;
+    }
+    manager.commit(tx);
+    return results;
+  }
+
+  @Override
+  public Results<K> getKeys(Query<K, V> query, User currentUser) {
+    TransactionStatus tx = manager.getTransaction(definition);
+    Results<K> results;
+    try {
+      results = delegate.getKeys(query, currentUser);
+    } catch (RuntimeException | Error e) {
+      manager.rollback(tx);
+      throw e;
+    }
+    manager.commit(tx);
+    return results;
+  }
+
+  @Override
+  public List<V> get(List<K> ids, User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<V> values;
     try {
-      values = super.get(specification, currentUser);
+      values = delegate.get(ids, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -47,7 +78,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     TransactionStatus tx = manager.getTransaction(definition);
     Optional<V> value;
     try {
-      value = super.get(id, currentUser);
+      value = delegate.get(id, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -61,7 +92,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     TransactionStatus tx = manager.getTransaction(definition);
     List<K> keys;
     try {
-      keys = super.save(values, currentUser);
+      keys = delegate.save(values, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -75,7 +106,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
     TransactionStatus tx = manager.getTransaction(definition);
     K key;
     try {
-      key = super.save(value, currentUser);
+      key = delegate.save(value, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -88,7 +119,7 @@ public class TransactionalService<K extends Serializable, V> extends ForwardingS
   public void delete(K id, User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
     try {
-      super.delete(id, currentUser);
+      delegate.delete(id, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;

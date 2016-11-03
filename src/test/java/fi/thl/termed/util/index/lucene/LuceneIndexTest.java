@@ -33,21 +33,22 @@ public class LuceneIndexTest {
 
   @Test
   public void shouldFindById() {
-    assertEquals("This is an example body about cats", index.get(term("id", "2")).get(0).body);
+    assertEquals("This is an example body about cats",
+                 index.get(term("id", "2")).getValues().get(0).body);
   }
 
   @Test
   public void shouldFindByContents() {
-    assertEquals("First", index.get(term("title", "First")).get(0).title);
-    assertEquals(new Integer(3), index.get(term("body", "horses")).get(0).id);
+    assertEquals("First", index.get(term("title", "First")).getValues().get(0).title);
+    assertEquals(new Integer(3), index.get(term("body", "horses")).getValues().get(0).id);
   }
 
   @Test
   public void shouldNotFindDeleted() {
-    assertEquals(new Integer(3), index.get(term("body", "horses")).get(0).id);
+    assertEquals(new Integer(3), index.get(term("body", "horses")).getValues().get(0).id);
     index.delete(3);
     index.refreshBlocking();
-    assertTrue(index.get(term("body", "horses")).isEmpty());
+    assertTrue(index.get(term("body", "horses")).getValues().isEmpty());
   }
 
   private <K extends Serializable, V> Query<K, V> term(String field, String value) {

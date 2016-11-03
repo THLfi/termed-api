@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
 
 /**
  * A service which simply forwards all requests to a delegate (decorator pattern).
@@ -34,12 +35,12 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<V> get(Query<K, V> specification, User user) {
+  public Results<V> get(Query<K, V> specification, User user) {
     return delegate.get(specification, user);
   }
 
   @Override
-  public List<K> getKeys(Query<K, V> specification, User user) {
+  public Results<K> getKeys(Query<K, V> specification, User user) {
     return delegate.getKeys(specification, user);
   }
 

@@ -24,17 +24,15 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.util.TableUtils;
 import fi.thl.termed.util.json.JsonUtils;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Query;
-
-import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 @RestController
 @RequestMapping("/api/graphs/{graphId}/nodes")
@@ -65,7 +63,7 @@ public class NodeCsvController {
                   @AuthenticationPrincipal User currentUser,
                   HttpServletResponse response) throws IOException {
     List<Node> nodes = nodeService.get(
-        new Query<>(new NodesByGraphId(graphId), LUCENE), currentUser);
+        new Query<>(new NodesByGraphId(graphId), Query.Engine.LUCENE), currentUser).getValues();
     List<Map<String, String>> rows = Lists.newArrayList();
     nodes.forEach(r -> rows.add(JsonUtils.flatten(gson.toJsonTree(r, Node.class))));
     new CSVWriter(response.getWriter()).writeAll(TableUtils.toTable(rows));

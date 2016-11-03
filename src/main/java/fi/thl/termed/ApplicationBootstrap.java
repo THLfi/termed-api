@@ -50,9 +50,9 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private PasswordEncoder passwordEncoder;
 
   @Autowired
-  private Service<String, User> userComponent;
+  private Service<String, User> userService;
   @Autowired
-  private Service<String, Property> propertyComponent;
+  private Service<String, Property> propertyService;
 
   private User initializer = new User("initializer", "", AppRole.SUPERUSER);
 
@@ -64,10 +64,10 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userComponent.get(new Query<>(new MatchAll<>()), initializer).isEmpty()) {
+    if (userService.getKeys(new Query<>(new MatchAll<>()), initializer).getValues().isEmpty()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
-      userComponent.save(admin, initializer);
+      userService.save(admin, initializer);
       log.info("Created new admin user with password: {}", password);
     }
   }
@@ -80,7 +80,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
     for (Property property : properties) {
       property.setIndex(index++);
     }
-    propertyComponent.save(properties, initializer);
+    propertyService.save(properties, initializer);
   }
 
   @PreDestroy

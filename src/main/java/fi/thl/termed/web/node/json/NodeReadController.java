@@ -20,8 +20,8 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByTextAttributeValuePrefix;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.MatchAll;
@@ -56,7 +56,8 @@ public class NodeReadController {
     Specification<NodeId, Node> specification =
         query.isEmpty() ? nodesBy(typeIds(currentUser))
                         : nodesBy(textAttributeIds(currentUser), tokenize(query));
-    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser);
+    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser)
+        .getValues();
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -71,7 +72,8 @@ public class NodeReadController {
     Specification<NodeId, Node> specification =
         query.isEmpty() ? nodesBy(typeIds(graphId, currentUser))
                         : nodesBy(textAttributeIds(graphId, currentUser), tokenize(query));
-    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser);
+    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser)
+        .getValues();
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -88,7 +90,8 @@ public class NodeReadController {
     Specification<NodeId, Node> specification =
         query.isEmpty() ? nodesBy(typeId(type, currentUser))
                         : nodesBy(textAttributeIds(type, currentUser), tokenize(query));
-    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser);
+    return nodeService.get(query(specification, orderBy, max, bypassIndex), currentUser)
+        .getValues();
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
@@ -121,7 +124,7 @@ public class NodeReadController {
   }
 
   private Specification<NodeId, Node> nodesBy(List<TextAttributeId> textAttributeIds,
-                                                  List<String> prefixQueries) {
+                                              List<String> prefixQueries) {
     List<Specification<NodeId, Node>> specifications = Lists.newArrayList();
     for (TextAttributeId attributeId : textAttributeIds) {
       for (String prefixQuery : prefixQueries) {
@@ -133,18 +136,18 @@ public class NodeReadController {
 
 
   private List<TypeId> typeIds(UUID graphId, User user) {
-    return typeService.getKeys(new Query<>(new TypesByGraphId(graphId)), user);
+    return typeService.getKeys(new Query<>(new TypesByGraphId(graphId)), user).getValues();
   }
 
   private List<TextAttributeId> textAttributeIds(UUID graphId, User user) {
-    return typeService.get(new Query<>(new TypesByGraphId(graphId)), user).stream()
+    return typeService.get(new Query<>(new TypesByGraphId(graphId)), user).getValues().stream()
         .flatMap(cls -> cls.getTextAttributes().stream())
         .map(TextAttributeId::new)
         .collect(Collectors.toList());
   }
 
   private List<TypeId> typeIds(User user) {
-    return typeService.getKeys(new Query<>(new MatchAll<>()), user);
+    return typeService.getKeys(new Query<>(new MatchAll<>()), user).getValues();
   }
 
   private TypeId typeId(TypeId typeId, User user) {
@@ -152,7 +155,7 @@ public class NodeReadController {
   }
 
   private List<TextAttributeId> textAttributeIds(User user) {
-    return typeService.get(new Query<>(new MatchAll<>()), user).stream()
+    return typeService.get(new Query<>(new MatchAll<>()), user).getValues().stream()
         .flatMap(cls -> cls.getTextAttributes().stream())
         .map(TextAttributeId::new)
         .collect(Collectors.toList());

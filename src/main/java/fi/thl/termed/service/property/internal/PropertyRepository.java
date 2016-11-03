@@ -18,7 +18,7 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
@@ -85,15 +85,15 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public List<Property> get(Query<String, Property> specification, User user) {
-    return propertyDao.getValues(specification.getSpecification(), user).stream()
+  public List<Property> get(Specification<String, Property> specification, User user) {
+    return propertyDao.getValues(specification, user).stream()
         .map(property -> populateValue(property, user))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<String> getKeys(Query<String, Property> specification, User user) {
-    return propertyDao.getKeys(specification.getSpecification(), user);
+  public List<String> getKeys(Specification<String, Property> specification, User user) {
+    return propertyDao.getKeys(specification, user);
   }
 
   @Override

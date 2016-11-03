@@ -27,7 +27,7 @@ public class GraphReadController {
 
   @GetJsonMapping
   public List<Graph> getGraph(@AuthenticationPrincipal User user) {
-    return graphService.get(new Query<>(new MatchAll<>()), user);
+    return graphService.get(new Query<>(new MatchAll<>()), user).getValues();
   }
 
   @GetJsonMapping("/{graphId}")

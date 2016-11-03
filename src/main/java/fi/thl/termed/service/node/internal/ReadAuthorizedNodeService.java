@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Multimaps;
 
 import java.util.List;
 import java.util.Map;
@@ -16,18 +17,16 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Query;
-
-import static com.google.common.collect.Multimaps.filterEntries;
-import static com.google.common.collect.Multimaps.filterKeys;
+import fi.thl.termed.util.specification.Results;
 
 /**
  * For filtering node service read operations. Useful to put in front of an index.
  */
-public class ReadAuthorizedNodeService extends ForwardingService<NodeId, Node> {
+public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
+  private Service<NodeId, Node> delegate;
   private PermissionEvaluator<NodeId> nodeEvaluator;
   private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
   private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
@@ -37,40 +36,42 @@ public class ReadAuthorizedNodeService extends ForwardingService<NodeId, Node> {
       PermissionEvaluator<TypeId> classEvaluator,
       PermissionEvaluator<TextAttributeId> textAttrEvaluator,
       PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {
-    super(delegate);
+    this.delegate = delegate;
     this.nodeEvaluator = (u, r, p) -> classEvaluator.hasPermission(u, new TypeId(r), p);
     this.textAttrEvaluator = textAttrEvaluator;
     this.refAttrEvaluator = refAttrEvaluator;
   }
 
   @Override
-  public List<Node> get(Query<NodeId, Node> specification, User user) {
-    return super.get(specification, user)
-        .stream()
-        .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
-        .map(new AttributePermissionFilter(user, Permission.READ))
-        .collect(Collectors.toList());
+  public List<NodeId> save(List<Node> values, User user) {
+    return delegate.save(values, user);
   }
 
   @Override
-  public List<NodeId> getKeys(Query<NodeId, Node> specification, User user) {
-    return super.getKeys(specification, user)
-        .stream()
-        .filter(id -> nodeEvaluator.hasPermission(user, id, Permission.READ))
-        .collect(Collectors.toList());
+  public NodeId save(Node value, User user) {
+    return delegate.save(value, user);
+  }
+
+  @Override
+  public void delete(NodeId id, User user) {
+    delegate.delete(id, user);
+  }
+
+  @Override
+  public Results<Node> get(Query<NodeId, Node> query, User user) {
+    Results<Node> results = delegate.get(query, user);
+    return new Results<>(filterValues(results.getValues(), user), results.getSize());
+  }
+
+  @Override
+  public Results<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    Results<NodeId> results = delegate.getKeys(query, user);
+    return new Results<>(filterKeys(results.getValues(), user), results.getSize());
   }
 
   @Override
   public List<Node> get(List<NodeId> ids, User user) {
-    ids = ids.stream()
-        .filter(id -> nodeEvaluator.hasPermission(user, id, Permission.READ))
-        .collect(Collectors.toList());
-
-    return super.get(ids, user)
-        .stream()
-        .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
-        .map(new AttributePermissionFilter(user, Permission.READ))
-        .collect(Collectors.toList());
+    return filterValues(delegate.get(filterKeys(ids, user), user), user);
   }
 
   @Override
@@ -79,9 +80,22 @@ public class ReadAuthorizedNodeService extends ForwardingService<NodeId, Node> {
       return Optional.empty();
     }
 
-    return super.get(id, user)
+    return delegate.get(id, user)
         .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
         .map(new AttributePermissionFilter(user, Permission.READ));
+  }
+
+  private List<NodeId> filterKeys(List<NodeId> keys, User user) {
+    return keys.stream()
+        .filter(id -> nodeEvaluator.hasPermission(user, id, Permission.READ))
+        .collect(Collectors.toList());
+  }
+
+  private List<Node> filterValues(List<Node> values, User user) {
+    return values.stream()
+        .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
+        .map(new AttributePermissionFilter(user, Permission.READ))
+        .collect(Collectors.toList());
   }
 
   private class AttributePermissionFilter implements Function<Node, Node> {
@@ -98,13 +112,13 @@ public class ReadAuthorizedNodeService extends ForwardingService<NodeId, Node> {
     public Node apply(Node node) {
       TypeId typeId = new TypeId(node);
 
-      node.setProperties(filterKeys(
+      node.setProperties(Multimaps.filterKeys(
           node.getProperties(), new AcceptProperty(typeId)));
 
-      node.setReferences(filterEntries(
+      node.setReferences(Multimaps.filterEntries(
           node.getReferences(), new AcceptReferenceEntryPredicate(typeId)));
 
-      node.setReferrers(filterEntries(
+      node.setReferrers(Multimaps.filterEntries(
           node.getReferrers(), new AcceptReferrerEntryPredicate()));
 
       return node;

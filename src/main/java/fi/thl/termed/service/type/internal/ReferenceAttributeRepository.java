@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -18,6 +17,7 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
@@ -26,7 +26,7 @@ import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -139,16 +139,16 @@ public class ReferenceAttributeRepository
 
   @Override
   public List<ReferenceAttribute> get(
-      Query<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
-    return referenceAttributeDao.getValues(specification.getSpecification(), user).stream()
+      Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
+    return referenceAttributeDao.getValues(specification, user).stream()
         .map(attribute -> populateValue(attribute, user))
         .collect(Collectors.toList());
   }
 
   @Override
   public List<ReferenceAttributeId> getKeys(
-      Query<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
-    return referenceAttributeDao.getKeys(specification.getSpecification(), user);
+      Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
+    return referenceAttributeDao.getKeys(specification, user);
   }
 
   @Override

@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.Type;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
@@ -53,7 +53,7 @@ public class NodeRdfWriteController {
     log.info("Importing RDF-model {} (user: {})", graphId, currentUser.getUsername());
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
     List<Node> nodes = new RdfModelToNodes(
-        typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser))
+        typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser).getValues())
         .apply(new JenaRdfModel(model));
     nodeService.save(nodes, currentUser);
   }

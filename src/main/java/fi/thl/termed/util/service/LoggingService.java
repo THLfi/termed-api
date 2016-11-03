@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
 
 public class LoggingService<K extends Serializable, V> implements Service<K, V> {
 
@@ -50,15 +51,15 @@ public class LoggingService<K extends Serializable, V> implements Service<K, V> 
   }
 
   @Override
-  public List<V> get(Query<K, V> specification, User user) {
-    log.info("get {} (user: {})", specification, user.getUsername());
-    return delegate.get(specification, user);
+  public Results<V> get(Query<K, V> query, User user) {
+    log.info("get {} (user: {})", query, user.getUsername());
+    return delegate.get(query, user);
   }
 
   @Override
-  public List<K> getKeys(Query<K, V> specification, User user) {
-    log.info("getKeys {} (user: {})", specification, user.getUsername());
-    return delegate.getKeys(specification, user);
+  public Results<K> getKeys(Query<K, V> query, User user) {
+    log.info("getKeys {} (user: {})", query, user.getUsername());
+    return delegate.getKeys(query, user);
   }
 
   @Override

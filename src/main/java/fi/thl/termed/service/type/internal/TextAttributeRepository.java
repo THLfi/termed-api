@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -18,6 +17,7 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
@@ -26,7 +26,7 @@ import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -138,17 +138,17 @@ public class TextAttributeRepository
   }
 
   @Override
-  public List<TextAttribute> get(Query<TextAttributeId, TextAttribute> specification,
+  public List<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification,
                                  User user) {
-    return textAttributeDao.getValues(specification.getSpecification(), user).stream()
+    return textAttributeDao.getValues(specification, user).stream()
         .map(attribute -> populateValue(attribute, user))
         .collect(Collectors.toList());
   }
 
   @Override
   public List<TextAttributeId> getKeys(
-      Query<TextAttributeId, TextAttribute> specification, User user) {
-    return textAttributeDao.getKeys(specification.getSpecification(), user);
+      Specification<TextAttributeId, TextAttribute> specification, User user) {
+    return textAttributeDao.getKeys(specification, user);
   }
 
   @Override

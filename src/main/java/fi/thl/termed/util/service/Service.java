@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
 
 /**
  * Generic interface for services.
@@ -25,22 +26,22 @@ public interface Service<K extends Serializable, V> {
   void delete(K id, User currentUser);
 
   /**
-   * Get specified values. Values are expected to be fully populated.
+   * Get specified values.
    */
-  List<V> get(Query<K, V> specification, User currentUser);
+  Results<V> get(Query<K, V> query, User currentUser);
 
   /**
    * Get specified keys.
    */
-  List<K> getKeys(Query<K, V> specification, User currentUser);
+  Results<K> getKeys(Query<K, V> query, User currentUser);
 
   /**
-   * Get values by ids. Values are expected to be fully populated.
+   * Get values by ids.
    */
   List<V> get(List<K> ids, User currentUser);
 
   /**
-   * Get value by id. Value is expected to be fully populated.
+   * Get value by id.
    */
   Optional<V> get(K id, User currentUser);
 

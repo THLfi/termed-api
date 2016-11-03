@@ -29,7 +29,7 @@ import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -156,15 +156,15 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public List<Graph> get(Query<GraphId, Graph> specification, User user) {
-    return graphDao.getValues(specification.getSpecification(), user).stream()
+  public List<Graph> get(Specification<GraphId, Graph> specification, User user) {
+    return graphDao.getValues(specification, user).stream()
         .map(graph -> populateValue(graph, user))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<GraphId> getKeys(Query<GraphId, Graph> specification, User user) {
-    return graphDao.getKeys(specification.getSpecification(), user);
+  public List<GraphId> getKeys(Specification<GraphId, Graph> specification, User user) {
+    return graphDao.getKeys(specification, user);
   }
 
   @Override

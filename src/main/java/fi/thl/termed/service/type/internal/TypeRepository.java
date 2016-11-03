@@ -32,7 +32,7 @@ import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
@@ -248,15 +248,15 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public List<Type> get(Query<TypeId, Type> specification, User user) {
-    return typeDao.getValues(specification.getSpecification(), user).stream()
+  public List<Type> get(Specification<TypeId, Type> specification, User user) {
+    return typeDao.getValues(specification, user).stream()
         .map(cls -> populateValue(cls, user))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<TypeId> getKeys(Query<TypeId, Type> specification, User user) {
-    return typeDao.getKeys(specification.getSpecification(), user);
+  public List<TypeId> getKeys(Specification<TypeId, Type> specification, User user) {
+    return typeDao.getKeys(specification, user);
   }
 
   @Override
@@ -278,13 +278,10 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
                 new TypeId(cls.getId(), cls.getGraphId())), user)));
 
     cls.setTextAttributes(textAttributeRepository.get(
-        new Query<>(
-            new TextAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId()))), user));
+        new TextAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user));
 
     cls.setReferenceAttributes(referenceAttributeRepository.get(
-        new Query<>(
-            new ReferenceAttributesByTypeId(
-                new TypeId(cls.getId(), cls.getGraphId()))), user));
+        new ReferenceAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user));
 
     return cls;
   }

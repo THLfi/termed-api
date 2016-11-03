@@ -18,9 +18,10 @@ import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAllQuery;
+import fi.thl.termed.util.specification.MatchAll;
 import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.specification.Query.Engine;
+import fi.thl.termed.util.specification.Results;
 
 public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
@@ -37,7 +38,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
       // reindex all
-      index.index(super.getKeys(new MatchAllQuery<>(), indexer), key -> super.get(key, indexer));
+      index.index(super.getKeys(new Query<>(new MatchAll<>()), indexer).getValues(),
+                  key -> super.get(key, indexer));
     }
   }
 
@@ -91,15 +93,15 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<Node> get(Query<NodeId, Node> specification, User user) {
-    return specification.getEngine() == Engine.LUCENE ? index.get(specification)
-                                                      : super.get(specification, user);
+  public Results<Node> get(Query<NodeId, Node> query, User user) {
+    return query.getEngine() == Engine.LUCENE ? index.get(query)
+                                              : super.get(query, user);
   }
 
   @Override
-  public List<NodeId> getKeys(Query<NodeId, Node> specification, User user) {
-    return specification.getEngine() == Engine.LUCENE ? index.getKeys(specification)
-                                                      : super.getKeys(specification, user);
+  public Results<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    return query.getEngine() == Engine.LUCENE ? index.getKeys(query)
+                                              : super.getKeys(query, user);
   }
 
   private Set<NodeId> nodeRelatedIds(NodeId nodeId) {

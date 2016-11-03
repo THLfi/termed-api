@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
+import fi.thl.termed.domain.Type;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
@@ -37,7 +37,7 @@ public class TypeReadController {
   @GetJsonMapping("/types")
   public List<Type> getTypes(
       @AuthenticationPrincipal User currentUser) {
-    return typeService.get(new Query<>(new MatchAll<>()), currentUser);
+    return typeService.get(new Query<>(new MatchAll<>()), currentUser).getValues();
   }
 
   @GetJsonMapping("/graphs/{graphId}/types")
@@ -45,7 +45,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User currentUser) {
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    return typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser);
+    return typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser).getValues();
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}")

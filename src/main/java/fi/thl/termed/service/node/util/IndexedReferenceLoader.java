@@ -34,7 +34,7 @@ public class IndexedReferenceLoader implements Function<Node, List<Node>> {
   @Override
   public List<Node> apply(Node node) {
     List<Node> populatedReferences = nodeService.get(new Query<>(
-        new NodeReferences(new NodeId(node), attributeId), LUCENE), user);
+        new NodeReferences(new NodeId(node), attributeId), LUCENE), user).getValues();
 
     Map<NodeId, Node> populatedReferencesIndex = new HashMap<>();
     populatedReferences.forEach(r -> populatedReferencesIndex.put(new NodeId(r), r));

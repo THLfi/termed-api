@@ -18,7 +18,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 public class UserRepository extends AbstractRepository<String, User> {
 
@@ -73,15 +73,15 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public List<User> get(Query<String, User> specification, User auth) {
-    return userDao.getValues(specification.getSpecification(), auth).stream()
+  public List<User> get(Specification<String, User> specification, User auth) {
+    return userDao.getValues(specification, auth).stream()
         .map(user -> populateValue(user, auth))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<String> getKeys(Query<String, User> specification, User user) {
-    return userDao.getKeys(specification.getSpecification(), user);
+  public List<String> getKeys(Specification<String, User> specification, User user) {
+    return userDao.getKeys(specification, user);
   }
 
   @Override

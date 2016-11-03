@@ -64,8 +64,8 @@ public class NodeRdfReadController {
     Specification<NodeId, Node> specification =
         query.isEmpty() ? nodesBy(typeIds(graphId, user))
                         : nodesBy(textAttributeIds(graphId, user), tokenize(query));
-    List<Node> nodes = nodeService.get(new Query<>(specification, LUCENE), user);
-    List<Type> types = typeService.get(new Query<>(new TypesByGraphId(graphId)), user);
+    List<Node> nodes = nodeService.get(new Query<>(specification, LUCENE), user).getValues();
+    List<Type> types = typeService.get(new Query<>(new TypesByGraphId(graphId)), user).getValues();
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(nodes)).getModel();
@@ -80,7 +80,7 @@ public class NodeRdfReadController {
 
     List<Node> node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .map(Collections::singletonList).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.get(new Query<>(new TypesByGraphId(graphId)), user);
+    List<Type> types = typeService.get(new Query<>(new TypesByGraphId(graphId)), user).getValues();
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(node)).getModel();
@@ -104,11 +104,11 @@ public class NodeRdfReadController {
   }
 
   private List<TypeId> typeIds(UUID graphId, User user) {
-    return typeService.getKeys(new Query<>(new TypesByGraphId(graphId)), user);
+    return typeService.getKeys(new Query<>(new TypesByGraphId(graphId)), user).getValues();
   }
 
   private List<TextAttributeId> textAttributeIds(UUID graphId, User user) {
-    return typeService.get(new Query<>(new TypesByGraphId(graphId)), user).stream()
+    return typeService.get(new Query<>(new TypesByGraphId(graphId)), user).getValues().stream()
         .flatMap(cls -> cls.getTextAttributes().stream())
         .map(TextAttributeId::new)
         .collect(Collectors.toList());

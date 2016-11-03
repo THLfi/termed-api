@@ -15,16 +15,16 @@ import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.transform.NodeTextAttributeValueDtoToModel;
+import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToReferrerModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
-import fi.thl.termed.domain.transform.NodeTextAttributeValueDtoToModel;
-import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Maps.difference;
@@ -178,16 +178,15 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public List<Node> get(Query<NodeId, Node> specification, User user) {
-    return nodeDao.getValues(specification.getSpecification(), user).stream()
+  public List<Node> get(Specification<NodeId, Node> specification, User user) {
+    return nodeDao.getValues(specification, user).stream()
         .map(node -> populateValue(node, user))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<NodeId> getKeys(Query<NodeId, Node> specification,
-                              User user) {
-    return nodeDao.getKeys(specification.getSpecification(), user);
+  public List<NodeId> getKeys(Specification<NodeId, Node> specification, User user) {
+    return nodeDao.getKeys(specification, user);
   }
 
   @Override

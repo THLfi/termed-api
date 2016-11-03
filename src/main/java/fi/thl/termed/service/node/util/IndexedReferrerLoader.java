@@ -34,7 +34,7 @@ public class IndexedReferrerLoader implements Function<Node, List<Node>> {
   @Override
   public List<Node> apply(Node node) {
     List<Node> populatedReferrers = nodeService.get(new Query<>(
-        new NodeReferrers(new NodeId(node), attributeId), LUCENE), user);
+        new NodeReferrers(new NodeId(node), attributeId), LUCENE), user).getValues();
 
     Map<NodeId, Node> populatedReferrersIndex = new HashMap<>();
     populatedReferrers.forEach(r -> populatedReferrersIndex.put(new NodeId(r), r));

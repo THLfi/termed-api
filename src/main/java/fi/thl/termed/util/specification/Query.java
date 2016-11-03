@@ -8,10 +8,6 @@ import java.util.List;
 
 public class Query<K extends Serializable, V> {
 
-  public enum Engine {
-    SQL, LUCENE, ANY
-  }
-
   private Specification<K, V> specification;
   private List<String> orderBy;
   private int max;
@@ -57,6 +53,10 @@ public class Query<K extends Serializable, V> {
         .add("max", max)
         .add("engine", engine)
         .toString();
+  }
+
+  public enum Engine {
+    SQL, LUCENE, ANY
   }
 
 }

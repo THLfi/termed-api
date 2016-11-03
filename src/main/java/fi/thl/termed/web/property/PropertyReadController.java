@@ -29,7 +29,7 @@ public class PropertyReadController {
 
   @GetJsonMapping
   public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.get(new Query<>(new MatchAll<>()), user);
+    return propertyService.get(new Query<>(new MatchAll<>()), user).getValues();
   }
 
   @GetJsonMapping("/{id}")

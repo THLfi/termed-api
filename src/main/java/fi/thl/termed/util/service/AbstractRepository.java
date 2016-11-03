@@ -13,6 +13,8 @@ import fi.thl.termed.domain.Identifiable;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.SimpleValueDifference;
 import fi.thl.termed.util.specification.Query;
+import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.Specification;
 
 /**
  * For implementing a service that persists objects.
@@ -84,6 +86,20 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     return values;
   }
 
+  @Override
+  public Results<V> get(Query<K, V> specification, User user) {
+    List<V> results = get(specification.getSpecification(), user);
+    return new Results<>(results.subList(0, Math.min(results.size(), specification.getMax())),
+                         results.size());
+  }
+
+  @Override
+  public Results<K> getKeys(Query<K, V> specification, User user) {
+    List<K> results = getKeys(specification.getSpecification(), user);
+    return new Results<>(results.subList(0, Math.min(results.size(), specification.getMax())),
+                         results.size());
+  }
+
   protected abstract boolean exists(K key, User user);
 
   public abstract void insert(K id, V value, User user);
@@ -92,9 +108,9 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
   public abstract void delete(K id, V value, User user);
 
-  public abstract List<V> get(Query<K, V> specification, User user);
+  public abstract List<V> get(Specification<K, V> specification, User currentUser);
 
-  public abstract List<K> getKeys(Query<K, V> specification, User user);
+  public abstract List<K> getKeys(Specification<K, V> specification, User currentUser);
 
   public abstract Optional<V> get(K id, User user);
 
