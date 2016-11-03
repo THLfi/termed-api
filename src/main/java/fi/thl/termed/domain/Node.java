@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import fi.thl.termed.util.collect.MultimapUtils;
 
-public class Node implements Auditable, Identifiable<NodeId> {
+public class Node implements Identifiable<NodeId> {
 
   private UUID id;
   private String code;
