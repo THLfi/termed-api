@@ -9,6 +9,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -21,8 +22,28 @@ public class AndSpecification<K extends Serializable, V>
 
   private List<Specification<K, V>> specifications;
 
+  public AndSpecification() {
+    this(new ArrayList<>());
+  }
+
+  public AndSpecification(Specification<K, V> s1,
+                          Specification<K, V> s2) {
+    this(Arrays.asList(s1, s2));
+  }
+
+  public AndSpecification(Specification<K, V> s1,
+                          Specification<K, V> s2,
+                          Specification<K, V> s3) {
+    this(Arrays.asList(s1, s2, s3));
+  }
+
   public AndSpecification(List<Specification<K, V>> specifications) {
     this.specifications = checkNotNull(specifications);
+  }
+
+  public AndSpecification<K, V> and(Specification<K, V> specification) {
+    specifications.add(checkNotNull(specification));
+    return this;
   }
 
   @Override

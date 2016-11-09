@@ -103,7 +103,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private Directory openDirectory(String directoryPath) throws IOException {
     return isNullOrEmpty(directoryPath) ? new RAMDirectory()
-                                        : FSDirectory.open(new File(directoryPath));
+                                        : forceUnlock(FSDirectory.open(new File(directoryPath)));
   }
 
   @Override
@@ -116,7 +116,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     Term documentIdTerm = new Term(DOCUMENT_ID, keyConverter.apply(key));
 
     Document document = requireNonNull(documentConverter.apply(value));
-    document.add(new StringField(documentIdTerm.field(), documentIdTerm.text(), Field.Store.NO));
+    document.add(new StringField(documentIdTerm.field(), documentIdTerm.text(), Field.Store.YES));
 
     try {
       writer.updateDocument(documentIdTerm, document);
@@ -272,6 +272,20 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       searcherManager.close();
       commitTask.cancel();
       writer.close();
+    } catch (IOException e) {
+      throw new LuceneException(e);
+    } finally {
+      forceUnlock(writer.getDirectory());
+    }
+  }
+
+  private Directory forceUnlock(Directory directory) {
+    try {
+      if (IndexWriter.isLocked(directory)) {
+        log.warn("Directory {} locked, unlocking");
+        IndexWriter.unlock(directory);
+      }
+      return directory;
     } catch (IOException e) {
       throw new LuceneException(e);
     }

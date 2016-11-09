@@ -1,5 +1,6 @@
 {
   "code": "animals-example",
+  "uri": "http://example.org/animals-example/",
   "properties": {
     "prefLabel": [
       {

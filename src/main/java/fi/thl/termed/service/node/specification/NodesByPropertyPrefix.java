@@ -4,44 +4,35 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 
 import java.util.Objects;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
 
-public class NodesByTypeId
-    implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
+public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> {
 
-  private final String typeId;
+  private final String attributeId;
+  private final String value;
 
-  public NodesByTypeId(String typeId) {
-    this.typeId = typeId;
+  public NodesByPropertyPrefix(String attributeId, String value) {
+    this.attributeId = attributeId;
+    this.value = value;
   }
 
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return Objects.equals(nodeId.getTypeId(), typeId);
+    return node.getProperties().get(attributeId).stream()
+        .anyMatch(v -> v.getValue().startsWith(value));
   }
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("type.id", typeId));
-  }
-
-  @Override
-  public String sqlQueryTemplate() {
-    return "type_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{typeId};
+    return new PrefixQuery(new Term(attributeId, value));
   }
 
   @Override
@@ -52,19 +43,21 @@ public class NodesByTypeId
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    NodesByTypeId that = (NodesByTypeId) o;
-    return Objects.equals(typeId, that.typeId);
+    NodesByPropertyPrefix that = (NodesByPropertyPrefix) o;
+    return Objects.equals(attributeId, that.attributeId) &&
+           Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(typeId);
+    return Objects.hash(attributeId, value);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("typeId", typeId)
+        .add("attributeId", attributeId)
+        .add("value", value)
         .toString();
   }
 

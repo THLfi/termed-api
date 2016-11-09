@@ -14,34 +14,34 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.SqlSpecification;
 
-public class NodesByTypeId
+public class NodesByUri
     implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
 
-  private final String typeId;
+  private String uri;
 
-  public NodesByTypeId(String typeId) {
-    this.typeId = typeId;
+  public NodesByUri(String uri) {
+    this.uri = uri;
   }
 
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return Objects.equals(nodeId.getTypeId(), typeId);
+    return Objects.equals(node.getUri(), uri);
   }
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("type.id", typeId));
+    return new TermQuery(new Term("uri", uri));
   }
 
   @Override
   public String sqlQueryTemplate() {
-    return "type_id = ?";
+    return "uri = ?";
   }
 
   @Override
   public Object[] sqlQueryParameters() {
-    return new Object[]{typeId};
+    return new Object[]{uri};
   }
 
   @Override
@@ -52,19 +52,19 @@ public class NodesByTypeId
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    NodesByTypeId that = (NodesByTypeId) o;
-    return Objects.equals(typeId, that.typeId);
+    NodesByUri that = (NodesByUri) o;
+    return Objects.equals(uri, that.uri);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(typeId);
+    return Objects.hash(uri);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("typeId", typeId)
+        .add("uri", uri)
         .toString();
   }
 

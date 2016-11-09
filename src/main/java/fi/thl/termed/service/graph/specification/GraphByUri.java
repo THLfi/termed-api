@@ -1,12 +1,12 @@
 package fi.thl.termed.service.graph.specification;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import fi.thl.termed.domain.Graph;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.util.specification.AbstractSqlSpecification;
 
-public class GraphByUri extends AbstractSqlSpecification<UUID, Graph> {
+public class GraphByUri extends AbstractSqlSpecification<GraphId, Graph> {
 
   private String uri;
 
@@ -15,7 +15,7 @@ public class GraphByUri extends AbstractSqlSpecification<UUID, Graph> {
   }
 
   @Override
-  public boolean test(UUID key, Graph value) {
+  public boolean test(GraphId key, Graph value) {
     return Objects.equals(value.getCode(), uri);
   }
 

@@ -5,8 +5,8 @@ import com.google.common.collect.Multimap;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.MultimapUtils;
@@ -14,7 +14,6 @@ import fi.thl.termed.util.collect.MultimapUtils;
 public class Type implements Identifiable<TypeId> {
 
   private String id;
-
   private String uri;
 
   private Integer index;
@@ -22,11 +21,9 @@ public class Type implements Identifiable<TypeId> {
   private GraphId graph;
 
   private Multimap<String, Permission> permissions;
-
   private Multimap<String, LangValue> properties;
 
   private List<TextAttribute> textAttributes;
-
   private List<ReferenceAttribute> referenceAttributes;
 
   public Type(String id, GraphId graph) {
@@ -121,6 +118,11 @@ public class Type implements Identifiable<TypeId> {
     this.textAttributes = textAttributes;
   }
 
+  public List<TextAttributeId> getTextAttributeIds() {
+    return getTextAttributes().stream()
+        .map(TextAttributeId::new).collect(Collectors.toList());
+  }
+
   public List<ReferenceAttribute> getReferenceAttributes() {
     return ListUtils.nullToEmpty(referenceAttributes);
   }
@@ -129,8 +131,9 @@ public class Type implements Identifiable<TypeId> {
     this.referenceAttributes = referenceAttributes;
   }
 
-  public Optional<ReferenceAttribute> getReferenceAttribute(String attributeId) {
-    return getReferenceAttributes().stream().filter(a -> a.getId().equals(attributeId)).findFirst();
+  public List<ReferenceAttributeId> getReferenceAttributeIds() {
+    return getReferenceAttributes().stream()
+        .map(ReferenceAttributeId::new).collect(Collectors.toList());
   }
 
   @Override

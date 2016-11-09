@@ -24,7 +24,6 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
@@ -53,7 +52,7 @@ public class NodeRdfWriteController {
     log.info("Importing RDF-model {} (user: {})", graphId, currentUser.getUsername());
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
     List<Node> nodes = new RdfModelToNodes(
-        typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser).getValues())
+        typeService.get(new TypesByGraphId(graphId), currentUser))
         .apply(new JenaRdfModel(model));
     nodeService.save(nodes, currentUser);
   }

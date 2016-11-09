@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,24 @@ public class NodeReferencesReadController {
 
   @Autowired
   private Service<NodeId, Node> nodeService;
+
+  @GetJsonMapping("/references")
+  public List<Node> getReferences(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @PathVariable("id") UUID id,
+      @AuthenticationPrincipal User user) {
+
+    Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    Set<Node> nodes = new LinkedHashSet<>();
+    for (String attributeId : root.getReferences().keys()) {
+      nodes.addAll(new IndexedReferenceLoader(nodeService, user, attributeId).apply(root));
+    }
+
+    return new ArrayList<>(nodes);
+  }
 
   @GetJsonMapping("/references/{attributeId}")
   public List<Node> getReferences(
@@ -66,6 +85,23 @@ public class NodeReferencesReadController {
     return results;
   }
 
+  @GetJsonMapping("/referrers")
+  public List<Node> getReferrers(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @PathVariable("id") UUID id,
+      @AuthenticationPrincipal User user) {
+
+    Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    Set<Node> nodes = new LinkedHashSet<>();
+    for (String attributeId : root.getReferrers().keys()) {
+      nodes.addAll(new IndexedReferrerLoader(nodeService, user, attributeId).apply(root));
+    }
+
+    return new ArrayList<>(nodes);
+  }
 
   @GetJsonMapping("/referrers/{attributeId}")
   public List<Node> getReferrers(
