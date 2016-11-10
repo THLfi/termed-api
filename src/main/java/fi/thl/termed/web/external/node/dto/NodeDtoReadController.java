@@ -74,8 +74,7 @@ public class NodeDtoReadController {
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/{graphCode}/{typeId}",
-      params = {"tree=true", "attribute"})
+  @GetMapping(path = "/{graphCode}/{typeId}", params = {"tree=true", "attribute"})
   public List<NodeDto> findNodeTreesByType(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
@@ -136,7 +135,7 @@ public class NodeDtoReadController {
   }
 
   @GetMapping(path = "/{graphCode}/{typeId}/{nodeCode}",
-      params = {"tree=true", "attribute=true"})
+      params = {"tree=true", "attribute"})
   public NodeDto getNodeTreeByCode(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
@@ -155,7 +154,7 @@ public class NodeDtoReadController {
   }
 
   @GetJsonMapping(path = "/{graphCode}/{typeId}/{nodeCode}",
-      params = {"tree=true", "attribute=true", "referrers=true"})
+      params = {"tree=true", "attribute", "referrers=true"})
   public NodeDto getNodeReferrerTreeByCode(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
