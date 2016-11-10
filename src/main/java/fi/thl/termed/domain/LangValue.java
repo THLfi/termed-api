@@ -14,6 +14,14 @@ public class LangValue {
 
   private final String value;
 
+  public LangValue(StrictLangValue strictLangValue) {
+    this(strictLangValue.getLang(), strictLangValue.getValue());
+  }
+
+  public LangValue(LangValue langValue) {
+    this(langValue.getLang(), langValue.getValue());
+  }
+
   public LangValue(String lang, String value) {
     this.lang = lang;
     this.value = value;
