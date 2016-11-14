@@ -79,6 +79,15 @@ public class NodeDtoReadController {
     return toDto(nodeReadService.searchNodesOfAnyType(qm, user), config, user);
   }
 
+  @GetMapping(params = "typeId")
+  public List<NodeDto> searchNodesOfTypeInAnyGraph(
+      @RequestParam("typeId") String typeId,
+      @ModelAttribute QueryModel qm,
+      @ModelAttribute NodeToDtoMapperConfig config,
+      @AuthenticationPrincipal User user) {
+    return toDto(nodeReadService.searchNodesOfTypeInAnyGraph(typeId, qm, user), config, user);
+  }
+
   @GetMapping("/{graphCode}")
   public List<NodeDto> searchNodesOfAnyTypeInGraph(
       @PathVariable("graphCode") String graphCode,
@@ -89,7 +98,7 @@ public class NodeDtoReadController {
   }
 
   @GetMapping("/{graphCode}/{typeId}")
-  public List<NodeDto> findNodesByType(
+  public List<NodeDto> searchNodesOfType(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @ModelAttribute QueryModel qm,

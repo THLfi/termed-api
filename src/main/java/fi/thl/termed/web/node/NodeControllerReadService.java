@@ -66,6 +66,24 @@ public class NodeControllerReadService {
     return nodeService.get(new Query<>(spec, qm), user).getValues();
   }
 
+  public List<Node> searchNodesOfTypeInAnyGraph(String typeId, QueryModel qm, User user) {
+    List<TypeId> typeIds = graphService.getKeys(user).stream()
+        .map(graphId -> new TypeId(typeId, graphId))
+        .collect(Collectors.toList());
+
+    Specification<NodeId, Node> spec;
+
+    if (qm.getQuery().isEmpty()) {
+      spec = byAnyType(typeIds);
+    } else {
+      List<TextAttributeId> textAttributeIds = typeService.get(typeIds, user)
+          .stream().flatMap(c -> c.getTextAttributeIds().stream()).collect(Collectors.toList());
+      spec = byAnyTextAttributeValuePrefix(textAttributeIds, tokenize(qm.getQuery()));
+    }
+
+    return nodeService.get(new Query<>(spec, qm), user).getValues();
+  }
+
   public List<Node> searchNodesOfAnyTypeInGraph(String graphCode, QueryModel qm, User user) {
     GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
         .orElseThrow(NotFoundException::new);
