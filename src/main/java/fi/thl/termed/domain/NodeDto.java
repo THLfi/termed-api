@@ -24,9 +24,6 @@ public class NodeDto {
   private Multimap<String, NodeDto> references;
   private Multimap<String, NodeDto> referrers;
 
-  // node dto may use attribute ids or uris as keys, this flag is for serializers
-  private transient boolean uriAttributeKeys;
-
   public UUID getId() {
     return id;
   }
@@ -113,14 +110,6 @@ public class NodeDto {
 
   public void setReferrers(Multimap<String, NodeDto> referrers) {
     this.referrers = referrers;
-  }
-
-  public boolean isUriAttributeKeys() {
-    return uriAttributeKeys;
-  }
-
-  public void setUriAttributeKeys(boolean uriAttributeKeys) {
-    this.uriAttributeKeys = uriAttributeKeys;
   }
 
 }

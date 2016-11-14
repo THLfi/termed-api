@@ -15,8 +15,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 public class AttributeValueInitializingNodeService
     extends ForwardingService<NodeId, Node> {
 
-  public AttributeValueInitializingNodeService(
-      Service<NodeId, Node> delegate) {
+  public AttributeValueInitializingNodeService(Service<NodeId, Node> delegate) {
     super(delegate);
   }
 

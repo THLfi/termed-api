@@ -300,7 +300,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     @Override
     public Map.Entry<TextAttributeId, TextAttribute> apply(TextAttribute input) {
-      return MapUtils.simpleEntry(new TextAttributeId(domainId, input.getId()), input);
+      return MapUtils.newEntry(new TextAttributeId(domainId, input.getId()), input);
     }
   }
 
@@ -318,7 +318,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     @Override
     public Map.Entry<ReferenceAttributeId, ReferenceAttribute> apply(ReferenceAttribute input) {
-      return MapUtils.simpleEntry(new ReferenceAttributeId(domainId, input.getId()), input);
+      return MapUtils.newEntry(new ReferenceAttributeId(domainId, input.getId()), input);
     }
   }
 

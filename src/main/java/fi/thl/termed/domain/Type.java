@@ -4,8 +4,10 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Multimap;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.util.collect.ListUtils;
@@ -25,6 +27,9 @@ public class Type implements Identifiable<TypeId> {
 
   private List<TextAttribute> textAttributes;
   private List<ReferenceAttribute> referenceAttributes;
+
+  private transient Map<String, TextAttribute> textAttributeIndex;
+  private transient Map<String, ReferenceAttribute> referenceAttributeIndex;
 
   public Type(String id, GraphId graph) {
     this.id = id;
@@ -118,6 +123,14 @@ public class Type implements Identifiable<TypeId> {
     this.textAttributes = textAttributes;
   }
 
+  public TextAttribute getTextAttribute(String attributeId) {
+    if (textAttributeIndex == null) {
+      textAttributeIndex = getTextAttributes().stream()
+          .collect(Collectors.toMap(Attribute::getId, Function.identity()));
+    }
+    return textAttributeIndex.get(attributeId);
+  }
+
   public List<TextAttributeId> getTextAttributeIds() {
     return getTextAttributes().stream()
         .map(TextAttributeId::new).collect(Collectors.toList());
@@ -129,6 +142,14 @@ public class Type implements Identifiable<TypeId> {
 
   public void setReferenceAttributes(List<ReferenceAttribute> referenceAttributes) {
     this.referenceAttributes = referenceAttributes;
+  }
+
+  public ReferenceAttribute getReferenceAttribute(String attributeId) {
+    if (referenceAttributeIndex == null) {
+      referenceAttributeIndex = getReferenceAttributes().stream()
+          .collect(Collectors.toMap(Attribute::getId, Function.identity()));
+    }
+    return referenceAttributeIndex.get(attributeId);
   }
 
   public List<ReferenceAttributeId> getReferenceAttributeIds() {

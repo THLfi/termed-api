@@ -29,6 +29,13 @@ public class Query<K extends Serializable, V> {
     this.engine = engine;
   }
 
+  public Query(Specification<K, V> specification, QueryModel queryModel) {
+    this.specification = specification;
+    this.orderBy = queryModel.getOrderBy();
+    this.max = queryModel.getMax();
+    this.engine = queryModel.isBypassIndex() ? Engine.ANY : Engine.LUCENE;
+  }
+
   public Specification<K, V> getSpecification() {
     return specification;
   }

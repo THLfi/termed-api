@@ -10,14 +10,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import fi.thl.termed.util.rdf.RdfMediaTypes;
+
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@RequestMapping(method = RequestMethod.GET, produces = {"application/n-triples;charset=UTF-8",
-                                                        "application/rdf+xml;charset=UTF-8",
-                                                        "application/ld+json;charset=UTF-8",
-                                                        "text/turtle;charset=UTF-8",
-                                                        "text/n3;charset=UTF-8"})
+@RequestMapping(method = RequestMethod.GET, produces = {RdfMediaTypes.N_TRIPLES_VALUE,
+                                                        RdfMediaTypes.RDF_XML_VALUE,
+                                                        RdfMediaTypes.LD_JSON_VALUE,
+                                                        RdfMediaTypes.TURTLE_VALUE,
+                                                        RdfMediaTypes.N3_VALUE})
 public @interface GetRdfMapping {
 
   @AliasFor(annotation = RequestMapping.class) String name() default "";

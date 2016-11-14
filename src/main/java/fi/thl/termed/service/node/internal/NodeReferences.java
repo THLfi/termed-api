@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
 public class NodeReferences implements LuceneSpecification<NodeId, Node> {
@@ -20,6 +21,7 @@ public class NodeReferences implements LuceneSpecification<NodeId, Node> {
   private String attrId;
 
   public NodeReferences(NodeId subjectId, String attrId) {
+    Preconditions.checkArgument(attrId.matches(RegularExpressions.CODE));
     this.subjectId = subjectId;
     this.attrId = attrId;
   }

@@ -22,6 +22,8 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
+import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
+
 @RestController
 @RequestMapping("/api/graphs/{graphId}/types/{typeId}/nodes/{id}")
 public class NodeReferencesReadController {
@@ -41,7 +43,7 @@ public class NodeReferencesReadController {
 
     Set<Node> nodes = new LinkedHashSet<>();
     for (String attributeId : root.getReferences().keys()) {
-      nodes.addAll(new IndexedReferenceLoader(nodeService, user, attributeId).apply(root));
+      nodes.addAll(new IndexedReferenceLoader(nodeService, user).apply(root, attributeId));
     }
 
     return new ArrayList<>(nodes);
@@ -58,10 +60,7 @@ public class NodeReferencesReadController {
     Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Function<Node, List<Node>> loadReferences =
-        new IndexedReferenceLoader(nodeService, user, attributeId);
-
-    return loadReferences.apply(root);
+    return new IndexedReferenceLoader(nodeService, user).apply(root, attributeId);
   }
 
   @GetJsonMapping("/references/{attributeId}/recursive")
@@ -76,7 +75,7 @@ public class NodeReferencesReadController {
         .orElseThrow(NotFoundException::new);
 
     Function<Node, List<Node>> loadReferences =
-        new IndexedReferenceLoader(nodeService, user, attributeId);
+        partialApplySecond(new IndexedReferenceLoader(nodeService, user), attributeId);
 
     Set<Node> results = new LinkedHashSet<>();
     for (Node neighbour : loadReferences.apply(root)) {
@@ -97,7 +96,7 @@ public class NodeReferencesReadController {
 
     Set<Node> nodes = new LinkedHashSet<>();
     for (String attributeId : root.getReferrers().keys()) {
-      nodes.addAll(new IndexedReferrerLoader(nodeService, user, attributeId).apply(root));
+      nodes.addAll(new IndexedReferrerLoader(nodeService, user).apply(root, attributeId));
     }
 
     return new ArrayList<>(nodes);
@@ -114,10 +113,7 @@ public class NodeReferencesReadController {
     Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Function<Node, List<Node>> loadReferrers =
-        new IndexedReferrerLoader(nodeService, user, attributeId);
-
-    return loadReferrers.apply(root);
+    return new IndexedReferrerLoader(nodeService, user).apply(root, attributeId);
   }
 
   @GetJsonMapping("/referrers/{attributeId}/recursive")
@@ -132,7 +128,7 @@ public class NodeReferencesReadController {
         .orElseThrow(NotFoundException::new);
 
     Function<Node, List<Node>> loadReferrers =
-        new IndexedReferrerLoader(nodeService, user, attributeId);
+        partialApplySecond(new IndexedReferrerLoader(nodeService, user), attributeId);
 
     Set<Node> results = new LinkedHashSet<>();
     for (Node neighbour : loadReferrers.apply(root)) {

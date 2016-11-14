@@ -30,7 +30,7 @@ import fi.thl.termed.util.permission.DaoPermissionEvaluator;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.service.LoggingService;
+import fi.thl.termed.util.service.WriteLoggingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 
@@ -52,7 +52,7 @@ public class GraphServiceConfiguration {
     Service<GraphId, Graph> service = graphRepository();
 
     service = new TransactionalService<>(service, transactionManager);
-    service = new LoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
     service = new InitializingGraphService(service);
 
     return service;

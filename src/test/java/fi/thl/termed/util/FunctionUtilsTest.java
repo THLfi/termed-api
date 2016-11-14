@@ -1,25 +1,44 @@
 package fi.thl.termed.util;
 
-import com.google.common.base.Function;
 
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
 public class FunctionUtilsTest {
 
   @Test
+  public void shouldPartialApply() {
+    BiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;
+
+    Function<Integer, Integer> addOne = FunctionUtils.partialApply(add, 1);
+
+    assertEquals(32, (int) addOne.apply(31));
+    assertEquals(4, (int) addOne.apply(3));
+  }
+
+  @Test
+  public void shouldPartialApplySecond() {
+    BiFunction<String, String, String> concatenate = (a, b) -> a + b;
+
+    Function<String, String> append = FunctionUtils.partialApply(concatenate, "|");
+    Function<String, String> insert = FunctionUtils.partialApplySecond(concatenate, "|");
+
+    assertEquals("|a", append.apply("a"));
+    assertEquals("a|", insert.apply("a"));
+  }
+
+  @Test
   public void shouldMemoizeFunction() {
     final AtomicInteger counter = new AtomicInteger();
 
-    Function<String, Integer> toIntFunction = new Function<String, Integer>() {
-      @Override
-      public Integer apply(String str) {
-        counter.incrementAndGet();
-        return Integer.valueOf(str);
-      }
+    Function<String, Integer> toIntFunction = str -> {
+      counter.incrementAndGet();
+      return Integer.valueOf(str);
     };
 
     assertEquals(0, counter.get());
@@ -49,12 +68,9 @@ public class FunctionUtilsTest {
   public void shouldMemoizeFunctionWithLimitedCache() {
     final AtomicInteger counter = new AtomicInteger();
 
-    Function<String, Integer> toIntFunction = new Function<String, Integer>() {
-      @Override
-      public Integer apply(String str) {
-        counter.incrementAndGet();
-        return Integer.valueOf(str);
-      }
+    Function<String, Integer> toIntFunction = str -> {
+      counter.incrementAndGet();
+      return Integer.valueOf(str);
     };
 
     assertEquals(0, counter.get());
@@ -86,42 +102,6 @@ public class FunctionUtilsTest {
     assertEquals(6, counter.get());
     memoizedToIntFunction.apply("1");
     assertEquals(6, counter.get());
-  }
-
-  @Test
-  public void shouldPipeFunctions() {
-    String testString = "test";
-
-    Function<String, String> appendA = new AppendString("_A");
-    Function<String, String> appendB = new AppendString("_B");
-    Function<String, String> appendC = new AppendString("_C");
-    Function<String, String> appendD = new AppendString("_D");
-    Function<String, String> appendE = new AppendString("_E");
-
-    assertEquals("test_A",
-                 FunctionUtils.pipe(appendA).apply(testString));
-    assertEquals("test_A_B",
-                 FunctionUtils.pipe(appendA, appendB).apply(testString));
-    assertEquals("test_A_B_C",
-                 FunctionUtils.pipe(appendA, appendB, appendC).apply(testString));
-    assertEquals("test_A_B_C_D",
-                 FunctionUtils.pipe(appendA, appendB, appendC, appendD).apply(testString));
-    assertEquals("test_A_B_C_D_E",
-                 FunctionUtils.pipe(appendA, appendB, appendC, appendD, appendE).apply(testString));
-  }
-
-  private class AppendString implements Function<String, String> {
-
-    private String suffix;
-
-    public AppendString(String suffix) {
-      this.suffix = suffix;
-    }
-
-    @Override
-    public String apply(String input) {
-      return input + suffix;
-    }
   }
 
 }

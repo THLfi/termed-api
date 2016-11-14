@@ -11,17 +11,17 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.specification.Results;
 
-public class LoggingService<K extends Serializable, V> implements Service<K, V> {
+public class WriteLoggingService<K extends Serializable, V> implements Service<K, V> {
 
   private Service<K, V> delegate;
   private Logger log;
 
-  public LoggingService(Service<K, V> delegate, String loggerName) {
+  public WriteLoggingService(Service<K, V> delegate, String loggerName) {
     this.delegate = delegate;
     this.log = LoggerFactory.getLogger(loggerName);
   }
 
-  public LoggingService(Service<K, V> delegate, Class<?> loggerName) {
+  public WriteLoggingService(Service<K, V> delegate, Class<?> loggerName) {
     this.delegate = delegate;
     this.log = LoggerFactory.getLogger(loggerName);
   }
@@ -46,25 +46,21 @@ public class LoggingService<K extends Serializable, V> implements Service<K, V> 
 
   @Override
   public List<V> get(List<K> ids, User user) {
-    log.info("get {} (user: {})", ids.size(), user.getUsername());
     return delegate.get(ids, user);
   }
 
   @Override
   public Results<V> get(Query<K, V> query, User user) {
-    log.info("get {} (user: {})", query, user.getUsername());
     return delegate.get(query, user);
   }
 
   @Override
   public Results<K> getKeys(Query<K, V> query, User user) {
-    log.info("getKeys {} (user: {})", query, user.getUsername());
     return delegate.getKeys(query, user);
   }
 
   @Override
   public Optional<V> get(K id, User user) {
-    log.info("get {} (user: {})", id, user.getUsername());
     return delegate.get(id, user);
   }
 

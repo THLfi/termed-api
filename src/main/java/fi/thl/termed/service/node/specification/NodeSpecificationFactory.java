@@ -2,6 +2,7 @@ package fi.thl.termed.service.node.specification;
 
 
 import java.util.List;
+import java.util.UUID;
 
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -28,6 +29,12 @@ public final class NodeSpecificationFactory {
     return new AndSpecification<>(
         new NodesByGraphId(graphId.getId()),
         new NodesByUri(nodeUri));
+  }
+
+  public static Specification<NodeId, Node> byGraphAndId(GraphId graphId, UUID id) {
+    return new AndSpecification<>(
+        new NodesByGraphId(graphId.getId()),
+        new NodeById(id));
   }
 
   public static Specification<NodeId, Node> byAnyType(List<TypeId> typeIds) {

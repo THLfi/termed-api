@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
 public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> {
@@ -19,6 +20,7 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
   private final String value;
 
   public NodesByPropertyPrefix(String attributeId, String value) {
+    Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
     this.attributeId = attributeId;
     this.value = value;
   }

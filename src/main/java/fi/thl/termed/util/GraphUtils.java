@@ -1,11 +1,11 @@
 package fi.thl.termed.util;
 
-import java.util.function.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import fi.thl.termed.util.collect.ListUtils;
 
@@ -59,14 +59,14 @@ public final class GraphUtils {
    * Enumerate all paths leading to a node using neighbour function.
    */
   public static <T> List<List<T>> collectPaths(T node,
-                                               java.util.function.Function<T, List<T>> neighbourFunction) {
+                                               Function<T, List<T>> neighbourFunction) {
     List<List<T>> paths = Lists.newArrayList();
     collectPaths(node, neighbourFunction, Sets.<T>newLinkedHashSet(), paths);
     return paths;
   }
 
   private static <T> void collectPaths(T node,
-                                       java.util.function.Function<T, List<T>> neighbourFunction,
+                                       Function<T, List<T>> neighbourFunction,
                                        Set<T> path,
                                        List<List<T>> results) {
 

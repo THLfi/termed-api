@@ -10,7 +10,6 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -44,17 +43,11 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
       addLiteral(model, subject, TermedMeta.lastModifiedDate, nodeDto.getLastModifiedDate());
 
       for (Map.Entry<String, LangValue> entry : nodeDto.getProperties().entries()) {
-        String key = entry.getKey();
-        Optional<String> uri = typeDto.getTextAttributeUri(key);
-
-        addLiteral(model, subject, model.createProperty(uri.orElse(key)), entry.getValue());
+        addLiteral(model, subject, model.createProperty(entry.getKey()), entry.getValue());
       }
 
       for (Map.Entry<String, NodeDto> entry : nodeDto.getReferences().entries()) {
-        String key = entry.getKey();
-        Optional<String> uri = typeDto.getReferenceAttributeUri(key);
-
-        addResource(model, subject, model.createProperty(uri.orElse(key)), uri(entry.getValue()));
+        addResource(model, subject, model.createProperty(entry.getKey()), uri(entry.getValue()));
       }
     }
 

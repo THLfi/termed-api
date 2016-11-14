@@ -15,8 +15,12 @@ public final class StringUtils {
         .replaceAll("[^\\p{ASCII}]", "");
   }
 
-  public static List<String> split(String query, String regex) {
-    return Arrays.asList(query.split(regex));
+  public static List<String> tokenize(String str) {
+    return split(str, "\\s");
+  }
+
+  public static List<String> split(String str, String regex) {
+    return Arrays.asList(str.split(regex));
   }
 
 }

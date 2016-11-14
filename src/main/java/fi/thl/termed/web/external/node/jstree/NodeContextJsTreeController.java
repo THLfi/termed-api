@@ -30,6 +30,8 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
+import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
+
 @RestController
 @RequestMapping(value = "/api/graphs/{graphId}/types/{typeId}/nodes/{nodeId}/trees",
     params = {"jstree=true", "context=true"})
@@ -52,9 +54,9 @@ public class NodeContextJsTreeController {
         .orElseThrow(NotFoundException::new);
 
     Function<Node, List<Node>> referenceLoadingFunction =
-        new IndexedReferenceLoader(nodeService, user, attributeId);
+        partialApplySecond(new IndexedReferenceLoader(nodeService, user), attributeId);
     Function<Node, List<Node>> referrerLoadingFunction =
-        new IndexedReferrerLoader(nodeService, user, attributeId);
+        partialApplySecond(new IndexedReferrerLoader(nodeService, user), attributeId);
 
     Set<Node> roots = Sets.newLinkedHashSet();
     Set<NodeId> pathIds = Sets.newHashSet();

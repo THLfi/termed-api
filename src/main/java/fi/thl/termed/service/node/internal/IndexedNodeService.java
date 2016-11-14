@@ -28,8 +28,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   private Index<NodeId, Node> index;
   private User indexer = new User("indexer", "", AppRole.ADMIN);
 
-  public IndexedNodeService(
-      Service<NodeId, Node> delegate, Index<NodeId, Node> index) {
+  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index) {
     super(delegate);
     this.index = index;
   }
