@@ -25,6 +25,8 @@ public interface Service<K extends Serializable, V> {
   /**
    * Delete value (with dependencies) by id.
    */
+  void delete(List<K> ids, User currentUser);
+
   void delete(K id, User currentUser);
 
   /**

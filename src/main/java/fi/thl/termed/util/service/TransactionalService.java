@@ -116,6 +116,18 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
+  public void delete(List<K> ids, User currentUser) {
+    TransactionStatus tx = manager.getTransaction(definition);
+    try {
+      delegate.delete(ids, currentUser);
+    } catch (RuntimeException | Error e) {
+      manager.rollback(tx);
+      throw e;
+    }
+    manager.commit(tx);
+  }
+
+  @Override
   public void delete(K id, User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
     try {

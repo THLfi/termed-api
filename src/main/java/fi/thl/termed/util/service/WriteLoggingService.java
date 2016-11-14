@@ -39,6 +39,12 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
+  public void delete(List<K> ids, User user) {
+    log.info("delete {} (user: {})", ids, user.getUsername());
+    delegate.delete(ids, user);
+  }
+
+  @Override
   public void delete(K id, User user) {
     log.info("delete {} (user: {})", id, user.getUsername());
     delegate.delete(id, user);

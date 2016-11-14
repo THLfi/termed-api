@@ -30,6 +30,11 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
+  public void delete(List<K> ids, User currentUser) {
+    delegate.delete(ids, currentUser);
+  }
+
+  @Override
   public void delete(K id, User user) {
     delegate.delete(id, user);
   }

@@ -80,6 +80,20 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
+  public void delete(List<NodeId> nodeIds, User user) {
+    Set<NodeId> reindexSet = Sets.newHashSet();
+
+    for (NodeId nodeId : nodeIds) {
+      reindexSet.add(nodeId);
+      reindexSet.addAll(nodeRelatedIds(nodeId));
+    }
+
+    super.delete(nodeIds, user);
+
+    asyncReindex(reindexSet);
+  }
+
+  @Override
   public void delete(NodeId nodeId, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 

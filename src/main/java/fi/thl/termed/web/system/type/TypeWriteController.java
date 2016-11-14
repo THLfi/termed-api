@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.Type;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
@@ -64,6 +65,14 @@ public class TypeWriteController {
     type.setGraph(new GraphId(graphId));
     type.setId(id);
     return typeService.get(typeService.save(type, user), user).orElseThrow(NotFoundException::new);
+  }
+
+  @DeleteMapping
+  @ResponseStatus(NO_CONTENT)
+  public void delete(
+      @PathVariable("graphId") UUID graphId,
+      @AuthenticationPrincipal User user) {
+    typeService.delete(typeService.getKeys(new TypesByGraphId(graphId), user), user);
   }
 
   @DeleteMapping(path = "/{id}")

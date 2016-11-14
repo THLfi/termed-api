@@ -73,6 +73,15 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
+  public void delete(List<K> ids, User user) {
+    for (K id : ids) {
+      // fail if not found
+      V v = get(id, user).get();
+      delete(id, v, user);
+    }
+  }
+
+  @Override
   public void delete(K id, User user) {
     get(id, user).ifPresent(v -> delete(id, v, user));
   }

@@ -53,6 +53,11 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
+  public void delete(List<NodeId> ids, User user) {
+    delegate.delete(ids, user);
+  }
+
+  @Override
   public void delete(NodeId id, User user) {
     delegate.delete(id, user);
   }

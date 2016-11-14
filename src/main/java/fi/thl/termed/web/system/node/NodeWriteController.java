@@ -18,7 +18,10 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 
@@ -104,6 +107,25 @@ public class NodeWriteController {
     node.setId(id);
     NodeId nodeId = nodeService.save(node, currentUser);
     return nodeService.get(nodeId, currentUser).get();
+  }
+
+  @DeleteMapping("/graphs/{graphId}/nodes")
+  @ResponseStatus(NO_CONTENT)
+  public void delete(
+      @PathVariable("graphId") UUID graphId,
+      @AuthenticationPrincipal User currentUser) {
+    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), currentUser), currentUser);
+  }
+
+  @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
+  @ResponseStatus(NO_CONTENT)
+  public void delete(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @AuthenticationPrincipal User currentUser) {
+    nodeService.delete(nodeService.getKeys(new AndSpecification<>(
+        new NodesByGraphId(graphId),
+        new NodesByTypeId(typeId)), currentUser), currentUser);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
