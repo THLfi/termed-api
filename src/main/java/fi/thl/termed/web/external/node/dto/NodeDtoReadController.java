@@ -49,7 +49,7 @@ public class NodeDtoReadController {
   @Autowired
   private NodeControllerReadService nodeReadService;
 
-  @Value("fi.thl.termed.baseUri:")
+  @Value("${fi.thl.termed.baseUri:}")
   private String baseUri;
 
   private NodeDto toDto(Node node, NodeToDtoMapperConfig config, User user) {
