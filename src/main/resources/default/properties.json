@@ -80,15 +80,36 @@
     }
   },
   {
-    "id": "inversePropertyPrefLabel"
+    "id": "configTreeAttributeId",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: tree attribute id"
+        }
+      ]
+    }
   },
   {
-    "id": "configTreeAttributeId"
+    "id": "configTreeInverted",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: tree inverted"
+        }
+      ]
+    }
   },
   {
-    "id": "configTreeInverted"
-  },
-  {
-    "id": "configTreeSort"
+    "id": "configTreeSort",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: tree sort"
+        }
+      ]
+    }
   }
 ]
