@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -15,6 +16,7 @@ import java.util.List;
 import fi.thl.termed.util.csv.GsonCsvMessageConverter;
 import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
+import fi.thl.termed.util.spring.http.MediaTypes;
 import fi.thl.termed.util.xml.GsonXmlMessageConverter;
 import fi.thl.termed.web.external.node.dto.NodeDtoListRdfMessageConverter;
 import fi.thl.termed.web.external.node.dto.NodeDtoRdfMessageConverter;
@@ -30,6 +32,9 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
     config
         .favorParameter(true)
         .favorPathExtension(true)
+        .mediaType("json", MediaType.APPLICATION_JSON_UTF8)
+        .mediaType("xml", MediaTypes.TEXT_XML)
+        .mediaType("csv", MediaTypes.TEXT_CSV)
         .mediaType("jsonld", RdfMediaTypes.LD_JSON)
         .mediaType("rdf", RdfMediaTypes.RDF_XML)
         .mediaType("ttl", RdfMediaTypes.TURTLE)

@@ -1,5 +1,6 @@
 package fi.thl.termed.util.csv;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -37,7 +38,7 @@ public class GsonCsvMessageConverter extends AbstractGenericHttpMessageConverter
   private Gson gson;
 
   public GsonCsvMessageConverter(Gson gson) {
-    super(new MediaType("text", "csv"));
+    super(new MediaType("text", "csv", Charsets.UTF_8));
     this.gson = gson;
   }
 
@@ -90,7 +91,6 @@ public class GsonCsvMessageConverter extends AbstractGenericHttpMessageConverter
 
     Writer writer = new OutputStreamWriter(out.getBody(), UTF_8);
     new CSVWriter(writer).writeAll(TableUtils.toTable(rows));
-
     writer.close();
   }
 
