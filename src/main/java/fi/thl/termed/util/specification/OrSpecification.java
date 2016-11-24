@@ -17,6 +17,10 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+/**
+ * Accepts if any of the contained specifications accept. An empty OrSpecification does not accept
+ * anything.
+ */
 public class OrSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
 
@@ -48,17 +52,24 @@ public class OrSpecification<K extends Serializable, V>
 
   @Override
   public boolean test(K k, V v) {
+    if (specifications.isEmpty()) {
+      return false;
+    }
+
     for (Specification<K, V> specification : specifications) {
       if (specification.test(k, v)) {
         return true;
       }
     }
+
     return false;
   }
 
   @Override
   public Query luceneQuery() {
-    checkState(specifications.stream().allMatch(s -> s instanceof LuceneSpecification));
+    if (specifications.isEmpty()) {
+      return new BooleanQuery();
+    }
 
     BooleanQuery query = new BooleanQuery();
 
@@ -71,7 +82,9 @@ public class OrSpecification<K extends Serializable, V>
 
   @Override
   public String sqlQueryTemplate() {
-    checkState(specifications.stream().allMatch(s -> s instanceof SqlSpecification));
+    if (specifications.isEmpty()) {
+      return "1 = 0";
+    }
 
     List<String> query = Lists.newArrayList();
 

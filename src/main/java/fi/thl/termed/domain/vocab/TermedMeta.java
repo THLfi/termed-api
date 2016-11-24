@@ -17,6 +17,8 @@ public final class TermedMeta {
   public static final Property id = property("id");
   public static final Property code = property("code");
   public static final Property graph = property("graph");
+  public static final Property typeId = property("typeId");
+  public static final Property graphId = property("graphId");
   public static final Property createdBy = property("createdBy");
   public static final Property createdDate = property("createdDate");
   public static final Property lastModifiedBy = property("lastModifiedBy");

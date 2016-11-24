@@ -25,8 +25,6 @@ import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.io.ResourceUtils;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 
 /**
  * If no users found, adds default user (admin). Adds default properties (defined in
@@ -64,7 +62,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userService.getKeys(new Query<>(new MatchAll<>()), initializer).getValues().isEmpty()) {
+    if (userService.getKeys(initializer).isEmpty()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
       userService.save(admin, initializer);

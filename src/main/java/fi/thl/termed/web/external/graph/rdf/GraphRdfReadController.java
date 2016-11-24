@@ -14,8 +14,6 @@ import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 
 @RestController
@@ -30,10 +28,8 @@ public class GraphRdfReadController {
 
   @GetRdfMapping
   public Model get(@AuthenticationPrincipal User currentUser) {
-    List<Graph> graphs = graphService.get(
-        new Query<>(new MatchAll<>()), currentUser).getValues();
-    List<Property> properties = propertyService.get(
-        new Query<>(new MatchAll<>()), currentUser).getValues();
+    List<Graph> graphs = graphService.get(currentUser);
+    List<Property> properties = propertyService.get(currentUser);
     return new JenaRdfModel(new GraphsToRdfModel(properties).apply(graphs)).getModel();
   }
 

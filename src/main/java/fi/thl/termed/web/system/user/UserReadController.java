@@ -10,8 +10,6 @@ import java.util.List;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
@@ -24,7 +22,7 @@ public class UserReadController {
 
   @GetJsonMapping
   public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.get(new Query<>(new MatchAll<>()), currentUser).getValues();
+    return userService.get(currentUser);
   }
 
   @GetJsonMapping("/{username}")

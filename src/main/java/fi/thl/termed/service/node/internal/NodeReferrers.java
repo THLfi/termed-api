@@ -42,7 +42,7 @@ public class NodeReferrers implements LuceneSpecification<NodeId, Node> {
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term(attrId + ".nodeId", objectId.toString()));
+    return new TermQuery(new Term("references." + attrId + ".nodeId", objectId.toString()));
   }
 
   @Override

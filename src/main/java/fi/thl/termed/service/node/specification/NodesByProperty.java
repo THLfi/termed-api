@@ -4,8 +4,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 import java.util.Objects;
 
@@ -14,12 +14,12 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.specification.LuceneSpecification;
 
-public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> {
+public class NodesByProperty implements LuceneSpecification<NodeId, Node> {
 
   private final String attributeId;
   private final String value;
 
-  public NodesByPropertyPrefix(String attributeId, String value) {
+  public NodesByProperty(String attributeId, String value) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
     this.attributeId = attributeId;
     this.value = value;
@@ -29,12 +29,12 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
     return node.getProperties().get(attributeId).stream()
-        .anyMatch(v -> v.getValue().startsWith(value));
+        .anyMatch(v -> v.getValue().equals(value));
   }
 
   @Override
   public Query luceneQuery() {
-    return new PrefixQuery(new Term("properties." + attributeId, value));
+    return new TermQuery(new Term("properties." + attributeId, value));
   }
 
   @Override
@@ -45,7 +45,7 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    NodesByPropertyPrefix that = (NodesByPropertyPrefix) o;
+    NodesByProperty that = (NodesByProperty) o;
     return Objects.equals(attributeId, that.attributeId) &&
            Objects.equals(value, that.value);
   }

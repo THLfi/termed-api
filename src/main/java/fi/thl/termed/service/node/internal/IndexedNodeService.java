@@ -18,10 +18,8 @@ import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Query.Engine;
-import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.specification.Specification;
 
 public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
@@ -37,8 +35,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
       // reindex all
-      index.index(super.getKeys(new Query<>(new MatchAll<>()), indexer).getValues(),
-                  key -> super.get(key, indexer));
+      index.index(super.getKeys(indexer), key -> super.get(key, indexer));
     }
   }
 
@@ -106,15 +103,16 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Results<Node> get(Query<NodeId, Node> query, User user) {
-    return query.getEngine() == Engine.LUCENE ? index.get(query)
-                                              : super.get(query, user);
+  public List<Node> get(Specification<NodeId, Node> spec, List<String> sort, int max, User user) {
+    return spec instanceof LuceneSpecification ? index.get(spec, sort, max)
+                                               : super.get(spec, sort, max, user);
   }
 
   @Override
-  public Results<NodeId> getKeys(Query<NodeId, Node> query, User user) {
-    return query.getEngine() == Engine.LUCENE ? index.getKeys(query)
-                                              : super.getKeys(query, user);
+  public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
+                              User user) {
+    return spec instanceof LuceneSpecification ? index.getKeys(spec, sort, max)
+                                               : super.getKeys(spec, sort, max, user);
   }
 
   private Set<NodeId> nodeRelatedIds(NodeId nodeId) {

@@ -1,4 +1,4 @@
-package fi.thl.termed.domain.transform;
+package fi.thl.termed.domain;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -9,9 +9,8 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import fi.thl.termed.domain.NodeAttributeValueId;
-import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.transform.NodeTextAttributeValueDtoToModel;
+import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.util.UUIDs;
 
 public class NodeTextAttributeValueTransformTest {

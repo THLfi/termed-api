@@ -12,8 +12,6 @@ import java.util.Optional;
 import fi.thl.termed.domain.Identifiable;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.SimpleValueDifference;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
 import fi.thl.termed.util.specification.Specification;
 
 /**
@@ -96,17 +94,13 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public Results<V> get(Query<K, V> specification, User user) {
-    List<V> results = get(specification.getSpecification(), user);
-    return new Results<>(results.subList(0, Math.min(results.size(), specification.getMax())),
-                         results.size());
+  public List<V> get(Specification<K, V> specification, List<String> sort, int max, User user) {
+    return get(specification, user);
   }
 
   @Override
-  public Results<K> getKeys(Query<K, V> specification, User user) {
-    List<K> results = getKeys(specification.getSpecification(), user);
-    return new Results<>(results.subList(0, Math.min(results.size(), specification.getMax())),
-                         results.size());
+  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max, User user) {
+    return getKeys(specification, user);
   }
 
   protected abstract boolean exists(K key, User user);

@@ -3,6 +3,7 @@ package fi.thl.termed;
 import com.google.gson.Gson;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -27,6 +28,9 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
   @Autowired
   private Gson gson;
 
+  @Value("${fi.thl.termed.baseUri:http://termed.thl.fi/api}")
+  private String baseUri;
+
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
     config
@@ -48,8 +52,8 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
     gsonHttpMessageConverter.setGson(gson);
     converters.addAll(Arrays.asList(
         new JenaModelMessageConverter(),
-        new NodeDtoRdfMessageConverter(),
-        new NodeDtoListRdfMessageConverter(),
+        new NodeDtoRdfMessageConverter(baseUri),
+        new NodeDtoListRdfMessageConverter(baseUri),
         new GsonXmlMessageConverter(gson),
         new GsonCsvMessageConverter(gson),
         gsonHttpMessageConverter));

@@ -18,8 +18,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.Specification;
 
 /**
  * For filtering node service read operations. Useful to put in front of an index.
@@ -63,15 +62,14 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Results<Node> get(Query<NodeId, Node> query, User user) {
-    Results<Node> results = delegate.get(query, user);
-    return new Results<>(filterValues(results.getValues(), user), results.getSize());
+  public List<Node> get(Specification<NodeId, Node> spec, List<String> sort, int max, User user) {
+    return filterValues(delegate.get(spec, sort, max, user), user);
   }
 
   @Override
-  public Results<NodeId> getKeys(Query<NodeId, Node> query, User user) {
-    Results<NodeId> results = delegate.getKeys(query, user);
-    return new Results<>(filterKeys(results.getValues(), user), results.getSize());
+  public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
+                              User user) {
+    return filterKeys(delegate.getKeys(spec, user), user);
   }
 
   @Override

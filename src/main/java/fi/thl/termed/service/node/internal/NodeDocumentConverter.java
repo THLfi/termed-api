@@ -52,12 +52,12 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
       String lang = entry.getValue().getLang();
       String value = entry.getValue().getValue();
 
-      doc.add(textField(property, value));
-      doc.add(stringField(property + ".sortable", value));
+      doc.add(textField("properties." + property, value));
+      doc.add(stringField("properties." + property + ".sortable", value));
 
       if (!lang.isEmpty()) {
-        doc.add(textField(property + "." + lang, value));
-        doc.add(stringField(property + "." + lang + ".sortable", value));
+        doc.add(textField("properties." + property + "." + lang, value));
+        doc.add(stringField("properties." + property + "." + lang + ".sortable", value));
       }
     }
 
@@ -65,11 +65,11 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
       String property = entry.getKey();
       NodeId value = entry.getValue();
 
-      doc.add(stringField(property + ".nodeId", value.toString()));
+      doc.add(stringField("references." + property + ".nodeId", value.toString()));
 
-      doc.add(stringField(property + ".id", value.getId()));
-      doc.add(stringField(property + ".type.id", value.getTypeId()));
-      doc.add(stringField(property + ".type.graph.id", value.getTypeGraphId()));
+      doc.add(stringField("references." + property + ".id", value.getId()));
+      doc.add(stringField("references." + property + ".type.id", value.getTypeId()));
+      doc.add(stringField("references." + property + ".type.graph.id", value.getTypeGraphId()));
     }
 
     for (Map.Entry<String, NodeId> entry : r.getReferrers().entries()) {

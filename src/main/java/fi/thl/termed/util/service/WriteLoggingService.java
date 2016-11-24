@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.Specification;
 
 public class WriteLoggingService<K extends Serializable, V> implements Service<K, V> {
 
@@ -56,13 +55,15 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
-  public Results<V> get(Query<K, V> query, User user) {
-    return delegate.get(query, user);
+  public List<V> get(Specification<K, V> specification, List<String> sort, int max,
+                     User currentUser) {
+    return delegate.get(specification, sort, max, currentUser);
   }
 
   @Override
-  public Results<K> getKeys(Query<K, V> query, User user) {
-    return delegate.getKeys(query, user);
+  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max,
+                         User currentUser) {
+    return delegate.getKeys(specification, sort, max, currentUser);
   }
 
   @Override

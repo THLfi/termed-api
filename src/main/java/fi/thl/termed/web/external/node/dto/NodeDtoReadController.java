@@ -3,8 +3,8 @@ package fi.thl.termed.web.external.node.dto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,15 +20,30 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeDto;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.NodeQuery;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.graph.specification.GraphByCode;
+import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesByCode;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.service.node.specification.NodesByUri;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
+import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.service.type.specification.TypesById;
 import fi.thl.termed.util.FunctionUtils;
+import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.QueryModel;
-import fi.thl.termed.web.node.NodeControllerReadService;
+import fi.thl.termed.util.specification.AndSpecification;
+import fi.thl.termed.util.specification.OrSpecification;
+import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.spring.exception.NotFoundException;
+
+import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
 
 @RestController
 @RequestMapping("/api/ext")
@@ -46,19 +61,13 @@ public class NodeDtoReadController {
   @Autowired
   private Service<NodeId, Node> nodeService;
 
-  @Autowired
-  private NodeControllerReadService nodeReadService;
-
-  @Value("${fi.thl.termed.baseUri:}")
-  private String baseUri;
-
-  private NodeDto toDto(Node node, NodeToDtoMapperConfig config, User user) {
-    return buildDtoMapper(user).apply(node, config);
+  private NodeDto toDto(Node node, NodeQuery query, User user) {
+    return buildDtoMapper(user).apply(node, query);
   }
 
-  private List<NodeDto> toDto(List<Node> nodes, NodeToDtoMapperConfig config, User user) {
+  private List<NodeDto> toDto(List<Node> nodes, NodeQuery query, User user) {
     return nodes.stream()
-        .map(FunctionUtils.partialApplySecond(buildDtoMapper(user), config))
+        .map(FunctionUtils.partialApplySecond(buildDtoMapper(user), query))
         .collect(Collectors.toList());
   }
 
@@ -67,68 +76,70 @@ public class NodeDtoReadController {
         FunctionUtils.memoize(graphId -> graphService.get(graphId, user).get()),
         FunctionUtils.memoize(typeId -> typeService.get(typeId, user).get()),
         new IndexedReferenceLoader(nodeService, user),
-        new IndexedReferrerLoader(nodeService, user),
-        baseUri);
+        new IndexedReferrerLoader(nodeService, user));
   }
 
   @GetMapping
   public List<NodeDto> searchNodesOfAnyType(
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchNodesOfAnyType(qm, user), config, user);
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(user).forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
   @GetMapping(params = "typeId")
   public List<NodeDto> searchNodesOfTypeInAnyGraph(
       @RequestParam("typeId") String typeId,
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchNodesOfTypeInAnyGraph(typeId, qm, user), config, user);
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(new TypesById(typeId), user)
+        .forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
   @GetMapping("/{graphCode}")
   public List<NodeDto> searchNodesOfAnyTypeInGraph(
       @PathVariable("graphCode") String graphCode,
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchNodesOfAnyTypeInGraph(graphCode, qm, user), config, user);
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user).orElseThrow(
+        NotFoundException::new);
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(new TypesByGraphId(graphId.getId()), user)
+        .forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
   @GetMapping("/{graphCode}/{typeId}")
   public List<NodeDto> searchNodesOfType(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @ModelAttribute NodeQuery query,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchNodesOfType(graphCode, typeId, qm, user), config, user);
-  }
 
-  @GetMapping(path = "/{graphCode}/{typeId}", params = {"referenceTree=true", "selectReference"})
-  public List<NodeDto> findNodeReferenceTreesByType(
-      @PathVariable("graphCode") String graphCode,
-      @PathVariable("typeId") String typeId,
-      @RequestParam("selectReference") String attributeId,
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
-      @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchReferenceTreeRootNodes(
-        graphCode, typeId, attributeId, qm, user), config, user);
-  }
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+    Type type = typeService.get(new TypeId(typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
 
-  @GetMapping(path = "/{graphCode}/{typeId}", params = {"referrerTree=true", "selectReferrer"})
-  public List<NodeDto> findNodeReferrerTreesByType(
-      @PathVariable("graphCode") String graphCode,
-      @PathVariable("typeId") String typeId,
-      @RequestParam("selectReferrer") String attributeId,
-      @ModelAttribute QueryModel qm,
-      @ModelAttribute NodeToDtoMapperConfig config,
-      @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.searchReferrerTreeRootNodes(
-        graphCode, typeId, attributeId, qm, user), config, user);
+    Specification<NodeId, Node> spec = toSpecification(type, query.where);
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
   @GetMapping("/{graphCode}/{typeId}/{nodeCode}")
@@ -136,18 +147,47 @@ public class NodeDtoReadController {
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @PathVariable("nodeCode") String nodeCode,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @ModelAttribute NodeQuery query,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.getNodeByCode(nodeCode, typeId, graphCode, user), config, user);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec = new AndSpecification<>(
+        new NodesByGraphId(graphId.getId()),
+        new NodesByTypeId(typeId),
+        new NodesByCode(nodeCode));
+
+    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+
+    return toDto(node, query, user);
   }
 
   @GetMapping(path = "/{graphCode}", params = "uri")
   public NodeDto getNodeByUri(
       @PathVariable("graphCode") String graphCode,
       @RequestParam("uri") String nodeUri,
-      @ModelAttribute NodeToDtoMapperConfig config,
+      @ModelAttribute NodeQuery query,
       @AuthenticationPrincipal User user) {
-    return toDto(nodeReadService.getNodeByUri(nodeUri, graphCode, user), config, user);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec;
+
+    if (nodeUri.matches("^urn:uuid:" + RegularExpressions.UUID + "$")) {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId.getId()),
+          new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))));
+    } else {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId.getId()),
+          new NodesByUri(nodeUri));
+    }
+
+    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+
+    return toDto(node, query, user);
   }
 
 }

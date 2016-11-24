@@ -14,9 +14,6 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferences;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.Query;
-
-import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 /**
  * Load node references from index.
@@ -35,8 +32,8 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    List<Node> populatedReferences = nodeService.get(new Query<>(
-        new NodeReferences(new NodeId(node), attributeId), LUCENE), user).getValues();
+    List<Node> populatedReferences = nodeService.get(
+        new NodeReferences(new NodeId(node), attributeId), user);
 
     Map<NodeId, Node> populatedReferencesIndex = new HashMap<>();
     populatedReferences.forEach(r -> populatedReferencesIndex.put(new NodeId(r), r));

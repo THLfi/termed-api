@@ -14,9 +14,6 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferrers;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.Query;
-
-import static fi.thl.termed.util.specification.Query.Engine.LUCENE;
 
 /**
  * Load node referrers from index.
@@ -35,8 +32,8 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    List<Node> populatedReferrers = nodeService.get(new Query<>(
-        new NodeReferrers(new NodeId(node), attributeId), LUCENE), user).getValues();
+    List<Node> populatedReferrers = nodeService.get(
+        new NodeReferrers(new NodeId(node), attributeId), user);
 
     Map<NodeId, Node> populatedReferrersIndex = new HashMap<>();
     populatedReferrers.forEach(r -> populatedReferrersIndex.put(new NodeId(r), r));

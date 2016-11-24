@@ -1,13 +1,12 @@
 package fi.thl.termed.util.service;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
 import fi.thl.termed.util.specification.Specification;
 
 /**
@@ -32,14 +31,14 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get specified values.
    */
-  Results<V> get(Query<K, V> query, User currentUser);
+  List<V> get(Specification<K, V> specification, List<String> sort, int max, User currentUser);
 
   default List<V> get(User currentUser) {
     return get(new MatchAll<>(), currentUser);
   }
 
   default List<V> get(Specification<K, V> specification, User currentUser) {
-    return get(new Query<>(specification), currentUser).getValues();
+    return get(specification, new ArrayList<>(), -1, currentUser);
   }
 
   default Optional<V> getFirst(Specification<K, V> specification, User currentUser) {
@@ -49,14 +48,14 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get specified keys.
    */
-  Results<K> getKeys(Query<K, V> query, User currentUser);
+  List<K> getKeys(Specification<K, V> specification, List<String> sort, int max, User currentUser);
 
   default List<K> getKeys(User currentUser) {
     return getKeys(new MatchAll<>(), currentUser);
   }
 
   default List<K> getKeys(Specification<K, V> specification, User currentUser) {
-    return getKeys(new Query<>(specification), currentUser).getValues();
+    return getKeys(specification, new ArrayList<>(), -1, currentUser);
   }
 
   default Optional<K> getFirstKey(Specification<K, V> specification, User currentUser) {

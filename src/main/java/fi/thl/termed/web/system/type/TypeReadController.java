@@ -19,8 +19,6 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
@@ -37,7 +35,7 @@ public class TypeReadController {
   @GetJsonMapping("/types")
   public List<Type> getTypes(
       @AuthenticationPrincipal User currentUser) {
-    return typeService.get(new Query<>(new MatchAll<>()), currentUser).getValues();
+    return typeService.get(currentUser);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types")
@@ -45,7 +43,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User currentUser) {
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    return typeService.get(new Query<>(new TypesByGraphId(graphId)), currentUser).getValues();
+    return typeService.get(new TypesByGraphId(graphId), currentUser);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}")

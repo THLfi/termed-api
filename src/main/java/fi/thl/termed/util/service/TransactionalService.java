@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.Specification;
 
 public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
 
@@ -32,11 +31,12 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Results<V> get(Query<K, V> specification, User currentUser) {
+  public List<V> get(Specification<K, V> specification, List<String> sort, int max,
+                     User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
-    Results<V> results;
+    List<V> results;
     try {
-      results = delegate.get(specification, currentUser);
+      results = delegate.get(specification, sort, max, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -46,11 +46,12 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Results<K> getKeys(Query<K, V> query, User currentUser) {
+  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max,
+                         User currentUser) {
     TransactionStatus tx = manager.getTransaction(definition);
-    Results<K> results;
+    List<K> results;
     try {
-      results = delegate.getKeys(query, currentUser);
+      results = delegate.getKeys(specification, sort, max, currentUser);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;

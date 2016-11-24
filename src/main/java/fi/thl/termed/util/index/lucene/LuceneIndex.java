@@ -11,6 +11,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
@@ -43,8 +44,7 @@ import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.Query;
-import fi.thl.termed.util.specification.Results;
+import fi.thl.termed.util.specification.Specification;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
@@ -126,11 +126,11 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public Results<V> get(Query<K, V> query) {
+  public List<V> get(Specification<K, V> specification, List<String> sort, int max) {
     try {
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(searcher, getLuceneQuery(query), query.getMax(), query.getOrderBy(),
+        return query(searcher, ((LuceneSpecification<K, V>) specification).luceneQuery(), max, sort,
                      documentConverter.inverse());
       } finally {
         searcherManager.release(searcher);
@@ -141,11 +141,11 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public Results<K> getKeys(Query<K, V> query) {
+  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max) {
     try {
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(searcher, getLuceneQuery(query), query.getMax(), query.getOrderBy(),
+        return query(searcher, ((LuceneSpecification<K, V>) specification).luceneQuery(), max, sort,
                      d -> keyConverter.applyInverse(d.get(DOCUMENT_ID)));
       } finally {
         searcherManager.release(searcher);
@@ -171,10 +171,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private org.apache.lucene.search.Query getLuceneQuery(Query<K, V> query) {
-    return ((LuceneSpecification<K, V>) query.getSpecification()).luceneQuery();
-  }
-
   @Override
   public List<V> get(List<K> ids) {
     try {
@@ -184,7 +180,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       }
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(searcher, q, ids.size(), emptyList(), documentConverter.inverse()).getValues();
+        return query(searcher, q, ids.size(), emptyList(), documentConverter.inverse());
       } finally {
         searcherManager.release(searcher);
       }
@@ -199,8 +195,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       TermQuery q = new TermQuery(new Term(DOCUMENT_ID, keyConverter.apply(id)));
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(searcher, q, 1, emptyList(), documentConverter.inverse())
-            .getValues().stream().findFirst();
+        return query(searcher, q, 1, emptyList(), documentConverter.inverse()).stream().findFirst();
       } finally {
         searcherManager.release(searcher);
       }
@@ -209,15 +204,14 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private <E> Results<E> query(IndexSearcher searcher, org.apache.lucene.search.Query query,
-                               int max,
-                               List<String> orderBy, Function<Document, E> documentDeserializer)
+  private <E> List<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
+                            Function<Document, E> documentDeserializer)
       throws IOException {
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
-    return new Results<>(Arrays.asList(docs.scoreDocs).stream()
-                             .map(new ScoreDocLoader(searcher))
-                             .map(documentDeserializer)
-                             .collect(Collectors.toList()), docs.totalHits);
+    return Arrays.asList(docs.scoreDocs).stream()
+        .map(new ScoreDocLoader(searcher))
+        .map(documentDeserializer)
+        .collect(Collectors.toList());
   }
 
   private Sort sort(List<String> orderBy) {

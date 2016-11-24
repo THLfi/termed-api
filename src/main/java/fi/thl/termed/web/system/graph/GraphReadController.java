@@ -13,8 +13,6 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
@@ -27,7 +25,7 @@ public class GraphReadController {
 
   @GetJsonMapping
   public List<Graph> getGraph(@AuthenticationPrincipal User user) {
-    return graphService.get(new Query<>(new MatchAll<>()), user).getValues();
+    return graphService.get(user);
   }
 
   @GetJsonMapping("/{graphId}")

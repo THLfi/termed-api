@@ -33,15 +33,18 @@ import static com.google.common.base.Charsets.UTF_8;
 public class NodeDtoListRdfMessageConverter
     extends AbstractGenericHttpMessageConverter<List<NodeDto>> {
 
+  private String baseUri;
+
   private Type nodeDtoListType = new TypeToken<List<NodeDto>>() {
   }.getType();
 
-  public NodeDtoListRdfMessageConverter() {
+  public NodeDtoListRdfMessageConverter(String baseUri) {
     super(RdfMediaTypes.N_TRIPLES,
           RdfMediaTypes.RDF_XML,
           RdfMediaTypes.LD_JSON,
           RdfMediaTypes.TURTLE,
           RdfMediaTypes.N3);
+    this.baseUri = baseUri;
   }
 
   @Override
@@ -86,7 +89,7 @@ public class NodeDtoListRdfMessageConverter
     Optional<MediaType> mediaType = Optional.of(output.getHeaders().getContentType());
     String lang = mediaType.isPresent() ? mediaTypeToLang(mediaType.get()).getLabel() : "TTL";
 
-    Model model = new NodeDtoListToJenaModel().apply(nodes);
+    Model model = new NodeDtoListToJenaModel(baseUri).apply(nodes);
 
     Writer writer = new OutputStreamWriter(output.getBody(), UTF_8);
     model.write(writer, lang, "");

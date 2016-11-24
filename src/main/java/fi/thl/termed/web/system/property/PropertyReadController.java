@@ -11,8 +11,6 @@ import java.util.List;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.MatchAll;
-import fi.thl.termed.util.specification.Query;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
@@ -29,7 +27,7 @@ public class PropertyReadController {
 
   @GetJsonMapping
   public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.get(new Query<>(new MatchAll<>()), user).getValues();
+    return propertyService.get(user);
   }
 
   @GetJsonMapping("/{id}")
