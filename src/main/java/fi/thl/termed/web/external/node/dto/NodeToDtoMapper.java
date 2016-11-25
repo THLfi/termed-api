@@ -29,6 +29,8 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeDto;
 import fi.thl.termed.domain.TypeId;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
 
   @SuppressWarnings("all")
@@ -155,10 +157,14 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
     dto.setUri(type.getUri());
     dto.setGraph(graphDto(type.getGraph(), select));
 
-    dto.setTextAttributes(type.getTextAttributes().stream().collect(
-        Collectors.toMap(TextAttribute::getId, TextAttribute::getUri)));
-    dto.setReferenceAttributes(type.getReferenceAttributes().stream().collect(
-        Collectors.toMap(ReferenceAttribute::getId, ReferenceAttribute::getUri)));
+    dto.setTextAttributes(
+        type.getTextAttributes().stream()
+            .filter(attr -> !isNullOrEmpty(attr.getUri()))
+            .collect(Collectors.toMap(TextAttribute::getId, TextAttribute::getUri)));
+    dto.setReferenceAttributes(
+        type.getReferenceAttributes().stream()
+            .filter(attr -> !isNullOrEmpty(attr.getUri()))
+            .collect(Collectors.toMap(ReferenceAttribute::getId, ReferenceAttribute::getUri)));
 
     if (select.type) {
       dto.setProperties(type.getProperties());
