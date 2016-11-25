@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Graph;
@@ -115,11 +116,29 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user).orElseThrow(
-        NotFoundException::new);
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
     typeService.get(new TypesByGraphId(graphId.getId()), user)
+        .forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+  }
+
+  @GetMapping(params = "graphId")
+  public List<NodeDto> searchNodesOfAnyTypeInGraphById(
+      @RequestParam("graphId") UUID graphId,
+      @RequestParam MultiValueMap<String, String> params,
+      @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    graphService.get(new GraphId(graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(new TypesByGraphId(graphId), user)
         .forEach(type -> spec.or(toSpecification(type, query.where)));
 
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);

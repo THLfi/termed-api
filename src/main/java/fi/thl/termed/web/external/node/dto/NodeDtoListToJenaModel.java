@@ -62,6 +62,7 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
       addLiteral(model, subject, TermedMeta.id, nodeDto.getId());
       addLiteral(model, subject, TermedMeta.typeId, typeDto.getId());
       addLiteral(model, subject, TermedMeta.graphId, graphDto.getId());
+      addLiteral(model, subject, TermedMeta.graphCode, graphDto.getCode());
       addLiteral(model, subject, TermedMeta.code, nodeDto.getCode());
       addLiteral(model, subject, TermedMeta.createdBy, nodeDto.getCreatedBy());
       addLiteral(model, subject, TermedMeta.createdDate, nodeDto.getCreatedDate());
