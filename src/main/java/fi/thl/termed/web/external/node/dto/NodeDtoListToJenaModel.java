@@ -8,7 +8,6 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
-import org.assertj.core.util.Strings;
 import org.joda.time.DateTime;
 
 import java.util.Date;
@@ -26,6 +25,7 @@ import fi.thl.termed.util.URIs;
 
 import static java.lang.String.format;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
+import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
 
@@ -49,8 +49,8 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
       TypeDto typeDto = nodeDto.getType();
       GraphDto graphDto = typeDto.getGraph();
 
-      if (!Strings.isNullOrEmpty(graphDto.getCode()) &&
-          !Strings.isNullOrEmpty(graphDto.getUri())) {
+      if (!isNullOrEmpty(graphDto.getCode()) &&
+          !isNullOrEmpty(graphDto.getUri())) {
         model.setNsPrefix(graphDto.getCode(), graphDto.getUri());
       }
 
@@ -86,18 +86,18 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
   }
 
   private String graphUri(GraphDto graph) {
-    return !Strings.isNullOrEmpty(graph.getUri()) ? graph.getUri() : format(
+    return !isNullOrEmpty(graph.getUri()) ? graph.getUri() : format(
         "%s/graphs/%s", baseUri, graph.getId());
   }
 
   private String typeUri(TypeDto type) {
-    return !Strings.isNullOrEmpty(type.getUri()) ? type.getUri() : format(
+    return !isNullOrEmpty(type.getUri()) ? type.getUri() : format(
         "%s/graphs/%s/types/%s", baseUri, type.getGraphId(), type.getId());
   }
 
   private String textAttributeUri(TypeDto type, String key) {
     String uri = type.getTextAttributes().get(key);
-    return !Strings.isNullOrEmpty(uri) ? uri : format(
+    return !isNullOrEmpty(uri) ? uri : format(
         "%s/graphs/%s/types/%s/textAttributes/%s",
         baseUri, type.getGraphId(), type.getId(), key);
   }
@@ -105,7 +105,7 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
 
   private String referenceAttributeUri(TypeDto type, String key) {
     String uri = type.getReferenceAttributes().get(key);
-    return !Strings.isNullOrEmpty(uri) ? uri : format(
+    return !isNullOrEmpty(uri) ? uri : format(
         "%s/graphs/%s/types/%s/referenceAttributes/%s",
         baseUri, type.getGraphId(), type.getId(), key);
   }
@@ -141,7 +141,7 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
   }
 
   private String uri(NodeDto nodeDto) {
-    return nodeDto.getUri() != null ? nodeDto.getUri() : URIs.uuidUrn(nodeDto.getId());
+    return !isNullOrEmpty(nodeDto.getUri()) ? nodeDto.getUri() : URIs.uuidUrn(nodeDto.getId());
   }
 
 }
