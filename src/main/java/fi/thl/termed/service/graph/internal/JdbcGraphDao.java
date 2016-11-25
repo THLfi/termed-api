@@ -13,6 +13,8 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
+import static com.google.common.base.Strings.emptyToNull;
+
 public class JdbcGraphDao extends AbstractJdbcDao<GraphId, Graph> {
 
   public JdbcGraphDao(DataSource dataSource) {
@@ -22,13 +24,13 @@ public class JdbcGraphDao extends AbstractJdbcDao<GraphId, Graph> {
   @Override
   public void insert(GraphId id, Graph graph) {
     jdbcTemplate.update("insert into graph (id, code, uri) values (?, ?, ?)",
-                        id.getId(), graph.getCode(), graph.getUri());
+                        id.getId(), emptyToNull(graph.getCode()), emptyToNull(graph.getUri()));
   }
 
   @Override
   public void update(GraphId id, Graph graph) {
     jdbcTemplate.update("update graph set code = ?, uri = ? where id = ?",
-                        graph.getCode(), graph.getUri(), id.getId());
+                        emptyToNull(graph.getCode()), emptyToNull(graph.getUri()), id.getId());
   }
 
   @Override

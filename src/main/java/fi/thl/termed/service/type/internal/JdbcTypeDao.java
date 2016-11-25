@@ -7,12 +7,14 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
 
@@ -25,14 +27,14 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
     jdbcTemplate.update("insert into type (graph_id, id, uri, index) values (?, ?, ?, ?)",
                         typeId.getGraphId(),
                         typeId.getId(),
-                        newType.getUri(),
+                        emptyToNull(newType.getUri()),
                         newType.getIndex());
   }
 
   @Override
   public void update(TypeId typeId, Type newType) {
     jdbcTemplate.update("update type set uri = ?, index = ? where graph_id = ? and id = ?",
-                        newType.getUri(),
+                        emptyToNull(newType.getUri()),
                         newType.getIndex(),
                         typeId.getGraphId(),
                         typeId.getId());

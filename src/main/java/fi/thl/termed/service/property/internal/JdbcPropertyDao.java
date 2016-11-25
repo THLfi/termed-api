@@ -11,6 +11,8 @@ import fi.thl.termed.domain.Property;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
 
+import static com.google.common.base.Strings.emptyToNull;
+
 public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
 
   public JdbcPropertyDao(DataSource dataSource) {
@@ -20,13 +22,13 @@ public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
   @Override
   public void insert(String id, Property property) {
     jdbcTemplate.update("insert into property (id, uri, index) values (?, ?, ?)",
-                        id, property.getUri(), property.getIndex());
+                        id, emptyToNull(property.getUri()), property.getIndex());
   }
 
   @Override
   public void update(String id, Property property) {
     jdbcTemplate.update("update property set uri = ?, index = ? where id = ?",
-                        property.getUri(), property.getIndex(), id);
+                        emptyToNull(property.getUri()), property.getIndex(), id);
   }
 
   @Override

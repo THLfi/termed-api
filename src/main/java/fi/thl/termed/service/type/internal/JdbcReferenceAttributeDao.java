@@ -7,13 +7,15 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 public class JdbcReferenceAttributeDao
     extends AbstractJdbcDao<ReferenceAttributeId, ReferenceAttribute> {
@@ -33,7 +35,7 @@ public class JdbcReferenceAttributeDao
         domainId.getGraphId(),
         domainId.getId(),
         referenceAttributeId.getId(),
-        referenceAttribute.getUri(),
+        emptyToNull(referenceAttribute.getUri()),
         referenceAttribute.getRangeGraphId(),
         referenceAttribute.getRangeId(),
         referenceAttribute.getIndex());
@@ -47,7 +49,7 @@ public class JdbcReferenceAttributeDao
 
     jdbcTemplate.update(
         "update reference_attribute set uri = ?, range_graph_id = ?, range_id = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
-        referenceAttribute.getUri(),
+        emptyToNull(referenceAttribute.getUri()),
         referenceAttribute.getRangeGraphId(),
         referenceAttribute.getRangeId(),
         referenceAttribute.getIndex(),

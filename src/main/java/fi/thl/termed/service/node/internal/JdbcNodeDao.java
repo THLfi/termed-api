@@ -7,12 +7,14 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
@@ -27,8 +29,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
-        node.getCode(),
-        node.getUri(),
+        emptyToNull(node.getCode()),
+        emptyToNull(node.getUri()),
         node.getCreatedBy(),
         node.getCreatedDate(),
         node.getLastModifiedBy(),
@@ -39,8 +41,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   public void update(NodeId nodeId, Node node) {
     jdbcTemplate.update(
         "update node set code = ?, uri = ?, created_by = ?, created_date = ?, last_modified_by = ?, last_modified_date = ? where graph_id = ? and type_id = ? and id = ?",
-        node.getCode(),
-        node.getUri(),
+        emptyToNull(node.getCode()),
+        emptyToNull(node.getUri()),
         node.getCreatedBy(),
         node.getCreatedDate(),
         node.getLastModifiedBy(),

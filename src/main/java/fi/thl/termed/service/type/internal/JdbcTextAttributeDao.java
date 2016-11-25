@@ -7,13 +7,15 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.specification.SqlSpecification;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {
 
@@ -30,7 +32,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
         domainId.getGraphId(),
         domainId.getId(),
         textAttributeId.getId(),
-        textAttribute.getUri(),
+        emptyToNull(textAttribute.getUri()),
         textAttribute.getRegex(),
         textAttribute.getIndex());
   }
@@ -41,7 +43,7 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
 
     jdbcTemplate.update(
         "update text_attribute set uri = ?, regex = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
-        textAttribute.getUri(),
+        emptyToNull(textAttribute.getUri()),
         textAttribute.getRegex(),
         textAttribute.getIndex(),
         domainId.getGraphId(),
