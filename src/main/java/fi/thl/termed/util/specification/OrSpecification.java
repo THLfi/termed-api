@@ -50,6 +50,10 @@ public class OrSpecification<K extends Serializable, V>
     return this;
   }
 
+  public List<Specification<K, V>> getSpecifications() {
+    return specifications;
+  }
+
   @Override
   public boolean test(K k, V v) {
     if (specifications.isEmpty()) {

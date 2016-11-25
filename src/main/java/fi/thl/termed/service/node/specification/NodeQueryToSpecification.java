@@ -31,15 +31,17 @@ public final class NodeQueryToSpecification {
     Set<String> referenceAttributeIds = type.getReferenceAttributes().stream()
         .map(Attribute::getId).collect(Collectors.toSet());
 
+    OrSpecification<NodeId, Node> propertySpec = new OrSpecification<>();
     where.properties.keySet().stream().filter(textAttributeIds::contains)
-        .forEach(key -> spec.and(where.properties.get(key).stream().map(
-            value -> new NodesByPropertyPrefix(key, value))
-                                     .collect(orCollector())));
+        .forEach(key -> where.properties.get(key)
+            .forEach(value -> propertySpec.or(new NodesByPropertyPrefix(key, value))));
+    if (!propertySpec.getSpecifications().isEmpty()) {
+      spec.and(propertySpec);
+    }
 
     where.references.keySet().stream().filter(referenceAttributeIds::contains)
         .forEach(key -> spec.and(where.references.get(key).stream().map(
-            value -> new NodesByReference(key, value))
-                                     .collect(orCollector())));
+            value -> new NodesByReference(key, value)).collect(orCollector())));
 
     return spec;
   }
