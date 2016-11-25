@@ -108,24 +108,6 @@ public class NodeDtoReadController {
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
-  @GetMapping("/{graphCode}")
-  public List<NodeDto> searchNodesOfAnyTypeInGraph(
-      @PathVariable("graphCode") String graphCode,
-      @RequestParam MultiValueMap<String, String> params,
-      @AuthenticationPrincipal User user) {
-
-    NodeQuery query = NodeQueryParser.parse(params);
-
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
-
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    typeService.get(new TypesByGraphId(graphId.getId()), user)
-        .forEach(type -> spec.or(toSpecification(type, query.where)));
-
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
-  }
-
   @GetMapping(params = "graphId")
   public List<NodeDto> searchNodesOfAnyTypeInGraphById(
       @RequestParam("graphId") UUID graphId,
@@ -144,8 +126,45 @@ public class NodeDtoReadController {
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
+  @GetMapping("/{graphCode}")
+  public List<NodeDto> searchNodesOfAnyTypeInGraph(
+      @PathVariable("graphCode") String graphCode,
+      @RequestParam MultiValueMap<String, String> params,
+      @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(new TypesByGraphId(graphId.getId()), user)
+        .forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+  }
+
+  @GetMapping(params = {"graphId", "typeId"})
+  public List<NodeDto> searchNodesByTypeIdAndGraphId(
+      @RequestParam("graphId") UUID graphId,
+      @RequestParam("typeId") String typeId,
+      @RequestParam MultiValueMap<String, String> params,
+      @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    graphService.get(new GraphId(graphId), user)
+        .orElseThrow(NotFoundException::new);
+    Type type = typeService.get(new TypeId(typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec = toSpecification(type, query.where);
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+  }
+
   @GetMapping("/{graphCode}/{typeId}")
-  public List<NodeDto> searchNodesOfType(
+  public List<NodeDto> searchNodesByGraphCodeAndTypeId(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @ModelAttribute NodeQuery query,
