@@ -48,10 +48,15 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
         String uri = r.getUri();
 
         Node node = new Node();
-        node.setUri(uri);
-        node.setCode(StringUtils.normalize(URIs.localName(uri)));
-        node.setId(uri.matches(URN_UUID) ? fromString(uri.substring("urn:uuid:".length()))
-                                         : nameUUIDFromString(uri));
+
+        if (uri.matches(URN_UUID)) {
+          node.setId(fromString(uri.substring("urn:uuid:".length())));
+        } else {
+          node.setId(nameUUIDFromString(uri));
+          node.setUri(uri);
+          node.setCode(StringUtils.normalize(URIs.localName(uri)));
+        }
+
         node.setType(new TypeId(type));
         nodes.put(r.getUri(), node);
       }

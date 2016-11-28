@@ -213,7 +213,7 @@ public class NodeDtoReadController {
 
     Specification<NodeId, Node> spec;
 
-    if (nodeUri.matches("^urn:uuid:" + RegularExpressions.UUID + "$")) {
+    if (nodeUri.matches(RegularExpressions.URN_UUID)) {
       spec = new AndSpecification<>(
           new NodesByGraphId(graphId.getId()),
           new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))));
