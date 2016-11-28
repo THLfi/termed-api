@@ -20,9 +20,12 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.StringUtils;
 import fi.thl.termed.util.URIs;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;
+
+import static fi.thl.termed.util.RegularExpressions.URN_UUID;
+import static fi.thl.termed.util.UUIDs.fromString;
+import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 
 /**
  * Function to transform rdf model into list of nodes conforming to provided graph.
@@ -42,11 +45,14 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
     // init nodes
     for (Type type : types) {
       for (RdfResource r : rdfModel.find(RDF.type.getURI(), type.getUri())) {
+        String uri = r.getUri();
+
         Node node = new Node();
-        node.setCode(StringUtils.normalize(URIs.localName(r.getUri())));
-        node.setUri(r.getUri());
+        node.setUri(uri);
+        node.setCode(StringUtils.normalize(URIs.localName(uri)));
+        node.setId(uri.matches(URN_UUID) ? fromString(uri.substring("urn:uuid:".length()))
+                                         : nameUUIDFromString(uri));
         node.setType(new TypeId(type));
-        node.setId(UUIDs.nameUUIDFromString(r.getUri()));
         nodes.put(r.getUri(), node);
       }
     }
