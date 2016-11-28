@@ -202,7 +202,7 @@ public class NodeDtoReadController {
   }
 
   @GetMapping(path = "/{graphCode}", params = "uri")
-  public NodeDto getNodeByUri(
+  public NodeDto getNodeByGraphCodeAndNodeUri(
       @PathVariable("graphCode") String graphCode,
       @RequestParam("uri") String nodeUri,
       @ModelAttribute NodeQuery query,
@@ -220,6 +220,32 @@ public class NodeDtoReadController {
     } else {
       spec = new AndSpecification<>(
           new NodesByGraphId(graphId.getId()),
+          new NodesByUri(nodeUri));
+    }
+
+    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+
+    return toDto(node, query, user);
+  }
+
+  @GetMapping(params = {"graphId", "uri"})
+  public NodeDto getNodeByGraphIdAndNodeUri(
+      @RequestParam("graphId") UUID graphId,
+      @RequestParam("uri") String nodeUri,
+      @ModelAttribute NodeQuery query,
+      @AuthenticationPrincipal User user) {
+
+    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec;
+
+    if (nodeUri.matches("^urn:uuid:" + RegularExpressions.UUID + "$")) {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId),
+          new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))));
+    } else {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId),
           new NodesByUri(nodeUri));
     }
 
