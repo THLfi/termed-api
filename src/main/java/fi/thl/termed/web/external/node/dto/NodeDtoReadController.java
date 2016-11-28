@@ -254,4 +254,28 @@ public class NodeDtoReadController {
     return toDto(node, query, user);
   }
 
+  @GetMapping(params = "uri")
+  public List<NodeDto> getNodesByUri(
+      @RequestParam("uri") String nodeUri,
+      @ModelAttribute NodeQuery query,
+      @AuthenticationPrincipal User user) {
+
+    Specification<NodeId, Node> uriSpec;
+
+    if (nodeUri.matches(RegularExpressions.URN_UUID)) {
+      uriSpec = new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length())));
+    } else {
+      uriSpec = new NodesByUri(nodeUri);
+    }
+
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    typeService.get(user).forEach(
+        type -> spec.or(new AndSpecification<>(
+            new NodesByGraphId(type.getGraphId()),
+            new NodesByTypeId(type.getId()),
+            uriSpec)));
+
+    return toDto(nodeService.get(spec, user), query, user);
+  }
+
 }
