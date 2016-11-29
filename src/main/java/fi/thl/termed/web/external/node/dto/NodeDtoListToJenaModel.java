@@ -46,43 +46,57 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
     model.setNsPrefix("termed", TermedMeta.uri);
 
     for (NodeDto nodeDto : nodes) {
-      TypeDto typeDto = nodeDto.getType();
-      GraphDto graphDto = typeDto.getGraph();
-
-      if (!isNullOrEmpty(graphDto.getCode()) &&
-          !isNullOrEmpty(graphDto.getUri())) {
-        model.setNsPrefix(graphDto.getCode(), graphDto.getUri());
-      }
-
-      Resource subject = createResource(uri(nodeDto));
-
-      addResource(model, subject, RDF.type, typeUri(typeDto));
-      addResource(model, subject, TermedMeta.graph, graphUri(graphDto));
-
-      addLiteral(model, subject, TermedMeta.id, nodeDto.getId());
-      addLiteral(model, subject, TermedMeta.typeId, typeDto.getId());
-      addLiteral(model, subject, TermedMeta.graphId, graphDto.getId());
-      addLiteral(model, subject, TermedMeta.graphCode, graphDto.getCode());
-      addLiteral(model, subject, TermedMeta.code, nodeDto.getCode());
-      addLiteral(model, subject, TermedMeta.createdBy, nodeDto.getCreatedBy());
-      addLiteral(model, subject, TermedMeta.createdDate, nodeDto.getCreatedDate());
-      addLiteral(model, subject, TermedMeta.lastModifiedBy, nodeDto.getLastModifiedBy());
-      addLiteral(model, subject, TermedMeta.lastModifiedDate, nodeDto.getLastModifiedDate());
-
-      for (Map.Entry<String, LangValue> entry : nodeDto.getProperties().entries()) {
-        addLiteral(model, subject,
-                   model.createProperty(textAttributeUri(typeDto, entry.getKey())),
-                   entry.getValue());
-      }
-
-      for (Map.Entry<String, NodeDto> entry : nodeDto.getReferences().entries()) {
-        addResource(model, subject,
-                    model.createProperty(referenceAttributeUri(typeDto, entry.getKey())),
-                    uri(entry.getValue()));
-      }
+      addNode(model, nodeDto);
     }
 
     return model;
+  }
+
+  private void addNode(Model model, NodeDto nodeDto) {
+    TypeDto typeDto = nodeDto.getType();
+    GraphDto graphDto = typeDto.getGraph();
+
+    Resource subject = createResource(uri(nodeDto));
+
+    addGraph(model, graphDto);
+
+    addResource(model, subject, RDF.type, typeUri(typeDto));
+    addResource(model, subject, TermedMeta.graph, graphUri(graphDto));
+
+    addLiteral(model, subject, TermedMeta.code, nodeDto.getCode());
+    addLiteral(model, subject, TermedMeta.id, nodeDto.getId());
+    addLiteral(model, subject, TermedMeta.typeId, typeDto.getId());
+
+    addLiteral(model, subject, TermedMeta.createdBy, nodeDto.getCreatedBy());
+    addLiteral(model, subject, TermedMeta.createdDate, nodeDto.getCreatedDate());
+    addLiteral(model, subject, TermedMeta.lastModifiedBy, nodeDto.getLastModifiedBy());
+    addLiteral(model, subject, TermedMeta.lastModifiedDate, nodeDto.getLastModifiedDate());
+
+    for (Map.Entry<String, LangValue> entry : nodeDto.getProperties().entries()) {
+      addLiteral(model, subject,
+                 model.createProperty(textAttributeUri(typeDto, entry.getKey())),
+                 entry.getValue());
+    }
+
+    for (Map.Entry<String, NodeDto> entry : nodeDto.getReferences().entries()) {
+      addResource(model, subject,
+                  model.createProperty(referenceAttributeUri(typeDto, entry.getKey())),
+                  uri(entry.getValue()));
+
+      addNode(model, entry.getValue());
+    }
+  }
+
+  private void addGraph(Model model, GraphDto graphDto) {
+    if (!isNullOrEmpty(graphDto.getCode()) &&
+        !isNullOrEmpty(graphDto.getUri())) {
+      model.setNsPrefix(graphDto.getCode(), graphDto.getUri());
+    }
+
+    Resource subject = createResource(graphUri(graphDto));
+    addResource(model, subject, RDF.type, TermedMeta.Graph);
+    addLiteral(model, subject, TermedMeta.id, graphDto.getId());
+    addLiteral(model, subject, TermedMeta.code, graphDto.getCode());
   }
 
   private String graphUri(GraphDto graph) {
@@ -108,6 +122,12 @@ public class NodeDtoListToJenaModel implements Function<List<NodeDto>, Model> {
     return !isNullOrEmpty(uri) ? uri : format(
         "%s/graphs/%s/types/%s/referenceAttributes/%s",
         baseUri, type.getGraphId(), type.getId(), key);
+  }
+
+  private void addResource(Model model, Resource subject, Property predicate, Resource object) {
+    if (object != null) {
+      model.add(model.createStatement(subject, predicate, object));
+    }
   }
 
   private void addResource(Model model, Resource subject, Property predicate, String objectUri) {
