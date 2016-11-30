@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -81,47 +82,29 @@ public class NodeDtoReadController {
   }
 
   @GetMapping
-  public List<NodeDto> searchNodesOfAnyType(
+  public List<NodeDto> searchNodes(
+      @RequestParam(value = "graphId", required = false) UUID graphId,
+      @RequestParam(value = "typeId", required = false) String typeId,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
-    NodeQuery query = NodeQueryParser.parse(params);
+    List<Type> types;
 
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    typeService.get(user).forEach(type -> spec.or(toSpecification(type, query.where)));
-
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
-  }
-
-  @GetMapping(params = "typeId")
-  public List<NodeDto> searchNodesOfTypeInAnyGraph(
-      @RequestParam("typeId") String typeId,
-      @RequestParam MultiValueMap<String, String> params,
-      @AuthenticationPrincipal User user) {
-
-    NodeQuery query = NodeQueryParser.parse(params);
-
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    typeService.get(new TypesById(typeId), user)
-        .forEach(type -> spec.or(toSpecification(type, query.where)));
-
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
-  }
-
-  @GetMapping(params = "graphId")
-  public List<NodeDto> searchNodesOfAnyTypeInGraphById(
-      @RequestParam("graphId") UUID graphId,
-      @RequestParam MultiValueMap<String, String> params,
-      @AuthenticationPrincipal User user) {
+    if (graphId != null && typeId != null) {
+      types = typeService.get(new TypeId(typeId, new GraphId(graphId)), user)
+          .map(Collections::singletonList)
+          .orElseThrow(NotFoundException::new);
+    } else if (graphId != null) {
+      types = typeService.get(new TypesByGraphId(graphId), user);
+    } else if (typeId != null) {
+      types = typeService.get(new TypesById(typeId), user);
+    } else {
+      types = typeService.get(user);
+    }
 
     NodeQuery query = NodeQueryParser.parse(params);
-
-    graphService.get(new GraphId(graphId), user)
-        .orElseThrow(NotFoundException::new);
-
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    typeService.get(new TypesByGraphId(graphId), user)
-        .forEach(type -> spec.or(toSpecification(type, query.where)));
+    types.forEach(type -> spec.or(toSpecification(type, query.where)));
 
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
@@ -144,31 +127,14 @@ public class NodeDtoReadController {
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
 
-  @GetMapping(params = {"graphId", "typeId"})
-  public List<NodeDto> searchNodesByTypeIdAndGraphId(
-      @RequestParam("graphId") UUID graphId,
-      @RequestParam("typeId") String typeId,
-      @RequestParam MultiValueMap<String, String> params,
-      @AuthenticationPrincipal User user) {
-
-    NodeQuery query = NodeQueryParser.parse(params);
-
-    graphService.get(new GraphId(graphId), user)
-        .orElseThrow(NotFoundException::new);
-    Type type = typeService.get(new TypeId(typeId, graphId), user)
-        .orElseThrow(NotFoundException::new);
-
-    Specification<NodeId, Node> spec = toSpecification(type, query.where);
-
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
-  }
-
   @GetMapping("/{graphCode}/{typeId}")
   public List<NodeDto> searchNodesByGraphCodeAndTypeId(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
-      @ModelAttribute NodeQuery query,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
         .orElseThrow(NotFoundException::new);
