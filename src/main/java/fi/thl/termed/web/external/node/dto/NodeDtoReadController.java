@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -151,8 +150,10 @@ public class NodeDtoReadController {
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @PathVariable("nodeCode") String nodeCode,
-      @ModelAttribute NodeQuery query,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
         .orElseThrow(NotFoundException::new);
@@ -167,12 +168,46 @@ public class NodeDtoReadController {
     return toDto(node, query, user);
   }
 
+  @GetMapping(path = "/{graphCode}/{typeId}", params = "uri")
+  public NodeDto getNodeByGraphCodeAndTypeIdAndNodeUri(
+      @PathVariable("graphCode") String graphCode,
+      @PathVariable("typeId") String typeId,
+      @RequestParam("uri") String nodeUri,
+      @RequestParam MultiValueMap<String, String> params,
+      @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec;
+
+    if (nodeUri.matches(RegularExpressions.URN_UUID)) {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId.getId()),
+          new NodesByTypeId(typeId),
+          new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))));
+    } else {
+      spec = new AndSpecification<>(
+          new NodesByGraphId(graphId.getId()),
+          new NodesByTypeId(typeId),
+          new NodesByUri(nodeUri));
+    }
+
+    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+
+    return toDto(node, query, user);
+  }
+
   @GetMapping(path = "/{graphCode}", params = "uri")
   public NodeDto getNodeByGraphCodeAndNodeUri(
       @PathVariable("graphCode") String graphCode,
       @RequestParam("uri") String nodeUri,
-      @ModelAttribute NodeQuery query,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
         .orElseThrow(NotFoundException::new);
@@ -198,8 +233,10 @@ public class NodeDtoReadController {
   public NodeDto getNodeByGraphIdAndNodeUri(
       @RequestParam("graphId") UUID graphId,
       @RequestParam("uri") String nodeUri,
-      @ModelAttribute NodeQuery query,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
@@ -223,8 +260,10 @@ public class NodeDtoReadController {
   @GetMapping(params = "uri")
   public List<NodeDto> getNodesByUri(
       @RequestParam("uri") String nodeUri,
-      @ModelAttribute NodeQuery query,
+      @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     Specification<NodeId, Node> uriSpec;
 
