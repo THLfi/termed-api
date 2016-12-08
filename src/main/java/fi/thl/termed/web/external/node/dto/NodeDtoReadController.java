@@ -40,11 +40,14 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
+import fi.thl.termed.util.specification.ForwardingSqlSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
 import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
+import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 @RestController
 @RequestMapping("/api/ext")
@@ -70,6 +73,10 @@ public class NodeDtoReadController {
     return nodes.stream()
         .map(FunctionUtils.partialApplySecond(buildDtoMapper(user), query))
         .collect(Collectors.toList());
+  }
+
+  private Specification<NodeId, Node> wrapToSqlSpec(Specification<NodeId, Node> spec) {
+    return new ForwardingSqlSpecification<>((SqlSpecification<NodeId, Node>) spec);
   }
 
   private NodeToDtoMapper buildDtoMapper(User user) {
@@ -150,6 +157,7 @@ public class NodeDtoReadController {
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @PathVariable("nodeCode") String nodeCode,
+      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
@@ -163,7 +171,8 @@ public class NodeDtoReadController {
         new NodesByTypeId(typeId),
         new NodesByCode(nodeCode));
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.getFirst(bypassIndex ? wrapToSqlSpec(spec) : spec, user)
+        .orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -173,6 +182,7 @@ public class NodeDtoReadController {
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
       @RequestParam("uri") String nodeUri,
+      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
@@ -195,7 +205,8 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.getFirst(bypassIndex ? wrapToSqlSpec(spec) : spec, user)
+        .orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -204,6 +215,7 @@ public class NodeDtoReadController {
   public NodeDto getNodeByGraphCodeAndNodeUri(
       @PathVariable("graphCode") String graphCode,
       @RequestParam("uri") String nodeUri,
+      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
@@ -224,7 +236,8 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.getFirst(bypassIndex ? wrapToSqlSpec(spec) : spec, user)
+        .orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -233,6 +246,7 @@ public class NodeDtoReadController {
   public NodeDto getNodeByGraphIdAndNodeUri(
       @RequestParam("graphId") UUID graphId,
       @RequestParam("uri") String nodeUri,
+      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
@@ -252,14 +266,17 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.getFirst(bypassIndex ? wrapToSqlSpec(spec) : spec, user)
+        .orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
 
   @GetMapping(params = "uri")
   public List<NodeDto> getNodesByUri(
-      @RequestParam("uri") String nodeUri,
+      @RequestParam(value = "typeId", required = false) String typeId,
+      @RequestParam(value = "uri") String nodeUri,
+      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
 
@@ -273,14 +290,16 @@ public class NodeDtoReadController {
       uriSpec = new NodesByUri(nodeUri);
     }
 
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    typeService.get(user).forEach(
-        type -> spec.or(new AndSpecification<>(
-            new NodesByGraphId(type.getGraphId()),
-            new NodesByTypeId(type.getId()),
-            uriSpec)));
+    List<Type> types = isNullOrEmpty(typeId) ? typeService.get(user)
+                                             : typeService.get(new TypesById(typeId), user);
 
-    return toDto(nodeService.get(spec, user), query, user);
+    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    types.forEach(type -> spec.or(new AndSpecification<>(
+        new NodesByGraphId(type.getGraphId()),
+        new NodesByTypeId(type.getId()),
+        uriSpec)));
+
+    return toDto(nodeService.get(bypassIndex ? wrapToSqlSpec(spec) : spec, user), query, user);
   }
 
 }
