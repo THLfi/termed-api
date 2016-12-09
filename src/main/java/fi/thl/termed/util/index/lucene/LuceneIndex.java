@@ -234,7 +234,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  protected void refresh() {
+  public void refresh() {
     try {
       searcherManager.maybeRefresh();
     } catch (IOException e) {
@@ -242,7 +242,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  protected void refreshBlocking() {
+  public void refreshBlocking() {
     try {
       searcherManager.maybeRefreshBlocking();
     } catch (IOException e) {
@@ -250,7 +250,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  protected void commit() {
+  public void commit() {
     try {
       writer.commit();
     } catch (IOException e) {

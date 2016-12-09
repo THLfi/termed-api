@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,13 +49,19 @@ public class NodeRdfWriteController {
   @ResponseStatus(NO_CONTENT)
   private void post(@PathVariable("graphId") UUID graphId,
                     @AuthenticationPrincipal User currentUser,
+                    @RequestParam(value = "stream", required = false, defaultValue = "false") boolean stream,
                     @RequestBody Model model) {
     log.info("Importing RDF-model {} (user: {})", graphId, currentUser.getUsername());
+
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    List<Node> nodes = new RdfModelToNodes(
-        typeService.get(new TypesByGraphId(graphId), currentUser))
-        .apply(new JenaRdfModel(model));
-    nodeService.save(nodes, currentUser);
+    List<Type> types = typeService.get(new TypesByGraphId(graphId), currentUser);
+    List<Node> nodes = new RdfModelToNodes(types).apply(new JenaRdfModel(model));
+
+    if (stream) {
+      nodes.forEach(node -> nodeService.save(node, currentUser));
+    } else {
+      nodeService.save(nodes, currentUser);
+    }
   }
 
 }

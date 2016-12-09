@@ -16,6 +16,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.LuceneSpecification;
@@ -73,7 +74,18 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexSet.addAll(nodeRelatedIds(new NodeId(node)));
     reindex(reindexSet);
+
+    waitLuceneIndexRefresh();
+
     return id;
+  }
+
+  // If index is Lucene backed, wait for searcher to reflect updates.
+  // This is done to make sure that all updates are visible.
+  private void waitLuceneIndexRefresh() {
+    if (index instanceof LuceneIndex) {
+      ((LuceneIndex) index).refreshBlocking();
+    }
   }
 
   @Override
@@ -140,9 +152,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private void asyncReindex(Set<NodeId> ids) {
     if (!ids.isEmpty()) {
-      index.index(ImmutableList.copyOf(ids), id -> {
-        return IndexedNodeService.super.get(id, indexer);
-      });
+      index.index(ImmutableList.copyOf(ids), id -> IndexedNodeService.super.get(id, indexer));
     }
   }
 
