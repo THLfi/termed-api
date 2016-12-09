@@ -207,8 +207,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private <E> List<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
                             Function<Document, E> documentDeserializer)
       throws IOException {
+    log.trace("{}", query);
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
-    return Arrays.asList(docs.scoreDocs).stream()
+    return Arrays.stream(docs.scoreDocs)
         .map(new ScoreDocLoader(searcher))
         .map(documentDeserializer)
         .collect(Collectors.toList());

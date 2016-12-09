@@ -3,6 +3,8 @@ package fi.thl.termed.service.node.specification;
 
 import com.google.common.collect.Multimap;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -12,6 +14,7 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.NodeQuery;
 import fi.thl.termed.domain.Type;
+import fi.thl.termed.util.StringUtils;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.MatchNone;
 import fi.thl.termed.util.specification.OrSpecification;
@@ -51,40 +54,54 @@ public final class NodeQueryToSpecification {
   private static OrSpecification<NodeId, Node> propertySpecification(
       Set<String> textAttributeIds, Multimap<String, String> whereProperties) {
 
-    OrSpecification<NodeId, Node> propertySpec = new OrSpecification<>();
+    List<Specification<NodeId, Node>> specifications = new ArrayList<>();
 
-    whereProperties.keySet().stream().filter(textAttributeIds::contains)
-        .forEach(key -> whereProperties.get(key)
-            .forEach(value -> propertySpec.or(new NodesByPropertyPrefix(key, value))));
+    for (String key : whereProperties.keySet()) {
+      if (textAttributeIds.contains(key)) {
+        List<Specification<NodeId, Node>> propertyValueSpecs = new ArrayList<>();
 
-    return propertySpec;
+        for (String value : whereProperties.get(key)) {
+          for (String token : StringUtils.tokenize(value)) {
+            propertyValueSpecs.add(new NodesByPropertyPrefix(key, token));
+          }
+        }
+
+        specifications.add(new OrSpecification<>(propertyValueSpecs));
+      } else {
+        // if queried property key is not present, we can't match anything with it,
+        // e.g. when we search for "definition:cat" and this type does not even have
+        // a attribute "definition", simply treat is like it doesn't match.
+        specifications.add(new MatchNone<>());
+      }
+    }
+
+    return new OrSpecification<>(specifications);
   }
 
   private static AndSpecification<NodeId, Node> referenceSpecification(
       Set<String> referenceAttributeIds, Multimap<String, UUID> whereReferences) {
 
-    AndSpecification<NodeId, Node> referenceSpec = new AndSpecification<>();
+    List<Specification<NodeId, Node>> specifications = new ArrayList<>();
 
     for (String key : whereReferences.keySet()) {
       if (referenceAttributeIds.contains(key)) {
         // multiple values for same key are considered disjunctive, i.e. user searches
         // for "related" is "cat", "dog", we accept values that or "cat" OR "dog" but it
         // must be one of them as this query is inside of conjunctive query
-        OrSpecification<NodeId, Node> referenceValuesSpec = new OrSpecification<>();
+        List<Specification<NodeId, Node>> referenceValuesSpecs = new ArrayList<>();
         for (UUID value : whereReferences.get(key)) {
-          referenceValuesSpec.or(new NodesByReference(key, value));
+          referenceValuesSpecs.add(new NodesByReference(key, value));
         }
-        referenceSpec.and(referenceValuesSpec);
+        specifications.add(new OrSpecification<>(referenceValuesSpecs));
       } else {
         // if queried reference key is not present, we can't match anything,
         // e.g. when we search for "related:cat" and this type does not even have
         // a attribute "related", simply exclude all values of this type from results
-        referenceSpec.and(new MatchNone<>());
-        break;
+        specifications.add(new MatchNone<>());
       }
     }
 
-    return referenceSpec;
+    return new AndSpecification<>(specifications);
   }
 
 }
