@@ -1,7 +1,6 @@
 package fi.thl.termed.web.external.node.jstree;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
@@ -11,13 +10,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.Tree;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 /**
@@ -37,6 +40,10 @@ public class NodeTreeToJsTree implements Function<Tree<Node>, JsTree> {
   public NodeTreeToJsTree(Predicate<NodeId> addChildrenPredicate,
                           Predicate<NodeId> selectedPredicate,
                           String labelAttributeId, String lang) {
+    checkNotNull(addChildrenPredicate);
+    checkNotNull(selectedPredicate);
+    checkArgument(labelAttributeId.matches(RegularExpressions.CODE));
+    checkArgument(lang.matches(RegularExpressions.CODE));
     this.addChildrenPredicate = addChildrenPredicate;
     this.selectedPredicate = selectedPredicate;
     this.labelAttributeId = labelAttributeId;
@@ -56,8 +63,8 @@ public class NodeTreeToJsTree implements Function<Tree<Node>, JsTree> {
     jsTree.setText(htmlEscape(getLocalizedLabel(node)) +
                    smallMuted(htmlEscape(getCode(node))));
 
-    jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.apply(nodeId),
-                                    "selected", selectedPredicate.apply(nodeId)));
+    jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.test(nodeId),
+                                    "selected", selectedPredicate.test(nodeId)));
 
     String conceptUrl = "/graphs/" + node.getTypeGraphId() +
                         "/types/" + node.getTypeId() +
@@ -73,7 +80,7 @@ public class NodeTreeToJsTree implements Function<Tree<Node>, JsTree> {
 
     if (children.isEmpty()) {
       jsTree.setChildren(false);
-    } else if (addChildrenPredicate.apply(nodeId)) {
+    } else if (addChildrenPredicate.test(nodeId)) {
       jsTree.setChildren(children.stream().map(this).collect(Collectors.toList()));
     } else {
       jsTree.setChildren(true);

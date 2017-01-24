@@ -1,6 +1,5 @@
 package fi.thl.termed.web.external.node.jstree;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -73,8 +72,8 @@ public class NodeContextJsTreeController {
         referrers ? referrerLoadingFunction : referenceLoadingFunction);
 
     Function<Tree<Node>, JsTree> toJsTree =
-        new NodeTreeToJsTree(Predicates.in(pathIds),
-                             Predicates.in(selectedIds),
+        new NodeTreeToJsTree(pathIds::contains,
+                             selectedIds::contains,
                              "prefLabel", lang);
 
     return new ArrayList<>(roots).stream()
