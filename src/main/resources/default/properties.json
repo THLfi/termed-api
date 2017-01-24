@@ -80,6 +80,68 @@
     }
   },
   {
+    "id": "type",
+    "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "fi",
+          "value": "tyyppi"
+        },
+        {
+          "lang": "en",
+          "value": "type"
+        }
+      ]
+    }
+  },
+  {
+    "id": "minCardinality",
+    "uri": "http://www.w3.org/2002/07/owl#minCardinality",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "min cardinality"
+        }
+      ]
+    }
+  },
+  {
+    "id": "maxCardinality",
+    "uri": "http://www.w3.org/2002/07/owl#maxCardinality",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "max cardinality"
+        }
+      ]
+    }
+  },
+  {
+    "id": "datatype",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "datatype"
+        }
+      ]
+    }
+  },
+  {
+    "id": "configEmbed",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: embed"
+        }
+      ]
+    }
+  },
+  {
     "id": "configTreeAttributeId",
     "properties": {
       "prefLabel": [
