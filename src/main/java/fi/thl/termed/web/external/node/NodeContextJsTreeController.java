@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.jstree;
+package fi.thl.termed.web.external.node;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
@@ -28,6 +29,7 @@ import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.web.external.node.transform.NodeTreeToJsTree;
 
 import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
 

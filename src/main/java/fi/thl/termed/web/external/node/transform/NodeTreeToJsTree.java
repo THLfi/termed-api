@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.jstree;
+package fi.thl.termed.web.external.node.transform;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import fi.thl.termed.domain.JsTree;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;

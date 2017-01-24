@@ -19,8 +19,8 @@ import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import fi.thl.termed.util.xml.GsonXmlMessageConverter;
-import fi.thl.termed.web.external.node.dto.NodeDtoListRdfMessageConverter;
-import fi.thl.termed.web.external.node.dto.NodeDtoRdfMessageConverter;
+import fi.thl.termed.web.external.node.transform.NodeDtoListRdfMessageConverter;
+import fi.thl.termed.web.external.node.transform.NodeDtoRdfMessageConverter;
 
 @Configuration
 public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {

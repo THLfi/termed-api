@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.rdf;
+package fi.thl.termed.web.external.node.transform;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;

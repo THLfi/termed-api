@@ -6,7 +6,7 @@ import com.google.common.collect.Multimaps;
 
 import org.junit.Test;
 
-import fi.thl.termed.web.external.node.dto.NodeQueryParser;
+import fi.thl.termed.web.external.node.transform.NodeQueryParser;
 
 import static org.junit.Assert.assertEquals;
 

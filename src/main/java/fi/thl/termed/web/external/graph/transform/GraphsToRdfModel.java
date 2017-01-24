@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.graph.rdf;
+package fi.thl.termed.web.external.graph.transform;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

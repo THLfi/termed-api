@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.graph.rdf;
+package fi.thl.termed.web.external.graph;
 
 import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
+import fi.thl.termed.web.external.graph.transform.GraphsToRdfModel;
 
 @RestController
 @RequestMapping("/api/graphs")

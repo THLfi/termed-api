@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.dto;
+package fi.thl.termed.web.external.node;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +43,8 @@ import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.web.external.node.transform.NodeQueryParser;
+import fi.thl.termed.web.external.node.transform.NodeToDtoMapper;
 
 import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
 import static org.assertj.core.util.Strings.isNullOrEmpty;

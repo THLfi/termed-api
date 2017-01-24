@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.dto;
+package fi.thl.termed.web.external.node.transform;
 
 
 import com.google.common.collect.LinkedHashMultimap;

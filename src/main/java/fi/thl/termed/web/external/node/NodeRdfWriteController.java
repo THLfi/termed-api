@@ -1,4 +1,4 @@
-package fi.thl.termed.web.external.node.rdf;
+package fi.thl.termed.web.external.node;
 
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -27,6 +27,7 @@ import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.web.external.node.transform.RdfModelToNodes;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
