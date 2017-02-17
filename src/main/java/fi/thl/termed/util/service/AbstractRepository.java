@@ -33,7 +33,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       if (!exists(key, user)) {
         inserts.put(key, value);
       } else {
-        updates.put(key, new SimpleValueDifference<>(value, get(key, user).get()));
+        updates.put(key, new SimpleValueDifference<>(value, get(key, user).orElseThrow(IllegalStateException::new)));
       }
 
       keys.add(key);
@@ -52,7 +52,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     if (!exists(key, user)) {
       insert(key, value, user);
     } else {
-      update(key, value, get(key, user).get(), user);
+      update(key, value, get(key, user).orElseThrow(IllegalStateException::new), user);
     }
 
     return key;
@@ -74,7 +74,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   public void delete(List<K> ids, User user) {
     for (K id : ids) {
       // fail if not found
-      V v = get(id, user).get();
+      V v = get(id, user).orElseThrow(IllegalStateException::new);
       delete(id, v, user);
     }
   }
