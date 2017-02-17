@@ -33,7 +33,8 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       if (!exists(key, user)) {
         inserts.put(key, value);
       } else {
-        updates.put(key, new SimpleValueDifference<>(value, get(key, user).orElseThrow(IllegalStateException::new)));
+        updates.put(key, new SimpleValueDifference<>(value, get(key, user)
+            .<IllegalStateException>orElseThrow(IllegalStateException::new)));
       }
 
       keys.add(key);
