@@ -1,14 +1,8 @@
 package fi.thl.termed.service.node.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimaps;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Permission;
@@ -19,6 +13,11 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Specification;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * For filtering node service read operations. Useful to put in front of an index.
@@ -68,7 +67,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
   @Override
   public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
-                              User user) {
+      User user) {
     return filterKeys(delegate.getKeys(spec, user), user);
   }
 
@@ -115,14 +114,14 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
     public Node apply(Node node) {
       TypeId typeId = new TypeId(node);
 
-      node.setProperties(Multimaps.filterKeys(
-          node.getProperties(), new AcceptProperty(typeId)));
+      node.setProperties(LinkedHashMultimap.create(Multimaps.filterKeys(
+          node.getProperties(), new AcceptPropertyPredicate(typeId))));
 
-      node.setReferences(Multimaps.filterEntries(
-          node.getReferences(), new AcceptReferenceEntryPredicate(typeId)));
+      node.setReferences(LinkedHashMultimap.create(Multimaps.filterEntries(
+          node.getReferences(), new AcceptReferenceEntryPredicate(typeId))));
 
-      node.setReferrers(Multimaps.filterEntries(
-          node.getReferrers(), new AcceptReferrerEntryPredicate()));
+      node.setReferrers(LinkedHashMultimap.create(Multimaps.filterEntries(
+          node.getReferrers(), new AcceptReferrerEntryPredicate())));
 
       return node;
     }
@@ -130,11 +129,11 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
     /**
      * Accept a node text attribute value if attribute is permitted
      */
-    private class AcceptProperty implements Predicate<String> {
+    private class AcceptPropertyPredicate implements Predicate<String> {
 
       private TypeId typeId;
 
-      public AcceptProperty(TypeId typeId) {
+      public AcceptPropertyPredicate(TypeId typeId) {
         this.typeId = typeId;
       }
 
@@ -166,7 +165,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
         ReferenceAttributeId refAttrId = new ReferenceAttributeId(typeId, attributeId);
 
         return refAttrEvaluator.hasPermission(user, refAttrId, permission) &&
-               nodeEvaluator.hasPermission(user, reference, permission);
+            nodeEvaluator.hasPermission(user, reference, permission);
       }
     }
 
@@ -184,7 +183,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
         ReferenceAttributeId refAttrId = new ReferenceAttributeId(referrer.getType(), attributeId);
 
         return refAttrEvaluator.hasPermission(user, refAttrId, permission) &&
-               nodeEvaluator.hasPermission(user, referrer, permission);
+            nodeEvaluator.hasPermission(user, referrer, permission);
       }
     }
 

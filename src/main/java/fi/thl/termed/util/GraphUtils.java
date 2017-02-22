@@ -61,7 +61,7 @@ public final class GraphUtils {
   public static <T> List<List<T>> collectPaths(T node,
                                                Function<T, List<T>> neighbourFunction) {
     List<List<T>> paths = Lists.newArrayList();
-    collectPaths(node, neighbourFunction, Sets.<T>newLinkedHashSet(), paths);
+    collectPaths(node, neighbourFunction, Sets.newLinkedHashSet(), paths);
     return paths;
   }
 
