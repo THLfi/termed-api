@@ -166,7 +166,7 @@ public class NodeDtoReadController {
 
     Specification<NodeId, Node> spec = new AndSpecification<>(
         toSpecification(type, query.where),
-        referenceTree
+        !referenceTree
             ? new NodesWithoutReferences(attributeId)
             : new NodesWithoutReferrers(attributeId));
 
