@@ -1,12 +1,5 @@
 package fi.thl.termed.service.dump.internal;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-
-import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -15,7 +8,18 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.spring.exception.NotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 public class DumpService {
 
@@ -27,17 +31,17 @@ public class DumpService {
   private TransactionDefinition definition;
 
   public DumpService(Service<GraphId, Graph> graphService,
-                     Service<TypeId, Type> typeService,
-                     Service<NodeId, Node> nodeService,
-                     PlatformTransactionManager manager) {
+      Service<TypeId, Type> typeService,
+      Service<NodeId, Node> nodeService,
+      PlatformTransactionManager manager) {
     this(graphService, typeService, nodeService, manager, new DefaultTransactionDefinition());
   }
 
   public DumpService(Service<GraphId, Graph> graphService,
-                     Service<TypeId, Type> typeService,
-                     Service<NodeId, Node> nodeService,
-                     PlatformTransactionManager manager,
-                     TransactionDefinition definition) {
+      Service<TypeId, Type> typeService,
+      Service<NodeId, Node> nodeService,
+      PlatformTransactionManager manager,
+      TransactionDefinition definition) {
     this.graphService = graphService;
     this.typeService = typeService;
     this.nodeService = nodeService;
@@ -46,31 +50,32 @@ public class DumpService {
   }
 
   public Dump dump(User user) {
-    if (user.getAppRole() != AppRole.ADMIN &&
-        user.getAppRole() != AppRole.SUPERUSER) {
-      throw new AccessDeniedException("Access is denied");
+    return dump(graphService.getKeys(user).stream()
+        .map(GraphId::getId)
+        .collect(Collectors.toList()), user);
+  }
+
+  public Dump dump(List<UUID> graphIds, User user) {
+    Dump dump = new Dump();
+
+    List<Graph> graphs = new ArrayList<>();
+    List<Type> types = new ArrayList<>();
+    List<Node> nodes = new ArrayList<>();
+
+    for (UUID graphId : graphIds) {
+      graphs.add(graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new));
+      types.addAll(typeService.get(new TypesByGraphId(graphId), user));
+      nodes.addAll(nodeService.get(new NodesByGraphId(graphId), user));
     }
 
-    TransactionStatus tx = manager.getTransaction(definition);
-    Dump dump = new Dump();
-    try {
-      dump.setGraphs(graphService.get(user));
-      dump.setTypes(typeService.get(user));
-      dump.setNodes(nodeService.get(user));
-    } catch (RuntimeException | Error e) {
-      manager.rollback(tx);
-      throw e;
-    }
-    manager.commit(tx);
+    dump.setGraphs(graphs);
+    dump.setTypes(types);
+    dump.setNodes(nodes);
+
     return dump;
   }
 
   public void restore(Dump dump, User user) {
-    if (user.getAppRole() != AppRole.ADMIN &&
-        user.getAppRole() != AppRole.SUPERUSER) {
-      throw new AccessDeniedException("Access is denied");
-    }
-
     TransactionStatus tx = manager.getTransaction(definition);
     try {
       graphService.save(dump.getGraphs(), user);

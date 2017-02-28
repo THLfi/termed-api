@@ -1,20 +1,7 @@
 package fi.thl.termed.web.external.node;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
+import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -31,6 +18,8 @@ import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
+import fi.thl.termed.service.node.specification.NodesWithoutReferences;
+import fi.thl.termed.service.node.specification.NodesWithoutReferrers;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
@@ -45,9 +34,20 @@ import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodeQueryParser;
 import fi.thl.termed.web.external.node.transform.NodeToDtoMapper;
-
-import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
-import static org.assertj.core.util.Strings.isNullOrEmpty;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/ext")
@@ -144,6 +144,31 @@ public class NodeDtoReadController {
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = toSpecification(type, query.where);
+
+    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+  }
+
+  @GetMapping(path = "/{graphCode}/{typeId}", params = {"referenceTree", "attributeId"})
+  public List<NodeDto> searchRootNodesByGraphCodeAndTypeId(
+      @PathVariable("graphCode") String graphCode,
+      @PathVariable("typeId") String typeId,
+      @RequestParam("referenceTree") boolean referenceTree,
+      @RequestParam("attributeId") String attributeId,
+      @RequestParam MultiValueMap<String, String> params,
+      @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
+
+    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
+        .orElseThrow(NotFoundException::new);
+    Type type = typeService.get(new TypeId(typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec = new AndSpecification<>(
+        toSpecification(type, query.where),
+        referenceTree
+            ? new NodesWithoutReferences(attributeId)
+            : new NodesWithoutReferrers(attributeId));
 
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }
@@ -278,7 +303,7 @@ public class NodeDtoReadController {
     }
 
     List<Type> types = isNullOrEmpty(typeId) ? typeService.get(user)
-                                             : typeService.get(new TypesById(typeId), user);
+        : typeService.get(new TypesById(typeId), user);
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
     types.forEach(type -> spec.or(new AndSpecification<>(
