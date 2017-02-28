@@ -35,7 +35,7 @@ public class NodesWithoutReferences implements LuceneSpecification<NodeId, Node>
   public Query luceneQuery() {
     BooleanQuery query = new BooleanQuery();
     query.add(new MatchAllDocsQuery(), BooleanClause.Occur.SHOULD);
-    query.add(new TermRangeQuery(attributeId + ".nodeId", null, null, true, true),
+    query.add(new TermRangeQuery("references." + attributeId + ".nodeId", null, null, true, true),
               BooleanClause.Occur.MUST_NOT);
     return query;
   }
