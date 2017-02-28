@@ -1,24 +1,27 @@
 package fi.thl.termed.service.node.util;
 
 import com.google.common.base.Preconditions;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Maps;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferences;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.Service;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Load node references from index.
  */
 public class IndexedReferenceLoader implements BiFunction<Node, String, List<Node>> {
+
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   private Service<NodeId, Node> nodeService;
   private User user;
@@ -32,18 +35,21 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    List<Node> populatedReferences = nodeService.get(
-        new NodeReferences(new NodeId(node), attributeId), user);
+    Map<NodeId, Node> referenceValueMap = Maps.uniqueIndex(
+        nodeService.get(new NodeReferences(new NodeId(node), attributeId), user),
+        Node::identifier);
 
-    Map<NodeId, Node> populatedReferencesIndex = new HashMap<>();
-    populatedReferences.forEach(r -> populatedReferencesIndex.put(new NodeId(r), r));
+    Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
 
-    // We could populate values one by one, but searching all references and then populating from
-    // them is faster. We how ever can't just return populatedReferences as it may contain
-    // extra values (no attribute domain checks are done) and it's order does not match actual
-    // order given for node references.
-    return node.getReferences().get(attributeId).stream()
-        .map(populatedReferencesIndex::get).collect(Collectors.toList());
+    if (!referenceValueMap.keySet().equals(referenceIds)) {
+      log.error("Index may be corrupted or outdated, requested: {}, found: {}",
+          referenceIds, referenceValueMap.keySet());
+    }
+
+    return referenceIds.stream()
+        .filter(referenceValueMap::containsKey)
+        .map(referenceValueMap::get)
+        .collect(Collectors.toList());
   }
 
 }
