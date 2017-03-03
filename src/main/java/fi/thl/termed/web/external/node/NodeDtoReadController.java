@@ -18,6 +18,7 @@ import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
+import fi.thl.termed.service.node.specification.NodesLastModifiedSince;
 import fi.thl.termed.service.node.specification.NodesWithoutReferences;
 import fi.thl.termed.service.node.specification.NodesWithoutReferrers;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
@@ -35,9 +36,11 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodeQueryParser;
 import fi.thl.termed.web.external.node.transform.NodeToDtoMapper;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +90,11 @@ public class NodeDtoReadController {
   public List<NodeDto> searchNodes(
       @RequestParam(value = "graphId", required = false) UUID graphId,
       @RequestParam(value = "typeId", required = false) String typeId,
+      @RequestParam(value = "modifiedSince", required = false) String date,
       @RequestParam MultiValueMap<String, String> params,
       @AuthenticationPrincipal User user) {
+
+    NodeQuery query = NodeQueryParser.parse(params);
 
     List<Type> types;
 
@@ -104,9 +110,15 @@ public class NodeDtoReadController {
       types = typeService.get(user);
     }
 
-    NodeQuery query = NodeQueryParser.parse(params);
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    types.forEach(type -> spec.or(toSpecification(type, query.where)));
+
+    for (Type type : types) {
+      AndSpecification<NodeId, Node> typeSpec = toSpecification(type, query.where);
+      if (date != null) {
+        typeSpec.and(new NodesLastModifiedSince(new DateTime(date).toDate()));
+      }
+      spec.or(typeSpec);
+    }
 
     return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
   }

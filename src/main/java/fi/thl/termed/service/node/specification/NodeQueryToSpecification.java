@@ -2,13 +2,6 @@ package fi.thl.termed.service.node.specification;
 
 
 import com.google.common.collect.Multimap;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Attribute;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -19,13 +12,18 @@ import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.MatchNone;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public final class NodeQueryToSpecification {
 
   private NodeQueryToSpecification() {
   }
 
-  public static Specification<NodeId, Node> toSpecification(Type type, NodeQuery.Where where) {
+  public static AndSpecification<NodeId, Node> toSpecification(Type type, NodeQuery.Where where) {
     AndSpecification<NodeId, Node> spec = new AndSpecification<>();
 
     spec.and(new NodesByGraphId(type.getGraphId()));
