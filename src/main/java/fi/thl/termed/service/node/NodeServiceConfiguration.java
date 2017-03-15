@@ -3,6 +3,7 @@ package fi.thl.termed.service.node;
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 
+import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -80,6 +81,7 @@ public class NodeServiceConfiguration {
         service, classEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
     service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new NodeWriteEventPostingService(service, eventBus);
 
     service = new AttributeValueInitializingNodeService(service);
     service = new IdInitializingNodeService(service);
