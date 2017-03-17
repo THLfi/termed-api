@@ -88,7 +88,11 @@ public final class NodeQueryToSpecification {
         // must be one of them as this query is inside of conjunctive query
         List<Specification<NodeId, Node>> referenceValuesSpecs = new ArrayList<>();
         for (UUID value : whereReferences.get(key)) {
-          referenceValuesSpecs.add(new NodesByReference(key, value));
+          if (value != null) {
+            referenceValuesSpecs.add(new NodesByReference(key, value));
+          } else {
+            referenceValuesSpecs.add(new NodesWithoutReferences(key));
+          }
         }
         specifications.add(new OrSpecification<>(referenceValuesSpecs));
       } else {

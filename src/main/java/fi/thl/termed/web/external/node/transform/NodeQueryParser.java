@@ -10,7 +10,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-
+import fi.thl.termed.domain.NodeQuery;
+import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.json.JsonUtils;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,10 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import fi.thl.termed.domain.NodeQuery;
-import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.json.JsonUtils;
 
 public final class NodeQueryParser {
 
@@ -134,7 +132,8 @@ public final class NodeQueryParser {
           value.getAsJsonArray()
               .forEach(v -> map.put(entry.getKey(), UUIDs.fromString(v.getAsString())));
         } else if (value.isJsonPrimitive()) {
-          map.put(entry.getKey(), UUIDs.fromString(value.getAsString()));
+          String s = value.getAsString();
+          map.put(entry.getKey(), s.isEmpty() || s.equals("null") ? null : UUIDs.fromString(s));
         } else {
           throw new IllegalStateException();
         }
