@@ -49,6 +49,7 @@ public class EventPostingWebhookService extends ForwardingService<UUID, Webhook>
 
     for (Webhook hook : get(eventBroadcaster)) {
       HttpPost request = new HttpPost(hook.getUrl());
+      request.addHeader("Content-Type", "application/json");
       request.setEntity(body);
       httpClient.execute(request, errorLoggingCallback);
     }
