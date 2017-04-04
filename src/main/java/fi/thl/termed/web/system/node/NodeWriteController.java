@@ -1,17 +1,6 @@
 package fi.thl.termed.web.system.node;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.UUID;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -24,8 +13,17 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
-
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
@@ -109,6 +107,22 @@ public class NodeWriteController {
     return nodeService.get(nodeId, currentUser).get();
   }
 
+  @DeleteMapping("/nodes")
+  @ResponseStatus(NO_CONTENT)
+  public void deleteById(
+      @RequestBody NodeId nodeId,
+      @AuthenticationPrincipal User currentUser) {
+    nodeService.delete(nodeId, currentUser);
+  }
+
+  @DeleteMapping(path = "/nodes", params = "batch=true")
+  @ResponseStatus(NO_CONTENT)
+  public void deleteByIdList(
+      @RequestBody List<NodeId> nodeIds,
+      @AuthenticationPrincipal User currentUser) {
+    nodeService.delete(nodeIds, currentUser);
+  }
+
   @DeleteMapping("/graphs/{graphId}/nodes")
   @ResponseStatus(NO_CONTENT)
   public void delete(
@@ -137,6 +151,5 @@ public class NodeWriteController {
       @AuthenticationPrincipal User currentUser) {
     nodeService.delete(new NodeId(id, typeId, graphId), currentUser);
   }
-
 
 }
