@@ -13,6 +13,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class NodeWriteController {
       @AuthenticationPrincipal User currentUser) {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
     NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).get();
+    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "batch=true", produces = {})
@@ -75,7 +76,7 @@ public class NodeWriteController {
       @AuthenticationPrincipal User currentUser) {
     node.setType(new TypeId(node.getTypeId(), graphId));
     NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).get();
+    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
   }
 
   @PostJsonMapping(path = "/nodes", params = "batch=true", produces = {})
@@ -91,7 +92,7 @@ public class NodeWriteController {
       @RequestBody Node node,
       @AuthenticationPrincipal User currentUser) {
     NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).get();
+    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
   }
 
   @PutJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -104,7 +105,7 @@ public class NodeWriteController {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
     node.setId(id);
     NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).get();
+    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
   }
 
   @DeleteMapping("/nodes")
