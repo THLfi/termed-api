@@ -1,14 +1,11 @@
 package fi.thl.termed.service.node.internal;
 
-import com.google.common.collect.ImmutableList;
+import static java.util.stream.Collectors.toList;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -21,8 +18,15 @@ import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IndexedNodeService extends ForwardingService<NodeId, Node> {
+
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   private Index<NodeId, Node> index;
   private User indexer = new User("indexer", "", AppRole.ADMIN);
@@ -35,7 +39,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   @Subscribe
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
-      // reindex all
+      // async reindex all
       index.index(super.getKeys(indexer), key -> super.get(key, indexer));
     }
   }
@@ -47,19 +51,26 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Override
   public List<NodeId> save(List<Node> nodes, User user) {
+    List<NodeId> nodeIds = nodes.stream().map(Node::identifier).collect(toList());
+
     Set<NodeId> reindexSet = Sets.newHashSet();
 
-    for (Node node : nodes) {
-      reindexSet.add(new NodeId(node));
-      reindexSet.addAll(nodeRelatedIds(new NodeId(node)));
-    }
+    reindexSet.addAll(nodeIds);
+    reindexSet.addAll(nodeIds.stream()
+        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
 
     List<NodeId> ids = super.save(nodes, user);
 
-    for (Node node : nodes) {
-      reindexSet.addAll(nodeRelatedIds(new NodeId(node)));
-    }
-    asyncReindex(reindexSet);
+    reindexSet.addAll(ids);
+    reindexSet.addAll(ids.stream()
+        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
+
+    log.info("Indexing {} nodes", reindexSet.size());
+
+    reindex(reindexSet);
+
+    log.info("Done");
+
     return ids;
   }
 
@@ -67,39 +78,30 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public NodeId save(Node node, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
-    reindexSet.add(new NodeId(node));
-    reindexSet.addAll(nodeRelatedIds(new NodeId(node)));
+    reindexSet.add(node.identifier());
+    reindexSet.addAll(nodeNeighbourIds(node.identifier()));
 
     NodeId id = super.save(node, user);
 
-    reindexSet.addAll(nodeRelatedIds(new NodeId(node)));
+    reindexSet.add(id);
+    reindexSet.addAll(nodeNeighbourIds(id));
+
     reindex(reindexSet);
 
-    waitLuceneIndexRefresh();
-
     return id;
-  }
-
-  // If index is Lucene backed, wait for searcher to reflect updates.
-  // This is done to make sure that all updates are visible.
-  private void waitLuceneIndexRefresh() {
-    if (index instanceof LuceneIndex) {
-      ((LuceneIndex) index).refreshBlocking();
-    }
   }
 
   @Override
   public void delete(List<NodeId> nodeIds, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
-    for (NodeId nodeId : nodeIds) {
-      reindexSet.add(nodeId);
-      reindexSet.addAll(nodeRelatedIds(nodeId));
-    }
+    reindexSet.addAll(nodeIds);
+    reindexSet.addAll(nodeIds.stream()
+        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
 
     super.delete(nodeIds, user);
 
-    asyncReindex(reindexSet);
+    reindex(reindexSet);
   }
 
   @Override
@@ -107,36 +109,36 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
     reindexSet.add(nodeId);
-    reindexSet.addAll(nodeRelatedIds(nodeId));
+    reindexSet.addAll(nodeNeighbourIds(nodeId));
 
     super.delete(nodeId, user);
 
-    asyncReindex(reindexSet);
+    reindex(reindexSet);
   }
 
   @Override
   public List<Node> get(Specification<NodeId, Node> spec, List<String> sort, int max, User user) {
-    return spec instanceof LuceneSpecification ? index.get(spec, sort, max)
-                                               : super.get(spec, sort, max, user);
+    return spec instanceof LuceneSpecification ?
+        index.get(spec, sort, max) : super.get(spec, sort, max, user);
   }
 
   @Override
   public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
-                              User user) {
-    return spec instanceof LuceneSpecification ? index.getKeys(spec, sort, max)
-                                               : super.getKeys(spec, sort, max, user);
+      User user) {
+    return spec instanceof LuceneSpecification ?
+        index.getKeys(spec, sort, max) : super.getKeys(spec, sort, max, user);
   }
 
-  private Set<NodeId> nodeRelatedIds(NodeId nodeId) {
-    Set<NodeId> refValues = new HashSet<>();
+  private Set<NodeId> nodeNeighbourIds(NodeId nodeId) {
+    ImmutableSet.Builder<NodeId> ids = new Builder<>();
     Optional<Node> nodeOptional = super.get(nodeId, indexer);
 
     if (nodeOptional.isPresent()) {
-      refValues.addAll(nodeOptional.get().getReferences().values());
-      refValues.addAll(nodeOptional.get().getReferrers().values());
+      ids.addAll(nodeOptional.get().getReferences().values());
+      ids.addAll(nodeOptional.get().getReferrers().values());
     }
 
-    return refValues;
+    return ids.build();
   }
 
   private void reindex(Set<NodeId> ids) {
@@ -148,11 +150,14 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         index.delete(id);
       }
     }
+
+    waitLuceneIndexRefresh();
   }
 
-  private void asyncReindex(Set<NodeId> ids) {
-    if (!ids.isEmpty()) {
-      index.index(ImmutableList.copyOf(ids), id -> IndexedNodeService.super.get(id, indexer));
+  // wait for searcher to reflect updates to make sure that all updates are done and visible
+  private void waitLuceneIndexRefresh() {
+    if (index instanceof LuceneIndex) {
+      ((LuceneIndex) index).refreshBlocking();
     }
   }
 
