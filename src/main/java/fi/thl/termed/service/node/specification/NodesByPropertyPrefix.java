@@ -25,6 +25,10 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
     this.value = value;
   }
 
+  public String getAttributeId() {
+    return attributeId;
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));

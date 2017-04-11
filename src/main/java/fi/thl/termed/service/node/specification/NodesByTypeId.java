@@ -25,6 +25,10 @@ public class NodesByTypeId
     this.typeId = typeId;
   }
 
+  public String getTypeId() {
+    return typeId;
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));

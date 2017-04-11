@@ -24,6 +24,10 @@ public class NodesByGraphId
     this.graphId = graphId;
   }
 
+  public UUID getGraphId() {
+    return graphId;
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));

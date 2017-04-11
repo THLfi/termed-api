@@ -2,18 +2,15 @@ package fi.thl.termed.service.node.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-
-import java.util.Objects;
-import java.util.UUID;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.specification.LuceneSpecification;
+import java.util.Objects;
+import java.util.UUID;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 public class NodesByReference implements LuceneSpecification<NodeId, Node> {
 
@@ -24,6 +21,10 @@ public class NodesByReference implements LuceneSpecification<NodeId, Node> {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
     this.attributeId = attributeId;
     this.valueNodeId = valueNodeId;
+  }
+
+  public String getAttributeId() {
+    return attributeId;
   }
 
   @Override

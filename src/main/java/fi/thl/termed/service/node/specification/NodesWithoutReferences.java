@@ -25,6 +25,10 @@ public class NodesWithoutReferences implements LuceneSpecification<NodeId, Node>
     this.attributeId = attributeId;
   }
 
+  public String getAttributeId() {
+    return attributeId;
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
