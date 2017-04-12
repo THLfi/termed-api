@@ -1,6 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
-import java.util.List;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -9,8 +9,8 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
+import java.util.List;
+import java.util.Map;
 
 public class AttributeValueInitializingNodeService
     extends ForwardingService<NodeId, Node> {
@@ -20,15 +20,15 @@ public class AttributeValueInitializingNodeService
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User currentUser) {
+  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User currentUser) {
     nodes.forEach(this::resolveAttributes);
-    return super.save(nodes, currentUser);
+    return super.save(nodes, args, currentUser);
   }
 
   @Override
-  public NodeId save(Node node, User currentUser) {
+  public NodeId save(Node node, Map<String, Object> args, User currentUser) {
     resolveAttributes(node);
-    return super.save(node, currentUser);
+    return super.save(node, args, currentUser);
   }
 
   private void resolveAttributes(Node node) {

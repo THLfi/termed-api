@@ -1,17 +1,16 @@
 package fi.thl.termed.service.node.internal;
 
 import com.google.common.base.Preconditions;
-
-import java.util.List;
-import java.util.UUID;
-
+import fi.thl.termed.domain.ErrorCode;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.ErrorCode;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Make sure that node has an identifier
@@ -23,15 +22,15 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User currentUser) {
+  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User currentUser) {
     nodes.forEach(this::resolveId);
-    return super.save(nodes, currentUser);
+    return super.save(nodes, args, currentUser);
   }
 
   @Override
-  public NodeId save(Node node, User currentUser) {
+  public NodeId save(Node node, Map<String, Object> args, User currentUser) {
     resolveId(node);
-    return super.save(node, currentUser);
+    return super.save(node, args, currentUser);
   }
 
   private void resolveId(Node node) {

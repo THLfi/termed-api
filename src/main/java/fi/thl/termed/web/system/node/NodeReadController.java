@@ -1,14 +1,7 @@
 package fi.thl.termed.web.system.node;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.UUID;
+import static fi.thl.termed.util.StringUtils.tokenize;
+import static fi.thl.termed.util.collect.MapUtils.entry;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -24,14 +17,18 @@ import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
-import fi.thl.termed.util.specification.ForwardingSqlSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.SqlSpecification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-
-import static fi.thl.termed.util.StringUtils.tokenize;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
@@ -50,11 +47,8 @@ public class NodeReadController {
     return spec;
   }
 
-  private Specification<NodeId, Node> wrapToSqlSpec(Specification<NodeId, Node> spec) {
-    return new ForwardingSqlSpecification<>((SqlSpecification<NodeId, Node>) spec);
-  }
-
   @GetJsonMapping("/nodes")
+  @SuppressWarnings("unchecked")
   public List<Node> get(
       @RequestParam(value = "query", required = false, defaultValue = "") String query,
       @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
@@ -74,10 +68,14 @@ public class NodeReadController {
       spec.or(typeSpec);
     });
 
-    return nodeService.get(bypassIndex ? wrapToSqlSpec(spec) : spec, sort, max, user);
+    return nodeService.get(spec, user,
+        entry("bypassIndex", bypassIndex),
+        entry("sort", sort),
+        entry("max", max));
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
+  @SuppressWarnings("unchecked")
   public List<Node> get(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(value = "query", required = false, defaultValue = "") String query,
@@ -100,10 +98,14 @@ public class NodeReadController {
       spec.or(typeSpec);
     });
 
-    return nodeService.get(bypassIndex ? wrapToSqlSpec(spec) : spec, sort, max, user);
+    return nodeService.get(spec, user,
+        entry("bypassIndex", bypassIndex),
+        entry("sort", sort),
+        entry("max", max));
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
+  @SuppressWarnings("unchecked")
   public List<Node> get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
@@ -124,7 +126,10 @@ public class NodeReadController {
       spec.and(toPrefixQuery(type.getTextAttributes(), query));
     }
 
-    return nodeService.get(bypassIndex ? wrapToSqlSpec(spec) : spec, sort, max, user);
+    return nodeService.get(spec, user,
+        entry("bypassIndex", bypassIndex),
+        entry("sort", sort),
+        entry("max", max));
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

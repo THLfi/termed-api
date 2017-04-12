@@ -1,6 +1,7 @@
 package fi.thl.termed.web.external.node;
 
 import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
+import static fi.thl.termed.util.collect.MapUtils.entry;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import fi.thl.termed.domain.Graph;
@@ -36,7 +37,6 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodeQueryParser;
 import fi.thl.termed.web.external.node.transform.NodeToDtoMapper;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -87,6 +87,7 @@ public class NodeDtoReadController {
   }
 
   @GetMapping
+  @SuppressWarnings("unchecked")
   public List<NodeDto> searchNodes(
       @RequestParam(value = "graphId", required = false) UUID graphId,
       @RequestParam(value = "typeId", required = false) String typeId,
@@ -120,10 +121,12 @@ public class NodeDtoReadController {
       spec.or(typeSpec);
     }
 
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+    return toDto(nodeService.get(spec, user, entry("sort", query.sort), entry("max", query.max)),
+        query, user);
   }
 
   @GetMapping("/{graphCode}")
+  @SuppressWarnings("unchecked")
   public List<NodeDto> searchNodesOfAnyTypeInGraph(
       @PathVariable("graphCode") String graphCode,
       @RequestParam MultiValueMap<String, String> params,
@@ -131,17 +134,19 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
     typeService.get(new TypesByGraphId(graphId.getId()), user)
         .forEach(type -> spec.or(toSpecification(type, query.where)));
 
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+    return toDto(nodeService.get(spec, user, entry("sort", query.sort), entry("max", query.max)),
+        query, user);
   }
 
   @GetMapping("/{graphCode}/{typeId}")
+  @SuppressWarnings("unchecked")
   public List<NodeDto> searchNodesByGraphCodeAndTypeId(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
@@ -150,17 +155,19 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = toSpecification(type, query.where);
 
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+    return toDto(nodeService.get(spec, user, entry("sort", query.sort), entry("max", query.max)),
+        query, user);
   }
 
   @GetMapping(path = "/{graphCode}/{typeId}", params = {"referenceTree", "attributeId"})
+  @SuppressWarnings("unchecked")
   public List<NodeDto> searchRootNodesByGraphCodeAndTypeId(
       @PathVariable("graphCode") String graphCode,
       @PathVariable("typeId") String typeId,
@@ -171,8 +178,8 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
@@ -182,7 +189,8 @@ public class NodeDtoReadController {
             ? new NodesWithoutReferences(attributeId)
             : new NodesWithoutReferrers(attributeId));
 
-    return toDto(nodeService.get(spec, query.sort, query.max, user), query, user);
+    return toDto(nodeService.get(spec, user, entry("sort", query.sort), entry("max", query.max)),
+        query, user);
   }
 
   @GetMapping("/{graphCode}/{typeId}/{nodeCode}")
@@ -195,15 +203,16 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = new AndSpecification<>(
         new NodesByGraphId(graphId.getId()),
         new NodesByTypeId(typeId),
         new NodesByCode(nodeCode));
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).stream()
+        .findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -218,8 +227,8 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec;
 
@@ -235,7 +244,8 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).stream()
+        .findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -249,8 +259,8 @@ public class NodeDtoReadController {
 
     NodeQuery query = NodeQueryParser.parse(params);
 
-    GraphId graphId = graphService.getFirstKey(new GraphByCode(graphCode), user)
-        .orElseThrow(NotFoundException::new);
+    GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
+        .stream().findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec;
 
@@ -264,7 +274,8 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).stream()
+        .findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -292,7 +303,8 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.getFirst(spec, user).orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).stream()
+        .findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }

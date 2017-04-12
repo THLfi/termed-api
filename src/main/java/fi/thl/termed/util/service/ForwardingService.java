@@ -1,11 +1,11 @@
 package fi.thl.termed.util.service;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Specification;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A service which simply forwards all requests to a delegate (decorator pattern).
@@ -19,43 +19,43 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> save(List<V> values, User user) {
-    return delegate.save(values, user);
+  public List<K> save(List<V> values, Map<String, Object> args, User user) {
+    return delegate.save(values, args, user);
   }
 
   @Override
-  public K save(V value, User user) {
-    return delegate.save(value, user);
+  public K save(V value, Map<String, Object> args, User user) {
+    return delegate.save(value, args, user);
   }
 
   @Override
-  public void delete(List<K> ids, User currentUser) {
-    delegate.delete(ids, currentUser);
+  public void delete(List<K> ids, Map<String, Object> args, User user) {
+    delegate.delete(ids, args, user);
   }
 
   @Override
-  public void delete(K id, User user) {
-    delegate.delete(id, user);
+  public void delete(K id, Map<String, Object> args, User user) {
+    delegate.delete(id, args, user);
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, List<String> sort, int max, User user) {
-    return delegate.get(specification, sort, max, user);
+  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.get(specification, args, user);
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max, User user) {
-    return delegate.getKeys(specification, sort, max, user);
+  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.getKeys(specification, args, user);
   }
 
   @Override
-  public List<V> get(List<K> ids, User user) {
-    return delegate.get(ids, user);
+  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
+    return delegate.get(ids, args, user);
   }
 
   @Override
-  public Optional<V> get(K id, User user) {
-    return delegate.get(id, user);
+  public Optional<V> get(K id, Map<String, Object> args, User user) {
+    return delegate.get(id, args, user);
   }
 
 }

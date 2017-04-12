@@ -133,7 +133,7 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  protected boolean exists(ReferenceAttributeId id, User user) {
+  public boolean exists(ReferenceAttributeId id, User user) {
     return referenceAttributeDao.exists(id, user);
   }
 

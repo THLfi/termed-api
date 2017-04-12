@@ -1,18 +1,16 @@
 package fi.thl.termed.util.service;
 
 import com.google.common.collect.MapDifference;
-
+import fi.thl.termed.domain.Identifiable;
+import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.SimpleValueDifference;
+import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import fi.thl.termed.domain.Identifiable;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.SimpleValueDifference;
-import fi.thl.termed.util.specification.Specification;
 
 /**
  * For implementing a service that persists objects.
@@ -21,7 +19,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     implements Service<K, V> {
 
   @Override
-  public List<K> save(List<V> values, User user) {
+  public List<K> save(List<V> values, Map<String, Object> args, User user) {
     List<K> keys = new ArrayList<>();
 
     Map<K, V> inserts = new LinkedHashMap<>();
@@ -47,7 +45,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public K save(V value, User user) {
+  public K save(V value, Map<String, Object> args, User user) {
     K key = value.identifier();
 
     if (!exists(key, user)) {
@@ -72,7 +70,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public void delete(List<K> ids, User user) {
+  public void delete(List<K> ids, Map<String, Object> args, User user) {
     for (K id : ids) {
       // fail if not found
       V v = get(id, user).orElseThrow(IllegalStateException::new);
@@ -81,12 +79,12 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public void delete(K id, User user) {
+  public void delete(K id, Map<String, Object> args, User user) {
     get(id, user).ifPresent(v -> delete(id, v, user));
   }
 
   @Override
-  public List<V> get(List<K> ids, User user) {
+  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
     List<V> values = new ArrayList<>();
     for (K id : ids) {
       get(id, user).ifPresent(values::add);
@@ -95,16 +93,21 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, List<String> sort, int max, User user) {
+  public Optional<V> get(K id, Map<String, Object> args, User user) {
+    return get(id, user);
+  }
+
+  @Override
+  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     return get(specification, user);
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max, User user) {
+  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return getKeys(specification, user);
   }
 
-  protected abstract boolean exists(K key, User user);
+  public abstract boolean exists(K key, User user);
 
   public abstract void insert(K id, V value, User user);
 
@@ -112,10 +115,10 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
   public abstract void delete(K id, V value, User user);
 
+  public abstract Optional<V> get(K id, User user);
+
   public abstract List<V> get(Specification<K, V> specification, User currentUser);
 
   public abstract List<K> getKeys(Specification<K, V> specification, User currentUser);
-
-  public abstract Optional<V> get(K id, User user);
 
 }

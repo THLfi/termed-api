@@ -1,13 +1,16 @@
 package fi.thl.termed.util.service;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import static fi.thl.termed.util.collect.MapUtils.newLinkedHashMap;
+import static java.util.Collections.emptyMap;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.MatchAll;
 import fi.thl.termed.util.specification.Specification;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 /**
  * Generic interface for services.
@@ -17,59 +20,122 @@ public interface Service<K extends Serializable, V> {
   /**
    * Save (insert or update) values with dependencies.
    */
-  List<K> save(List<V> values, User currentUser);
+  default List<K> save(List<V> values, User user) {
+    return save(values, emptyMap(), user);
+  }
 
-  K save(V value, User currentUser);
+  @SuppressWarnings("unchecked")
+  default List<K> save(List<V> values, User user, Entry<String, Object>... args) {
+    return save(values, newLinkedHashMap(args), user);
+  }
+
+  List<K> save(List<V> values, Map<String, Object> args, User user);
+
+  /**
+   * Save (insert or update) value with dependencies.
+   */
+  default K save(V value, User user) {
+    return save(value, emptyMap(), user);
+  }
+
+  @SuppressWarnings("unchecked")
+  default K save(V value, User user, Entry<String, Object>... args) {
+    return save(value, newLinkedHashMap(args), user);
+  }
+
+  K save(V value, Map<String, Object> args, User user);
+
+  /**
+   * Delete values (with dependencies) by ids.
+   */
+  default void delete(List<K> ids, User user) {
+    delete(ids, emptyMap(), user);
+  }
+
+  @SuppressWarnings("unchecked")
+  default void delete(List<K> ids, User user, Entry<String, Object>... args) {
+    delete(ids, newLinkedHashMap(args), user);
+  }
+
+  void delete(List<K> ids, Map<String, Object> args, User user);
 
   /**
    * Delete value (with dependencies) by id.
    */
-  void delete(List<K> ids, User currentUser);
+  default void delete(K id, User user) {
+    delete(id, emptyMap(), user);
+  }
 
-  void delete(K id, User currentUser);
+  @SuppressWarnings("unchecked")
+  default void delete(K id, User user, Entry<String, Object>... args) {
+    delete(id, newLinkedHashMap(args), user);
+  }
+
+  void delete(K id, Map<String, Object> args, User user);
 
   /**
    * Get specified values.
    */
-  List<V> get(Specification<K, V> specification, List<String> sort, int max, User currentUser);
-
-  default List<V> get(User currentUser) {
-    return get(new MatchAll<>(), currentUser);
+  default List<V> get(User user) {
+    return get(new MatchAll<>(), user);
   }
 
-  default List<V> get(Specification<K, V> specification, User currentUser) {
-    return get(specification, new ArrayList<>(), -1, currentUser);
+  default List<V> get(Specification<K, V> specification, User user) {
+    return get(specification, emptyMap(), user);
   }
 
-  default Optional<V> getFirst(Specification<K, V> specification, User currentUser) {
-    return get(specification, currentUser).stream().findFirst();
+  @SuppressWarnings("unchecked")
+  default List<V> get(Specification<K, V> specification, User user, Entry<String, Object>... args) {
+    return get(specification, newLinkedHashMap(args), user);
   }
+
+  List<V> get(Specification<K, V> specification, Map<String, Object> args, User user);
 
   /**
    * Get specified keys.
    */
-  List<K> getKeys(Specification<K, V> specification, List<String> sort, int max, User currentUser);
-
-  default List<K> getKeys(User currentUser) {
-    return getKeys(new MatchAll<>(), currentUser);
+  default List<K> getKeys(User user) {
+    return getKeys(new MatchAll<>(), user);
   }
 
-  default List<K> getKeys(Specification<K, V> specification, User currentUser) {
-    return getKeys(specification, new ArrayList<>(), -1, currentUser);
+  default List<K> getKeys(Specification<K, V> specification, User user) {
+    return getKeys(specification, emptyMap(), user);
   }
 
-  default Optional<K> getFirstKey(Specification<K, V> specification, User currentUser) {
-    return getKeys(specification, currentUser).stream().findFirst();
+  @SuppressWarnings("unchecked")
+  default List<V> getKeys(Specification<K, V> specification, User user,
+      Entry<String, Object>... args) {
+    return get(specification, newLinkedHashMap(args), user);
   }
+
+  List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user);
 
   /**
    * Get values by ids.
    */
-  List<V> get(List<K> ids, User currentUser);
+  default List<V> get(List<K> ids, User user) {
+    return get(ids, emptyMap(), user);
+  }
+
+  @SuppressWarnings("unchecked")
+  default List<V> get(List<K> ids, User user, Entry<String, Object>... args) {
+    return get(ids, newLinkedHashMap(args), user);
+  }
+
+  List<V> get(List<K> ids, Map<String, Object> args, User user);
 
   /**
    * Get value by id.
    */
-  Optional<V> get(K id, User currentUser);
+  default Optional<V> get(K id, User user) {
+    return get(id, emptyMap(), user);
+  }
+
+  @SuppressWarnings("unchecked")
+  default Optional<V> get(K id, User user, Entry<String, Object>... args) {
+    return get(id, newLinkedHashMap(args), user);
+  }
+
+  Optional<V> get(K id, Map<String, Object> args, User user);
 
 }

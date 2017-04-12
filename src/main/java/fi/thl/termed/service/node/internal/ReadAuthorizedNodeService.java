@@ -41,48 +41,48 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, User user) {
-    return delegate.save(values, user);
+  public List<NodeId> save(List<Node> values, Map<String, Object> args, User user) {
+    return delegate.save(values, args, user);
   }
 
   @Override
-  public NodeId save(Node value, User user) {
-    return delegate.save(value, user);
+  public NodeId save(Node value, Map<String, Object> args, User user) {
+    return delegate.save(value, args, user);
   }
 
   @Override
-  public void delete(List<NodeId> ids, User user) {
-    delegate.delete(ids, user);
+  public void delete(List<NodeId> ids, Map<String, Object> args, User user) {
+    delegate.delete(ids, args, user);
   }
 
   @Override
-  public void delete(NodeId id, User user) {
-    delegate.delete(id, user);
+  public void delete(NodeId id, Map<String, Object> args, User user) {
+    delegate.delete(id, args, user);
   }
 
   @Override
-  public List<Node> get(Specification<NodeId, Node> spec, List<String> sort, int max, User user) {
-    return filterValues(delegate.get(spec, sort, max, user), user);
+  public List<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+    return filterValues(delegate.get(spec, args, user), user);
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
+  public List<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
-    return filterKeys(delegate.getKeys(spec, user), user);
+    return filterKeys(delegate.getKeys(spec, args, user), user);
   }
 
   @Override
-  public List<Node> get(List<NodeId> ids, User user) {
-    return filterValues(delegate.get(filterKeys(ids, user), user), user);
+  public List<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
+    return filterValues(delegate.get(filterKeys(ids, user), args, user), user);
   }
 
   @Override
-  public Optional<Node> get(NodeId id, User user) {
+  public Optional<Node> get(NodeId id, Map<String, Object> args, User user) {
     if (!nodeEvaluator.hasPermission(user, id, Permission.READ)) {
       return Optional.empty();
     }
 
-    return delegate.get(id, user)
+    return delegate.get(id, args, user)
         .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
         .map(new AttributePermissionFilter(user, Permission.READ));
   }
@@ -105,7 +105,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
     private User user;
     private Permission permission;
 
-    public AttributePermissionFilter(User user, Permission permission) {
+    AttributePermissionFilter(User user, Permission permission) {
       this.user = user;
       this.permission = permission;
     }
@@ -133,7 +133,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
       private TypeId typeId;
 
-      public AcceptPropertyPredicate(TypeId typeId) {
+      AcceptPropertyPredicate(TypeId typeId) {
         this.typeId = typeId;
       }
 
@@ -148,12 +148,11 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
      * Accepts a node reference entry in the reference multimap if 1) reference attribute is
      * permitted and 2) value is permitted
      */
-    private class AcceptReferenceEntryPredicate
-        implements Predicate<Map.Entry<String, NodeId>> {
+    private class AcceptReferenceEntryPredicate implements Predicate<Map.Entry<String, NodeId>> {
 
       private TypeId typeId;
 
-      public AcceptReferenceEntryPredicate(TypeId typeId) {
+      AcceptReferenceEntryPredicate(TypeId typeId) {
         this.typeId = typeId;
       }
 

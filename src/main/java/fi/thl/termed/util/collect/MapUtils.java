@@ -2,8 +2,8 @@ package fi.thl.termed.util.collect;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -13,21 +13,29 @@ public final class MapUtils {
   }
 
   public static <K, V> Map<K, V> nullToEmpty(Map<K, V> map) {
-    return map == null ? Collections.<K, V>emptyMap() : map;
+    return map == null ? Collections.emptyMap() : map;
   }
 
-  public static <K, V> Map.Entry<K, V> newEntry(K key, V value) {
+  public static <K, V> Map.Entry<K, V> entry(K key, V value) {
     return new AbstractMap.SimpleEntry<>(key, value);
   }
 
+  @SafeVarargs
+  public static <K, V> Map<K, V> newLinkedHashMap(Map.Entry<K, V>... entries) {
+    return newLinkedHashMap(Arrays.asList(entries));
+  }
+
   public static <K, V> Map<K, V> newLinkedHashMap(Iterable<Map.Entry<K, V>> entries) {
-    return putEntries(Maps.<K, V>newLinkedHashMap(), entries);
+    return putEntries(Maps.newLinkedHashMap(), entries);
+  }
+
+  @SafeVarargs
+  public static <K, V> Map<K, V> putEntries(Map<K, V> map, Map.Entry<K, V>... entries) {
+    return putEntries(map, Arrays.asList(entries));
   }
 
   public static <K, V> Map<K, V> putEntries(Map<K, V> map, Iterable<Map.Entry<K, V>> entries) {
-    for (Map.Entry<K, V> entry : entries) {
-      map.put(entry.getKey(), entry.getValue());
-    }
+    entries.forEach(entry -> map.put(entry.getKey(), entry.getValue()));
     return map;
   }
 

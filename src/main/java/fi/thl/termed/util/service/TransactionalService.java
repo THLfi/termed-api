@@ -1,16 +1,15 @@
 package fi.thl.termed.util.service;
 
+import fi.thl.termed.domain.User;
+import fi.thl.termed.util.specification.Specification;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.Specification;
 
 public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
 
@@ -24,19 +23,18 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   public TransactionalService(Service<K, V> delegate, PlatformTransactionManager manager,
-                              TransactionDefinition definition) {
+      TransactionDefinition definition) {
     this.delegate = delegate;
     this.manager = manager;
     this.definition = definition;
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, List<String> sort, int max,
-                     User currentUser) {
+  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<V> results;
     try {
-      results = delegate.get(specification, sort, max, currentUser);
+      results = delegate.get(specification, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -46,12 +44,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max,
-                         User currentUser) {
+  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<K> results;
     try {
-      results = delegate.getKeys(specification, sort, max, currentUser);
+      results = delegate.getKeys(specification, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -61,11 +58,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public List<V> get(List<K> ids, User currentUser) {
+  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<V> values;
     try {
-      values = delegate.get(ids, currentUser);
+      values = delegate.get(ids, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -75,11 +72,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Optional<V> get(K id, User currentUser) {
+  public Optional<V> get(K id, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     Optional<V> value;
     try {
-      value = delegate.get(id, currentUser);
+      value = delegate.get(id, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -89,11 +86,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public List<K> save(List<V> values, User currentUser) {
+  public List<K> save(List<V> values, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     List<K> keys;
     try {
-      keys = delegate.save(values, currentUser);
+      keys = delegate.save(values, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -103,11 +100,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public K save(V value, User currentUser) {
+  public K save(V value, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     K key;
     try {
-      key = delegate.save(value, currentUser);
+      key = delegate.save(value, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -117,10 +114,10 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public void delete(List<K> ids, User currentUser) {
+  public void delete(List<K> ids, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     try {
-      delegate.delete(ids, currentUser);
+      delegate.delete(ids, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;
@@ -129,10 +126,10 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public void delete(K id, User currentUser) {
+  public void delete(K id, Map<String, Object> args, User user) {
     TransactionStatus tx = manager.getTransaction(definition);
     try {
-      delegate.delete(id, currentUser);
+      delegate.delete(id, args, user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;

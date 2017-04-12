@@ -6,8 +6,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Webhook;
-import fi.thl.termed.service.webhook.internal.EventPostingWebhookService;
 import fi.thl.termed.service.webhook.internal.JdbcWebhookDao;
+import fi.thl.termed.service.webhook.internal.NodeEventPostingService;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
@@ -26,15 +26,16 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class WebhookServiceConfiguration {
 
   @Autowired
-  private EventBus eventBus;
-
+  private DataSource dataSource;
+  @Autowired
+  private PlatformTransactionManager transactionManager;
   @Autowired
   private Gson gson;
+  @Autowired
+  private EventBus eventBus;
 
   @Bean
-  public Service<UUID, Webhook> webhookService(
-      DataSource dataSource, PlatformTransactionManager transactionManager) {
-
+  public Service<UUID, Webhook> webhookService() {
     SystemDao<UUID, Webhook> dao =
         new CachedSystemDao<>(new JdbcWebhookDao(dataSource));
 
@@ -45,10 +46,14 @@ public class WebhookServiceConfiguration {
         new DaoForwardingRepository<>(
             new AuthorizedDao<>(dao, permissionEvaluator, THROW));
 
-    service = new EventPostingWebhookService(service, gson);
-    eventBus.register(service);
-
     return new TransactionalService<>(service, transactionManager);
+  }
+
+  @Bean
+  public NodeEventPostingService eventPostingService(Service<UUID, Webhook> webhookService) {
+    NodeEventPostingService service = new NodeEventPostingService(webhookService(), gson);
+    eventBus.register(service);
+    return service;
   }
 
 }

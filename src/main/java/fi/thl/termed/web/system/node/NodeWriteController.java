@@ -1,5 +1,6 @@
 package fi.thl.termed.web.system.node;
 
+import static fi.thl.termed.util.collect.MapUtils.entry;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.GraphId;
@@ -23,11 +24,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@SuppressWarnings("unchecked")
 public class NodeWriteController {
 
   @Autowired
@@ -38,23 +41,24 @@ public class NodeWriteController {
   public void post(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
-      @AuthenticationPrincipal User currentUser) {
-    for (Node node : nodes) {
-      node.setType(new TypeId(typeId, new GraphId(graphId)));
-    }
-    nodeService.save(nodes, currentUser);
+      @AuthenticationPrincipal User user) {
+    TypeId type = new TypeId(typeId, new GraphId(graphId));
+    nodes.forEach(node -> node.setType(type));
+    nodeService.save(nodes, user, entry("sync", sync));
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node post(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
-      @AuthenticationPrincipal User currentUser) {
+      @AuthenticationPrincipal User user) {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
-    NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
+    NodeId nodeId = nodeService.save(node, user, entry("sync", sync));
+    return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "batch=true", produces = {})
@@ -62,37 +66,39 @@ public class NodeWriteController {
   public void post(
       @PathVariable("graphId") UUID graphId,
       @RequestBody List<Node> nodes,
-      @AuthenticationPrincipal User currentUser) {
-    for (Node node : nodes) {
-      node.setType(new TypeId(node.getTypeId(), graphId));
-    }
-    nodeService.save(nodes, currentUser);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodes.forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
+    nodeService.save(nodes, user, entry("sync", sync));
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node post(
       @PathVariable("graphId") UUID graphId,
       @RequestBody Node node,
-      @AuthenticationPrincipal User currentUser) {
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
     node.setType(new TypeId(node.getTypeId(), graphId));
-    NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
+    NodeId nodeId = nodeService.save(node, user, entry("sync", sync));
+    return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
   @PostJsonMapping(path = "/nodes", params = "batch=true", produces = {})
   @ResponseStatus(NO_CONTENT)
   public void post(
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
-      @AuthenticationPrincipal User currentUser) {
-    nodeService.save(nodes, currentUser);
+      @AuthenticationPrincipal User user) {
+    nodeService.save(nodes, user, entry("sync", sync));
   }
 
   @PostJsonMapping(path = "/nodes", produces = {})
   public Node post(
       @RequestBody Node node,
-      @AuthenticationPrincipal User currentUser) {
-    NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    NodeId nodeId = nodeService.save(node, user, entry("sync", sync));
+    return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
   @PutJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -100,36 +106,41 @@ public class NodeWriteController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
-      @AuthenticationPrincipal User currentUser) {
+      @AuthenticationPrincipal User user) {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
     node.setId(id);
-    NodeId nodeId = nodeService.save(node, currentUser);
-    return nodeService.get(nodeId, currentUser).orElseThrow(NotFoundException::new);
+    NodeId nodeId = nodeService.save(node, user, entry("sync", sync));
+    return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
   @DeleteMapping("/nodes")
   @ResponseStatus(NO_CONTENT)
   public void deleteById(
       @RequestBody NodeId nodeId,
-      @AuthenticationPrincipal User currentUser) {
-    nodeService.delete(nodeId, currentUser);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(nodeId, user, entry("sync", sync));
   }
 
   @DeleteMapping(path = "/nodes", params = "batch=true")
   @ResponseStatus(NO_CONTENT)
   public void deleteByIdList(
       @RequestBody List<NodeId> nodeIds,
-      @AuthenticationPrincipal User currentUser) {
-    nodeService.delete(nodeIds, currentUser);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(nodeIds, user, entry("sync", sync));
   }
 
   @DeleteMapping("/graphs/{graphId}/nodes")
   @ResponseStatus(NO_CONTENT)
   public void delete(
       @PathVariable("graphId") UUID graphId,
-      @AuthenticationPrincipal User currentUser) {
-    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), currentUser), currentUser);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user), user,
+        entry("sync", sync));
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -137,10 +148,11 @@ public class NodeWriteController {
   public void delete(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
-      @AuthenticationPrincipal User currentUser) {
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
     nodeService.delete(nodeService.getKeys(new AndSpecification<>(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), currentUser), currentUser);
+        new NodesByTypeId(typeId)), user), user, entry("sync", sync));
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
@@ -149,8 +161,9 @@ public class NodeWriteController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
-      @AuthenticationPrincipal User currentUser) {
-    nodeService.delete(new NodeId(id, typeId, graphId), currentUser);
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(new NodeId(id, typeId, graphId), user, entry("sync", sync));
   }
 
 }

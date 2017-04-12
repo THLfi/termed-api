@@ -133,7 +133,7 @@ public class TextAttributeRepository
   }
 
   @Override
-  protected boolean exists(TextAttributeId id, User user) {
+  public boolean exists(TextAttributeId id, User user) {
     return textAttributeDao.exists(id, user);
   }
 

@@ -1,5 +1,8 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.ObjectUtils.castBoolean;
+import static fi.thl.termed.util.ObjectUtils.castInteger;
+import static fi.thl.termed.util.ObjectUtils.castStringList;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableSet;
@@ -19,6 +22,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -50,7 +54,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User user) {
+  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
     List<NodeId> nodeIds = nodes.stream().map(Node::identifier).collect(toList());
 
     Set<NodeId> reindexSet = Sets.newHashSet();
@@ -59,7 +63,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     reindexSet.addAll(nodeIds.stream()
         .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
 
-    List<NodeId> ids = super.save(nodes, user);
+    List<NodeId> ids = super.save(nodes, args, user);
 
     reindexSet.addAll(ids);
     reindexSet.addAll(ids.stream()
@@ -75,13 +79,13 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public NodeId save(Node node, User user) {
+  public NodeId save(Node node, Map<String, Object> args, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
     reindexSet.add(node.identifier());
     reindexSet.addAll(nodeNeighbourIds(node.identifier()));
 
-    NodeId id = super.save(node, user);
+    NodeId id = super.save(node, args, user);
 
     reindexSet.add(id);
     reindexSet.addAll(nodeNeighbourIds(id));
@@ -92,41 +96,51 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public void delete(List<NodeId> nodeIds, User user) {
+  public void delete(List<NodeId> nodeIds, Map<String, Object> args, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
     reindexSet.addAll(nodeIds);
     reindexSet.addAll(nodeIds.stream()
         .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
 
-    super.delete(nodeIds, user);
+    super.delete(nodeIds, args, user);
 
     reindex(reindexSet);
   }
 
   @Override
-  public void delete(NodeId nodeId, User user) {
+  public void delete(NodeId nodeId, Map<String, Object> args, User user) {
     Set<NodeId> reindexSet = Sets.newHashSet();
 
     reindexSet.add(nodeId);
     reindexSet.addAll(nodeNeighbourIds(nodeId));
 
-    super.delete(nodeId, user);
+    super.delete(nodeId, args, user);
 
     reindex(reindexSet);
   }
 
   @Override
-  public List<Node> get(Specification<NodeId, Node> spec, List<String> sort, int max, User user) {
-    return spec instanceof LuceneSpecification ?
-        index.get(spec, sort, max) : super.get(spec, sort, max, user);
+  @SuppressWarnings("unchecked")
+  public List<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+    List<String> sort = castStringList(args.get("sort"));
+    int max = castInteger(args.get("max"), -1);
+
+    return !bypassIndex && spec instanceof LuceneSpecification ?
+        index.get(spec, sort, max) : super.get(spec, args, user);
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> spec, List<String> sort, int max,
+  @SuppressWarnings("unchecked")
+  public List<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
-    return spec instanceof LuceneSpecification ?
-        index.getKeys(spec, sort, max) : super.getKeys(spec, sort, max, user);
+    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+    List<String> sort = castStringList(args.get("sort"));
+    int max = castInteger(args.get("max"), -1);
+
+    return !bypassIndex && spec instanceof LuceneSpecification ?
+        index.getKeys(spec, sort, max) : super.getKeys(spec, args, user);
   }
 
   private Set<NodeId> nodeNeighbourIds(NodeId nodeId) {

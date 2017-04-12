@@ -6,13 +6,14 @@ import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.WebEvent;
 import fi.thl.termed.domain.Webhook;
-import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.domain.event.NodeEvent;
+import fi.thl.termed.domain.event.WebEvent;
+import fi.thl.termed.util.FutureUtils;
 import fi.thl.termed.util.service.Service;
-import java.io.UnsupportedEncodingException;
-import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
@@ -22,36 +23,37 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EventPostingWebhookService extends ForwardingService<UUID, Webhook> {
+public class NodeEventPostingService {
 
   private Logger log = LoggerFactory.getLogger(getClass());
-
-  private CloseableHttpAsyncClient httpClient;
-  private FutureCallback<HttpResponse> errorLoggingCallback = new ErrorLoggingCallback();
-
   private User eventBroadcaster = new User("httpEventBroadcaster", "", AppRole.SUPERUSER);
+
+  private Service<UUID, Webhook> webhookService;
   private Gson gson;
 
-  public EventPostingWebhookService(Service<UUID, Webhook> delegate, Gson gson) {
-    super(delegate);
+  private CloseableHttpAsyncClient httpClient;
+  private FutureCallback<HttpResponse> errorCallback = new ErrorLoggingCallback();
+
+  public NodeEventPostingService(Service<UUID, Webhook> webhookService, Gson gson) {
     this.gson = gson;
+    this.webhookService = webhookService;
     this.httpClient = HttpAsyncClients.createMinimal();
     httpClient.start();
   }
 
-  /**
-   * Listen for all events and send them to registered listeners (webhooks) via async http client.
-   */
   @Subscribe
-  private void subscribeForAllEvents(Object event) throws UnsupportedEncodingException {
-    StringEntity body = new StringEntity(
-        gson.toJson(new WebEvent(new Date(), event.getClass().getSimpleName(), event)), UTF_8);
-
-    for (Webhook hook : get(eventBroadcaster)) {
+  public void subscribe(NodeEvent nodeEvent) {
+    for (Webhook hook : webhookService.get(eventBroadcaster)) {
       HttpPost request = new HttpPost(hook.getUrl());
       request.addHeader("Content-Type", "application/json");
-      request.setEntity(body);
-      httpClient.execute(request, errorLoggingCallback);
+      request.setEntity(new StringEntity(gson.toJson(new WebEvent(nodeEvent)), UTF_8));
+
+      Future<HttpResponse> future = httpClient.execute(request, errorCallback);
+
+      if (nodeEvent.isSync()) {
+        FutureUtils.waitFor(future, 1, TimeUnit.MINUTES,
+            e -> log.warn("{} {} {}", hook, e.getClass(), e.getMessage()));
+      }
     }
   }
 

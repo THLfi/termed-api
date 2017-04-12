@@ -1,33 +1,26 @@
-package fi.thl.termed.domain;
+package fi.thl.termed.domain.event;
 
 import com.google.common.base.MoreObjects;
-import java.util.Date;
 import java.util.Objects;
 
 /**
- * Wraps event to serializable format
+ * For serialized HTTP events, adds type name to termed event
  */
 public class WebEvent {
 
-  private Date date;
   private String type;
-  private Object body;
+  private TermedEvent body;
 
-  public WebEvent(Date date, String type, Object body) {
-    this.date = date;
-    this.type = type;
-    this.body = body;
-  }
-
-  public Date getDate() {
-    return date;
+  public WebEvent(TermedEvent source) {
+    this.type = source.getClass().getSimpleName();
+    this.body = source;
   }
 
   public String getType() {
     return type;
   }
 
-  public Object getBody() {
+  public TermedEvent getBody() {
     return body;
   }
 
@@ -40,20 +33,18 @@ public class WebEvent {
       return false;
     }
     WebEvent webEvent = (WebEvent) o;
-    return Objects.equals(date, webEvent.date) &&
-        Objects.equals(type, webEvent.type) &&
+    return Objects.equals(type, webEvent.type) &&
         Objects.equals(body, webEvent.body);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(date, type, body);
+    return Objects.hash(type, body);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("timestamp", date)
         .add("type", type)
         .add("body", body)
         .toString();

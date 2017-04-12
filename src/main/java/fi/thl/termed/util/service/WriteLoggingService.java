@@ -1,14 +1,13 @@
 package fi.thl.termed.util.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.specification.Specification;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WriteLoggingService<K extends Serializable, V> implements Service<K, V> {
 
@@ -26,49 +25,47 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
-  public List<K> save(List<V> values, User user) {
+  public List<K> save(List<V> values, Map<String, Object> args, User user) {
     log.info("save {} values (user: {})", values.size(), user.getUsername());
-    return delegate.save(values, user);
+    return delegate.save(values, args, user);
   }
 
   @Override
-  public K save(V value, User user) {
+  public K save(V value, Map<String, Object> args, User user) {
     log.info("save {} (user: {})", value, user.getUsername());
-    return delegate.save(value, user);
+    return delegate.save(value, args, user);
   }
 
   @Override
-  public void delete(List<K> ids, User user) {
+  public void delete(List<K> ids, Map<String, Object> args, User user) {
     log.info("delete {} (user: {})", ids, user.getUsername());
-    delegate.delete(ids, user);
+    delegate.delete(ids, args, user);
   }
 
   @Override
-  public void delete(K id, User user) {
+  public void delete(K id, Map<String, Object> args, User user) {
     log.info("delete {} (user: {})", id, user.getUsername());
-    delegate.delete(id, user);
+    delegate.delete(id, args, user);
   }
 
   @Override
-  public List<V> get(List<K> ids, User user) {
-    return delegate.get(ids, user);
+  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.get(specification, args, user);
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, List<String> sort, int max,
-                     User currentUser) {
-    return delegate.get(specification, sort, max, currentUser);
+  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.getKeys(specification, args, user);
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max,
-                         User currentUser) {
-    return delegate.getKeys(specification, sort, max, currentUser);
+  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
+    return delegate.get(ids, args, user);
   }
 
   @Override
-  public Optional<V> get(K id, User user) {
-    return delegate.get(id, user);
+  public Optional<V> get(K id, Map<String, Object> args, User user) {
+    return delegate.get(id, args, user);
   }
 
 }

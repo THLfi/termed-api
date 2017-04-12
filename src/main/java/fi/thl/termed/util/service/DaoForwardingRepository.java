@@ -21,7 +21,7 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
   }
 
   @Override
-  protected boolean exists(K key, User user) {
+  public boolean exists(K key, User user) {
     return delegate.exists(key, user);
   }
 
