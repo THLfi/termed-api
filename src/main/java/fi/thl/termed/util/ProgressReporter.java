@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 public class ProgressReporter {
 
   private Logger log;
-  private String message;
+  private String operationName;
 
   private int total;
   private int processed;
@@ -16,18 +16,16 @@ public class ProgressReporter {
   private int lastUpdateProcessed;
   private long lastUpdateTime;
 
-  public ProgressReporter(Logger log, String message, int reportInterval, int total) {
-    this.total = total;
+  public ProgressReporter(Logger log, String operationName, int reportInterval, int total) {
+    this.log = log;
+    this.operationName = operationName;
     this.reportInterval = reportInterval;
+    this.total = total;
 
     this.startTime = System.nanoTime();
     this.lastUpdateTime = startTime;
-
     this.processed = 0;
     this.lastUpdateProcessed = 0;
-
-    this.message = message;
-    this.log = log;
   }
 
   public void tick() {
@@ -38,28 +36,30 @@ public class ProgressReporter {
   }
 
   public void report() {
-    log.info("{} {}% - {}/{} - {} in {} ms - total time {} seconds",
-             message, percentageDone(), processed, total,
-             processedSinceLastUpdate(), timePassedSinceLastUpdate(), totalTimePassedInSeconds());
+    log.trace("{} {}% - {}/{} - {} in {} ms - total time {} seconds",
+        operationName, percentageDone(), processed, total,
+        processedSinceLastUpdate(),
+        timeSinceLastUpdate(),
+        totalTimeInSeconds());
 
     lastUpdateProcessed = processed;
     lastUpdateTime = System.nanoTime();
+  }
+
+  private int percentageDone() {
+    return (processed * 100) / total;
   }
 
   private int processedSinceLastUpdate() {
     return processed - lastUpdateProcessed;
   }
 
-  public int percentageDone() {
-    return (processed * 100) / total;
-  }
-
-  public long totalTimePassedInSeconds() {
-    return (System.nanoTime() - startTime) / 1000000000;
-  }
-
-  public long timePassedSinceLastUpdate() {
+  private long timeSinceLastUpdate() {
     return (System.nanoTime() - lastUpdateTime) / 1000000;
+  }
+
+  private long totalTimeInSeconds() {
+    return (System.nanoTime() - startTime) / 1000000000;
   }
 
 }

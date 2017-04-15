@@ -15,6 +15,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
+import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
@@ -64,6 +65,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
 
     List<NodeId> ids = super.save(nodes, args, user);
+
+    log.debug("Collecting nodes for indexing");
 
     reindexSet.addAll(ids);
     reindexSet.addAll(ids.stream()
@@ -124,23 +127,20 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   @SuppressWarnings("unchecked")
   public List<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
-    List<String> sort = castStringList(args.get("sort"));
-    int max = castInteger(args.get("max"), -1);
 
     return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.get(spec, sort, max) : super.get(spec, args, user);
+        index.get(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
+        super.get(spec, args, user);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public List<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
-    List<String> sort = castStringList(args.get("sort"));
-    int max = castInteger(args.get("max"), -1);
 
     return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.getKeys(spec, sort, max) : super.getKeys(spec, args, user);
+        index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
+        super.getKeys(spec, args, user);
   }
 
   private Set<NodeId> nodeNeighbourIds(NodeId nodeId) {
@@ -156,6 +156,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   private void reindex(Set<NodeId> ids) {
+    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
+
     for (NodeId id : ids) {
       Optional<Node> node = super.get(id, indexer);
       if (node.isPresent()) {
@@ -163,8 +165,10 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       } else {
         index.delete(id);
       }
+      reporter.tick();
     }
 
+    reporter.report();
     waitLuceneIndexRefresh();
   }
 

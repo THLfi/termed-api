@@ -3,6 +3,7 @@ package fi.thl.termed.util.dao;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import fi.thl.termed.util.ProgressReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,9 +30,9 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   protected JdbcTemplate jdbcTemplate;
 
-  protected RowMapper<K> keyMapper;
-  protected RowMapper<V> valueMapper;
-  protected RowMapper<Map.Entry<K, V>> entryMapper;
+  private RowMapper<K> keyMapper;
+  private RowMapper<V> valueMapper;
+  private RowMapper<Map.Entry<K, V>> entryMapper;
 
   public AbstractJdbcDao(DataSource dataSource) {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -48,7 +49,16 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   @Override
   public void insert(Map<K, V> map) {
-    map.forEach(this::insert);
+    ProgressReporter reporter = new ProgressReporter(log, "Inserted", 1000, map.size());
+
+    map.forEach((k, v) -> {
+      insert(k, v);
+      reporter.tick();
+    });
+
+    if (map.size() >= 1000) {
+      reporter.report();
+    }
   }
 
   @Override

@@ -1,15 +1,11 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Maps.difference;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Multimap;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
@@ -25,9 +21,12 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Maps.difference;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
@@ -52,10 +51,17 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   public void insert(Map<NodeId, Node> map, User user) {
     addCreatedInfo(map.values(), user);
     nodeDao.insert(map, user);
-    for (Map.Entry<NodeId, Node> entry : map.entrySet()) {
-      insertTextAttrValues(entry.getKey(), entry.getValue().getProperties(), user);
-      insertRefAttrValues(entry.getKey(), entry.getValue().getReferences(), user);
-    }
+
+    Map<NodeAttributeValueId, StrictLangValue> textAttrValues = new LinkedHashMap<>();
+    Map<NodeAttributeValueId, NodeId> refAttrValues = new LinkedHashMap<>();
+
+    map.forEach((k, v) -> {
+      textAttrValues.putAll(new NodeTextAttributeValueDtoToModel(k).apply(v.getProperties()));
+      refAttrValues.putAll(new ReferenceAttributeValueIdDtoToModel(k).apply(v.getReferences()));
+    });
+
+    textAttributeValueDao.insert(textAttrValues, user);
+    referenceAttributeValueDao.insert(refAttrValues, user);
   }
 
   @Override
@@ -81,13 +87,13 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   private void insertTextAttrValues(NodeId id,
-                                    Multimap<String, StrictLangValue> properties, User user) {
+      Multimap<String, StrictLangValue> properties, User user) {
     textAttributeValueDao.insert(
         new NodeTextAttributeValueDtoToModel(id).apply(properties), user);
   }
 
   private void insertRefAttrValues(NodeId id, Multimap<String, NodeId> references,
-                                   User user) {
+      User user) {
     referenceAttributeValueDao.insert(
         new ReferenceAttributeValueIdDtoToModel(id).apply(references), user);
   }
@@ -109,9 +115,9 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   private void updateTextAttrValues(NodeId nodeId,
-                                    Multimap<String, StrictLangValue> newProperties,
-                                    Multimap<String, StrictLangValue> oldProperties,
-                                    User user) {
+      Multimap<String, StrictLangValue> newProperties,
+      Multimap<String, StrictLangValue> oldProperties,
+      User user) {
 
     Map<NodeAttributeValueId, StrictLangValue> newMappedProperties =
         new NodeTextAttributeValueDtoToModel(nodeId).apply(newProperties);
@@ -127,9 +133,9 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   private void updateRefAttrValues(NodeId nodeId,
-                                   Multimap<String, NodeId> newRefs,
-                                   Multimap<String, NodeId> oldRefs,
-                                   User user) {
+      Multimap<String, NodeId> newRefs,
+      Multimap<String, NodeId> oldRefs,
+      User user) {
 
     Map<NodeAttributeValueId, NodeId> newMappedRefs =
         new ReferenceAttributeValueIdDtoToModel(nodeId).apply(newRefs);
@@ -158,15 +164,14 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
     referenceAttributeValueDao.delete(ImmutableList.copyOf(mappedRefs.keySet()), user);
   }
 
-  private void deleteInverseRefAttrValues(NodeId id, Multimap<String, NodeId> refs,
-                                          User user) {
+  private void deleteInverseRefAttrValues(NodeId id, Multimap<String, NodeId> refs, User user) {
     Map<NodeAttributeValueId, NodeId> mappedRefs =
         new ReferenceAttributeValueIdDtoToReferrerModel(id).apply(refs);
     referenceAttributeValueDao.delete(ImmutableList.copyOf(mappedRefs.keySet()), user);
   }
 
   private void deleteTextAttrValues(NodeId id, Multimap<String, StrictLangValue> properties,
-                                    User user) {
+      User user) {
     Map<NodeAttributeValueId, StrictLangValue> mappedProperties =
         new NodeTextAttributeValueDtoToModel(id).apply(properties);
     textAttributeValueDao.delete(ImmutableList.copyOf(mappedProperties.keySet()), user);
