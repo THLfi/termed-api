@@ -21,7 +21,6 @@ import fi.thl.termed.service.node.internal.NodeRepository;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
@@ -61,21 +60,16 @@ public class NodeServiceConfiguration {
   @Autowired
   private EventBus eventBus;
 
-  private <T> T registerToEventBus(T t) {
-    eventBus.register(t);
-    return t;
-  }
-
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service =
         new TransactionalService<>(nodeRepository(), transactionManager);
 
-    service = registerToEventBus(
-        new IndexedNodeService(service,
-            new LuceneIndex<>(indexPath,
-                new JsonStringConverter<>(NodeId.class),
-                new NodeDocumentConverter(gson))));
+    service = new IndexedNodeService(service, new LuceneIndex<>(indexPath,
+        new JsonStringConverter<>(NodeId.class),
+        new NodeDocumentConverter(gson)));
+
+    eventBus.register(service);
 
     // Although database backed repository is secured, lucene backed indexed service is not.
     // That's why we again filter any read requests.
@@ -120,20 +114,15 @@ public class NodeServiceConfiguration {
   }
 
   private SystemDao<NodeId, Node> nodeSystemDao() {
-    return registerToEventBus(
-        new CachedSystemDao<>(new JdbcPostgresNodeDao(dataSource), "NodeCache"));
+    return new JdbcPostgresNodeDao(dataSource);
   }
 
   private SystemDao<NodeAttributeValueId, StrictLangValue> textAttributeValueSystemDao() {
-    return registerToEventBus(
-        new CachedSystemDao<>(new JdbcPostgresNodeTextAttributeValueDao(dataSource),
-            "TextAttributeValueCache"));
+    return new JdbcPostgresNodeTextAttributeValueDao(dataSource);
   }
 
   private SystemDao<NodeAttributeValueId, NodeId> referenceAttributeValueSystemDao() {
-    return registerToEventBus(
-        new CachedSystemDao<>(new JdbcPostgresNodeReferenceAttributeValueDao(dataSource),
-            "ReferenceAttributeValueCache"));
+    return new JdbcPostgresNodeReferenceAttributeValueDao(dataSource);
   }
 
   /**

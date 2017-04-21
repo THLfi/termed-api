@@ -15,13 +15,21 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
+import fi.thl.termed.domain.event.ReindexEvent;
+import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,28 +62,56 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     index.close();
   }
 
+  @Subscribe
+  public void reindexOn(ReindexEvent e) {
+    index.index(super.getKeys(indexer), key -> super.get(key, indexer));
+  }
+
   @Override
   public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
-    List<NodeId> nodeIds = nodes.stream().map(Node::identifier).collect(toList());
+    Set<NodeId> referencedIds = Sets.newHashSet();
 
-    Set<NodeId> reindexSet = Sets.newHashSet();
+    for (Node node : nodes) {
+      Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
+          new NodesByGraphId(node.getTypeGraphId()),
+          new NodesByTypeId(node.getTypeId()),
+          new NodeById(node.getId())), user).stream().findFirst();
 
-    reindexSet.addAll(nodeIds);
-    reindexSet.addAll(nodeIds.stream()
-        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
+      oldNodeFromIndex.ifPresent(n -> {
+        referencedIds.addAll(n.getReferences().values());
+        referencedIds.addAll(n.getReferrers().values());
+      });
+    }
 
     List<NodeId> ids = super.save(nodes, args, user);
 
-    log.debug("Collecting nodes for indexing");
+    log.info("Indexing {} nodes", ids.size());
+    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
 
-    reindexSet.addAll(ids);
-    reindexSet.addAll(ids.stream()
-        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
+    Set<NodeId> indexed = new HashSet<>();
 
-    log.info("Indexing {} nodes", reindexSet.size());
+    ids.forEach(id -> {
+      Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
+      index.index(id, node);
+      indexed.add(id);
+      referencedIds.addAll(node.getReferences().values());
+      referencedIds.addAll(node.getReferrers().values());
+      reporter.tick();
+    });
 
-    reindex(reindexSet);
+    referencedIds.removeAll(indexed);
 
+    reporter.report();
+    log.info("Indexing {} referenced nodes", referencedIds.size());
+    ProgressReporter refReporter = new ProgressReporter(log, "Index", 1000, referencedIds.size());
+
+    referencedIds.forEach(id -> {
+      Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
+      index.index(node.identifier(), node);
+      refReporter.tick();
+    });
+
+    refReporter.report();
     log.info("Done");
 
     return ids;
@@ -83,19 +119,45 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Override
   public NodeId save(Node node, Map<String, Object> args, User user) {
-    Set<NodeId> reindexSet = Sets.newHashSet();
+    Set<NodeId> referencedIds = Sets.newHashSet();
 
-    reindexSet.add(node.identifier());
-    reindexSet.addAll(nodeNeighbourIds(node.identifier()));
+    Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
+        new NodesByGraphId(node.getTypeGraphId()),
+        new NodesByTypeId(node.getTypeId()),
+        new NodeById(node.getId())), user).stream().findFirst();
+
+    oldNodeFromIndex.ifPresent(n -> {
+      referencedIds.addAll(n.getReferences().values());
+      referencedIds.addAll(n.getReferrers().values());
+    });
 
     NodeId id = super.save(node, args, user);
 
-    reindexSet.add(id);
-    reindexSet.addAll(nodeNeighbourIds(id));
+    List<Node> nodesForIndexing = new ArrayList<>();
 
-    reindex(reindexSet);
+    Node newNodeForIndexing = super.get(id, indexer).orElseThrow(IllegalStateException::new);
+    referencedIds.addAll(newNodeForIndexing.getReferences().values());
+    referencedIds.addAll(newNodeForIndexing.getReferrers().values());
+
+    nodesForIndexing.add(newNodeForIndexing);
+
+    for (NodeId refId : referencedIds) {
+      nodesForIndexing.add(super.get(refId, indexer).orElseThrow(IllegalStateException::new));
+    }
+
+    reindex(nodesForIndexing);
 
     return id;
+  }
+
+  private void reindex(Collection<Node> nodes) {
+    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, nodes.size());
+    nodes.forEach(node -> {
+      index.index(node.identifier(), node);
+      reporter.tick();
+    });
+    reporter.report();
+    waitLuceneIndexRefresh();
   }
 
   @Override

@@ -47,7 +47,7 @@ public class ProgressReporter {
   }
 
   private int percentageDone() {
-    return (processed * 100) / total;
+    return total > 0 ? ((processed * 100) / total) : 100;
   }
 
   private int processedSinceLastUpdate() {
