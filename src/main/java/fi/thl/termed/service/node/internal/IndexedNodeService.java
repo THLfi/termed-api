@@ -112,6 +112,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     });
 
     refReporter.report();
+    
+    waitLuceneIndexRefresh();
     log.info("Done");
 
     return ids;
