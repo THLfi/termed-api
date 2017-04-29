@@ -62,17 +62,16 @@ public class TransactionalService<K extends Serializable, V> implements Service<
 
   @Override
   public void delete(List<K> ids, Map<String, Object> args, User user) {
-    runInTransaction(() -> delegate.delete(ids, args, user));
+    runInTransaction(() -> {
+      delegate.delete(ids, args, user);
+      return null;
+    });
   }
 
   @Override
   public void delete(K id, Map<String, Object> args, User user) {
-    runInTransaction(() -> delegate.delete(id, args, user));
-  }
-
-  private void runInTransaction(Runnable runnable) {
-    runInTransaction((Supplier<Void>) () -> {
-      runnable.run();
+    runInTransaction(() -> {
+      delegate.delete(id, args, user);
       return null;
     });
   }

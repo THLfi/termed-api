@@ -12,6 +12,9 @@ public final class RegularExpressions {
   public static final String URN_UUID =
       "urn:uuid:" + UUID;
 
+  public static final String ISO_8601_DATE =
+      "\\d{4}(-\\d{2}(-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?(\\.\\d+)?(([+-]\\d{2}:\\d{2})|Z)?)?)?)?";
+
   private RegularExpressions() {
   }
 

@@ -46,7 +46,9 @@ public class TypeBasedNodeSpecificationFilter implements
             s instanceof AndSpecification ||
             s instanceof OrSpecification ||
             s instanceof NodesByCode ||
-            s instanceof NodesByUri;
+            s instanceof NodesByUri ||
+            s instanceof NodesByCreatedDate ||
+            s instanceof NodesByLastModifiedDate;
 
     Predicate<Specification<NodeId, Node>> graphSpec =
         s -> s instanceof NodesByGraphId &&
