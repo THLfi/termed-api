@@ -1,7 +1,7 @@
 package fi.thl.termed.web.system.node;
 
+import static com.google.common.collect.ImmutableMap.of;
 import static fi.thl.termed.util.StringUtils.tokenize;
-import static fi.thl.termed.util.collect.MapUtils.entry;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -68,10 +68,7 @@ public class NodeReadController {
       spec.or(typeSpec);
     });
 
-    return nodeService.get(spec, user,
-        entry("bypassIndex", bypassIndex),
-        entry("sort", sort),
-        entry("max", max));
+    return nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -98,10 +95,7 @@ public class NodeReadController {
       spec.or(typeSpec);
     });
 
-    return nodeService.get(spec, user,
-        entry("bypassIndex", bypassIndex),
-        entry("sort", sort),
-        entry("max", max));
+    return nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -126,10 +120,7 @@ public class NodeReadController {
       spec.and(toPrefixQuery(type.getTextAttributes(), query));
     }
 
-    return nodeService.get(spec, user,
-        entry("bypassIndex", bypassIndex),
-        entry("sort", sort),
-        entry("max", max));
+    return nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
