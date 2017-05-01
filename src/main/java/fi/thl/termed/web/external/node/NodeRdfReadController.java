@@ -1,5 +1,6 @@
 package fi.thl.termed.web.external.node;
 
+import java.util.stream.Collectors;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodesToRdfModel;
 
 import static fi.thl.termed.util.StringUtils.tokenize;
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/api/graphs/{graphId}")
@@ -77,8 +79,8 @@ public class NodeRdfReadController {
       spec.or(typeSpec);
     });
 
-    List<Node> nodes = nodeService.get(spec, user);
-    List<Type> types = typeService.get(new TypesByGraphId(graphId), user);
+    List<Node> nodes = nodeService.get(spec, user).collect(toList());
+    List<Type> types = typeService.get(new TypesByGraphId(graphId), user).collect(toList());
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(nodes)).getModel();
@@ -93,7 +95,7 @@ public class NodeRdfReadController {
 
     List<Node> node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .map(Collections::singletonList).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.get(new TypesByGraphId(graphId), user);
+    List<Type> types = typeService.get(new TypesByGraphId(graphId), user).collect(toList());
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(node)).getModel();

@@ -36,7 +36,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
     Map<NodeId, Node> referenceValueMap = Maps.uniqueIndex(
-        nodeService.get(new NodeReferences(new NodeId(node), attributeId), user),
+        nodeService.get(new NodeReferences(new NodeId(node), attributeId), user).iterator(),
         Node::identifier);
 
     Collection<NodeId> referenceIds = node.getReferences().get(attributeId);

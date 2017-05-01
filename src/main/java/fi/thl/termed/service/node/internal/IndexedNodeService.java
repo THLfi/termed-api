@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
       // async reindex all
-      index.index(super.getKeys(indexer), key -> super.get(key, indexer));
+      index.index(super.getKeys(indexer).collect(toList()), key -> super.get(key, indexer));
     }
   }
 
@@ -64,7 +65,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Subscribe
   public void reindexOn(ReindexEvent e) {
-    index.index(super.getKeys(indexer), key -> super.get(key, indexer));
+    index.index(super.getKeys(indexer).collect(toList()), key -> super.get(key, indexer));
   }
 
   @Override
@@ -75,7 +76,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
           new NodesByGraphId(node.getTypeGraphId()),
           new NodesByTypeId(node.getTypeId()),
-          new NodeById(node.getId())), user).stream().findFirst();
+          new NodeById(node.getId())), user).findFirst();
 
       oldNodeFromIndex.ifPresent(n -> {
         referencedIds.addAll(n.getReferences().values());
@@ -112,7 +113,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     });
 
     refReporter.report();
-    
+
     waitLuceneIndexRefresh();
     log.info("Done");
 
@@ -126,7 +127,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
         new NodesByGraphId(node.getTypeGraphId()),
         new NodesByTypeId(node.getTypeId()),
-        new NodeById(node.getId())), user).stream().findFirst();
+        new NodeById(node.getId())), user).findFirst();
 
     oldNodeFromIndex.ifPresent(n -> {
       referencedIds.addAll(n.getReferences().values());
@@ -189,7 +190,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public List<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
     return !bypassIndex && spec instanceof LuceneSpecification ?
@@ -198,7 +199,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 

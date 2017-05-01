@@ -34,21 +34,21 @@ public class LuceneIndexTest {
   @Test
   public void shouldFindById() {
     assertEquals("This is an example body about cats",
-                 index.get(term("id", "2"), null, -1).get(0).body);
+                 index.get(term("id", "2"), null, -1).findFirst().get().body);
   }
 
   @Test
   public void shouldFindByContents() {
-    assertEquals("First", index.get(term("title", "First"), null, -1).get(0).title);
-    assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).get(0).id);
+    assertEquals("First", index.get(term("title", "First"), null, -1).findFirst().get().title);
+    assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).findFirst().get().id);
   }
 
   @Test
   public void shouldNotFindDeleted() {
-    assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).get(0).id);
+    assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).findFirst().get().id);
     index.delete(3);
     index.refreshBlocking();
-    assertTrue(index.get(term("body", "horses"), null, -1).isEmpty());
+    assertTrue(!index.get(term("body", "horses"), null, -1).findAny().isPresent());
   }
 
   private <K extends Serializable, V> Specification<K, V> term(String field, String value) {

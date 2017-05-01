@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
@@ -183,15 +184,14 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public List<Node> get(Specification<NodeId, Node> specification, User user) {
+  public Stream<Node> get(Specification<NodeId, Node> specification, User user) {
     return nodeDao.getValues(specification, user).stream()
-        .map(node -> populateValue(node, user))
-        .collect(Collectors.toList());
+        .map(node -> populateValue(node, user));
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> specification, User user) {
-    return nodeDao.getKeys(specification, user);
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> specification, User user) {
+    return nodeDao.getKeys(specification, user).stream();
   }
 
   @Override

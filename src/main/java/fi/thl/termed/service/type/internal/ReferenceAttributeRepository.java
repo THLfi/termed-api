@@ -1,15 +1,11 @@
 package fi.thl.termed.service.type.internal;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -27,8 +23,9 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.collect.ImmutableList.copyOf;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ReferenceAttributeRepository
     extends AbstractRepository<ReferenceAttributeId, ReferenceAttribute> {
@@ -54,31 +51,31 @@ public class ReferenceAttributeRepository
   }
 
   private void insertPermissions(ReferenceAttributeId attributeId,
-                                 Multimap<String, Permission> permissions, User user) {
+      Multimap<String, Permission> permissions, User user) {
     TypeId domainId = attributeId.getDomainId();
     permissionDao.insert(new RolePermissionsDtoToModel<>(
         domainId.getGraph(), attributeId).apply(permissions), user);
   }
 
   private void insertProperties(ReferenceAttributeId attributeId,
-                                Multimap<String, LangValue> properties, User user) {
+      Multimap<String, LangValue> properties, User user) {
     propertyDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
   }
 
   @Override
   public void update(ReferenceAttributeId id,
-                     ReferenceAttribute newAttribute,
-                     ReferenceAttribute oldAttribute,
-                     User user) {
+      ReferenceAttribute newAttribute,
+      ReferenceAttribute oldAttribute,
+      User user) {
     referenceAttributeDao.update(id, newAttribute, user);
     updatePermissions(id, newAttribute.getPermissions(), oldAttribute.getPermissions(), user);
     updateProperties(id, newAttribute.getProperties(), oldAttribute.getProperties(), user);
   }
 
   private void updatePermissions(ReferenceAttributeId attrId,
-                                 Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions,
-                                 User user) {
+      Multimap<String, Permission> newPermissions,
+      Multimap<String, Permission> oldPermissions,
+      User user) {
     TypeId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
@@ -94,9 +91,9 @@ public class ReferenceAttributeRepository
   }
 
   private void updateProperties(ReferenceAttributeId attributeId,
-                                Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap,
-                                User user) {
+      Multimap<String, LangValue> newPropertyMultimap,
+      Multimap<String, LangValue> oldPropertyMultimap,
+      User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
         new PropertyValueDtoToModel<>(attributeId).apply(newPropertyMultimap);
@@ -119,7 +116,7 @@ public class ReferenceAttributeRepository
   }
 
   private void deletePermissions(ReferenceAttributeId id, Multimap<String, Permission> permissions,
-                                 User user) {
+      User user) {
     TypeId domainId = id.getDomainId();
     permissionDao.delete(ImmutableList.copyOf(
         new RolePermissionsDtoToModel<>(domainId.getGraph(), id)
@@ -127,7 +124,7 @@ public class ReferenceAttributeRepository
   }
 
   private void deleteProperties(ReferenceAttributeId id, Multimap<String, LangValue> properties,
-                                User user) {
+      User user) {
     propertyDao.delete(ImmutableList.copyOf(
         new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
   }
@@ -138,17 +135,16 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public List<ReferenceAttribute> get(
+  public Stream<ReferenceAttribute> get(
       Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
     return referenceAttributeDao.getValues(specification, user).stream()
-        .map(attribute -> populateValue(attribute, user))
-        .collect(Collectors.toList());
+        .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public List<ReferenceAttributeId> getKeys(
+  public Stream<ReferenceAttributeId> getKeys(
       Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
-    return referenceAttributeDao.getKeys(specification, user);
+    return referenceAttributeDao.getKeys(specification, user).stream();
   }
 
   @Override

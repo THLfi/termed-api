@@ -36,7 +36,7 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
     Map<NodeId, Node> referrerValueMap = Maps.uniqueIndex(
-        nodeService.get(new NodeReferrers(new NodeId(node), attributeId), user),
+        nodeService.get(new NodeReferrers(new NodeId(node), attributeId), user).iterator(),
         Node::identifier);
 
     Collection<NodeId> referrerIds = node.getReferrers().get(attributeId);

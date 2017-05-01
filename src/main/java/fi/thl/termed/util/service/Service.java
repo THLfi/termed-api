@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Generic interface for services.
@@ -54,37 +55,37 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get specified values.
    */
-  default List<V> get(User user) {
+  default Stream<V> get(User user) {
     return get(new MatchAll<>(), user);
   }
 
-  default List<V> get(Specification<K, V> specification, User user) {
+  default Stream<V> get(Specification<K, V> specification, User user) {
     return get(specification, emptyMap(), user);
   }
 
-  List<V> get(Specification<K, V> specification, Map<String, Object> args, User user);
+  Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user);
 
   /**
    * Get specified keys.
    */
-  default List<K> getKeys(User user) {
+  default Stream<K> getKeys(User user) {
     return getKeys(new MatchAll<>(), user);
   }
 
-  default List<K> getKeys(Specification<K, V> specification, User user) {
+  default Stream<K> getKeys(Specification<K, V> specification, User user) {
     return getKeys(specification, emptyMap(), user);
   }
 
-  List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user);
+  Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user);
 
   /**
    * Get values by ids.
    */
-  default List<V> get(List<K> ids, User user) {
+  default Stream<V> get(List<K> ids, User user) {
     return get(ids, emptyMap(), user);
   }
 
-  List<V> get(List<K> ids, Map<String, Object> args, User user);
+  Stream<V> get(List<K> ids, Map<String, Object> args, User user);
 
   /**
    * Get value by id.

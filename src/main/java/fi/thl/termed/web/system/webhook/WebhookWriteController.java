@@ -1,5 +1,6 @@
 package fi.thl.termed.web.system.webhook;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.User;
@@ -38,7 +39,7 @@ public class WebhookWriteController {
   @DeleteMapping
   @ResponseStatus(NO_CONTENT)
   public void delete(@AuthenticationPrincipal User user) {
-    webhookService.delete(webhookService.getKeys(user), user);
+    webhookService.delete(webhookService.getKeys(user).collect(toList()), user);
   }
 
 }

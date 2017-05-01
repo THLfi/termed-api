@@ -1,10 +1,12 @@
 package fi.thl.termed.web.system.node;
 
+import static com.google.common.collect.ImmutableMap.of;
 import static fi.thl.termed.util.RegularExpressions.CODE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.regex.Pattern.compile;
-import static java.util.stream.Collectors.toList;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import fi.thl.termed.domain.DepthLimitedNodeTree;
 import fi.thl.termed.domain.FilteredNodeTree;
 import fi.thl.termed.domain.Graph;
@@ -24,12 +26,14 @@ import fi.thl.termed.service.node.specification.TypeBasedNodeSpecificationFilter
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.json.JsonStream;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +45,8 @@ import java.util.UUID;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +64,8 @@ public class NodeTreeReadController {
   private Service<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
+  @Autowired
+  private Gson gson;
 
   private Pattern prop = compile("^(properties|props|p)\\.(" + CODE + ")$");
   private Pattern refDepth = compile("^(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?$");
@@ -66,14 +74,15 @@ public class NodeTreeReadController {
   private NodeSpecificationParser specificationParser = new NodeSpecificationParser();
 
   @GetJsonMapping("/node-trees")
-  public List<SimpleNodeTree> get(
+  public void get(
       @RequestParam(value = "select", defaultValue = "") List<String> select,
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @RequestParam(value = "sort", defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
-    List<Type> types = typeService.get(user);
+    Stream<Type> types = typeService.get(user);
 
     OrSpecification<NodeId, Node> filtered = new OrSpecification<>();
     String whereSpecification = String.join(" AND ", where);
@@ -86,22 +95,26 @@ public class NodeTreeReadController {
           new NodesByGraphId(t.getGraphId()), new NodesByTypeId(t.getId()))));
     }
 
-    return toTrees(
-        nodeService.get(filtered, ImmutableMap.of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    response.setCharacterEncoding(UTF_8.toString());
+
+    JsonStream.write(response.getOutputStream(), gson,
+        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
+            parseSelect(select), user), SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/node-trees")
-  public List<SimpleNodeTree> get(
+  public void get(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(value = "select", defaultValue = "") List<String> select,
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @RequestParam(value = "sort", defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.get(new TypesByGraphId(graphId), user);
+    Stream<Type> types = typeService.get(new TypesByGraphId(graphId), user);
 
     OrSpecification<NodeId, Node> filtered = new OrSpecification<>();
     String whereSpecification = String.join(" AND ", where);
@@ -114,20 +127,24 @@ public class NodeTreeReadController {
           new NodesByGraphId(t.getGraphId()), new NodesByTypeId(t.getId()))));
     }
 
-    return toTrees(
-        nodeService.get(filtered, ImmutableMap.of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    response.setCharacterEncoding(UTF_8.toString());
+
+    JsonStream.write(response.getOutputStream(), gson,
+        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
+            parseSelect(select), user), SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees")
-  public List<SimpleNodeTree> get(
+  public void get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @RequestParam(value = "select", defaultValue = "") List<String> select,
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @RequestParam(value = "sort", defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
@@ -143,9 +160,12 @@ public class NodeTreeReadController {
           new NodesByGraphId(type.getGraphId()), new NodesByTypeId(type.getId()));
     }
 
-    return toTrees(
-        nodeService.get(filtered, ImmutableMap.of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    response.setCharacterEncoding(UTF_8.toString());
+
+    JsonStream.write(response.getOutputStream(), gson,
+        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
+            parseSelect(select), user), SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees/{id}")
@@ -162,8 +182,8 @@ public class NodeTreeReadController {
     return toTree(node, parseSelect(select), user);
   }
 
-  private List<SimpleNodeTree> toTrees(List<Node> nodes, Select select, User user) {
-    return nodes.stream().map(node -> toTree(node, select, user)).collect(toList());
+  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Select select, User user) {
+    return nodes.map(node -> toTree(node, select, user));
   }
 
   private SimpleNodeTree toTree(Node node, Select s, User user) {

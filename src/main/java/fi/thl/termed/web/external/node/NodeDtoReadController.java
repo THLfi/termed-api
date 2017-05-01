@@ -2,6 +2,7 @@ package fi.thl.termed.web.external.node;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import fi.thl.termed.domain.Graph;
@@ -39,7 +40,6 @@ import fi.thl.termed.web.external.node.transform.NodeToDtoMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class NodeDtoReadController {
   private List<NodeDto> toDto(List<Node> nodes, NodeQuery query, User user) {
     return nodes.stream()
         .map(FunctionUtils.partialApplySecond(buildDtoMapper(user), query))
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   private NodeToDtoMapper buildDtoMapper(User user) {
@@ -104,11 +104,11 @@ public class NodeDtoReadController {
           .map(Collections::singletonList)
           .orElseThrow(NotFoundException::new);
     } else if (graphId != null) {
-      types = typeService.get(new TypesByGraphId(graphId), user);
+      types = typeService.get(new TypesByGraphId(graphId), user).collect(toList());
     } else if (typeId != null) {
-      types = typeService.get(new TypesById(typeId), user);
+      types = typeService.get(new TypesById(typeId), user).collect(toList());
     } else {
-      types = typeService.get(user);
+      types = typeService.get(user).collect(toList());
     }
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
@@ -121,7 +121,8 @@ public class NodeDtoReadController {
       spec.or(typeSpec);
     }
 
-    return toDto(nodeService.get(spec, of("sort", query.sort, "max", query.max), user),
+    return toDto(
+        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
         query, user);
   }
 
@@ -135,13 +136,14 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
     typeService.get(new TypesByGraphId(graphId.getId()), user)
         .forEach(type -> spec.or(toSpecification(type, query.where)));
 
-    return toDto(nodeService.get(spec, of("sort", query.sort, "max", query.max), user),
+    return toDto(
+        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
         query, user);
   }
 
@@ -156,13 +158,14 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = toSpecification(type, query.where);
 
-    return toDto(nodeService.get(spec, of("sort", query.sort, "max", query.max), user),
+    return toDto(
+        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
         query, user);
   }
 
@@ -179,7 +182,7 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
@@ -189,7 +192,8 @@ public class NodeDtoReadController {
             ? new NodesWithoutReferences(attributeId)
             : new NodesWithoutReferrers(attributeId));
 
-    return toDto(nodeService.get(spec, of("sort", query.sort, "max", query.max), user),
+    return toDto(
+        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
         query, user);
   }
 
@@ -204,15 +208,14 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = new AndSpecification<>(
         new NodesByGraphId(graphId.getId()),
         new NodesByTypeId(typeId),
         new NodesByCode(nodeCode));
 
-    Node node = nodeService.get(spec, user).stream()
-        .findFirst().orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -228,7 +231,7 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec;
 
@@ -244,8 +247,7 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.get(spec, user).stream()
-        .findFirst().orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -260,7 +262,7 @@ public class NodeDtoReadController {
     NodeQuery query = NodeQueryParser.parse(params);
 
     GraphId graphId = graphService.getKeys(new GraphByCode(graphCode), user)
-        .stream().findFirst().orElseThrow(NotFoundException::new);
+        .findFirst().orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec;
 
@@ -274,8 +276,7 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.get(spec, user).stream()
-        .findFirst().orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -303,8 +304,7 @@ public class NodeDtoReadController {
           new NodesByUri(nodeUri));
     }
 
-    Node node = nodeService.get(spec, user).stream()
-        .findFirst().orElseThrow(NotFoundException::new);
+    Node node = nodeService.get(spec, user).findFirst().orElseThrow(NotFoundException::new);
 
     return toDto(node, query, user);
   }
@@ -326,8 +326,8 @@ public class NodeDtoReadController {
       uriSpec = new NodesByUri(nodeUri);
     }
 
-    List<Type> types = isNullOrEmpty(typeId) ? typeService.get(user)
-        : typeService.get(new TypesById(typeId), user);
+    List<Type> types = isNullOrEmpty(typeId) ? typeService.get(user).collect(toList())
+        : typeService.get(new TypesById(typeId), user).collect(toList());
 
     OrSpecification<NodeId, Node> spec = new OrSpecification<>();
     types.forEach(type -> spec.or(new AndSpecification<>(
@@ -335,7 +335,7 @@ public class NodeDtoReadController {
         new NodesByTypeId(type.getId()),
         uriSpec)));
 
-    return toDto(nodeService.get(spec, user), query, user);
+    return toDto(nodeService.get(spec, user).collect(toList()), query, user);
   }
 
 }

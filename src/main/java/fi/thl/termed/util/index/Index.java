@@ -1,11 +1,11 @@
 package fi.thl.termed.util.index;
 
+import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-
-import fi.thl.termed.util.specification.Specification;
+import java.util.stream.Stream;
 
 public interface Index<K extends Serializable, V> {
 
@@ -21,11 +21,11 @@ public interface Index<K extends Serializable, V> {
 
   boolean isEmpty();
 
-  List<V> get(Specification<K, V> specification, List<String> sort, int max);
+  Stream<V> get(Specification<K, V> specification, List<String> sort, int max);
 
-  List<K> getKeys(Specification<K, V> specification, List<String> sort, int max);
+  Stream<K> getKeys(Specification<K, V> specification, List<String> sort, int max);
 
-  List<V> get(List<K> ids);
+  Stream<V> get(List<K> ids);
 
   Optional<V> get(K id);
 

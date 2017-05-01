@@ -1,15 +1,11 @@
 package fi.thl.termed.service.graph.internal;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.Graph;
@@ -30,8 +26,10 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.collect.ImmutableList.copyOf;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class GraphRepository extends AbstractRepository<GraphId, Graph> {
 
@@ -41,9 +39,9 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao;
 
   public GraphRepository(Dao<GraphId, Graph> graphDao,
-                         Dao<GraphRole, Empty> graphRoleDao,
-                         Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao,
-                         Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao) {
+      Dao<GraphRole, Empty> graphRoleDao,
+      Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao,
+      Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao) {
     this.graphDao = graphDao;
     this.graphRoleDao = graphRoleDao;
     this.graphPermissionDao = graphPermissionDao;
@@ -63,13 +61,13 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void insertPermissions(GraphId graphId, Multimap<String, Permission> permissions,
-                                 User user) {
+      User user) {
     graphPermissionDao.insert(
         new RolePermissionsDtoToModel<>(graphId, graphId).apply(permissions), user);
   }
 
   private void insertProperties(GraphId graphId, Multimap<String, LangValue> properties,
-                                User user) {
+      User user) {
     graphPropertyDao.insert(new PropertyValueDtoToModel<>(graphId).apply(properties), user);
   }
 
@@ -82,7 +80,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void updateRoles(GraphId graph, List<String> newRoles, List<String> oldRoles,
-                           User user) {
+      User user) {
     Map<GraphRole, Empty> newRolesMap = new GraphRoleDtoToModel(graph).apply(newRoles);
     Map<GraphRole, Empty> oldRolesMap = new GraphRoleDtoToModel(graph).apply(oldRoles);
 
@@ -93,9 +91,9 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void updatePermissions(GraphId graphId,
-                                 Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions,
-                                 User user) {
+      Multimap<String, Permission> newPermissions,
+      Multimap<String, Permission> oldPermissions,
+      User user) {
 
     Map<ObjectRolePermission<GraphId>, GrantedPermission> newPermissionMap =
         new RolePermissionsDtoToModel<>(graphId, graphId).apply(newPermissions);
@@ -110,9 +108,9 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void updateProperties(GraphId graphId,
-                                Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap,
-                                User user) {
+      Multimap<String, LangValue> newPropertyMultimap,
+      Multimap<String, LangValue> oldPropertyMultimap,
+      User user) {
 
     Map<PropertyValueId<GraphId>, LangValue> newProperties =
         new PropertyValueDtoToModel<>(graphId).apply(newPropertyMultimap);
@@ -156,15 +154,14 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public List<Graph> get(Specification<GraphId, Graph> specification, User user) {
+  public Stream<Graph> get(Specification<GraphId, Graph> specification, User user) {
     return graphDao.getValues(specification, user).stream()
-        .map(graph -> populateValue(graph, user))
-        .collect(Collectors.toList());
+        .map(graph -> populateValue(graph, user));
   }
 
   @Override
-  public List<GraphId> getKeys(Specification<GraphId, Graph> specification, User user) {
-    return graphDao.getKeys(specification, user);
+  public Stream<GraphId> getKeys(Specification<GraphId, Graph> specification, User user) {
+    return graphDao.getKeys(specification, user).stream();
   }
 
   @Override

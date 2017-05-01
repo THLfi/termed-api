@@ -1,15 +1,12 @@
 package fi.thl.termed.service.property.internal;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static fi.thl.termed.util.collect.MapUtils.leftValues;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
@@ -19,9 +16,9 @@ import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.collect.ImmutableList.copyOf;
-import static fi.thl.termed.util.collect.MapUtils.leftValues;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class PropertyRepository extends AbstractRepository<String, Property> {
 
@@ -29,7 +26,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   private Dao<PropertyValueId<String>, LangValue> propertyValueDao;
 
   public PropertyRepository(Dao<String, Property> propertyDao,
-                            Dao<PropertyValueId<String>, LangValue> propertyValueDao) {
+      Dao<PropertyValueId<String>, LangValue> propertyValueDao) {
     this.propertyDao = propertyDao;
     this.propertyValueDao = propertyValueDao;
   }
@@ -51,9 +48,9 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   private void updateProperties(String propertyId,
-                                Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap,
-                                User user) {
+      Multimap<String, LangValue> newPropertyMultimap,
+      Multimap<String, LangValue> oldPropertyMultimap,
+      User user) {
 
     Map<PropertyValueId<String>, LangValue> newProperties =
         new PropertyValueDtoToModel<>(propertyId).apply(newPropertyMultimap);
@@ -85,15 +82,14 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public List<Property> get(Specification<String, Property> specification, User user) {
+  public Stream<Property> get(Specification<String, Property> specification, User user) {
     return propertyDao.getValues(specification, user).stream()
-        .map(property -> populateValue(property, user))
-        .collect(Collectors.toList());
+        .map(property -> populateValue(property, user));
   }
 
   @Override
-  public List<String> getKeys(Specification<String, Property> specification, User user) {
-    return propertyDao.getKeys(specification, user);
+  public Stream<String> getKeys(Specification<String, Property> specification, User user) {
+    return propertyDao.getKeys(specification, user).stream();
   }
 
   @Override

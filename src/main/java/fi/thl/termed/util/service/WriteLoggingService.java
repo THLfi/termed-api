@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,17 +50,17 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     return delegate.get(specification, args, user);
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return delegate.getKeys(specification, args, user);
   }
 
   @Override
-  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
+  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
     return delegate.get(ids, args, user);
   }
 

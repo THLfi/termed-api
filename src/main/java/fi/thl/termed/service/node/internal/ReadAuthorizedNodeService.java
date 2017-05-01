@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * For filtering node service read operations. Useful to put in front of an index.
@@ -61,18 +62,18 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     return filterValues(delegate.get(spec, args, user), user);
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
     return filterKeys(delegate.getKeys(spec, args, user), user);
   }
 
   @Override
-  public List<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
+  public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
     return filterValues(delegate.get(filterKeys(ids, user), args, user), user);
   }
 
@@ -88,16 +89,16 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   private List<NodeId> filterKeys(List<NodeId> keys, User user) {
-    return keys.stream()
-        .filter(id -> nodeEvaluator.hasPermission(user, id, Permission.READ))
-        .collect(Collectors.toList());
+    return filterKeys(keys.stream(), user).collect(Collectors.toList());
   }
 
-  private List<Node> filterValues(List<Node> values, User user) {
-    return values.stream()
-        .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
-        .map(new AttributePermissionFilter(user, Permission.READ))
-        .collect(Collectors.toList());
+  private Stream<NodeId> filterKeys(Stream<NodeId> keys, User user) {
+    return keys.filter(id -> nodeEvaluator.hasPermission(user, id, Permission.READ));
+  }
+
+  private Stream<Node> filterValues(Stream<Node> values, User user) {
+    return values.filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
+        .map(new AttributePermissionFilter(user, Permission.READ));
   }
 
   private class AttributePermissionFilter implements Function<Node, Node> {

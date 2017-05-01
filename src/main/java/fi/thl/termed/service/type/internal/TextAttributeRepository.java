@@ -27,6 +27,7 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -138,17 +139,16 @@ public class TextAttributeRepository
   }
 
   @Override
-  public List<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification,
+  public Stream<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification,
                                  User user) {
     return textAttributeDao.getValues(specification, user).stream()
-        .map(attribute -> populateValue(attribute, user))
-        .collect(Collectors.toList());
+        .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public List<TextAttributeId> getKeys(
+  public Stream<TextAttributeId> getKeys(
       Specification<TextAttributeId, TextAttribute> specification, User user) {
-    return textAttributeDao.getKeys(specification, user);
+    return textAttributeDao.getKeys(specification, user).stream();
   }
 
   @Override

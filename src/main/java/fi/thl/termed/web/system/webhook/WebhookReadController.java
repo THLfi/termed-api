@@ -1,5 +1,7 @@
 package fi.thl.termed.web.system.webhook;
 
+import static java.util.stream.Collectors.toList;
+
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.service.Service;
@@ -22,7 +24,7 @@ public class WebhookReadController {
 
   @GetJsonMapping
   public List<Webhook> get(@AuthenticationPrincipal User user) {
-    return webhookService.get(user);
+    return webhookService.get(user).collect(toList());
   }
 
   @GetJsonMapping("/{id}")

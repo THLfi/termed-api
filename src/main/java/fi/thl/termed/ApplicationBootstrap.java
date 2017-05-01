@@ -3,20 +3,6 @@ package fi.thl.termed;
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import javax.annotation.PreDestroy;
-
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
@@ -25,6 +11,16 @@ import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.io.ResourceUtils;
 import fi.thl.termed.util.service.Service;
+import java.util.List;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 /**
  * If no users found, adds default user (admin). Adds default properties (defined in
@@ -62,7 +58,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userService.getKeys(initializer).isEmpty()) {
+    if (!userService.getKeys(initializer).findAny().isPresent()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
       userService.save(admin, initializer);

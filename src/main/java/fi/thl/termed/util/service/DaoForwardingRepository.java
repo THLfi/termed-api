@@ -5,8 +5,8 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Can be used to create simple service backed by a single DAO.
@@ -41,13 +41,13 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, User user) {
-    return delegate.getValues(specification, user);
+  public Stream<V> get(Specification<K, V> specification, User user) {
+    return delegate.getValues(specification, user).stream();
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, User user) {
-    return delegate.getKeys(specification, user);
+  public Stream<K> getKeys(Specification<K, V> specification, User user) {
+    return delegate.getKeys(specification, user).stream();
   }
 
   @Override

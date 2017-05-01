@@ -43,7 +43,7 @@ public class NodeEventPostingService {
 
   @Subscribe
   public void subscribe(NodeEvent nodeEvent) {
-    for (Webhook hook : webhookService.get(eventBroadcaster)) {
+    webhookService.get(eventBroadcaster).forEach(hook -> {
       HttpPost request = new HttpPost(hook.getUrl());
       request.addHeader("Content-Type", "application/json");
       request.setEntity(new StringEntity(gson.toJson(new WebEvent(nodeEvent)), UTF_8));
@@ -54,7 +54,7 @@ public class NodeEventPostingService {
         FutureUtils.waitFor(future, 1, TimeUnit.MINUTES,
             e -> log.warn("{} {} {}", hook, e.getClass(), e.getMessage()));
       }
-    }
+    });
   }
 
   /**

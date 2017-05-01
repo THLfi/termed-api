@@ -1,5 +1,31 @@
 package fi.thl.termed.util.index.lucene;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
+import static org.apache.lucene.util.Version.LUCENE_47;
+
+import fi.thl.termed.util.Converter;
+import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.specification.Specification;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -26,33 +52,6 @@ import org.apache.lucene.store.RAMDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import fi.thl.termed.util.Converter;
-import fi.thl.termed.util.ProgressReporter;
-import fi.thl.termed.util.collect.ListUtils;
-import fi.thl.termed.util.index.Index;
-import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
-import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
-import static org.apache.lucene.util.Version.LUCENE_47;
-
 public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -69,8 +68,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private ExecutorService indexingExecutor;
 
   public LuceneIndex(String directoryPath,
-                     Converter<K, String> keyConverter,
-                     Converter<V, Document> documentConverter) {
+      Converter<K, String> keyConverter,
+      Converter<V, Document> documentConverter) {
 
     this.keyConverter = keyConverter;
     this.documentConverter = documentConverter;
@@ -103,7 +102,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private Directory openDirectory(String directoryPath) throws IOException {
     return isNullOrEmpty(directoryPath) ? new RAMDirectory()
-                                        : forceUnlock(FSDirectory.open(new File(directoryPath)));
+        : forceUnlock(FSDirectory.open(new File(directoryPath)));
   }
 
   @Override
@@ -126,12 +125,12 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, List<String> sort, int max) {
+  public Stream<V> get(Specification<K, V> specification, List<String> sort, int max) {
     try {
       IndexSearcher searcher = searcherManager.acquire();
       try {
         return query(searcher, ((LuceneSpecification<K, V>) specification).luceneQuery(), max, sort,
-                     documentConverter.inverse());
+            documentConverter.inverse());
       } finally {
         searcherManager.release(searcher);
       }
@@ -141,12 +140,12 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, List<String> sort, int max) {
+  public Stream<K> getKeys(Specification<K, V> specification, List<String> sort, int max) {
     try {
       IndexSearcher searcher = searcherManager.acquire();
       try {
         return query(searcher, ((LuceneSpecification<K, V>) specification).luceneQuery(), max, sort,
-                     d -> keyConverter.applyInverse(d.get(DOCUMENT_ID)));
+            d -> keyConverter.applyInverse(d.get(DOCUMENT_ID)));
       } finally {
         searcherManager.release(searcher);
       }
@@ -172,7 +171,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public List<V> get(List<K> ids) {
+  public Stream<V> get(List<K> ids) {
     try {
       BooleanQuery q = new BooleanQuery();
       for (K id : ids) {
@@ -195,7 +194,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       TermQuery q = new TermQuery(new Term(DOCUMENT_ID, keyConverter.apply(id)));
       IndexSearcher searcher = searcherManager.acquire();
       try {
-        return query(searcher, q, 1, emptyList(), documentConverter.inverse()).stream().findFirst();
+        return query(searcher, q, 1, emptyList(), documentConverter.inverse()).findFirst();
       } finally {
         searcherManager.release(searcher);
       }
@@ -204,15 +203,14 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private <E> List<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
-                            Function<Document, E> documentDeserializer)
+  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
+      Function<Document, E> documentDeserializer)
       throws IOException {
     log.trace("{}", query);
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
     return Arrays.stream(docs.scoreDocs)
         .map(new ScoreDocLoader(searcher))
-        .map(documentDeserializer)
-        .collect(Collectors.toList());
+        .map(documentDeserializer);
   }
 
   private Sort sort(List<String> orderBy) {
@@ -291,7 +289,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     private List<K> keys;
     private Function<K, Optional<V>> valueProvider;
 
-    public IndexingTask(List<K> keys, Function<K, Optional<V>> valueProvider) {
+    IndexingTask(List<K> keys, Function<K, Optional<V>> valueProvider) {
       this.keys = keys;
       this.valueProvider = valueProvider;
     }
@@ -322,7 +320,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
     private IndexSearcher searcher;
 
-    public ScoreDocLoader(IndexSearcher searcher) {
+    ScoreDocLoader(IndexSearcher searcher) {
       this.searcher = searcher;
     }
 

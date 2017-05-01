@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -31,17 +32,17 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     return runInTransaction(() -> delegate.get(specification, args, user));
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return runInTransaction(() -> delegate.getKeys(specification, args, user));
   }
 
   @Override
-  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
+  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
     return runInTransaction(() -> delegate.get(ids, args, user));
   }
 

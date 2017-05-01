@@ -1,5 +1,11 @@
 package fi.thl.termed.service.type.internal;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.transform;
+import static com.google.common.collect.Maps.difference;
+import static fi.thl.termed.util.collect.MapUtils.newLinkedHashMap;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -7,12 +13,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -33,11 +33,10 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
-
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Lists.transform;
-import static com.google.common.collect.Maps.difference;
-import static fi.thl.termed.util.collect.MapUtils.newLinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
@@ -131,15 +130,15 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     updatePermissions(id, newType.getPermissions(), oldType.getPermissions(), user);
     updateProperties(id, newType.getProperties(), oldType.getProperties(), user);
     updateTextAttributes(id, addTextAttrIndices(newType.getTextAttributes()),
-                         oldType.getTextAttributes(), user);
+        oldType.getTextAttributes(), user);
     updateReferenceAttributes(id, addRefAttrIndices(newType.getReferenceAttributes()),
-                              oldType.getReferenceAttributes(), user);
+        oldType.getReferenceAttributes(), user);
   }
 
   private void updatePermissions(TypeId id,
-                                 Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions,
-                                 User user) {
+      Multimap<String, Permission> newPermissions,
+      Multimap<String, Permission> oldPermissions,
+      User user) {
 
     Map<ObjectRolePermission<TypeId>, GrantedPermission> newPermissionMap =
         new RolePermissionsDtoToModel<>(id.getGraph(), id).apply(newPermissions);
@@ -154,9 +153,9 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void updateProperties(TypeId id,
-                                Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap,
-                                User user) {
+      Multimap<String, LangValue> newPropertyMultimap,
+      Multimap<String, LangValue> oldPropertyMultimap,
+      User user) {
 
     Map<PropertyValueId<TypeId>, LangValue> newProperties =
         new PropertyValueDtoToModel<>(id).apply(newPropertyMultimap);
@@ -172,9 +171,9 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void updateTextAttributes(TypeId id,
-                                    List<TextAttribute> newTextAttributes,
-                                    List<TextAttribute> oldTextAttributes,
-                                    User user) {
+      List<TextAttribute> newTextAttributes,
+      List<TextAttribute> oldTextAttributes,
+      User user) {
 
     Map<TextAttributeId, TextAttribute> newAttrs =
         newLinkedHashMap(transform(newTextAttributes, new TextAttributeToIdEntry(id)));
@@ -190,9 +189,9 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void updateReferenceAttributes(TypeId id,
-                                         List<ReferenceAttribute> newReferenceAttributes,
-                                         List<ReferenceAttribute> oldReferenceAttributes,
-                                         User user) {
+      List<ReferenceAttribute> newReferenceAttributes,
+      List<ReferenceAttribute> oldReferenceAttributes,
+      User user) {
 
     Map<ReferenceAttributeId, ReferenceAttribute> newAttrs =
         newLinkedHashMap(transform(newReferenceAttributes, new ReferenceAttributeToIdEntry(id)));
@@ -205,11 +204,6 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     referenceAttributeRepository.insert(diff.entriesOnlyOnLeft(), user);
     referenceAttributeRepository.update(diff.entriesDiffering(), user);
     referenceAttributeRepository.delete(diff.entriesOnlyOnRight(), user);
-  }
-
-  @Override
-  public void delete(TypeId id, User user) {
-    delete(id, get(id, user).get(), user);
   }
 
   @Override
@@ -237,7 +231,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private void deleteReferenceAttributes(TypeId id, List<ReferenceAttribute> referenceAttributes,
-                                         User user) {
+      User user) {
     referenceAttributeRepository.delete(ImmutableMap.copyOf(
         Lists.transform(referenceAttributes, new ReferenceAttributeToIdEntry(id))), user);
   }
@@ -248,15 +242,14 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public List<Type> get(Specification<TypeId, Type> specification, User user) {
+  public Stream<Type> get(Specification<TypeId, Type> specification, User user) {
     return typeDao.getValues(specification, user).stream()
-        .map(cls -> populateValue(cls, user))
-        .collect(Collectors.toList());
+        .map(cls -> populateValue(cls, user));
   }
 
   @Override
-  public List<TypeId> getKeys(Specification<TypeId, Type> specification, User user) {
-    return typeDao.getKeys(specification, user);
+  public Stream<TypeId> getKeys(Specification<TypeId, Type> specification, User user) {
+    return typeDao.getKeys(specification, user).stream();
   }
 
   @Override
@@ -278,10 +271,12 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
                 new TypeId(cls.getId(), cls.getGraphId())), user)));
 
     cls.setTextAttributes(textAttributeRepository.get(
-        new TextAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user));
+        new TextAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user)
+        .collect(toList()));
 
     cls.setReferenceAttributes(referenceAttributeRepository.get(
-        new ReferenceAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user));
+        new ReferenceAttributesByTypeId(new TypeId(cls.getId(), cls.getGraphId())), user)
+        .collect(toList()));
 
     return cls;
   }
@@ -294,7 +289,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     private TypeId domainId;
 
-    public TextAttributeToIdEntry(TypeId domainId) {
+    TextAttributeToIdEntry(TypeId domainId) {
       this.domainId = domainId;
     }
 
@@ -312,7 +307,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     private TypeId domainId;
 
-    public ReferenceAttributeToIdEntry(TypeId domainId) {
+    ReferenceAttributeToIdEntry(TypeId domainId) {
       this.domainId = domainId;
     }
 

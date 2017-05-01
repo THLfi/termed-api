@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * For implementing a service that persists objects.
@@ -71,11 +72,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
   @Override
   public void delete(List<K> ids, Map<String, Object> args, User user) {
-    for (K id : ids) {
-      // fail if not found
-      V v = get(id, user).orElseThrow(IllegalStateException::new);
-      delete(id, v, user);
-    }
+    ids.forEach(id -> delete(id, args, user));
   }
 
   @Override
@@ -84,12 +81,8 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public List<V> get(List<K> ids, Map<String, Object> args, User user) {
-    List<V> values = new ArrayList<>();
-    for (K id : ids) {
-      get(id, user).ifPresent(values::add);
-    }
-    return values;
+  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
+    return ids.stream().map(id -> get(id, user)).filter(Optional::isPresent).map(Optional::get);
   }
 
   @Override
@@ -98,12 +91,12 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public List<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     return get(specification, user);
   }
 
   @Override
-  public List<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
+  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return getKeys(specification, user);
   }
 
@@ -117,8 +110,8 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
   public abstract Optional<V> get(K id, User user);
 
-  public abstract List<V> get(Specification<K, V> specification, User currentUser);
+  public abstract Stream<V> get(Specification<K, V> specification, User currentUser);
 
-  public abstract List<K> getKeys(Specification<K, V> specification, User currentUser);
+  public abstract Stream<K> getKeys(Specification<K, V> specification, User currentUser);
 
 }

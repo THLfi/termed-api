@@ -1,5 +1,6 @@
 package fi.thl.termed.web.system.type;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Graph;
@@ -63,7 +64,8 @@ public class TypeWriteController {
       @AuthenticationPrincipal User user) {
     types.forEach(type -> type.setGraph(new GraphId(graphId)));
 
-    List<TypeId> removedTypes = typeService.getKeys(new TypesByGraphId(graphId), user);
+    List<TypeId> removedTypes = typeService.getKeys(new TypesByGraphId(graphId), user)
+        .collect(Collectors.toList());
     removedTypes.removeAll(types.stream().map(TypeId::new).collect(Collectors.toList()));
     typeService.delete(removedTypes, user);
 
@@ -86,7 +88,8 @@ public class TypeWriteController {
   public void delete(
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User user) {
-    typeService.delete(typeService.getKeys(new TypesByGraphId(graphId), user), user);
+    typeService
+        .delete(typeService.getKeys(new TypesByGraphId(graphId), user).collect(toList()), user);
   }
 
   @DeleteMapping(path = "/{id}")

@@ -1,5 +1,7 @@
 package fi.thl.termed.service.dump.internal;
 
+import static java.util.stream.Collectors.toList;
+
 import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -15,7 +17,6 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -50,9 +51,9 @@ public class DumpService {
   }
 
   public Dump dump(User user) {
-    return dump(graphService.getKeys(user).stream()
+    return dump(graphService.getKeys(user)
         .map(GraphId::getId)
-        .collect(Collectors.toList()), user);
+        .collect(toList()), user);
   }
 
   public Dump dump(List<UUID> graphIds, User user) {
@@ -64,8 +65,8 @@ public class DumpService {
 
     for (UUID graphId : graphIds) {
       graphs.add(graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new));
-      types.addAll(typeService.get(new TypesByGraphId(graphId), user));
-      nodes.addAll(nodeService.get(new NodesByGraphId(graphId), user));
+      types.addAll(typeService.get(new TypesByGraphId(graphId), user).collect(toList()));
+      nodes.addAll(nodeService.get(new NodesByGraphId(graphId), user).collect(toList()));
     }
 
     dump.setGraphs(graphs);

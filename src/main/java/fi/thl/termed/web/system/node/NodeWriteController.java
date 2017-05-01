@@ -1,6 +1,7 @@
 package fi.thl.termed.web.system.node;
 
 import static com.google.common.collect.ImmutableMap.of;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.GraphId;
@@ -139,8 +140,8 @@ public class NodeWriteController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    nodeService
-        .delete(nodeService.getKeys(new NodesByGraphId(graphId), user), of("sync", sync), user);
+    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user).collect(toList()),
+        of("sync", sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -152,7 +153,7 @@ public class NodeWriteController {
       @AuthenticationPrincipal User user) {
     nodeService.delete(nodeService.getKeys(new AndSpecification<>(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), user), of("sync", sync), user);
+        new NodesByTypeId(typeId)), user).collect(toList()), of("sync", sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

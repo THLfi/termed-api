@@ -29,6 +29,7 @@ import fi.thl.termed.util.spring.annotation.PostRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.RdfModelToNodes;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
@@ -55,7 +56,7 @@ public class NodeRdfWriteController {
     log.info("Importing RDF-model {} (user: {})", graphId, currentUser.getUsername());
 
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.get(new TypesByGraphId(graphId), currentUser);
+    List<Type> types = typeService.get(new TypesByGraphId(graphId), currentUser).collect(toList());
     List<Node> nodes = new RdfModelToNodes(types).apply(new JenaRdfModel(model));
 
     if (stream) {

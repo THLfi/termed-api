@@ -5,13 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.User;
@@ -19,6 +12,10 @@ import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class UserRepository extends AbstractRepository<String, User> {
 
@@ -73,15 +70,14 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public List<User> get(Specification<String, User> specification, User auth) {
+  public Stream<User> get(Specification<String, User> specification, User auth) {
     return userDao.getValues(specification, auth).stream()
-        .map(user -> populateValue(user, auth))
-        .collect(Collectors.toList());
+        .map(user -> populateValue(user, auth));
   }
 
   @Override
-  public List<String> getKeys(Specification<String, User> specification, User user) {
-    return userDao.getKeys(specification, user);
+  public Stream<String> getKeys(Specification<String, User> specification, User user) {
+    return userDao.getKeys(specification, user).stream();
   }
 
   @Override
@@ -107,7 +103,7 @@ public class UserRepository extends AbstractRepository<String, User> {
 
     private String expectedUsername;
 
-    public ToGraphRole(String expectedUsername) {
+    ToGraphRole(String expectedUsername) {
       this.expectedUsername = expectedUsername;
     }
 

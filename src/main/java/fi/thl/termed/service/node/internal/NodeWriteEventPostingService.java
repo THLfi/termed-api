@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Posts events to event bus for each node save and delete request.
@@ -73,19 +74,18 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<Node> get(Specification<NodeId, Node> specification, Map<String, Object> args,
+  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+    return delegate.get(spec, args, user);
+  }
+
+  @Override
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
       User user) {
-    return delegate.get(specification, args, user);
+    return delegate.getKeys(spec, args, user);
   }
 
   @Override
-  public List<NodeId> getKeys(Specification<NodeId, Node> specification,
-      Map<String, Object> args, User user) {
-    return delegate.getKeys(specification, args, user);
-  }
-
-  @Override
-  public List<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
+  public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
     return delegate.get(ids, args, user);
   }
 

@@ -1,5 +1,7 @@
 package fi.thl.termed.web.system.type;
 
+import static java.util.stream.Collectors.toList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,9 +35,8 @@ public class TypeReadController {
   private Service<TypeId, Type> typeService;
 
   @GetJsonMapping("/types")
-  public List<Type> getTypes(
-      @AuthenticationPrincipal User currentUser) {
-    return typeService.get(currentUser);
+  public List<Type> getTypes(@AuthenticationPrincipal User currentUser) {
+    return typeService.get(currentUser).collect(toList());
   }
 
   @GetJsonMapping("/graphs/{graphId}/types")
@@ -43,7 +44,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User currentUser) {
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    return typeService.get(new TypesByGraphId(graphId), currentUser);
+    return typeService.get(new TypesByGraphId(graphId), currentUser).collect(toList());
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}")
