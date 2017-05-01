@@ -71,7 +71,7 @@ public class NodeTreeReadController {
   private Pattern refDepth = compile("^(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?$");
   private Pattern backRefDepth = compile("^(referrers|refrs)\\.(" + CODE + ")(:([0-9]+))?$");
 
-  private NodeSpecificationParser specificationParser = new NodeSpecificationParser();
+  private NodeSpecificationParser queryParser = new NodeSpecificationParser();
 
   @GetJsonMapping("/node-trees")
   public void get(
@@ -88,19 +88,19 @@ public class NodeTreeReadController {
     String whereSpecification = String.join(" AND ", where);
 
     if (!whereSpecification.isEmpty()) {
-      Specification<NodeId, Node> unfiltered = specificationParser.apply(whereSpecification);
+      Specification<NodeId, Node> unfiltered = queryParser.apply(whereSpecification);
       types.forEach(t -> filtered.or(new TypeBasedNodeSpecificationFilter(t).apply(unfiltered)));
     } else {
-      types.forEach(t -> filtered.or(new AndSpecification<>(
-          new NodesByGraphId(t.getGraphId()), new NodesByTypeId(t.getId()))));
+      types.forEach(t -> filtered.or(nodesByType(t)));
     }
+
+    Stream<SimpleNodeTree> trees = toTrees(
+        nodeService.get(filtered, of("sort", sort, "max", max), user),
+        parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
-            parseSelect(select), user), SimpleNodeTree.class);
+    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/node-trees")
@@ -120,19 +120,19 @@ public class NodeTreeReadController {
     String whereSpecification = String.join(" AND ", where);
 
     if (!whereSpecification.isEmpty()) {
-      Specification<NodeId, Node> unfiltered = specificationParser.apply(whereSpecification);
+      Specification<NodeId, Node> unfiltered = queryParser.apply(whereSpecification);
       types.forEach(t -> filtered.or(new TypeBasedNodeSpecificationFilter(t).apply(unfiltered)));
     } else {
-      types.forEach(t -> filtered.or(new AndSpecification<>(
-          new NodesByGraphId(t.getGraphId()), new NodesByTypeId(t.getId()))));
+      types.forEach(t -> filtered.or(new AndSpecification<>(nodesByType(t))));
     }
+
+    Stream<SimpleNodeTree> trees = toTrees(
+        nodeService.get(filtered, of("sort", sort, "max", max), user),
+        parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
-            parseSelect(select), user), SimpleNodeTree.class);
+    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees")
@@ -150,22 +150,21 @@ public class NodeTreeReadController {
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> filtered;
-    String whereSpecification = String.join(" AND ", where);
+    String query = String.join(" AND ", where);
 
-    if (!whereSpecification.isEmpty()) {
-      filtered = new TypeBasedNodeSpecificationFilter(type)
-          .apply(specificationParser.apply(whereSpecification));
+    if (!query.isEmpty()) {
+      filtered = new TypeBasedNodeSpecificationFilter(type).apply(queryParser.apply(query));
     } else {
-      filtered = new AndSpecification<>(
-          new NodesByGraphId(type.getGraphId()), new NodesByTypeId(type.getId()));
+      filtered = nodesByType(type);
     }
+
+    Stream<SimpleNodeTree> trees = toTrees(
+        nodeService.get(filtered, of("sort", sort, "max", max), user),
+        parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        toTrees(nodeService.get(filtered, of("sort", sort, "max", max), user),
-            parseSelect(select), user), SimpleNodeTree.class);
+    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees/{id}")
@@ -180,6 +179,12 @@ public class NodeTreeReadController {
         .orElseThrow(NotFoundException::new);
 
     return toTree(node, parseSelect(select), user);
+  }
+
+  private Specification<NodeId, Node> nodesByType(Type type) {
+    return new AndSpecification<>(
+        new NodesByGraphId(type.getGraphId()),
+        new NodesByTypeId(type.getId()));
   }
 
   private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Select select, User user) {
