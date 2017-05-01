@@ -12,8 +12,7 @@ public class DepthLimitedNodeTree implements NodeTree {
 
   private NodeTree source;
 
-  private int currentReferenceDepth;
-  private int currentReferrerDepth;
+  private int depth;
 
   private Map<String, Integer> maxReferenceAttributeDepth;
   private Map<String, Integer> maxReferrerAttributeDepth;
@@ -21,17 +20,15 @@ public class DepthLimitedNodeTree implements NodeTree {
   public DepthLimitedNodeTree(NodeTree source,
       Map<String, Integer> maxReferenceAttributeDepth,
       Map<String, Integer> maxReferrerAttributeDepth) {
-    this(source, 0, 0, maxReferenceAttributeDepth, maxReferrerAttributeDepth);
+    this(source, 0, maxReferenceAttributeDepth, maxReferrerAttributeDepth);
   }
 
   private DepthLimitedNodeTree(NodeTree source,
-      int currentReferenceDepth,
-      int currentReferrerDepth,
+      int depth,
       Map<String, Integer> maxReferenceAttributeDepth,
       Map<String, Integer> maxReferrerAttributeDepth) {
     this.source = source;
-    this.currentReferenceDepth = currentReferenceDepth;
-    this.currentReferrerDepth = currentReferrerDepth;
+    this.depth = depth;
     this.maxReferenceAttributeDepth = maxReferenceAttributeDepth;
     this.maxReferrerAttributeDepth = maxReferrerAttributeDepth;
   }
@@ -85,10 +82,9 @@ public class DepthLimitedNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferences() {
     return transformValues(
         filterKeys(source.getReferences(),
-            ref -> currentReferenceDepth < maxReferenceAttributeDepth.getOrDefault(ref, 1)),
+            ref -> depth < maxReferenceAttributeDepth.getOrDefault(ref, 1)),
         filtered -> new DepthLimitedNodeTree(filtered,
-            currentReferenceDepth + 1,
-            currentReferrerDepth,
+            depth + 1,
             maxReferenceAttributeDepth,
             maxReferrerAttributeDepth));
   }
@@ -97,10 +93,9 @@ public class DepthLimitedNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferrers() {
     return transformValues(
         filterKeys(source.getReferrers(),
-            ref -> currentReferrerDepth < maxReferrerAttributeDepth.getOrDefault(ref, 1)),
+            ref -> depth < maxReferrerAttributeDepth.getOrDefault(ref, 1)),
         filtered -> new DepthLimitedNodeTree(filtered,
-            currentReferenceDepth,
-            currentReferrerDepth + 1,
+            depth + 1,
             maxReferenceAttributeDepth,
             maxReferrerAttributeDepth));
   }
