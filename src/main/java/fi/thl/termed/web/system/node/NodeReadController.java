@@ -1,6 +1,7 @@
 package fi.thl.termed.web.system.node;
 
 import static com.google.common.collect.ImmutableMap.of;
+import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByAnyPropertyPrefix;
 import static fi.thl.termed.util.StringUtils.tokenize;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -10,17 +11,12 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.node.specification.NodesByPropertyPrefix;
-import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.json.JsonStream;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
@@ -49,39 +45,23 @@ public class NodeReadController {
   @Autowired
   private Gson gson;
 
-  private Specification<NodeId, Node> toPrefixQuery(List<TextAttribute> attrs, String q) {
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    tokenize(q).forEach(t -> attrs.forEach(a -> spec.or(new NodesByPropertyPrefix(a.getId(), t))));
-    return spec;
-  }
-
   @GetJsonMapping("/nodes")
   public void get(
       @RequestParam(value = "query", required = false, defaultValue = "") String query,
       @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") int max,
-      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-
-    typeService.get(user).forEach(type -> {
-      AndSpecification<NodeId, Node> typeSpec = new AndSpecification<>();
-      typeSpec.and(new NodesByTypeId(type.getId()));
-      typeSpec.and(new NodesByGraphId(type.getGraphId()));
-      if (!bypassIndex && !query.isEmpty()) {
-        typeSpec.and(toPrefixQuery(type.getTextAttributes(), query));
-      }
-      spec.or(typeSpec);
-    });
+    Specification<NodeId, Node> spec = typeService.get(user)
+        .map(type -> specifyByAnyPropertyPrefix(type, query))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user),
-        Node.class);
+        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -90,30 +70,20 @@ public class NodeReadController {
       @RequestParam(value = "query", required = false, defaultValue = "") String query,
       @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") int max,
-      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-
-    typeService.get(new TypesByGraphId(graphId), user).forEach(type -> {
-      AndSpecification<NodeId, Node> typeSpec = new AndSpecification<>();
-      typeSpec.and(new NodesByTypeId(type.getId()));
-      typeSpec.and(new NodesByGraphId(type.getGraphId()));
-      if (!bypassIndex && !query.isEmpty()) {
-        typeSpec.and(toPrefixQuery(type.getTextAttributes(), query));
-      }
-      spec.or(typeSpec);
-    });
+    Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
+        .map(type -> specifyByAnyPropertyPrefix(type, query))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user),
-        Node.class);
+        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -123,27 +93,19 @@ public class NodeReadController {
       @RequestParam(value = "query", required = false, defaultValue = "") String query,
       @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
       @RequestParam(value = "max", required = false, defaultValue = "50") int max,
-      @RequestParam(value = "bypassIndex", required = false, defaultValue = "false") boolean bypassIndex,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
-
-    AndSpecification<NodeId, Node> spec = new AndSpecification<>();
 
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    spec.and(new NodesByTypeId(type.getId()));
-    spec.and(new NodesByGraphId(type.getGraphId()));
-    if (!bypassIndex && !query.isEmpty()) {
-      spec.and(toPrefixQuery(type.getTextAttributes(), query));
-    }
+    Specification<NodeId, Node> spec = specifyByAnyPropertyPrefix(type, query);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("bypassIndex", bypassIndex, "sort", sort, "max", max), user),
-        Node.class);
+        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

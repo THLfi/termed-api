@@ -1,6 +1,7 @@
 package fi.thl.termed.web.system.node;
 
 import static com.google.common.collect.ImmutableMap.of;
+import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.RegularExpressions.CODE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.regex.Pattern.compile;
@@ -19,16 +20,11 @@ import fi.thl.termed.domain.SimpleNodeTree;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodeSpecificationParser;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.service.node.specification.TypeBasedNodeSpecificationFilter;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.json.JsonStream;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
@@ -71,8 +67,6 @@ public class NodeTreeReadController {
   private Pattern refDepth = compile("^(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?$");
   private Pattern backRefDepth = compile("^(referrers|refrs)\\.(" + CODE + ")(:([0-9]+))?$");
 
-  private NodeSpecificationParser queryParser = new NodeSpecificationParser();
-
   @GetJsonMapping("/node-trees")
   public void get(
       @RequestParam(value = "select", defaultValue = "") List<String> select,
@@ -82,21 +76,12 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Stream<Type> types = typeService.get(user);
-
-    OrSpecification<NodeId, Node> filtered = new OrSpecification<>();
-    String whereSpecification = String.join(" AND ", where);
-
-    if (!whereSpecification.isEmpty()) {
-      Specification<NodeId, Node> unfiltered = queryParser.apply(whereSpecification);
-      types.forEach(t -> filtered.or(new TypeBasedNodeSpecificationFilter(t).apply(unfiltered)));
-    } else {
-      types.forEach(t -> filtered.or(nodesByType(t)));
-    }
+    Specification<NodeId, Node> spec = typeService.get(user)
+        .map(type -> specifyByQuery(type, String.join(" AND ", where)))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(filtered, of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -114,21 +99,13 @@ public class NodeTreeReadController {
       HttpServletResponse response) throws IOException {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
-    Stream<Type> types = typeService.get(new TypesByGraphId(graphId), user);
 
-    OrSpecification<NodeId, Node> filtered = new OrSpecification<>();
-    String whereSpecification = String.join(" AND ", where);
-
-    if (!whereSpecification.isEmpty()) {
-      Specification<NodeId, Node> unfiltered = queryParser.apply(whereSpecification);
-      types.forEach(t -> filtered.or(new TypeBasedNodeSpecificationFilter(t).apply(unfiltered)));
-    } else {
-      types.forEach(t -> filtered.or(new AndSpecification<>(nodesByType(t))));
-    }
+    Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
+        .map(type -> specifyByQuery(type, String.join(" AND ", where)))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(filtered, of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -149,18 +126,10 @@ public class NodeTreeReadController {
     Type type = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> filtered;
-    String query = String.join(" AND ", where);
-
-    if (!query.isEmpty()) {
-      filtered = new TypeBasedNodeSpecificationFilter(type).apply(queryParser.apply(query));
-    } else {
-      filtered = nodesByType(type);
-    }
+    Specification<NodeId, Node> spec = specifyByQuery(type, String.join(" AND ", where));
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(filtered, of("sort", sort, "max", max), user),
-        parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -179,12 +148,6 @@ public class NodeTreeReadController {
         .orElseThrow(NotFoundException::new);
 
     return toTree(node, parseSelect(select), user);
-  }
-
-  private Specification<NodeId, Node> nodesByType(Type type) {
-    return new AndSpecification<>(
-        new NodesByGraphId(type.getGraphId()),
-        new NodesByTypeId(type.getId()));
   }
 
   private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Select select, User user) {
