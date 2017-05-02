@@ -45,6 +45,7 @@ public class TypeBasedNodeSpecificationFilter implements
         s -> s instanceof NotSpecification ||
             s instanceof AndSpecification ||
             s instanceof OrSpecification ||
+            s instanceof NodeById ||
             s instanceof NodesByCode ||
             s instanceof NodesByUri ||
             s instanceof NodesByCreatedDate ||
@@ -62,6 +63,9 @@ public class TypeBasedNodeSpecificationFilter implements
     Predicate<Specification<NodeId, Node>> propPrefixSpec =
         s -> s instanceof NodesByPropertyPrefix &&
             textAttrIds.contains(((NodesByPropertyPrefix) s).getAttributeId());
+    Predicate<Specification<NodeId, Node>> propPhraseSpec =
+        s -> s instanceof NodesByPropertyPhrase &&
+            textAttrIds.contains(((NodesByPropertyPhrase) s).getAttributeId());
     Predicate<Specification<NodeId, Node>> refSpec =
         s -> s instanceof NodesByReference &&
             refAttrIds.contains(((NodesByReference) s).getAttributeId());
@@ -72,7 +76,7 @@ public class TypeBasedNodeSpecificationFilter implements
     Predicate<Specification<NodeId, Node>> specificationPredicate =
         acceptedSpec
             .or(graphSpec).or(typeSpec)
-            .or(propSpec).or(propPrefixSpec)
+            .or(propSpec).or(propPrefixSpec).or(propPhraseSpec)
             .or(refSpec).or(nullRefSpec);
 
     filtered.and(new SpecificationTreeFilter<>(specificationPredicate).apply(nodeSpecification));

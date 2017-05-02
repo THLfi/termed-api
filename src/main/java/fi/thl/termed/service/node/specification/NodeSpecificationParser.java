@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.specification;
 import static fi.thl.termed.util.RegularExpressions.CODE;
 import static fi.thl.termed.util.RegularExpressions.ISO_8601_DATE;
 import static fi.thl.termed.util.RegularExpressions.UUID;
+import static java.util.Arrays.asList;
 import static org.jparsercombinator.ParserCombinators.newRef;
 import static org.jparsercombinator.ParserCombinators.regex;
 import static org.jparsercombinator.ParserCombinators.regexMatchResult;
@@ -32,8 +33,8 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinatorReference<Specification<NodeId, Node>> factorParser = newRef();
 
     ParserCombinator<Specification<NodeId, Node>> idParser =
-        regexMatchResult("id:(" + UUID + ")")
-            .map(m -> new NodeById(UUIDs.fromString(m.group(1))));
+        regexMatchResult("(node\\.id|nodeId|id):(" + UUID + ")")
+            .map(m -> new NodeById(UUIDs.fromString(m.group(2))));
     ParserCombinator<Specification<NodeId, Node>> codeParser =
         regexMatchResult("code:(" + CODE + ")")
             .map(m -> new NodesByCode(m.group(1)));
@@ -59,7 +60,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .map(m -> new NodesByTypeId(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> propertyQuotedParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + "):\"([^\"]*)\"")
-            .map(m -> new NodesByProperty(m.group(2), m.group(3)));
+            .map(m -> new NodesByPropertyPhrase(m.group(2), asList(m.group(3).split("\\s"))));
     ParserCombinator<Specification<NodeId, Node>> propertyPrefixParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + "):([^\\s]*)\\*")
             .map(m -> new NodesByPropertyPrefix(m.group(2), m.group(3)));

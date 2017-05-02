@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 
 public class NotSpecification<K extends Serializable, V>
@@ -24,6 +25,7 @@ public class NotSpecification<K extends Serializable, V>
   @Override
   public Query luceneQuery() {
     BooleanQuery booleanClauses = new BooleanQuery();
+    booleanClauses.add(new MatchAllDocsQuery(), Occur.SHOULD);
     booleanClauses.add(((LuceneSpecification<K, V>) specification).luceneQuery(), Occur.MUST_NOT);
     return booleanClauses;
   }
