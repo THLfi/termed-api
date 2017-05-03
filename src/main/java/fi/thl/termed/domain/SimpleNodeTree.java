@@ -35,8 +35,8 @@ public class SimpleNodeTree implements NodeTree {
     this.lastModifiedBy = tree.getLastModifiedBy();
     this.lastModifiedDate = tree.getLastModifiedDate();
     this.type = tree.getType();
-    this.properties = tree.getProperties();
     // copy transformed map to get a concrete serializable map instead of lazily transformed view
+    this.properties = copyOf(tree.getProperties());
     this.references = copyOf(transformValues(tree.getReferences(), SimpleNodeTree::new));
     this.referrers = copyOf(transformValues(tree.getReferrers(), SimpleNodeTree::new));
   }

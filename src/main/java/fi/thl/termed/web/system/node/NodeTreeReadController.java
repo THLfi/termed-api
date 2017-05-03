@@ -152,8 +152,8 @@ public class NodeTreeReadController {
     NodeTree tree = new LazyLoadingNodeTree(node,
         new IndexedReferenceLoader(nodeService, user),
         new IndexedReferrerLoader(nodeService, user));
-    tree = new FilteredNodeTree(tree, selects);
     tree = new DepthLimitedNodeTree(tree, selectReferences(selects), selectReferrers(selects));
+    tree = new FilteredNodeTree(tree, selects);
     return new SimpleNodeTree(tree);
   }
 

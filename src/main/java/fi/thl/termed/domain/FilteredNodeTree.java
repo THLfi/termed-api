@@ -84,29 +84,33 @@ public class FilteredNodeTree implements NodeTree {
 
   @Override
   public Multimap<String, StrictLangValue> getProperties() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectAllProperties.INSTANCE) ?
-        source.getProperties() :
-        filterKeys(source.getProperties(), key -> s.contains(new SelectProperty(key)));
+    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllProperties.INSTANCE)) {
+      return source.getProperties();
+    }
+
+    return filterKeys(source.getProperties(), key -> s.contains(new SelectProperty(key)));
   }
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferences() {
-    Multimap<String, ? extends NodeTree> references =
-        s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferences.INSTANCE) ?
-            source.getReferences() :
-            filterKeys(source.getReferences(), key -> s.contains(new SelectReference(key)));
+    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferences.INSTANCE)) {
+      return source.getReferences();
+    }
 
-    return transformValues(references, reference -> new FilteredNodeTree(reference, s));
+    return transformValues(
+        filterKeys(source.getReferences(), key -> s.contains(new SelectReference(key))),
+        reference -> new FilteredNodeTree(reference, s));
   }
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferrers() {
-    Multimap<String, ? extends NodeTree> referrers =
-        s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferrers.INSTANCE) ?
-            source.getReferrers() :
-            filterKeys(source.getReferrers(), key -> s.contains(new SelectReferrer(key)));
+    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferrers.INSTANCE)) {
+      return source.getReferrers();
+    }
 
-    return transformValues(referrers, referrer -> new FilteredNodeTree(referrer, s));
+    return transformValues(
+        filterKeys(source.getReferrers(), key -> s.contains(new SelectReferrer(key))),
+        referrer -> new FilteredNodeTree(referrer, s));
   }
 
 }
