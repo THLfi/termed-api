@@ -78,7 +78,7 @@ public class FilteredNodeTree implements NodeTree {
 
   @Override
   public TypeId getType() {
-    return s.contains(SelectType.INSTANCE) || s.contains(SelectAll.INSTANCE) ?
+    return s.contains(SelectAll.INSTANCE) || s.contains(SelectType.INSTANCE) ?
         source.getType() : null;
   }
 

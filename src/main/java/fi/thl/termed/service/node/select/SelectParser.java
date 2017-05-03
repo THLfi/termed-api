@@ -31,7 +31,7 @@ public class SelectParser implements Parser<List<Select>> {
     ParserCombinator<Select> selectLastModifiedDateParser =
         regex("lastModifiedDate").map(m -> SelectLastModifiedDate.INSTANCE);
     ParserCombinator<Select> selectTypeParser =
-        regex("type").map(m -> new SelectType());
+        regex("type").map(m -> SelectType.INSTANCE);
 
     ParserCombinator<Select> selectAllProperties =
         regex("(properties|props|p)\\.\\*")
