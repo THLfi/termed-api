@@ -61,6 +61,19 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     this.referenceAttributeRepository = referenceAttributeRepository;
   }
 
+  @Override
+  public List<TypeId> save(List<Type> types, Map<String, Object> args, User user) {
+    return super.save(addTypeIndices(types), args, user);
+  }
+
+  private List<Type> addTypeIndices(List<Type> types) {
+    int i = 0;
+    for (Type type : types) {
+      type.setIndex(i++);
+    }
+    return types;
+  }
+
   /**
    * With bulk insert, first save all types, then dependant values.
    */
