@@ -1,10 +1,10 @@
 package fi.thl.termed.web.system.node;
 
 import static com.google.common.collect.ImmutableMap.of;
+import static fi.thl.termed.service.node.select.Selects.selectReferences;
+import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
-import static fi.thl.termed.util.RegularExpressions.CODE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.regex.Pattern.compile;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 import com.google.gson.Gson;
@@ -20,6 +20,8 @@ import fi.thl.termed.domain.SimpleNodeTree;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.select.Select;
+import fi.thl.termed.service.node.select.Selects;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
@@ -30,17 +32,9 @@ import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,10 +57,6 @@ public class NodeTreeReadController {
   @Autowired
   private Gson gson;
 
-  private Pattern prop = compile("^(properties|props|p)\\.(" + CODE + ")$");
-  private Pattern refDepth = compile("^(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?$");
-  private Pattern backRefDepth = compile("^(referrers|refrs)\\.(" + CODE + ")(:([0-9]+))?$");
-
   @GetJsonMapping("/node-trees")
   public void get(
       @RequestParam(value = "select", defaultValue = "") List<String> select,
@@ -79,9 +69,10 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = typeService.get(user)
         .map(type -> specifyByQuery(type, String.join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Set<Select> selects = Selects.parse(String.join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -103,9 +94,10 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
         .map(type -> specifyByQuery(type, String.join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Set<Select> selects = Selects.parse(String.join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -127,9 +119,10 @@ public class NodeTreeReadController {
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = specifyByQuery(type, String.join(" AND ", where));
+    Set<Select> selects = Selects.parse(String.join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), parseSelect(select), user);
+        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -146,51 +139,22 @@ public class NodeTreeReadController {
 
     Node node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
+    Set<Select> selects = Selects.parse(String.join(",", select));
 
-    return toTree(node, parseSelect(select), user);
+    return toTree(node, selects, user);
   }
 
-  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Select select, User user) {
-    return nodes.map(node -> toTree(node, select, user));
+  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {
+    return nodes.map(node -> toTree(node, selects, user));
   }
 
-  private SimpleNodeTree toTree(Node node, Select s, User user) {
+  private SimpleNodeTree toTree(Node node, Set<Select> selects, User user) {
     NodeTree tree = new LazyLoadingNodeTree(node,
         new IndexedReferenceLoader(nodeService, user),
         new IndexedReferrerLoader(nodeService, user));
-    tree = new FilteredNodeTree(tree, s.props, s.refs.keySet(), s.backRefs.keySet());
-    tree = new DepthLimitedNodeTree(tree, s.refs, s.backRefs);
+    tree = new FilteredNodeTree(tree, selects);
+    tree = new DepthLimitedNodeTree(tree, selectReferences(selects), selectReferrers(selects));
     return new SimpleNodeTree(tree);
-  }
-
-  private Select parseSelect(List<String> selectClauses) {
-    Select s = new Select();
-    selectClauses.stream()
-        .flatMap(c -> Arrays.stream(c.split(",")))
-        .map(String::trim)
-        .forEach(c -> {
-          match(prop, c).ifPresent(m -> s.props.add(m.group(2)));
-          match(refDepth, c).ifPresent(m -> s.refs.put(m.group(2), intOrOne(m.group(4))));
-          match(backRefDepth, c).ifPresent(m -> s.backRefs.put(m.group(2), intOrOne(m.group(4))));
-        });
-    return s;
-  }
-
-  private Optional<MatchResult> match(Pattern p, String str) {
-    Matcher m = p.matcher(str);
-    return m.matches() ? Optional.of(m.toMatchResult()) : Optional.empty();
-  }
-
-  private Integer intOrOne(String s) {
-    return s != null ? Integer.parseInt(s) : 1;
-  }
-
-  private class Select {
-
-    Set<String> props = new HashSet<>();
-    Map<String, Integer> refs = new HashMap<>();
-    Map<String, Integer> backRefs = new HashMap<>();
-
   }
 
 }
