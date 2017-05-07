@@ -5,8 +5,6 @@ import static fi.thl.termed.util.ObjectUtils.castInteger;
 import static fi.thl.termed.util.ObjectUtils.castStringList;
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 import fi.thl.termed.domain.AppRole;
@@ -27,8 +25,6 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -70,154 +66,165 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Override
   public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
-    Set<NodeId> referencedIds = Sets.newHashSet();
+    Set<NodeId> reindexingRequired = new HashSet<>();
 
-    for (Node node : nodes) {
-      Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
-          new NodesByGraphId(node.getTypeGraphId()),
-          new NodesByTypeId(node.getTypeId()),
-          new NodeById(node.getId())), user).findFirst();
-
-      oldNodeFromIndex.ifPresent(n -> {
-        referencedIds.addAll(n.getReferences().values());
-        referencedIds.addAll(n.getReferrers().values());
-      });
-    }
+    nodes.forEach(node -> super.get(new AndSpecification<>(
+        new NodesByGraphId(node.getTypeGraphId()),
+        new NodesByTypeId(node.getTypeId()),
+        new NodeById(node.getId())), indexer)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        }));
 
     List<NodeId> ids = super.save(nodes, args, user);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
-
     Set<NodeId> indexed = new HashSet<>();
 
     ids.forEach(id -> {
       Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
       index.index(id, node);
       indexed.add(id);
-      referencedIds.addAll(node.getReferences().values());
-      referencedIds.addAll(node.getReferrers().values());
+      reindexingRequired.addAll(node.getReferences().values());
+      reindexingRequired.addAll(node.getReferrers().values());
       reporter.tick();
     });
 
-    referencedIds.removeAll(indexed);
-
+    reindexingRequired.removeAll(indexed);
     reporter.report();
-    log.info("Indexing {} referenced nodes", referencedIds.size());
-    ProgressReporter refReporter = new ProgressReporter(log, "Index", 1000, referencedIds.size());
 
-    referencedIds.forEach(id -> {
-      Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
-      index.index(node.identifier(), node);
-      refReporter.tick();
-    });
-
-    refReporter.report();
-
-    waitLuceneIndexRefresh();
-    log.info("Done");
+    // reindex remaining and wait for index refresh
+    reindex(reindexingRequired);
 
     return ids;
   }
 
   @Override
   public NodeId save(Node node, Map<String, Object> args, User user) {
-    Set<NodeId> referencedIds = Sets.newHashSet();
+    Set<NodeId> reindexingRequired = Sets.newHashSet();
 
-    Optional<Node> oldNodeFromIndex = super.get(new AndSpecification<>(
+    super.get(new AndSpecification<>(
         new NodesByGraphId(node.getTypeGraphId()),
         new NodesByTypeId(node.getTypeId()),
-        new NodeById(node.getId())), user).findFirst();
-
-    oldNodeFromIndex.ifPresent(n -> {
-      referencedIds.addAll(n.getReferences().values());
-      referencedIds.addAll(n.getReferrers().values());
-    });
+        new NodeById(node.getId())), user)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        });
 
     NodeId id = super.save(node, args, user);
+    reindexingRequired.add(id);
 
-    List<Node> nodesForIndexing = new ArrayList<>();
+    super.get(id, indexer).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    });
 
-    Node newNodeForIndexing = super.get(id, indexer).orElseThrow(IllegalStateException::new);
-    referencedIds.addAll(newNodeForIndexing.getReferences().values());
-    referencedIds.addAll(newNodeForIndexing.getReferrers().values());
+    reindexingRequired.forEach(reindexId ->
+        index.index(reindexId,
+            super.get(reindexId, indexer).orElseThrow(IllegalStateException::new)));
 
-    nodesForIndexing.add(newNodeForIndexing);
-
-    for (NodeId refId : referencedIds) {
-      nodesForIndexing.add(super.get(refId, indexer).orElseThrow(IllegalStateException::new));
-    }
-
-    reindex(nodesForIndexing);
+    waitLuceneIndexRefresh();
 
     return id;
   }
 
-  private void reindex(Collection<Node> nodes) {
-    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, nodes.size());
-    nodes.forEach(node -> {
-      index.index(node.identifier(), node);
-      reporter.tick();
-    });
-    reporter.report();
-    waitLuceneIndexRefresh();
-  }
-
   @Override
   public void delete(List<NodeId> nodeIds, Map<String, Object> args, User user) {
-    Set<NodeId> reindexSet = Sets.newHashSet();
+    Set<NodeId> reindexingRequired = new HashSet<>();
 
-    reindexSet.addAll(nodeIds);
-    reindexSet.addAll(nodeIds.stream()
-        .flatMap(nodeId -> nodeNeighbourIds(nodeId).stream()).collect(toList()));
+    reindexingRequired.addAll(nodeIds);
+
+    nodeIds.forEach(nodeId -> super.get(new AndSpecification<>(
+        new NodesByGraphId(nodeId.getTypeGraphId()),
+        new NodesByTypeId(nodeId.getTypeId()),
+        new NodeById(nodeId.getId())), indexer)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        }));
 
     super.delete(nodeIds, args, user);
 
-    reindex(reindexSet);
+    reindex(reindexingRequired);
   }
 
   @Override
   public void delete(NodeId nodeId, Map<String, Object> args, User user) {
-    Set<NodeId> reindexSet = Sets.newHashSet();
+    Set<NodeId> reindexingRequired = new HashSet<>();
 
-    reindexSet.add(nodeId);
-    reindexSet.addAll(nodeNeighbourIds(nodeId));
+    reindexingRequired.add(nodeId);
+
+    super.get(new AndSpecification<>(
+        new NodesByGraphId(nodeId.getTypeGraphId()),
+        new NodesByTypeId(nodeId.getTypeId()),
+        new NodeById(nodeId.getId())), indexer)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        });
 
     super.delete(nodeId, args, user);
 
-    reindex(reindexSet);
+    reindex(reindexingRequired);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
-    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
+      Map<String, Object> args, User user) {
 
-    return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.get(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
-        super.get(spec, args, user);
-  }
+    Set<NodeId> reindexingRequired = new HashSet<>();
 
-  @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
-      User user) {
-    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+    reindexingRequired.addAll(deletes);
 
-    return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
-        super.getKeys(spec, args, user);
-  }
+    deletes.forEach(delete -> super.get(new AndSpecification<>(
+        new NodesByGraphId(delete.getTypeGraphId()),
+        new NodesByTypeId(delete.getTypeId()),
+        new NodeById(delete.getId())), indexer)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        }));
 
-  private Set<NodeId> nodeNeighbourIds(NodeId nodeId) {
-    ImmutableSet.Builder<NodeId> ids = new Builder<>();
-    Optional<Node> nodeOptional = super.get(nodeId, indexer);
+    saves.forEach(save -> super.get(new AndSpecification<>(
+        new NodesByGraphId(save.getTypeGraphId()),
+        new NodesByTypeId(save.getTypeId()),
+        new NodeById(save.getId())), indexer)
+        .findFirst()
+        .ifPresent(n -> {
+          reindexingRequired.addAll(n.getReferences().values());
+          reindexingRequired.addAll(n.getReferrers().values());
+        }));
 
-    if (nodeOptional.isPresent()) {
-      ids.addAll(nodeOptional.get().getReferences().values());
-      ids.addAll(nodeOptional.get().getReferrers().values());
-    }
+    List<NodeId> ids = super.deleteAndSave(deletes, saves, args, user);
 
-    return ids.build();
+    log.info("Indexing {} nodes", ids.size());
+    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
+    Set<NodeId> indexed = new HashSet<>();
+
+    ids.forEach(id -> {
+      Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
+      index.index(id, node);
+      indexed.add(id);
+      reindexingRequired.addAll(node.getReferences().values());
+      reindexingRequired.addAll(node.getReferrers().values());
+      reporter.tick();
+    });
+
+    reindexingRequired.removeAll(indexed);
+    reporter.report();
+
+    // reindex remaining and wait for index refresh
+    reindex(reindexingRequired);
+
+    return ids;
   }
 
   private void reindex(Set<NodeId> ids) {
@@ -242,6 +249,26 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     if (index instanceof LuceneIndex) {
       ((LuceneIndex) index).refreshBlocking();
     }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+
+    return !bypassIndex && spec instanceof LuceneSpecification ?
+        index.get(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
+        super.get(spec, args, user);
+  }
+
+  @Override
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
+      User user) {
+    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+
+    return !bypassIndex && spec instanceof LuceneSpecification ?
+        index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
+        super.getKeys(spec, args, user);
   }
 
 }

@@ -52,8 +52,7 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   @Override
   public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
       User user) {
-    log.info("delete {} (user: {})", deletes, user.getUsername());
-    log.info("save {} values (user: {})", saves.size(), user.getUsername());
+    log.info("delete {} and save {} values (user: {})", deletes, saves.size(), user.getUsername());
     return delegate.deleteAndSave(deletes, saves, args, user);
   }
 

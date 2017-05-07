@@ -33,6 +33,13 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
     return super.save(node, args, currentUser);
   }
 
+  @Override
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
+      Map<String, Object> args, User user) {
+    saves.forEach(this::resolveId);
+    return super.deleteAndSave(deletes, saves, args, user);
+  }
+
   private void resolveId(Node node) {
     Preconditions.checkNotNull(node.getTypeGraphId(), ErrorCode.NODE_GRAPH_ID_MISSING);
     Preconditions.checkNotNull(node.getTypeId(), ErrorCode.NODE_TYPE_ID_MISSING);

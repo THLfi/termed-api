@@ -31,6 +31,13 @@ public class AttributeValueInitializingNodeService
     return super.save(node, args, currentUser);
   }
 
+  @Override
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
+      Map<String, Object> args, User user) {
+    saves.forEach(this::resolveAttributes);
+    return super.deleteAndSave(deletes, saves, args, user);
+  }
+
   private void resolveAttributes(Node node) {
     for (StrictLangValue value : node.getProperties().values()) {
       value.setRegex(firstNonNull(value.getRegex(), RegularExpressions.ALL));

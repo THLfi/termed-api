@@ -8,30 +8,30 @@ import java.util.Objects;
 
 public class DeleteAndSave<K extends Serializable, V> {
 
-  private List<K> deletes = new ArrayList<>();
-  private List<V> saves = new ArrayList<>();
+  private List<K> delete = new ArrayList<>();
+  private List<V> save = new ArrayList<>();
 
   public DeleteAndSave() {
   }
 
-  public DeleteAndSave(List<K> deletes, List<V> saves) {
-    this.deletes = deletes;
-    this.saves = saves;
+  public DeleteAndSave(List<K> delete, List<V> save) {
+    this.delete = delete;
+    this.save = save;
   }
 
-  public List<K> getDeletes() {
-    return deletes;
+  public List<K> getDelete() {
+    return delete;
   }
 
-  public List<V> getSaves() {
-    return saves;
+  public List<V> getSave() {
+    return save;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("deletes", deletes)
-        .add("saves", saves)
+        .add("delete", delete)
+        .add("save", save)
         .toString();
   }
 
@@ -44,13 +44,13 @@ public class DeleteAndSave<K extends Serializable, V> {
       return false;
     }
     DeleteAndSave<?, ?> that = (DeleteAndSave<?, ?>) o;
-    return Objects.equals(deletes, that.deletes) &&
-        Objects.equals(saves, that.saves);
+    return Objects.equals(delete, that.delete) &&
+        Objects.equals(save, that.save);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(deletes, saves);
+    return Objects.hash(delete, save);
   }
 
 }

@@ -54,9 +54,9 @@ public class NodeSaveController {
       @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
       @AuthenticationPrincipal User user) {
     TypeId type = new TypeId(typeId, new GraphId(graphId));
-    deleteAndSave.getDeletes().forEach(id -> id.setType(type));
-    deleteAndSave.getSaves().forEach(node -> node.setType(type));
-    nodeService.deleteAndSave(deleteAndSave.getDeletes(), deleteAndSave.getSaves(),
+    deleteAndSave.getDelete().forEach(id -> id.setType(type));
+    deleteAndSave.getSave().forEach(node -> node.setType(type));
+    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
         of("sync", sync), user);
   }
 
@@ -90,9 +90,9 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
       @AuthenticationPrincipal User user) {
-    deleteAndSave.getDeletes().forEach(id -> id.setType(new TypeId(id.getTypeId(), graphId)));
-    deleteAndSave.getSaves().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
-    nodeService.deleteAndSave(deleteAndSave.getDeletes(), deleteAndSave.getSaves(),
+    deleteAndSave.getDelete().forEach(id -> id.setType(new TypeId(id.getTypeId(), graphId)));
+    deleteAndSave.getSave().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
+    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
         of("sync", sync), user);
   }
 
@@ -122,7 +122,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
       @AuthenticationPrincipal User user) {
-    nodeService.deleteAndSave(deleteAndSave.getDeletes(), deleteAndSave.getSaves(),
+    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
         of("sync", sync), user);
   }
 
