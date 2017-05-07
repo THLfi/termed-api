@@ -81,6 +81,13 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
+      User user) {
+    delete(deletes, args, user);
+    return save(saves, args, user);
+  }
+
+  @Override
   public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
     return ids.stream().map(id -> get(id, user)).filter(Optional::isPresent).map(Optional::get);
   }

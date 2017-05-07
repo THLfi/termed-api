@@ -50,6 +50,14 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
+      User user) {
+    log.info("delete {} (user: {})", deletes, user.getUsername());
+    log.info("save {} values (user: {})", saves.size(), user.getUsername());
+    return delegate.deleteAndSave(deletes, saves, args, user);
+  }
+
+  @Override
   public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
     return delegate.get(specification, args, user);
   }

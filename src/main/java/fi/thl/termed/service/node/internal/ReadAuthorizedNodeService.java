@@ -62,6 +62,12 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
+      Map<String, Object> args, User user) {
+    return delegate.deleteAndSave(deletes, saves, args, user);
+  }
+
+  @Override
   public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     return filterValues(delegate.get(spec, args, user), user);
   }

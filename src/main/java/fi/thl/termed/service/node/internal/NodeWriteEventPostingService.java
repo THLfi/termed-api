@@ -74,6 +74,15 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
+      Map<String, Object> args, User user) {
+    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, args, user);
+    fireDeleteEvents(deletes, user.getUsername(), castBoolean(args.get("sync"), false));
+    fireSaveEvents(ids, user.getUsername(), castBoolean(args.get("sync"), false));
+    return ids;
+  }
+
+  @Override
   public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     return delegate.get(spec, args, user);
   }

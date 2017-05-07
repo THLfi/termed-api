@@ -53,6 +53,15 @@ public interface Service<K extends Serializable, V> {
   void delete(K id, Map<String, Object> args, User user);
 
   /**
+   * Delete and save values in one transaction. Returns ids of saved objects.
+   */
+  default List<K> deleteAndSave(List<K> deletes, List<V> saves, User user) {
+    return deleteAndSave(deletes, saves, emptyMap(), user);
+  }
+
+  List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args, User user);
+
+  /**
    * Get specified values.
    */
   default Stream<V> get(User user) {

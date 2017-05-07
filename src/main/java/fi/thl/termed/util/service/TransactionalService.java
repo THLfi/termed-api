@@ -77,6 +77,12 @@ public class TransactionalService<K extends Serializable, V> implements Service<
     });
   }
 
+  @Override
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
+      User user) {
+    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, args, user));
+  }
+
   private <E> E runInTransaction(Supplier<E> supplier) {
     TransactionStatus tx = manager.getTransaction(definition);
     E results;
