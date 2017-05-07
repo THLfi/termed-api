@@ -144,6 +144,18 @@ public class NodeWriteController {
         of("sync", sync), user);
   }
 
+  @DeleteMapping(path = "/graphs/{graphId}/nodes", params = "batch=true")
+  @ResponseStatus(NO_CONTENT)
+  public void deleteByIdList(
+      @PathVariable("graphId") UUID graphId,
+      @RequestBody List<NodeId> nodeIds,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(nodeIds.stream()
+        .map(id -> new NodeId(id.getId(), id.getTypeId(), graphId))
+        .collect(toList()), of("sync", sync), user);
+  }
+
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
   @ResponseStatus(NO_CONTENT)
   public void delete(
@@ -154,6 +166,19 @@ public class NodeWriteController {
     nodeService.delete(nodeService.getKeys(new AndSpecification<>(
         new NodesByGraphId(graphId),
         new NodesByTypeId(typeId)), user).collect(toList()), of("sync", sync), user);
+  }
+
+  @DeleteMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "batch=true")
+  @ResponseStatus(NO_CONTENT)
+  public void deleteByIdList(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @RequestBody List<NodeId> nodeIds,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    nodeService.delete(nodeIds.stream()
+        .map(id -> new NodeId(id.getId(), typeId, graphId))
+        .collect(toList()), of("sync", sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
