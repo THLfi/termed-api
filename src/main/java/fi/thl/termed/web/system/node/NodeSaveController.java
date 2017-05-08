@@ -1,15 +1,16 @@
 package fi.thl.termed.web.system.node;
 
 import static com.google.common.collect.ImmutableMap.of;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import fi.thl.termed.domain.DeleteAndSave;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -45,21 +46,6 @@ public class NodeSaveController {
     nodeService.save(nodes, of("sync", sync), user);
   }
 
-  @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "deleteAndSave=true", produces = {})
-  @ResponseStatus(NO_CONTENT)
-  public void deleteAndSaveAllOfType(
-      @PathVariable("graphId") UUID graphId,
-      @PathVariable("typeId") String typeId,
-      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
-      @AuthenticationPrincipal User user) {
-    TypeId type = new TypeId(typeId, new GraphId(graphId));
-    deleteAndSave.getDelete().forEach(id -> id.setType(type));
-    deleteAndSave.getSave().forEach(node -> node.setType(type));
-    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
-        of("sync", sync), user);
-  }
-
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node saveOneOfType(
       @PathVariable("graphId") UUID graphId,
@@ -83,19 +69,6 @@ public class NodeSaveController {
     nodeService.save(nodes, of("sync", sync), user);
   }
 
-  @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "deleteAndSave=true", produces = {})
-  @ResponseStatus(NO_CONTENT)
-  public void deleteAndSaveAllOfGraph(
-      @PathVariable("graphId") UUID graphId,
-      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
-      @AuthenticationPrincipal User user) {
-    deleteAndSave.getDelete().forEach(id -> id.setType(new TypeId(id.getTypeId(), graphId)));
-    deleteAndSave.getSave().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
-    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
-        of("sync", sync), user);
-  }
-
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node saveOneOfGraph(
       @PathVariable("graphId") UUID graphId,
@@ -114,16 +87,6 @@ public class NodeSaveController {
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
     nodeService.save(nodes, of("sync", sync), user);
-  }
-
-  @PostJsonMapping(path = "/nodes", params = "deleteAndSave=true", produces = {})
-  @ResponseStatus(NO_CONTENT)
-  public void deleteAndSaveAll(
-      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody DeleteAndSave<NodeId, Node> deleteAndSave,
-      @AuthenticationPrincipal User user) {
-    nodeService.deleteAndSave(deleteAndSave.getDelete(), deleteAndSave.getSave(),
-        of("sync", sync), user);
   }
 
   @PostJsonMapping(path = "/nodes", produces = {})
@@ -146,6 +109,26 @@ public class NodeSaveController {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
     node.setId(id);
     NodeId nodeId = nodeService.save(node, of("sync", sync), user);
+    return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
+  }
+
+  @PatchJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public Node patchOneById(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @PathVariable("id") UUID id,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestBody Node node,
+      @AuthenticationPrincipal User user) {
+    Node baseNode = nodeService.get(new NodeId(id, typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    ofNullable(node.getCode()).ifPresent(baseNode::setCode);
+    ofNullable(node.getUri()).ifPresent(baseNode::setUri);
+    node.getProperties().entries().forEach(e -> baseNode.addProperty(e.getKey(), e.getValue()));
+    node.getReferences().entries().forEach(e -> baseNode.addReference(e.getKey(), e.getValue()));
+
+    NodeId nodeId = nodeService.save(baseNode, of("sync", sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
