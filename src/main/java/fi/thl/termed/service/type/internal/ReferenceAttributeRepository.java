@@ -2,7 +2,6 @@ package fi.thl.termed.service.type.internal;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -44,7 +43,7 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void insert(ReferenceAttributeId id, ReferenceAttribute referenceAttribute, User user) {
+  protected void insert(ReferenceAttributeId id, ReferenceAttribute referenceAttribute, User user) {
     referenceAttributeDao.insert(id, referenceAttribute, user);
     insertPermissions(id, referenceAttribute.getPermissions(), user);
     insertProperties(id, referenceAttribute.getProperties(), user);
@@ -63,25 +62,21 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void update(ReferenceAttributeId id,
-      ReferenceAttribute newAttribute,
-      ReferenceAttribute oldAttribute,
-      User user) {
-    referenceAttributeDao.update(id, newAttribute, user);
-    updatePermissions(id, newAttribute.getPermissions(), oldAttribute.getPermissions(), user);
-    updateProperties(id, newAttribute.getProperties(), oldAttribute.getProperties(), user);
+  protected void update(ReferenceAttributeId id, ReferenceAttribute attribute, User user) {
+    referenceAttributeDao.update(id, attribute, user);
+    updatePermissions(id, attribute.getPermissions(), user);
+    updateProperties(id, attribute.getProperties(), user);
   }
 
   private void updatePermissions(ReferenceAttributeId attrId,
-      Multimap<String, Permission> newPermissions,
-      Multimap<String, Permission> oldPermissions,
-      User user) {
+      Multimap<String, Permission> permissions, User user) {
+
     TypeId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions);
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(oldPermissions);
+        permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user);
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -91,14 +86,12 @@ public class ReferenceAttributeRepository
   }
 
   private void updateProperties(ReferenceAttributeId attributeId,
-      Multimap<String, LangValue> newPropertyMultimap,
-      Multimap<String, LangValue> oldPropertyMultimap,
-      User user) {
+      Multimap<String, LangValue> properties, User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(attributeId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(properties);
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
-        new PropertyValueDtoToModel<>(attributeId).apply(oldPropertyMultimap);
+        propertyDao.getMap(new ReferenceAttributePropertiesByAttributeId(attributeId), user);
 
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -109,24 +102,20 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void delete(ReferenceAttributeId id, ReferenceAttribute referenceAttribute, User user) {
-    deletePermissions(id, referenceAttribute.getPermissions(), user);
-    deleteProperties(id, referenceAttribute.getProperties(), user);
+  public void delete(ReferenceAttributeId id, Map<String, Object> args, User user) {
+    deletePermissions(id, user);
+    deleteProperties(id, user);
     referenceAttributeDao.delete(id, user);
   }
 
-  private void deletePermissions(ReferenceAttributeId id, Multimap<String, Permission> permissions,
-      User user) {
-    TypeId domainId = id.getDomainId();
-    permissionDao.delete(ImmutableList.copyOf(
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), id)
-            .apply(permissions).keySet()), user);
+  private void deletePermissions(ReferenceAttributeId id, User user) {
+    permissionDao.delete(permissionDao.getKeys(
+        new ReferenceAttributePermissionsByReferenceAttributeId(id), user), user);
   }
 
-  private void deleteProperties(ReferenceAttributeId id, Multimap<String, LangValue> properties,
-      User user) {
-    propertyDao.delete(ImmutableList.copyOf(
-        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
+  private void deleteProperties(ReferenceAttributeId id, User user) {
+    propertyDao.delete(propertyDao.getKeys(
+        new ReferenceAttributePropertiesByAttributeId(id), user), user);
   }
 
   @Override

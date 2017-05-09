@@ -3,7 +3,6 @@ package fi.thl.termed.service.property.internal;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -42,20 +41,18 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void update(String id, Property newProperty, Property oldProperty, User user) {
-    propertyDao.update(id, newProperty, user);
-    updateProperties(id, newProperty.getProperties(), oldProperty.getProperties(), user);
+  public void update(String id, Property property, User user) {
+    propertyDao.update(id, property, user);
+    updateProperties(id, property.getProperties(), user);
   }
 
-  private void updateProperties(String propertyId,
-      Multimap<String, LangValue> newPropertyMultimap,
-      Multimap<String, LangValue> oldPropertyMultimap,
+  private void updateProperties(String propertyId, Multimap<String, LangValue> propertyMultimap,
       User user) {
 
     Map<PropertyValueId<String>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(propertyId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(propertyId).apply(propertyMultimap);
     Map<PropertyValueId<String>, LangValue> oldProperties =
-        new PropertyValueDtoToModel<>(propertyId).apply(oldPropertyMultimap);
+        propertyValueDao.getMap(new PropertyPropertiesByPropertyId(propertyId), user);
 
     MapDifference<PropertyValueId<String>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -66,14 +63,14 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void delete(String id, Property value, User user) {
-    deleteProperties(id, value.getProperties(), user);
+  public void delete(String id, Map<String, Object> args, User user) {
+    deleteProperties(id, user);
     propertyDao.delete(id, user);
   }
 
-  private void deleteProperties(String id, Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.delete(ImmutableList.copyOf(
-        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
+  private void deleteProperties(String id, User user) {
+    propertyValueDao.delete(propertyValueDao.getKeys(
+        new PropertyPropertiesByPropertyId(id), user), user);
   }
 
   @Override

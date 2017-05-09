@@ -5,6 +5,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -21,22 +22,22 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
   }
 
   @Override
-  public boolean exists(K key, User user) {
+  protected boolean exists(K key, User user) {
     return delegate.exists(key, user);
   }
 
   @Override
-  public void insert(K id, V value, User user) {
+  protected void insert(K id, V value, User user) {
     delegate.insert(id, value, user);
   }
 
   @Override
-  public void update(K id, V newValue, V oldValue, User user) {
-    delegate.update(id, newValue, user);
+  protected void update(K id, V value, User user) {
+    delegate.update(id, value, user);
   }
 
   @Override
-  public void delete(K id, V value, User user) {
+  public void delete(K id, Map<String, Object> args, User user) {
     delegate.delete(id, user);
   }
 

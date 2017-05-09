@@ -2,7 +2,6 @@ package fi.thl.termed.service.graph.internal;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -72,17 +71,17 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void update(GraphId id, Graph newGraph, Graph oldGraph, User user) {
-    graphDao.update(id, newGraph, user);
-    updateRoles(id, newGraph.getRoles(), oldGraph.getRoles(), user);
-    updatePermissions(id, newGraph.getPermissions(), oldGraph.getPermissions(), user);
-    updateProperties(id, newGraph.getProperties(), oldGraph.getProperties(), user);
+  public void update(GraphId id, Graph graph, User user) {
+    graphDao.update(id, graph, user);
+    updateRoles(id, graph.getRoles(), user);
+    updatePermissions(id, graph.getPermissions(), user);
+    updateProperties(id, graph.getProperties(), user);
   }
 
-  private void updateRoles(GraphId graph, List<String> newRoles, List<String> oldRoles,
-      User user) {
-    Map<GraphRole, Empty> newRolesMap = new GraphRoleDtoToModel(graph).apply(newRoles);
-    Map<GraphRole, Empty> oldRolesMap = new GraphRoleDtoToModel(graph).apply(oldRoles);
+  private void updateRoles(GraphId graph, List<String> roles, User user) {
+    Map<GraphRole, Empty> newRolesMap = new GraphRoleDtoToModel(graph).apply(roles);
+    Map<GraphRole, Empty> oldRolesMap = graphRoleDao.getMap(
+        new GraphRolesByGraphId(graph.getId()), user);
 
     MapDifference<GraphRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
 
@@ -90,15 +89,13 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     graphRoleDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
-  private void updatePermissions(GraphId graphId,
-      Multimap<String, Permission> newPermissions,
-      Multimap<String, Permission> oldPermissions,
+  private void updatePermissions(GraphId graphId, Multimap<String, Permission> permissions,
       User user) {
 
     Map<ObjectRolePermission<GraphId>, GrantedPermission> newPermissionMap =
-        new RolePermissionsDtoToModel<>(graphId, graphId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(graphId, graphId).apply(permissions);
     Map<ObjectRolePermission<GraphId>, GrantedPermission> oldPermissionMap =
-        new RolePermissionsDtoToModel<>(graphId, graphId).apply(oldPermissions);
+        graphPermissionDao.getMap(new GraphPermissionsByGraphId(graphId), user);
 
     MapDifference<ObjectRolePermission<GraphId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -107,15 +104,13 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     graphPermissionDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
-  private void updateProperties(GraphId graphId,
-      Multimap<String, LangValue> newPropertyMultimap,
-      Multimap<String, LangValue> oldPropertyMultimap,
+  private void updateProperties(GraphId graphId, Multimap<String, LangValue> propertyMultimap,
       User user) {
 
     Map<PropertyValueId<GraphId>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(graphId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(graphId).apply(propertyMultimap);
     Map<PropertyValueId<GraphId>, LangValue> oldProperties =
-        new PropertyValueDtoToModel<>(graphId).apply(oldPropertyMultimap);
+        graphPropertyDao.getMap(new GraphPropertiesByGraphId(graphId), user);
 
     MapDifference<PropertyValueId<GraphId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -126,26 +121,24 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void delete(GraphId id, Graph graph, User user) {
-    deleteRoles(id, graph.getRoles(), user);
-    deletePermissions(id, graph.getPermissions(), user);
-    deleteProperties(id, graph.getProperties(), user);
+  public void delete(GraphId id, Map<String, Object> args, User user) {
+    deleteRoles(id, user);
+    deletePermissions(id, user);
+    deleteProperties(id, user);
     graphDao.delete(id, user);
   }
 
-  private void deleteRoles(GraphId id, List<String> roles, User user) {
-    graphRoleDao.delete(ImmutableList.copyOf(
-        new GraphRoleDtoToModel(id).apply(roles).keySet()), user);
+  private void deleteRoles(GraphId id, User user) {
+    graphRoleDao.delete(graphRoleDao.getKeys(new GraphRolesByGraphId(id.getId()), user), user);
   }
 
-  private void deletePermissions(GraphId id, Multimap<String, Permission> permissions, User user) {
-    graphPermissionDao.delete(ImmutableList.copyOf(
-        new RolePermissionsDtoToModel<>(id, id).apply(permissions).keySet()), user);
+  private void deletePermissions(GraphId id, User user) {
+    graphPermissionDao.delete(graphPermissionDao.getKeys(
+        new GraphPermissionsByGraphId(id), user), user);
   }
 
-  private void deleteProperties(GraphId id, Multimap<String, LangValue> properties, User user) {
-    graphPropertyDao.delete(ImmutableList.copyOf(
-        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
+  private void deleteProperties(GraphId id, User user) {
+    graphPropertyDao.delete(graphPropertyDao.getKeys(new GraphPropertiesByGraphId(id), user), user);
   }
 
   @Override

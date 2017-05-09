@@ -170,7 +170,6 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
     model.add(createStatement(subject, SKOS.prefLabel, createPlainLiteral("Cat")));
 
     // save rdf model containing the node
-    // here we use stream parameter to enforce fresh index
     given()
         .auth().basic(testUsername, testPassword)
         .config(RestAssured.config().encoderConfig(
@@ -178,7 +177,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
         .contentType("application/rdf+xml")
         .body(JenaUtils.toRdfXmlString(model))
         .when()
-        .post("/api/graphs/" + graphId + "/nodes?stream=true")
+        .post("/api/graphs/" + graphId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 

@@ -99,6 +99,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     // reindex remaining and wait for index refresh
     reindex(reindexingRequired);
 
+    log.info("Done");
     return ids;
   }
 

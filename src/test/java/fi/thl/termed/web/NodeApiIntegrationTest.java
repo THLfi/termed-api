@@ -98,12 +98,12 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    // check that we get the same vocabulary information back (bypass index as its built async)
+    // check that we get the same vocabulary information back
     given()
         .auth().basic(testUsername, testPassword)
         .contentType("application/json")
         .when()
-        .get("/api/graphs/" + graphId + "/types/Concept/nodes?bypassIndex=true")
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(resourceToString("examples/termed/animals-nodes.json"))

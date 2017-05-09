@@ -1,15 +1,10 @@
 package fi.thl.termed.service.type.internal;
 
-import com.google.common.collect.ImmutableList;
+import static com.google.common.collect.ImmutableList.copyOf;
+
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -27,12 +22,11 @@ import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-
-public class TextAttributeRepository
-    extends AbstractRepository<TextAttributeId, TextAttribute> {
+public class TextAttributeRepository extends AbstractRepository<TextAttributeId, TextAttribute> {
 
   private Dao<TextAttributeId, TextAttribute> textAttributeDao;
   private Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
@@ -48,44 +42,40 @@ public class TextAttributeRepository
   }
 
   @Override
-  public void insert(TextAttributeId id, TextAttribute textAttribute, User user) {
+  protected void insert(TextAttributeId id, TextAttribute textAttribute, User user) {
     textAttributeDao.insert(id, textAttribute, user);
     insertProperties(id, textAttribute.getProperties(), user);
     insertPermissions(id, textAttribute.getPermissions(), user);
   }
 
   private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
-                                User user) {
+      User user) {
     propertyDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertPermissions(TextAttributeId id, Multimap<String, Permission> permissions,
-                                 User user) {
+      User user) {
     TypeId domainId = id.getDomainId();
     permissionDao.insert(
         new RolePermissionsDtoToModel<>(domainId.getGraph(), id).apply(permissions), user);
   }
 
   @Override
-  public void update(TextAttributeId id,
-                     TextAttribute newAttribute,
-                     TextAttribute oldAttribute,
-                     User user) {
-    textAttributeDao.update(id, newAttribute, user);
-    updatePermissions(id, newAttribute.getPermissions(), oldAttribute.getPermissions(), user);
-    updateProperties(id, newAttribute.getProperties(), oldAttribute.getProperties(), user);
+  protected void update(TextAttributeId id, TextAttribute attribute, User user) {
+    textAttributeDao.update(id, attribute, user);
+    updatePermissions(id, attribute.getPermissions(), user);
+    updateProperties(id, attribute.getProperties(), user);
   }
 
-  private void updatePermissions(TextAttributeId attrId,
-                                 Multimap<String, Permission> newPermissions,
-                                 Multimap<String, Permission> oldPermissions,
-                                 User user) {
+  private void updatePermissions(TextAttributeId attrId, Multimap<String, Permission> permissions,
+      User user) {
+
     TypeId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> newPermissionMap =
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(newPermissions);
+        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions);
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> oldPermissionMap =
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(oldPermissions);
+        permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(attrId), user);
 
     MapDifference<ObjectRolePermission<TextAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -94,15 +84,13 @@ public class TextAttributeRepository
     permissionDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
   }
 
-  private void updateProperties(TextAttributeId attributeId,
-                                Multimap<String, LangValue> newPropertyMultimap,
-                                Multimap<String, LangValue> oldPropertyMultimap,
-                                User user) {
+  private void updateProperties(TextAttributeId attributeId, Multimap<String, LangValue> properties,
+      User user) {
 
     Map<PropertyValueId<TextAttributeId>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(attributeId).apply(newPropertyMultimap);
+        new PropertyValueDtoToModel<>(attributeId).apply(properties);
     Map<PropertyValueId<TextAttributeId>, LangValue> oldProperties =
-        new PropertyValueDtoToModel<>(attributeId).apply(oldPropertyMultimap);
+        propertyDao.getMap(new TextAttributePropertiesByAttributeId(attributeId), user);
 
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -113,24 +101,20 @@ public class TextAttributeRepository
   }
 
   @Override
-  public void delete(TextAttributeId id, TextAttribute textAttribute, User user) {
-    deletePermissions(id, textAttribute.getPermissions(), user);
-    deleteProperties(id, textAttribute.getProperties(), user);
+  public void delete(TextAttributeId id, Map<String, Object> args, User user) {
+    deletePermissions(id, user);
+    deleteProperties(id, user);
     textAttributeDao.delete(id, user);
   }
 
-  private void deletePermissions(TextAttributeId id, Multimap<String, Permission> permissions,
-                                 User user) {
-    TypeId domainId = id.getDomainId();
-    permissionDao.delete(ImmutableList.copyOf(
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), id)
-            .apply(permissions).keySet()), user);
+  private void deletePermissions(TextAttributeId id, User user) {
+    permissionDao.delete(permissionDao.getKeys(
+        new TextAttributePermissionsByTextAttributeId(id), user), user);
   }
 
-  private void deleteProperties(TextAttributeId id, Multimap<String, LangValue> properties,
-                                User user) {
-    propertyDao.delete(ImmutableList.copyOf(
-        new PropertyValueDtoToModel<>(id).apply(properties).keySet()), user);
+  private void deleteProperties(TextAttributeId id, User user) {
+    propertyDao.delete(propertyDao.getKeys(
+        new TextAttributePropertiesByAttributeId(id), user), user);
   }
 
   @Override
@@ -140,7 +124,7 @@ public class TextAttributeRepository
 
   @Override
   public Stream<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification,
-                                 User user) {
+      User user) {
     return textAttributeDao.getValues(specification, user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
@@ -163,10 +147,9 @@ public class TextAttributeRepository
         permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
             new TextAttributeId(attribute)), user)));
 
-    attribute.setProperties(
-        new PropertyValueModelToDto<TextAttributeId>()
-            .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
-                new TextAttributeId(attribute)), user)));
+    attribute.setProperties(new PropertyValueModelToDto<TextAttributeId>()
+        .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
+            new TextAttributeId(attribute)), user)));
 
     return attribute;
   }

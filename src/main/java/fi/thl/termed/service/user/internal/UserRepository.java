@@ -12,9 +12,11 @@ import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UserRepository extends AbstractRepository<String, User> {
@@ -38,11 +40,15 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void update(String username, User newUser, User oldUser, User auth) {
+  public void update(String username, User newUser, User auth) {
     userDao.update(username, newUser, auth);
 
     Set<GraphRole> newRoles = ImmutableSet.copyOf(newUser.getGraphRoles());
-    Set<GraphRole> oldRoles = ImmutableSet.copyOf(oldUser.getGraphRoles());
+    Set<GraphRole> oldRoles = userGraphRoleDao.getKeys(
+        new UserGraphRolesByUsername(username), auth).stream()
+        .filter(userGraphRole -> userGraphRole.getUsername().equals(username))
+        .map(userGraphRole -> new GraphRole(userGraphRole.getGraph(), userGraphRole.getUsername()))
+        .collect(Collectors.toSet());
 
     for (GraphRole removedRole : Sets.difference(oldRoles, newRoles)) {
       userGraphRoleDao.delete(new UserGraphRole(
@@ -55,12 +61,9 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void delete(String username, User user, User auth) {
-    for (GraphRole graphRole : user.getGraphRoles()) {
-      userGraphRoleDao.delete(new UserGraphRole(
-          username, graphRole.getGraph(), graphRole.getRole()), auth);
-    }
-
+  public void delete(String username, Map<String, Object> args, User auth) {
+    userGraphRoleDao.delete(userGraphRoleDao.getKeys(
+        new UserGraphRolesByUsername(username), auth), auth);
     userDao.delete(username, auth);
   }
 

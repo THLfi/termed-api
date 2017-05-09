@@ -1,9 +1,7 @@
 package fi.thl.termed.util.service;
 
-import com.google.common.collect.MapDifference;
 import fi.thl.termed.domain.Identifiable;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.SimpleValueDifference;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,7 +22,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     List<K> keys = new ArrayList<>();
 
     Map<K, V> inserts = new LinkedHashMap<>();
-    Map<K, MapDifference.ValueDifference<V>> updates = new LinkedHashMap<>();
+    Map<K, V> updates = new LinkedHashMap<>();
 
     for (V value : values) {
       K key = value.identifier();
@@ -32,8 +30,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       if (!exists(key, user)) {
         inserts.put(key, value);
       } else {
-        updates.put(key, new SimpleValueDifference<>(value, get(key, user)
-            .<IllegalStateException>orElseThrow(IllegalStateException::new)));
+        updates.put(key, value);
       }
 
       keys.add(key);
@@ -52,23 +49,25 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     if (!exists(key, user)) {
       insert(key, value, user);
     } else {
-      update(key, value, get(key, user).orElseThrow(IllegalStateException::new), user);
+      update(key, value, user);
     }
 
     return key;
   }
 
-  public void insert(Map<K, V> map, User user) {
+  protected abstract boolean exists(K key, User user);
+
+  protected void insert(Map<K, V> map, User user) {
     map.forEach((k, v) -> insert(k, v, user));
   }
 
-  public void update(Map<K, MapDifference.ValueDifference<V>> differenceMap, User user) {
-    differenceMap.forEach((k, v) -> update(k, v.leftValue(), v.rightValue(), user));
+  protected void update(Map<K, V> map, User user) {
+    map.forEach((k, v) -> update(k, v, user));
   }
 
-  public void delete(Map<K, V> map, User user) {
-    map.forEach((k, v) -> delete(k, v, user));
-  }
+  protected abstract void insert(K id, V value, User user);
+
+  protected abstract void update(K id, V value, User user);
 
   @Override
   public void delete(List<K> ids, Map<String, Object> args, User user) {
@@ -76,15 +75,9 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public void delete(K id, Map<String, Object> args, User user) {
-    get(id, user).ifPresent(v -> delete(id, v, user));
-  }
-
-  @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
-      User user) {
-    delete(deletes, args, user);
-    return save(saves, args, user);
+  public List<K> deleteAndSave(List<K> delete, List<V> save, Map<String, Object> args, User user) {
+    delete(delete, args, user);
+    return save(save, args, user);
   }
 
   @Override
@@ -106,19 +99,5 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return getKeys(specification, user);
   }
-
-  public abstract boolean exists(K key, User user);
-
-  public abstract void insert(K id, V value, User user);
-
-  public abstract void update(K id, V newValue, V oldValue, User user);
-
-  public abstract void delete(K id, V value, User user);
-
-  public abstract Optional<V> get(K id, User user);
-
-  public abstract Stream<V> get(Specification<K, V> specification, User currentUser);
-
-  public abstract Stream<K> getKeys(Specification<K, V> specification, User currentUser);
 
 }
