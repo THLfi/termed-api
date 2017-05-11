@@ -50,7 +50,8 @@ public final class NodeSpecifications {
 
       Specification<NodeId, Node> prefixSpec = zip(type.getTextAttributes().stream(), boosts)
           .flatMap(attributeAndBoost -> prefixes.stream()
-              .map(prefix -> new NodesByPropertyPrefix(attributeAndBoost.getKey().getId(), prefix)))
+              .map(prefix -> new NodesByPropertyPrefix(
+                  attributeAndBoost.getKey().getId(), prefix, attributeAndBoost.getValue())))
           .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
       spec.and(prefixSpec);
