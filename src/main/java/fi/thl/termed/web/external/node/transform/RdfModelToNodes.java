@@ -1,16 +1,12 @@
 package fi.thl.termed.web.external.node.transform;
 
+import static fi.thl.termed.util.RegularExpressions.URN_UUID;
+import static fi.thl.termed.util.UUIDs.fromString;
+import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
+
 import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import org.apache.jena.vocabulary.RDF;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -22,10 +18,12 @@ import fi.thl.termed.util.StringUtils;
 import fi.thl.termed.util.URIs;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;
-
-import static fi.thl.termed.util.RegularExpressions.URN_UUID;
-import static fi.thl.termed.util.UUIDs.fromString;
-import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * Function to transform rdf model into list of nodes conforming to provided graph.
@@ -33,9 +31,11 @@ import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
   private List<Type> types;
+  private Function<NodeId, Optional<Node>> nodeProvider;
 
-  public RdfModelToNodes(List<Type> types) {
+  public RdfModelToNodes(List<Type> types, Function<NodeId, Optional<Node>> nodeProvider) {
     this.types = types;
+    this.nodeProvider = nodeProvider;
   }
 
   @Override
@@ -67,6 +67,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
       for (RdfResource rdfResource : rdfModel.find(RDF.type.getURI(), type.getUri())) {
         Node node = nodes.get(rdfResource.getUri());
         setTextAttrValues(type, node, rdfResource);
+
         setRefAttrValues(type, node, rdfResource, nodes);
       }
     }
@@ -78,23 +79,30 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
     for (TextAttribute textAttribute : type.getTextAttributes()) {
       for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri())) {
         node.addProperty(textAttribute.getId(),
-                         Ascii.truncate(langValues.getLang(), 2, ""),
-                         langValues.getValue(),
-                         textAttribute.getRegex());
+            Ascii.truncate(langValues.getLang(), 2, ""),
+            langValues.getValue(),
+            textAttribute.getRegex());
       }
     }
   }
 
-  private void setRefAttrValues(Type type, Node node,
-                                RdfResource rdfResource, Map<String, Node> nodes) {
+  private void setRefAttrValues(Type type, Node node, RdfResource rdfResource,
+      Map<String, Node> nodes) {
     for (ReferenceAttribute refAttribute : type.getReferenceAttributes()) {
-      List<String> objects = Lists.newArrayList(rdfResource.getObjects(refAttribute.getUri()));
-      List<NodeId> values = objects.stream()
-          .filter(nodes::containsKey).map(nodes::get)
-          .filter(r -> new TypeId(r).equals(refAttribute.getRange()))
-          .map(NodeId::new)
-          .collect(Collectors.toList());
-      node.addReferences(refAttribute.getId(), values);
+      for (String objectUri : rdfResource.getObjects(refAttribute.getUri())) {
+        if (nodes.containsKey(objectUri)) {
+          Node object = nodes.get(objectUri);
+          if (object.getType().equals(refAttribute.getRange())) {
+            node.addReference(refAttribute.getId(), object.identifier());
+          }
+        } else {
+          UUID objectId = objectUri.matches(URN_UUID) ?
+              fromString(objectUri.substring("urn:uuid:".length())) :
+              nameUUIDFromString(objectUri);
+          Optional<Node> object = nodeProvider.apply(new NodeId(objectId, refAttribute.getRange()));
+          object.ifPresent(o -> node.addReference(refAttribute.getId(), o.identifier()));
+        }
+      }
     }
   }
 
