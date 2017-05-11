@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
+import static fi.thl.termed.util.collect.StreamUtils.zip;
+
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
@@ -8,6 +10,8 @@ import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Factory methods for node specifications
@@ -41,9 +45,12 @@ public final class NodeSpecifications {
     List<String> prefixes = Arrays.asList(query.split("\\s"));
 
     if (!prefixes.isEmpty()) {
-      Specification<NodeId, Node> prefixSpec = type.getTextAttributes().stream()
-          .flatMap(textAttribute -> prefixes.stream()
-              .map(prefix -> new NodesByPropertyPrefix(textAttribute.getId(), prefix)))
+      // boosts for first few text attributes in the query
+      Stream<Integer> boosts = IntStream.iterate(8, b -> b > 2 ? b / 2 : 1).boxed();
+
+      Specification<NodeId, Node> prefixSpec = zip(type.getTextAttributes().stream(), boosts)
+          .flatMap(attributeAndBoost -> prefixes.stream()
+              .map(prefix -> new NodesByPropertyPrefix(attributeAndBoost.getKey().getId(), prefix)))
           .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
       spec.and(prefixSpec);
