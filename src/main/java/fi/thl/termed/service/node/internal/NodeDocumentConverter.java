@@ -56,11 +56,12 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
       String value = entry.getValue().getValue();
 
       doc.add(textField("properties." + property, value));
-      doc.add(stringField("properties." + property + ".sortable", value));
+      doc.add(stringField("properties." + property + ".sortable", value.toLowerCase()));
 
       if (!lang.isEmpty()) {
         doc.add(textField("properties." + property + "." + lang, value));
-        doc.add(stringField("properties." + property + "." + lang + ".sortable", value));
+        doc.add(stringField("properties." + property + "." + lang + ".sortable",
+            value.toLowerCase()));
       }
     }
 
