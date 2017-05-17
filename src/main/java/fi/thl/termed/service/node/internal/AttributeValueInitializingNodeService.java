@@ -5,6 +5,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.ForwardingService;
@@ -43,7 +44,9 @@ public class AttributeValueInitializingNodeService
       value.setRegex(firstNonNull(value.getRegex(), RegularExpressions.ALL));
     }
     for (NodeId value : node.getReferences().values()) {
-      value.setType(firstNonNull(value.getType(), node.getType()));
+      value.setType(new TypeId(
+          firstNonNull(value.getTypeId(), node.getTypeId()),
+          firstNonNull(value.getTypeGraphId(), node.getTypeGraphId())));
     }
   }
 
