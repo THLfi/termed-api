@@ -97,7 +97,6 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     int i = 0;
     for (TextAttribute textAttribute : textAttributes) {
-      textAttribute.setDomain(id);
       textAttribute.setIndex(i++);
     }
 
@@ -115,7 +114,6 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     int i = 0;
     for (ReferenceAttribute refAttribute : refAttrs) {
-      refAttribute.setDomain(id);
       refAttribute.setIndex(i++);
     }
 

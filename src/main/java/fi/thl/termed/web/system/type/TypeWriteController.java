@@ -1,6 +1,9 @@
 package fi.thl.termed.web.system.type;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.jena.ext.com.google.common.collect.Sets.difference;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Graph;
@@ -14,8 +17,8 @@ import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -64,12 +67,10 @@ public class TypeWriteController {
       @AuthenticationPrincipal User user) {
     types.forEach(type -> type.setGraph(new GraphId(graphId)));
 
-    List<TypeId> removedTypes = typeService.getKeys(new TypesByGraphId(graphId), user)
-        .collect(Collectors.toList());
-    removedTypes.removeAll(types.stream().map(TypeId::new).collect(Collectors.toList()));
-    typeService.delete(removedTypes, user);
+    Set<TypeId> oldTypes = typeService.getKeys(new TypesByGraphId(graphId), user).collect(toSet());
+    Set<TypeId> newTypes = types.stream().map(TypeId::new).collect(toSet());
 
-    typeService.save(types, user);
+    typeService.deleteAndSave(copyOf(difference(oldTypes, newTypes)), types, user);
   }
 
   @PutJsonMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

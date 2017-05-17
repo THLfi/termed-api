@@ -23,33 +23,35 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, Map<String, Object> args, User currentUser) {
+  public List<TypeId> save(List<Type> types, Map<String, Object> args, User user) {
     types.forEach(this::initialize);
-    return super.save(types, args, currentUser);
+    return super.save(types, args, user);
   }
 
   @Override
-  public TypeId save(Type cls, Map<String, Object> args, User currentUser) {
+  public TypeId save(Type cls, Map<String, Object> args, User user) {
     initialize(cls);
-    return super.save(cls, args, currentUser);
+    return super.save(cls, args, user);
   }
 
-  private void initialize(Type cls) {
-    for (TextAttribute textAttribute : cls.getTextAttributes()) {
-      textAttribute.setDomain(new TypeId(cls));
+  @Override
+  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves,
+      Map<String, Object> args, User user) {
+    saves.forEach(this::initialize);
+    return super.deleteAndSave(deletes, saves, args, user);
+  }
+
+  private void initialize(Type type) {
+    for (TextAttribute textAttribute : type.getTextAttributes()) {
+      textAttribute.setDomain(new TypeId(type));
       textAttribute.setRegex(firstNonNull(textAttribute.getRegex(), RegularExpressions.ALL));
     }
 
-    for (ReferenceAttribute referenceAttribute : cls.getReferenceAttributes()) {
-      referenceAttribute.setDomain(new TypeId(cls));
-
-      if (referenceAttribute.getRange() == null) {
-        referenceAttribute.setRange(new TypeId(cls));
-      }
-      if (referenceAttribute.getRange().getGraph() == null) {
-        referenceAttribute.setRange(
-            new TypeId(referenceAttribute.getRangeId(), cls.getGraph()));
-      }
+    for (ReferenceAttribute referenceAttribute : type.getReferenceAttributes()) {
+      referenceAttribute.setDomain(new TypeId(type));
+      referenceAttribute.setRange(new TypeId(
+          firstNonNull(referenceAttribute.getRangeId(), type.getId()),
+          firstNonNull(referenceAttribute.getRangeGraphId(), type.getGraphId())));
     }
   }
 
