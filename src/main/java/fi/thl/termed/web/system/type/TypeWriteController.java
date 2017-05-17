@@ -44,7 +44,6 @@ public class TypeWriteController {
       @PathVariable("graphId") UUID graphId,
       @RequestBody Type type,
       @AuthenticationPrincipal User user) {
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
     type.setGraph(new GraphId(graphId));
     return typeService.get(typeService.save(type, user), user).orElseThrow(NotFoundException::new);
   }
@@ -59,7 +58,7 @@ public class TypeWriteController {
     typeService.save(types, currentUser);
   }
 
-  @PostJsonMapping(params = {"batch=true", "replace=true"}, produces = {})
+  @PutJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)
   public void replace(
       @PathVariable("graphId") UUID graphId,
