@@ -36,11 +36,11 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public Query luceneQuery() {
-    PhraseQuery phraseQuery = new PhraseQuery();
+    PhraseQuery.Builder phraseQuery = new PhraseQuery.Builder();
     for (String value : values) {
       phraseQuery.add(new Term("properties." + attributeId, value));
     }
-    return phraseQuery;
+    return phraseQuery.build();
   }
 
   @Override

@@ -10,7 +10,9 @@ import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.index.lucene.LuceneConstants;
 import fi.thl.termed.util.index.lucene.LuceneException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.DataFormatException;
 import org.apache.lucene.document.CompressionTools;
@@ -18,9 +20,11 @@ import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,20 +54,29 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
     doc.add(stringField("createdDate", r.getCreatedDate()));
     doc.add(stringField("lastModifiedDate", r.getLastModifiedDate()));
 
-    for (Map.Entry<String, StrictLangValue> entry : r.getProperties().entries()) {
-      String property = entry.getKey();
-      String lang = entry.getValue().getLang();
-      String value = entry.getValue().getValue();
+    r.getProperties().asMap().forEach((p, langValues) -> {
+      boolean sortFieldAdded = false;
+      Set<String> sortFieldAddedForLang = new HashSet<>();
 
-      doc.add(textField("properties." + property, value));
-      doc.add(stringField("properties." + property + ".sortable", value.toLowerCase()));
+      for (StrictLangValue langValue : langValues) {
+        String lang = langValue.getLang();
+        String val = langValue.getValue();
 
-      if (!lang.isEmpty()) {
-        doc.add(textField("properties." + property + "." + lang, value));
-        doc.add(stringField("properties." + property + "." + lang + ".sortable",
-            value.toLowerCase()));
+        doc.add(textField("properties." + p, val));
+        if (!sortFieldAdded) {
+          doc.add(sortableField("properties." + p + ".sortable", val.toLowerCase()));
+          sortFieldAdded = true;
+        }
+
+        if (!lang.isEmpty()) {
+          doc.add(textField("properties." + p + "." + lang, val));
+          if (!sortFieldAddedForLang.contains(lang)) {
+            doc.add(sortableField("properties." + p + "." + lang + ".sortable", val.toLowerCase()));
+            sortFieldAddedForLang.add(lang);
+          }
+        }
       }
-    }
+    });
 
     for (Map.Entry<String, NodeId> entry : r.getReferences().entries()) {
       String property = entry.getKey();
@@ -105,6 +118,10 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
   private Field stringField(String name, Date value) {
     return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND),
         Field.Store.NO);
+  }
+
+  private Field sortableField(String name, String value) {
+    return new SortedDocValuesField(name, new BytesRef(value));
   }
 
   @Override

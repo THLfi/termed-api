@@ -52,17 +52,13 @@ public class AndSpecification<K extends Serializable, V> extends CompositeSpecif
 
   @Override
   public Query luceneQuery() {
-    if (specifications.isEmpty()) {
-      return new BooleanQuery();
-    }
-
-    BooleanQuery query = new BooleanQuery();
+    BooleanQuery.Builder query = new BooleanQuery.Builder();
 
     for (Specification<K, V> spec : specifications) {
       query.add(((LuceneSpecification<K, V>) spec).luceneQuery(), BooleanClause.Occur.MUST);
     }
 
-    return query;
+    return query.build();
   }
 
   @Override

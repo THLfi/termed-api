@@ -8,6 +8,7 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import java.util.Objects;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 
@@ -41,9 +42,7 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public Query luceneQuery() {
-    Query query = new PrefixQuery(new Term("properties." + attributeId, value));
-    query.setBoost(boost);
-    return query;
+    return new BoostQuery(new PrefixQuery(new Term("properties." + attributeId, value)), boost);
   }
 
   @Override

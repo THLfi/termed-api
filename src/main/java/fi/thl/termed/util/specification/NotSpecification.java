@@ -24,10 +24,10 @@ public class NotSpecification<K extends Serializable, V>
 
   @Override
   public Query luceneQuery() {
-    BooleanQuery booleanClauses = new BooleanQuery();
+    BooleanQuery.Builder booleanClauses = new BooleanQuery.Builder();
     booleanClauses.add(new MatchAllDocsQuery(), Occur.SHOULD);
     booleanClauses.add(((LuceneSpecification<K, V>) specification).luceneQuery(), Occur.MUST_NOT);
-    return booleanClauses;
+    return booleanClauses.build();
   }
 
   @Override

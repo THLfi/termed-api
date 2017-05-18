@@ -33,11 +33,11 @@ public class NodesWithoutReferrers implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public Query luceneQuery() {
-    BooleanQuery query = new BooleanQuery();
+    BooleanQuery.Builder query = new BooleanQuery.Builder();
     query.add(new MatchAllDocsQuery(), BooleanClause.Occur.SHOULD);
     query.add(new TermRangeQuery("referrers." + attributeId + ".nodeId", null, null, true, true),
               BooleanClause.Occur.MUST_NOT);
-    return query;
+    return query.build();
   }
 
   @Override

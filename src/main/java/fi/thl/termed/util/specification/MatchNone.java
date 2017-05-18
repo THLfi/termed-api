@@ -15,7 +15,7 @@ public class MatchNone<K extends Serializable, V>
 
   @Override
   public Query luceneQuery() {
-    return new BooleanQuery();
+    return new BooleanQuery.Builder().build();
   }
 
   @Override

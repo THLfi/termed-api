@@ -6,7 +6,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
-import static org.apache.lucene.util.Version.LUCENE_47;
 
 import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.ProgressReporter;
@@ -14,9 +13,9 @@ import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -75,10 +74,10 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     this.documentConverter = documentConverter;
 
     try {
-      Analyzer a = new LowerCaseWhitespaceAnalyzer(LUCENE_47);
-      IndexWriterConfig c = new IndexWriterConfig(LUCENE_47, a).setOpenMode(CREATE_OR_APPEND);
+      Analyzer a = new LowerCaseWhitespaceAnalyzer();
+      IndexWriterConfig c = new IndexWriterConfig(a).setOpenMode(CREATE_OR_APPEND);
       this.writer = new IndexWriter(openDirectory(directoryPath), c);
-      this.searcherManager = new SearcherManager(writer, true, new SearcherFactory());
+      this.searcherManager = new SearcherManager(writer, new SearcherFactory());
     } catch (IOException e) {
       throw new LuceneException(e);
     }
@@ -101,8 +100,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   private Directory openDirectory(String directoryPath) throws IOException {
+    log.info("Opening index directory {}", directoryPath);
     return isNullOrEmpty(directoryPath) ? new RAMDirectory()
-        : forceUnlock(FSDirectory.open(new File(directoryPath)));
+        : FSDirectory.open(Paths.get(directoryPath));
   }
 
   @Override
@@ -170,10 +170,10 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   public Stream<V> get(List<K> ids) {
     IndexSearcher searcher = null;
     try {
-      BooleanQuery q = new BooleanQuery();
+      BooleanQuery.Builder q = new BooleanQuery.Builder();
       ids.forEach(k -> q.add(new TermQuery(new Term(DOCUMENT_ID, keyConverter.apply(k))), SHOULD));
       searcher = searcherManager.acquire();
-      return query(searcher, q, ids.size(), emptyList(), documentConverter.inverse());
+      return query(searcher, q.build(), ids.size(), emptyList(), documentConverter.inverse());
     } catch (IOException e) {
       tryRelease(searcher);
       throw new LuceneException(e);
@@ -263,20 +263,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       searcherManager.close();
       commitTask.cancel();
       writer.close();
-    } catch (IOException e) {
-      throw new LuceneException(e);
-    } finally {
-      forceUnlock(writer.getDirectory());
-    }
-  }
-
-  private Directory forceUnlock(Directory directory) {
-    try {
-      if (IndexWriter.isLocked(directory)) {
-        log.warn("Directory {} locked, unlocking");
-        IndexWriter.unlock(directory);
-      }
-      return directory;
     } catch (IOException e) {
       throw new LuceneException(e);
     }
