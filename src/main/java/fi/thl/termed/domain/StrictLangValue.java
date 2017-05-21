@@ -1,9 +1,8 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
-
 import fi.thl.termed.util.RegularExpressions;
+import java.util.Objects;
 
 /**
  * Class to represent localized string with pattern.
@@ -15,6 +14,10 @@ public class StrictLangValue {
   private String value;
 
   private String regex;
+
+  public StrictLangValue(String value) {
+    this("", value);
+  }
 
   public StrictLangValue(String lang, String value) {
     this(lang, value, RegularExpressions.ALL);
@@ -60,8 +63,8 @@ public class StrictLangValue {
     }
     StrictLangValue that = (StrictLangValue) o;
     return Objects.equals(lang, that.lang) &&
-           Objects.equals(value, that.value) &&
-           Objects.equals(regex, that.regex);
+        Objects.equals(value, that.value) &&
+        Objects.equals(regex, that.regex);
   }
 
   @Override
