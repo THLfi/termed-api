@@ -1,5 +1,6 @@
 package fi.thl.termed.util;
 
+import com.google.common.util.concurrent.FutureCallback;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,19 @@ public final class FutureUtils {
     } catch (InterruptedException | TimeoutException | ExecutionException e) {
       exceptionConsumer.accept(e);
     }
+  }
+
+  public static <V> FutureCallback<V> errorHandler(Consumer<Throwable> errorHandler) {
+    return new FutureCallback<V>() {
+      @Override
+      public void onSuccess(V result) {
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        errorHandler.accept(t);
+      }
+    };
   }
 
 }

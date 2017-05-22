@@ -1,6 +1,8 @@
 package fi.thl.termed.util.index.lucene;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
@@ -8,6 +10,7 @@ import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEN
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 import fi.thl.termed.util.Converter;
+import fi.thl.termed.util.FutureUtils;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
@@ -21,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -107,7 +111,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   @Override
   public void index(List<K> keys, Function<K, Optional<V>> valueProvider) {
-    indexingExecutor.submit(new IndexingTask(keys, valueProvider));
+    IndexingTask indexingTask = new IndexingTask(keys, valueProvider);
+    addCallback(listeningDecorator(indexingExecutor).submit(indexingTask),
+        FutureUtils.errorHandler(t -> log.error("", t)));
   }
 
   @Override
@@ -268,7 +274,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private class IndexingTask implements Runnable {
+  private class IndexingTask implements Callable<Void> {
 
     private List<K> keys;
     private Function<K, Optional<V>> valueProvider;
@@ -279,7 +285,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
 
     @Override
-    public void run() {
+    public Void call() {
       log.info("Indexing");
 
       ProgressReporter reporter = new ProgressReporter(log, "Indexed", 1000, keys.size());
@@ -299,7 +305,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       reporter.report();
 
       log.info("Done");
+      return null;
     }
+
   }
 
   private class ScoreDocLoader implements Function<ScoreDoc, Document> {
