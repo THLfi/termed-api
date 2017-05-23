@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.internal;
 
+import static java.lang.Integer.min;
+
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public class NodeDocumentConverter extends Converter<Node, Document> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
+  private static final int MAX_SORTABLE_FIELD_LENGTH = 100;
 
   private Gson gson;
 
@@ -121,7 +124,8 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
   }
 
   private Field sortableField(String name, String value) {
-    return new SortedDocValuesField(name, new BytesRef(value));
+    return new SortedDocValuesField(name,
+        new BytesRef(value.substring(0, min(MAX_SORTABLE_FIELD_LENGTH, value.length()))));
   }
 
   @Override
