@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class NodeDocumentConverter extends Converter<Node, Document> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
-  private static final int MAX_SORTABLE_FIELD_LENGTH = 100;
+  private static final int MAX_SORTABLE_FIELD_LENGTH = 1000;
 
   private Gson gson;
 
