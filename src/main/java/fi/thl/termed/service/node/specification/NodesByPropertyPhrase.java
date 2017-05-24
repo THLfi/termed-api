@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
@@ -38,7 +40,7 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
   public Query luceneQuery() {
     PhraseQuery.Builder phraseQuery = new PhraseQuery.Builder();
     for (String value : values) {
-      phraseQuery.add(new Term("properties." + attributeId, value));
+      phraseQuery.add(new Term("properties." + attributeId, nullToEmpty(value).toLowerCase()));
     }
     return phraseQuery.build();
   }

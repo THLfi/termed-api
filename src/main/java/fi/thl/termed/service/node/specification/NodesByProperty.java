@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -38,7 +40,7 @@ public class NodesByProperty implements LuceneSpecification<NodeId, Node> {
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("properties." + attributeId, value));
+    return new TermQuery(new Term("properties." + attributeId, nullToEmpty(value).toLowerCase()));
   }
 
   @Override

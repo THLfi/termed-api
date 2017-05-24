@@ -160,7 +160,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
     Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = referenceAttributes.values()
         .stream()
-        .filter(refAttr -> predicateUri != null && Objects.equals(refAttr.getUri(), predicateUri))
+        .filter(refAttr -> predicateUri == null || Objects.equals(refAttr.getUri(), predicateUri))
         .map(refAttr -> new AndSpecification<>(
             new NodesByGraphId(graphId),
             new NodesByTypeId(refAttr.getDomainId()),
@@ -174,11 +174,11 @@ public class NodeRdfGraphWrapper extends GraphBase {
   private ExtendedIterator<Triple> findByLiteral(String predicateUri, String value) {
     Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = textAttributes.values()
         .stream()
-        .filter(textAttr -> predicateUri != null && Objects.equals(textAttr.getUri(), predicateUri))
+        .filter(textAttr -> predicateUri == null || Objects.equals(textAttr.getUri(), predicateUri))
         .map(textAttr -> new AndSpecification<>(
             new NodesByGraphId(graphId),
             new NodesByTypeId(textAttr.getDomainId()),
-            new NodesByProperty(textAttr.getId(), value.toLowerCase())))
+            new NodesByProperty(textAttr.getId(), value)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());

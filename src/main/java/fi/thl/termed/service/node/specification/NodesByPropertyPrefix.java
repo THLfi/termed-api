@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
@@ -42,7 +44,8 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public Query luceneQuery() {
-    return new BoostQuery(new PrefixQuery(new Term("properties." + attributeId, value)), boost);
+    return new BoostQuery(new PrefixQuery(
+        new Term("properties." + attributeId, nullToEmpty(value).toLowerCase())), boost);
   }
 
   @Override
