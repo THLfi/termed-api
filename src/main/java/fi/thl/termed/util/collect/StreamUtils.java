@@ -6,6 +6,7 @@ import static java.util.stream.StreamSupport.stream;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -13,6 +14,10 @@ import java.util.stream.Stream;
 public final class StreamUtils {
 
   private StreamUtils() {
+  }
+
+  public static <T> Stream<T> toStream(Optional<T> optional) {
+    return optional.map(Stream::of).orElse(Stream.empty());
   }
 
   public static <L, R> Stream<Map.Entry<L, R>> zip(Stream<L> l, Stream<R> r) {
