@@ -1,19 +1,9 @@
 package fi.thl.termed.web.external.node;
 
-import java.util.stream.Collectors;
-import org.apache.jena.rdf.model.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import static fi.thl.termed.util.StringUtils.tokenize;
+import static fi.thl.termed.util.rdf.RdfMediaTypes.LD_JSON_VALUE;
+import static fi.thl.termed.util.rdf.RdfMediaTypes.RDF_XML_VALUE;
+import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -35,9 +25,19 @@ import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodesToRdfModel;
-
-import static fi.thl.termed.util.StringUtils.tokenize;
-import static java.util.stream.Collectors.toList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import org.apache.jena.rdf.model.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/graphs/{graphId}")
@@ -60,7 +60,7 @@ public class NodeRdfReadController {
     return spec;
   }
 
-  @GetRdfMapping("/nodes")
+  @GetMapping(value = "/nodes", produces = {LD_JSON_VALUE, RDF_XML_VALUE})
   public Model get(@PathVariable("graphId") UUID graphId,
                    @RequestParam(value = "query", required = false, defaultValue = "") String query,
                    @AuthenticationPrincipal User user) {

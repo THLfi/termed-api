@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/graphs/{graphId}/rdf")
-public class NodeRdfReadController2 {
+@RequestMapping("/api/graphs/{graphId}/nodes")
+public class NodeRdfStreamReadController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
