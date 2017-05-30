@@ -3,6 +3,8 @@ package fi.thl.termed.web.external.node.transform;
 import static fi.thl.termed.util.RegularExpressions.URN_UUID;
 import static fi.thl.termed.util.UUIDs.fromString;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;
@@ -34,7 +36,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
   private Function<NodeId, Optional<Node>> nodeProvider;
 
   public RdfModelToNodes(List<Type> types, Function<NodeId, Optional<Node>> nodeProvider) {
-    this.types = types;
+    this.types = types.stream().filter(t -> !isNullOrEmpty(t.getUri())).collect(toList());
     this.nodeProvider = nodeProvider;
   }
 

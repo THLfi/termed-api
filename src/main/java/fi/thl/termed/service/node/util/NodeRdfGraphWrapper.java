@@ -1,8 +1,10 @@
 package fi.thl.termed.service.node.util;
 
 import static fi.thl.termed.util.FunctionUtils.memoize;
-import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
+import static java.util.Optional.ofNullable;
+import static org.apache.jena.graph.Node.ANY;
 
+import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -10,28 +12,24 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByProperty;
 import fi.thl.termed.service.node.specification.NodesByReference;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
-import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.OrSpecification;
 import fi.thl.termed.util.specification.Specification;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.GraphBase;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -44,36 +42,35 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private Service<NodeId, fi.thl.termed.domain.Node> nodeService;
-
-  private UUID graphId;
-  private User user;
+  private Function<Specification<NodeId, Node>, Stream<Node>> nodeProvider;
 
   // caches
   private Map<TypeId, Type> types = new HashMap<>();
   private Map<TextAttributeId, TextAttribute> textAttributes = new HashMap<>();
   private Map<ReferenceAttributeId, ReferenceAttribute> referenceAttributes = new HashMap<>();
 
-  private Function<fi.thl.termed.domain.Node, Stream<Triple>> toTriples;
+  private Function<Node, Stream<Triple>> toTriples;
 
-  public NodeRdfGraphWrapper(Service<NodeId, fi.thl.termed.domain.Node> nodeService,
-      Service<TypeId, Type> typeService, UUID graphId, User user, boolean useUuidUris) {
-    this.nodeService = nodeService;
-    this.graphId = graphId;
-    this.user = user;
+  public NodeRdfGraphWrapper(List<Type> typeList,
+      Function<Specification<NodeId, Node>, Stream<Node>> nodeProvider) {
 
-    this.toTriples = new NodeToTriples(
-        memoize(partialApplySecond(typeService::get, user)),
-        nodeId -> nodeService.get(new AndSpecification<>(
-            new NodesByGraphId(nodeId.getTypeGraphId()),
-            new NodesByTypeId(nodeId.getTypeId()),
-            new NodeById(nodeId.getId())), user).findFirst(), useUuidUris);
-
-    typeService.get(new TypesByGraphId(graphId), user).forEach(type -> {
+    typeList.forEach(type -> {
       types.put(type.identifier(), type);
       type.getTextAttributes().forEach(a -> textAttributes.put(a.identifier(), a));
       type.getReferenceAttributes().forEach(a -> referenceAttributes.put(a.identifier(), a));
     });
+
+    this.nodeProvider = nodeProvider;
+
+    Function<NodeId, String> uriProvider = nodeId -> nodeProvider.apply(
+        new AndSpecification<>(
+            new NodesByGraphId(nodeId.getTypeGraphId()),
+            new NodesByTypeId(nodeId.getTypeId()),
+            new NodeById(nodeId.getId()))).findFirst()
+        .map(node -> ofNullable(node.getUri()).orElse("urn:uuid:" + node.getId()))
+        .orElse("urn:uuid:" + nodeId.getId());
+
+    this.toTriples = new NodeToTriples(typeList, memoize(uriProvider, 100_000));
   }
 
   @Override
@@ -82,11 +79,11 @@ public class NodeRdfGraphWrapper extends GraphBase {
       log.trace("Find {}", match);
     }
 
-    Node subject = nullToAny(match.getMatchSubject());
-    Node predicate = nullToAny(match.getMatchPredicate());
-    Node object = nullToAny(match.getMatchObject());
+    org.apache.jena.graph.Node subject = nullToAny(match.getMatchSubject());
+    org.apache.jena.graph.Node predicate = nullToAny(match.getMatchPredicate());
+    org.apache.jena.graph.Node object = nullToAny(match.getMatchObject());
 
-    if (!subject.isURI() && !subject.equals(Node.ANY)) {
+    if (!subject.isURI() && !subject.equals(ANY)) {
       return WrappedIterator.emptyIterator();
     }
 
@@ -115,16 +112,19 @@ public class NodeRdfGraphWrapper extends GraphBase {
     return findAll().filterKeep(match::matches);
   }
 
-  private Node nullToAny(Node node) {
-    return node == null ? Node.ANY : node;
+  private org.apache.jena.graph.Node nullToAny(org.apache.jena.graph.Node node) {
+    return node == null ? ANY : node;
   }
 
   private ExtendedIterator<Triple> findBySubject(String subjectUri) {
-    Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = new AndSpecification<>(
-        new NodesByGraphId(graphId),
-        byUriOrId(subjectUri));
+    Specification<NodeId, Node> nodeSpec = types.values().stream()
+        .map(type -> new AndSpecification<>(
+            new NodesByGraphId(type.getGraphId()),
+            new NodesByTypeId(type.getId()),
+            byUriOrId(subjectUri)))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
   }
 
   private Specification<NodeId, fi.thl.termed.domain.Node> byUriOrId(String nodeUri) {
@@ -142,51 +142,54 @@ public class NodeRdfGraphWrapper extends GraphBase {
       return WrappedIterator.emptyIterator();
     }
 
-    Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = new AndSpecification<>(
-        new NodesByGraphId(graphId), new NodesByTypeId(typeOptional.get().getId()));
+    Specification<NodeId, Node> nodeSpec = new AndSpecification<>(
+        new NodesByGraphId(typeOptional.get().getGraphId()),
+        new NodesByTypeId(typeOptional.get().getId()));
 
-    return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
   }
 
   // predicateUri can be null
   private ExtendedIterator<Triple> findByObject(String predicateUri, String valueUri) {
-    Optional<NodeId> valueOptional = nodeService.get(new AndSpecification<>(
-        new NodesByGraphId(graphId),
-        byUriOrId(valueUri)), user).findFirst().map(NodeId::new);
+    Optional<NodeId> valueOptional = nodeProvider.apply(byUriOrId(valueUri))
+        .findFirst().map(NodeId::new);
 
     if (!valueOptional.isPresent()) {
       return WrappedIterator.emptyIterator();
     }
 
-    Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = referenceAttributes.values()
-        .stream()
+    Specification<NodeId, Node> nodeSpec = referenceAttributes.values().stream()
         .filter(refAttr -> predicateUri == null || Objects.equals(refAttr.getUri(), predicateUri))
         .map(refAttr -> new AndSpecification<>(
-            new NodesByGraphId(graphId),
+            new NodesByGraphId(refAttr.getDomainGraphId()),
             new NodesByTypeId(refAttr.getDomainId()),
             new NodesByReference(refAttr.getId(), valueOptional.get().getId())))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
   }
 
   // predicateUri can be null
   private ExtendedIterator<Triple> findByLiteral(String predicateUri, String value) {
-    Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = textAttributes.values()
-        .stream()
+    Specification<NodeId, Node> nodeSpec = textAttributes.values().stream()
         .filter(textAttr -> predicateUri == null || Objects.equals(textAttr.getUri(), predicateUri))
         .map(textAttr -> new AndSpecification<>(
-            new NodesByGraphId(graphId),
+            new NodesByGraphId(textAttr.getDomainGraphId()),
             new NodesByTypeId(textAttr.getDomainId()),
             new NodesByProperty(textAttr.getId(), value)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
   }
 
   private ExtendedIterator<Triple> findAll() {
-    Specification<NodeId, fi.thl.termed.domain.Node> nodeSpec = new NodesByGraphId(graphId);
-    return WrappedIterator.create(nodeService.get(nodeSpec, user).flatMap(toTriples).iterator());
+    Specification<NodeId, Node> nodeSpec = types.values().stream()
+        .map(type -> new AndSpecification<>(
+            new NodesByGraphId(type.getGraphId()),
+            new NodesByTypeId(type.getId())))
+        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
   }
 
 }

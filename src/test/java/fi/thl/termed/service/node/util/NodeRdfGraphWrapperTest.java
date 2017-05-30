@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.util;
 
-import static fi.thl.termed.domain.AppRole.ADMIN;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.Collections.singletonList;
 import static org.apache.jena.rdf.model.ResourceFactory.createLangLiteral;
@@ -17,14 +16,10 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.MemoryBasedSystemDao;
-import fi.thl.termed.util.permission.PermitAllPermissionEvaluator;
-import fi.thl.termed.util.service.DaoForwardingRepository;
-import fi.thl.termed.util.service.Service;
-import java.util.HashMap;
-import java.util.Map;
+import fi.thl.termed.util.dao.SystemDao;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.jena.graph.impl.GraphBase;
@@ -43,15 +38,8 @@ public class NodeRdfGraphWrapperTest {
 
   @Before
   public void setUp() {
-    Map<NodeId, Node> nodes = new HashMap<>();
-    Map<TypeId, Type> types = new HashMap<>();
-
-    Service<NodeId, Node> nodeService = new DaoForwardingRepository<>(
-        new AuthorizedDao<>(new MemoryBasedSystemDao<>(nodes),
-            new PermitAllPermissionEvaluator<>()));
-    Service<TypeId, Type> typeService = new DaoForwardingRepository<>(
-        new AuthorizedDao<>(new MemoryBasedSystemDao<>(types),
-            new PermitAllPermissionEvaluator<>()));
+    List<Type> types = new ArrayList<>();
+    SystemDao<NodeId, Node> nodeDao = new MemoryBasedSystemDao<>();
 
     UUID graphId = nameUUIDFromString("test-graph");
 
@@ -62,23 +50,22 @@ public class NodeRdfGraphWrapperTest {
         new TextAttribute("prefLabel", SKOS.prefLabel.getURI(), conceptId)));
     concept.setReferenceAttributes(singletonList(
         new ReferenceAttribute("broader", SKOS.broader.getURI(), conceptId, conceptId)));
-    types.put(conceptId, concept);
+    types.add(concept);
 
     NodeId concept1Id = new NodeId(nameUUIDFromString("1"), conceptId);
     Node concept1 = new Node(concept1Id);
     concept1.setUri("http://example.org/Concept_1");
     concept1.addProperty("prefLabel", "en", "Concept 1");
-    nodes.put(concept1Id, concept1);
+    nodeDao.insert(concept1Id, concept1);
 
     NodeId concept2Id = new NodeId(nameUUIDFromString("2"), conceptId);
     Node concept2 = new Node(concept2Id);
     concept2.setUri("http://example.org/Concept_2");
     concept2.addProperty("prefLabel", "en", "Concept 2");
     concept2.addReference("broader", concept1Id);
-    nodes.put(concept2Id, concept2);
+    nodeDao.insert(concept2Id, concept2);
 
-    GraphBase graphBase = new NodeRdfGraphWrapper(
-        nodeService, typeService, graphId, new User("test", "", ADMIN), false);
+    GraphBase graphBase = new NodeRdfGraphWrapper(types, spec -> nodeDao.getValues(spec).stream());
 
     model = ModelFactory.createModelForGraph(graphBase);
   }
