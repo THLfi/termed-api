@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static fi.thl.termed.util.postgresql.CopyManagerUtils.copyInAsCsv;
 
 import fi.thl.termed.domain.Node;
@@ -60,8 +61,8 @@ public class JdbcPostgresNodeDao extends JdbcNodeDao {
           k.getTypeGraphId().toString(),
           k.getTypeId(),
           k.getId().toString(),
-          v.getCode(),
-          v.getUri(),
+          emptyToNull(v.getCode()),
+          emptyToNull(v.getUri()),
           v.getCreatedBy(),
           new DateTime(v.getCreatedDate()).toString(),
           v.getLastModifiedBy(),
