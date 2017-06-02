@@ -2,20 +2,21 @@ package fi.thl.termed.domain.event;
 
 import fi.thl.termed.domain.NodeId;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class NodeEvent implements TermedEvent {
 
   private String user;
   private Date date;
-  private NodeId node;
+  private List<NodeId> nodes;
   private boolean sync;
 
-  NodeEvent(String user, Date date, boolean sync, NodeId node) {
+  NodeEvent(String user, Date date, boolean sync, List<NodeId> nodes) {
     this.user = user;
     this.date = date;
     this.sync = sync;
-    this.node = node;
+    this.nodes = nodes;
   }
 
   public String getUser() {
@@ -30,8 +31,8 @@ public abstract class NodeEvent implements TermedEvent {
     return sync;
   }
 
-  public NodeId getNode() {
-    return node;
+  public List<NodeId> getNodes() {
+    return nodes;
   }
 
   @Override
@@ -46,12 +47,12 @@ public abstract class NodeEvent implements TermedEvent {
     return sync == nodeEvent.sync &&
         Objects.equals(user, nodeEvent.user) &&
         Objects.equals(date, nodeEvent.date) &&
-        Objects.equals(node, nodeEvent.node);
+        Objects.equals(nodes, nodeEvent.nodes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(user, date, sync, node);
+    return Objects.hash(user, date, nodes, sync);
   }
 
 }

@@ -1,10 +1,12 @@
 package fi.thl.termed.web.system.webhook;
 
+import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
+import fi.thl.termed.service.webhook.specification.WebhookByUrl;
 import fi.thl.termed.util.service.Service;
 import java.net.URI;
 import java.util.UUID;
@@ -27,7 +29,9 @@ public class WebhookWriteController {
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
-    return webhookService.save(new Webhook(UUID.randomUUID(), url), user);
+    return webhookService.get(new WebhookByUrl(url), user)
+        .findFirst().map(Webhook::getId)
+        .orElseGet(() -> webhookService.save(new Webhook(randomUUID(), url), user));
   }
 
   @DeleteMapping("/{id}")

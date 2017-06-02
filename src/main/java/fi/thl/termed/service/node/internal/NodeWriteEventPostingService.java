@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.internal;
 
 import static fi.thl.termed.util.ObjectUtils.castBoolean;
+import static java.util.Collections.singletonList;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Node;
@@ -38,7 +39,7 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
 
   private void fireSaveEvents(List<NodeId> ids, String user, boolean sync) {
     Date date = new Date();
-    ids.forEach(id -> eventBus.post(new NodeSavedEvent(user, date, sync, id)));
+    eventBus.post(new NodeSavedEvent(user, date, sync, ids));
   }
 
   @Override
@@ -49,7 +50,7 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   private void fireSaveEvent(NodeId id, String user, boolean sync) {
-    eventBus.post(new NodeSavedEvent(user, new Date(), sync, id));
+    eventBus.post(new NodeSavedEvent(user, new Date(), sync, singletonList(id)));
   }
 
   @Override
@@ -60,7 +61,7 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
 
   private void fireDeleteEvents(List<NodeId> ids, String user, boolean sync) {
     Date date = new Date();
-    ids.forEach(id -> eventBus.post(new NodeDeletedEvent(user, date, sync, id)));
+    eventBus.post(new NodeDeletedEvent(user, date, sync, ids));
   }
 
   @Override
@@ -70,7 +71,7 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   private void fireDeleteEvent(NodeId id, String user, boolean sync) {
-    eventBus.post(new NodeDeletedEvent(user, new Date(), sync, id));
+    eventBus.post(new NodeDeletedEvent(user, new Date(), sync, singletonList(id)));
   }
 
   @Override
