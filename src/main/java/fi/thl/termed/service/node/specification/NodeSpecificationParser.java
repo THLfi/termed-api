@@ -3,7 +3,6 @@ package fi.thl.termed.service.node.specification;
 import static fi.thl.termed.util.RegularExpressions.CODE;
 import static fi.thl.termed.util.RegularExpressions.ISO_8601_DATE;
 import static fi.thl.termed.util.RegularExpressions.UUID;
-import static java.util.Arrays.asList;
 import static org.jparsercombinator.ParserCombinators.newRef;
 import static org.jparsercombinator.ParserCombinators.regex;
 import static org.jparsercombinator.ParserCombinators.regexMatchResult;
@@ -59,14 +58,14 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("(type\\.id|typeId):(" + CODE + ")")
             .map(m -> new NodesByTypeId(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> propertyQuotedParser =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + "):\"([^\"]*)\"")
-            .map(m -> new NodesByPropertyPhrase(m.group(2), asList(m.group(3).split("\\s"))));
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:\"([^\"]*)\"")
+            .map(m -> new NodesByPropertyPhrase(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> propertyPrefixParser =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + "):([^\\s]*)\\*")
-            .map(m -> new NodesByPropertyPrefix(m.group(2), m.group(3)));
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)\\*")
+            .map(m -> new NodesByPropertyPrefix(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> propertyParser =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + "):([^\\s]*)")
-            .map(m -> new NodesByProperty(m.group(2), m.group(3)));
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)")
+            .map(m -> new NodesByProperty(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> referenceParser =
         regexMatchResult("(references|refs|r)\\.(" + CODE + ").id:(" + UUID + ")")
             .map(m -> new NodesByReference(m.group(2), UUIDs.fromString(m.group(3))));
