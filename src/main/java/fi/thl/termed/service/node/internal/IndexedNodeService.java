@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
+import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -40,10 +41,12 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private Index<NodeId, Node> index;
   private User indexer = new User("indexer", "", AppRole.ADMIN);
+  private Gson gson;
 
-  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index) {
+  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index, Gson gson) {
     super(delegate);
     this.index = index;
+    this.gson = gson;
   }
 
   @Subscribe
@@ -257,9 +260,14 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
-    return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.get(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
-        super.get(spec, args, user);
+    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      super.get(spec, args, user);
+    }
+
+    return ((LuceneIndex) index).get(spec,
+        castStringList(args.get("sort")),
+        castInteger(args.get("max"), -1),
+        new DocumentToNode(gson, castBoolean(args.get("loadReferrers"), true)));
   }
 
   @Override

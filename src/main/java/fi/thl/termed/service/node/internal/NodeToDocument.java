@@ -1,23 +1,21 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static java.lang.Integer.min;
+import static org.apache.lucene.document.CompressionTools.compressString;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.util.Converter;
-import fi.thl.termed.util.index.lucene.LuceneConstants;
-import fi.thl.termed.util.index.lucene.LuceneException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.zip.DataFormatException;
-import org.apache.lucene.document.CompressionTools;
+import java.util.function.Function;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Document;
@@ -27,37 +25,44 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.BytesRef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class NodeDocumentConverter extends Converter<Node, Document> {
+public class NodeToDocument implements Function<Node, Document> {
 
-  private Logger log = LoggerFactory.getLogger(getClass());
   private static final int MAX_SORTABLE_FIELD_LENGTH = 1000;
 
   private Gson gson;
 
-  public NodeDocumentConverter(Gson gson) {
+  public NodeToDocument(Gson gson) {
     this.gson = gson;
   }
 
   @Override
-  public Document apply(Node r) {
+  public Document apply(Node n) {
     Document doc = new Document();
 
-    doc.add(new StoredField(LuceneConstants.CACHED_RESULT_FIELD,
-        CompressionTools.compressString(gson.toJson(r))));
+    Node cachedNode = new Node(n);
+    cachedNode.setReferrers(null);
+    doc.add(new StoredField(CACHED_RESULT_FIELD, compressString(gson.toJson(cachedNode))));
+    doc.add(new StoredField("_cached_referrers", compressString(gson.toJson(n.getReferrers()))));
 
-    doc.add(stringField("type.graph.id", r.getTypeGraphId()));
-    doc.add(stringField("type.id", r.getTypeId()));
-    doc.add(stringField("id", r.getId()));
-    doc.add(stringField("code", r.getCode()));
-    doc.add(stringField("uri", r.getUri()));
+    doc.add(stringField("type.graph.id", n.getTypeGraphId()));
+    doc.add(stringField("type.id", n.getTypeId()));
+    doc.add(stringField("id", n.getId()));
+    doc.add(stringField("code", n.getCode()));
+    doc.add(stringField("uri", n.getUri()));
 
-    doc.add(stringField("createdDate", r.getCreatedDate()));
-    doc.add(stringField("lastModifiedDate", r.getLastModifiedDate()));
+    doc.add(stringField("createdDate", n.getCreatedDate()));
+    doc.add(stringField("lastModifiedDate", n.getLastModifiedDate()));
 
-    r.getProperties().asMap().forEach((p, langValues) -> {
+    addProperties(doc, n.getProperties());
+    addReferences(doc, n.getReferences());
+    addReferrers(doc, n.getReferrers());
+
+    return doc;
+  }
+
+  private void addProperties(Document doc, Multimap<String, StrictLangValue> properties) {
+    properties.asMap().forEach((p, langValues) -> {
       boolean sortFieldAdded = false;
       Set<String> sortFieldAddedForLang = new HashSet<>();
 
@@ -80,8 +85,10 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
         }
       }
     });
+  }
 
-    for (Map.Entry<String, NodeId> entry : r.getReferences().entries()) {
+  private void addReferences(Document doc, Multimap<String, NodeId> references) {
+    for (Map.Entry<String, NodeId> entry : references.entries()) {
       String property = entry.getKey();
       NodeId value = entry.getValue();
 
@@ -91,8 +98,10 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
       doc.add(stringField("references." + property + ".type.id", value.getTypeId()));
       doc.add(stringField("references." + property + ".type.graph.id", value.getTypeGraphId()));
     }
+  }
 
-    for (Map.Entry<String, NodeId> entry : r.getReferrers().entries()) {
+  private void addReferrers(Document doc, Multimap<String, NodeId> referrers) {
+    for (Map.Entry<String, NodeId> entry : referrers.entries()) {
       String property = entry.getKey();
       NodeId value = entry.getValue();
 
@@ -102,8 +111,6 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
       doc.add(stringField("referrers." + property + ".type.id", value.getTypeId()));
       doc.add(stringField("referrers." + property + ".type.graph.id", value.getTypeGraphId()));
     }
-
-    return doc;
   }
 
   private Field textField(String name, String value) {
@@ -126,27 +133,6 @@ public class NodeDocumentConverter extends Converter<Node, Document> {
   private Field sortableField(String name, String value) {
     return new SortedDocValuesField(name,
         new BytesRef(value.substring(0, min(MAX_SORTABLE_FIELD_LENGTH, value.length()))));
-  }
-
-  @Override
-  public Node applyInverse(Document document) {
-    String cachedJsonNode;
-
-    try {
-      cachedJsonNode = CompressionTools.decompressString(
-          document.getBinaryValue(LuceneConstants.CACHED_RESULT_FIELD));
-    } catch (DataFormatException e) {
-      log.error("Failed to decompress cached value for node {}",
-          document.get(LuceneConstants.DOCUMENT_ID));
-      throw new LuceneException(e);
-    }
-
-    try {
-      return gson.fromJson(cachedJsonNode, Node.class);
-    } catch (JsonSyntaxException e) {
-      log.error("Failed to parse {} cached json node {}", cachedJsonNode);
-      throw e;
-    }
   }
 
 }

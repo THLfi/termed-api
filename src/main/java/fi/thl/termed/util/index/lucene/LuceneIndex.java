@@ -132,11 +132,19 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   @Override
   public Stream<V> get(Specification<K, V> specification, List<String> sort, int max) {
+    return get(specification, sort, max, documentConverter.inverse());
+  }
+
+  /**
+   * Expert method for searching and loading results with custom Lucene Document deserializer.
+   */
+  public Stream<V> get(Specification<K, V> specification, List<String> sort, int max,
+      Function<Document, V> documentDeserializer) {
     IndexSearcher searcher = null;
     try {
       searcher = searcherManager.acquire();
       Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
-      return query(searcher, query, max, sort, documentConverter.inverse());
+      return query(searcher, query, max, sort, documentDeserializer);
     } catch (IOException e) {
       tryRelease(searcher);
       throw new LuceneException(e);

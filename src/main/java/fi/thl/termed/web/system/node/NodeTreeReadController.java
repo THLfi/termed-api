@@ -21,6 +21,9 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.select.Select;
+import fi.thl.termed.service.node.select.SelectAll;
+import fi.thl.termed.service.node.select.SelectAllReferrers;
+import fi.thl.termed.service.node.select.SelectReferrer;
 import fi.thl.termed.service.node.select.Selects;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
@@ -33,6 +36,7 @@ import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -71,8 +75,13 @@ public class NodeTreeReadController {
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
     Set<Select> selects = Selects.parse(String.join(",", select));
 
+    boolean loadReferrers = selects.stream().anyMatch(s -> s instanceof SelectAll ||
+        s instanceof SelectAllReferrers || s instanceof SelectReferrer);
+
+    Map<String, Object> rootArgs = of("sort", sort, "max", max, "loadReferrers", loadReferrers);
+    Map<String, Object> treeArgs = of("loadReferrers", loadReferrers);
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
+        nodeService.get(spec, rootArgs, user), selects, treeArgs, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -96,8 +105,13 @@ public class NodeTreeReadController {
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
     Set<Select> selects = Selects.parse(String.join(",", select));
 
+    boolean loadReferrers = selects.stream().anyMatch(s -> s instanceof SelectAll ||
+        s instanceof SelectAllReferrers || s instanceof SelectReferrer);
+    Map<String, Object> rootArgs = of("sort", sort, "max", max, "loadReferrers", loadReferrers);
+    Map<String, Object> treeArgs = of("loadReferrers", loadReferrers);
+
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
+        nodeService.get(spec, rootArgs, user), selects, treeArgs, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -121,8 +135,13 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = specifyByQuery(type, String.join(" AND ", where));
     Set<Select> selects = Selects.parse(String.join(",", select));
 
+    boolean loadReferrers = selects.stream().anyMatch(s -> s instanceof SelectAll ||
+        s instanceof SelectAllReferrers || s instanceof SelectReferrer);
+    Map<String, Object> rootArgs = of("sort", sort, "max", max, "loadReferrers", loadReferrers);
+    Map<String, Object> treeArgs = of("loadReferrers", loadReferrers);
+
     Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.get(spec, of("sort", sort, "max", max), user), selects, user);
+        nodeService.get(spec, rootArgs, user), selects, treeArgs, user);
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -141,17 +160,22 @@ public class NodeTreeReadController {
         .orElseThrow(NotFoundException::new);
     Set<Select> selects = Selects.parse(String.join(",", select));
 
-    return toTree(node, selects, user);
+    boolean loadReferrers = selects.stream().anyMatch(s -> s instanceof SelectAll ||
+        s instanceof SelectAllReferrers || s instanceof SelectReferrer);
+
+    return toTree(node, selects, of("loadReferrers", loadReferrers), user);
   }
 
-  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {
-    return nodes.map(node -> toTree(node, selects, user));
+  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects,
+      Map<String, Object> args, User user) {
+    return nodes.map(node -> toTree(node, selects, args, user));
   }
 
-  private SimpleNodeTree toTree(Node node, Set<Select> selects, User user) {
+  private SimpleNodeTree toTree(Node node, Set<Select> selects,
+      Map<String, Object> args, User user) {
     NodeTree tree = new LazyLoadingNodeTree(node,
-        new IndexedReferenceLoader(nodeService, user),
-        new IndexedReferrerLoader(nodeService, user));
+        new IndexedReferenceLoader(nodeService, args, user),
+        new IndexedReferrerLoader(nodeService, args, user));
     tree = new DepthLimitedNodeTree(tree, selectReferences(selects), selectReferrers(selects));
     tree = new FilteredNodeTree(tree, selects);
     return new SimpleNodeTree(tree);

@@ -9,4 +9,8 @@ public class LuceneException extends RuntimeException {
     super(cause);
   }
 
+  public LuceneException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

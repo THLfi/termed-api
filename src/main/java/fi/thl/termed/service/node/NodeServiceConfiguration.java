@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node;
 
+import static fi.thl.termed.util.Converter.newConverter;
+
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
@@ -11,17 +13,19 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService;
+import fi.thl.termed.service.node.internal.DocumentToNode;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueDao;
-import fi.thl.termed.service.node.internal.NodeDocumentConverter;
 import fi.thl.termed.service.node.internal.NodeRepository;
+import fi.thl.termed.service.node.internal.NodeToDocument;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
@@ -65,9 +69,10 @@ public class NodeServiceConfiguration {
     Service<NodeId, Node> service =
         new TransactionalService<>(nodeRepository(), transactionManager);
 
-    service = new IndexedNodeService(service, new LuceneIndex<>(indexPath,
-        new JsonStringConverter<>(NodeId.class),
-        new NodeDocumentConverter(gson)));
+    Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
+        indexPath, new JsonStringConverter<>(NodeId.class),
+        newConverter(new NodeToDocument(gson), new DocumentToNode(gson)));
+    service = new IndexedNodeService(service, nodeIndex, gson);
 
     eventBus.register(service);
 
