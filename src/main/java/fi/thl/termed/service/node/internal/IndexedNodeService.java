@@ -261,7 +261,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
     if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      super.get(spec, args, user);
+      return super.get(spec, args, user);
     }
 
     return ((LuceneIndex) index).get(spec,
