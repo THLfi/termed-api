@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.specification;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -78,6 +79,16 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
   @Override
   public int hashCode() {
     return Objects.hash(attributeId, lang, value, boost);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("attributeId", attributeId)
+        .add("lang", lang)
+        .add("value", value)
+        .add("boost", boost)
+        .toString();
   }
 
 }

@@ -42,9 +42,9 @@ public final class NodeSpecifications {
     spec.and(new NodesByGraphId(type.getGraphId()));
     spec.and(new NodesByTypeId(type.getId()));
 
-    List<String> prefixes = Arrays.asList(query.split("\\s"));
+    if (!query.isEmpty()) {
+      List<String> prefixes = Arrays.asList(query.split("\\s"));
 
-    if (!prefixes.isEmpty()) {
       // boosts for first few text attributes in the query
       Stream<Integer> boosts = IntStream.iterate(8, b -> b > 2 ? b / 2 : 1).boxed();
 
