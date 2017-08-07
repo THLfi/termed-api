@@ -1,19 +1,6 @@
 package fi.thl.termed;
 
 import com.google.gson.Gson;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-
-import java.util.Arrays;
-import java.util.List;
-
 import fi.thl.termed.util.csv.GsonCsvMessageConverter;
 import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
@@ -21,6 +8,18 @@ import fi.thl.termed.util.spring.http.MediaTypes;
 import fi.thl.termed.util.xml.GsonXmlMessageConverter;
 import fi.thl.termed.web.external.node.transform.NodeDtoListRdfMessageConverter;
 import fi.thl.termed.web.external.node.transform.NodeDtoRdfMessageConverter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
 public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
@@ -58,6 +57,12 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
         new GsonCsvMessageConverter(gson),
         gsonHttpMessageConverter));
     super.configureMessageConverters(converters);
+  }
+
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    // don't split query strings by commas
+    registry.removeConvertible(String.class, Collection.class);
   }
 
 }
