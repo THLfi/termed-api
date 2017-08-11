@@ -24,6 +24,8 @@ import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.AndSpecification;
+import fi.thl.termed.util.specification.CompositeSpecification;
+import fi.thl.termed.util.specification.DependentSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
 import fi.thl.termed.util.specification.Specification;
 import java.util.HashSet;
@@ -264,6 +266,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       return super.get(spec, args, user);
     }
 
+    resolve(spec, user);
+
     return ((LuceneIndex) index).get(spec,
         castStringList(args.get("sort")),
         castInteger(args.get("max"), -1),
@@ -275,9 +279,23 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
+    resolve(spec, user);
+
     return !bypassIndex && spec instanceof LuceneSpecification ?
         index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
         super.getKeys(spec, args, user);
+  }
+
+  private void resolve(Specification<NodeId, Node> spec, User user) {
+    if (spec instanceof DependentSpecification) {
+      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(s, user));
+    }
+    if (spec instanceof CompositeSpecification) {
+      for (Specification<NodeId, Node> s :
+          ((CompositeSpecification<NodeId, Node>) spec).getSpecifications()) {
+        resolve(s, user);
+      }
+    }
   }
 
 }

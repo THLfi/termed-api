@@ -30,6 +30,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinatorReference<Specification<NodeId, Node>> queryParser = newRef();
     ParserCombinatorReference<Specification<NodeId, Node>> termParser = newRef();
     ParserCombinatorReference<Specification<NodeId, Node>> factorParser = newRef();
+    ParserCombinatorReference<Specification<NodeId, Node>> attributeValueParser = newRef();
 
     ParserCombinator<Specification<NodeId, Node>> idParser =
         regexMatchResult("(node\\.id|nodeId|id):(" + UUID + ")")
@@ -67,13 +68,16 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)")
             .map(m -> new NodesByProperty(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> referenceParser =
-        regexMatchResult("(references|refs|r)\\.(" + CODE + ").id:(" + UUID + ")")
+        regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.id:(" + UUID + ")")
             .map(m -> new NodesByReference(m.group(2), UUIDs.fromString(m.group(3))));
     ParserCombinator<Specification<NodeId, Node>> referenceNullParser =
-        regexMatchResult("(references|refs|r)\\.(" + CODE + ").id:null")
+        regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.id:null")
             .map(m -> new NodesWithoutReferences(m.group(2)));
+    ParserCombinator<Specification<NodeId, Node>> referencePathParser =
+        regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.").next(attributeValueParser)
+            .map(m -> new NodesByReferenceSpecification(m.first.group(2), m.second));
 
-    ParserCombinator<Specification<NodeId, Node>> attributeValueParser =
+    attributeValueParser.setCombinator(
         idParser
             .or(codeParser)
             .or(uriParser)
@@ -86,7 +90,8 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .or(propertyPrefixParser)
             .or(propertyParser)
             .or(referenceParser)
-            .or(referenceNullParser);
+            .or(referenceNullParser)
+            .or(referencePathParser));
 
     queryParser.setCombinator(termParser.many(regex(" OR ")).map(OrSpecification::new));
     termParser.setCombinator(factorParser.many(string(" AND ")).map(AndSpecification::new));

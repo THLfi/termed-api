@@ -72,12 +72,15 @@ public class TypeBasedNodeSpecificationFilter implements
     Predicate<Specification<NodeId, Node>> nullRefSpec =
         s -> s instanceof NodesWithoutReferences &&
             refAttrIds.contains(((NodesWithoutReferences) s).getAttributeId());
+    Predicate<Specification<NodeId, Node>> pathRefSpec =
+        s -> s instanceof NodesByReferenceSpecification &&
+            refAttrIds.contains(((NodesByReferenceSpecification) s).getAttributeId());
 
     Predicate<Specification<NodeId, Node>> specificationPredicate =
         acceptedSpec
             .or(graphSpec).or(typeSpec)
             .or(propSpec).or(propPrefixSpec).or(propPhraseSpec)
-            .or(refSpec).or(nullRefSpec);
+            .or(refSpec).or(nullRefSpec).or(pathRefSpec);
 
     filtered.and(new SpecificationTreeFilter<>(specificationPredicate).apply(nodeSpecification));
 
