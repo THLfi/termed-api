@@ -101,6 +101,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     new Timer().schedule(commitTask, 0, 10000);
 
     this.indexingExecutor = Executors.newSingleThreadExecutor();
+
+    BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
   }
 
   private Directory openDirectory(String directoryPath) throws IOException {
