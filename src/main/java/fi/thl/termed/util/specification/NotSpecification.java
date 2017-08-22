@@ -22,6 +22,10 @@ public class NotSpecification<K extends Serializable, V>
     return !specification.test(k, v);
   }
 
+  public Specification<K, V> getSpecification() {
+    return specification;
+  }
+
   @Override
   public Query luceneQuery() {
     BooleanQuery.Builder booleanClauses = new BooleanQuery.Builder();

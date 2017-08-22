@@ -37,6 +37,10 @@ public class NodesByReferenceSpecification implements LuceneSpecification<NodeId
     return attributeId;
   }
 
+  public Specification<NodeId, Node> getValueSpecification() {
+    return valueSpecification;
+  }
+
   @Override
   public void resolve(Function<Specification<NodeId, Node>, Stream<NodeId>> resolver) {
     if (valueSpecification instanceof NodesByReferenceSpecification) {

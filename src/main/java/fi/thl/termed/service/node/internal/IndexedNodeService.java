@@ -27,6 +27,7 @@ import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.CompositeSpecification;
 import fi.thl.termed.util.specification.DependentSpecification;
 import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.specification.NotSpecification;
 import fi.thl.termed.util.specification.Specification;
 import java.util.HashSet;
 import java.util.List;
@@ -258,7 +259,6 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
@@ -268,7 +268,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     resolve(spec, user);
 
-    return ((LuceneIndex) index).get(spec,
+    return ((LuceneIndex<NodeId, Node>) index).get(spec,
         castStringList(args.get("sort")),
         castInteger(args.get("max"), -1),
         new DocumentToNode(gson, castBoolean(args.get("loadReferrers"), true)));
@@ -289,6 +289,9 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   private void resolve(Specification<NodeId, Node> spec, User user) {
     if (spec instanceof DependentSpecification) {
       ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(s, user));
+    }
+    if (spec instanceof NotSpecification) {
+      resolve(((NotSpecification<NodeId, Node>) spec).getSpecification(), user);
     }
     if (spec instanceof CompositeSpecification) {
       for (Specification<NodeId, Node> s :

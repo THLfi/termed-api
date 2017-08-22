@@ -5,6 +5,7 @@ import static fi.thl.termed.service.node.select.Selects.selectReferences;
 import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 import com.google.gson.Gson;
@@ -70,8 +71,10 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Specification<NodeId, Node> spec = typeService.get(user)
-        .map(type -> specifyByQuery(type, String.join(" AND ", where)))
+    List<Type> types = typeService.get(user).collect(toList());
+
+    Specification<NodeId, Node> spec = types.stream()
+        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
     Set<Select> selects = Selects.parse(String.join(",", select));
 
@@ -100,8 +103,10 @@ public class NodeTreeReadController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
+    List<Type> types = typeService.get(user).collect(toList());
+
     Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
-        .map(type -> specifyByQuery(type, String.join(" AND ", where)))
+        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
     Set<Select> selects = Selects.parse(String.join(",", select));
 
@@ -129,10 +134,11 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Type type = typeService.get(new TypeId(typeId, graphId), user)
+    List<Type> types = typeService.get(user).collect(toList());
+    Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(type, String.join(" AND ", where));
+    Specification<NodeId, Node> spec = specifyByQuery(types, domain, String.join(" AND ", where));
     Set<Select> selects = Selects.parse(String.join(",", select));
 
     boolean loadReferrers = selects.stream().anyMatch(s -> s instanceof SelectAll ||

@@ -23,14 +23,16 @@ public final class NodeSpecifications {
   private NodeSpecifications() {
   }
 
-  public static Specification<NodeId, Node> specifyByQuery(Type type, String query) {
+  public static Specification<NodeId, Node> specifyByQuery(
+      List<Type> types, Type domain, String query) {
+
     AndSpecification<NodeId, Node> spec = new AndSpecification<>();
 
-    spec.and(new NodesByGraphId(type.getGraphId()));
-    spec.and(new NodesByTypeId(type.getId()));
+    spec.and(new NodesByGraphId(domain.getGraphId()));
+    spec.and(new NodesByTypeId(domain.getId()));
 
     if (!query.isEmpty()) {
-      spec.and(new TypeBasedNodeSpecificationFilter(type).apply(queryParser.apply(query)));
+      spec.and(new TypeBasedNodeSpecificationFilter(types).apply(domain, queryParser.apply(query)));
     }
 
     return spec;
