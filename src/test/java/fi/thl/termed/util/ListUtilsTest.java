@@ -1,15 +1,13 @@
 package fi.thl.termed.util;
 
-import java.util.function.Function;
-import com.google.common.collect.Lists;
-
-import org.junit.Test;
-
-import java.util.List;
-
-import fi.thl.termed.util.collect.ListUtils;
-
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+
+import com.google.common.collect.Lists;
+import fi.thl.termed.util.collect.ListUtils;
+import java.util.List;
+import java.util.function.Function;
+import org.junit.Test;
 
 public class ListUtilsTest {
 
@@ -36,6 +34,18 @@ public class ListUtilsTest {
     });
 
     assertEquals(Lists.newArrayList("A", "B", "C", "D"), ListUtils.flatten(listOfLists));
+  }
+
+  @Test
+  public void shouldApplyDistribution() {
+    List<List<String>> input = asList(
+        asList("a", "b"),
+        asList("x", "y", "z"));
+
+    assertEquals(asList(
+        asList("a", "x"), asList("a", "y"), asList("a", "z"),
+        asList("b", "x"), asList("b", "y"), asList("b", "z")),
+        ListUtils.distribute(input));
   }
 
 }
