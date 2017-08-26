@@ -75,7 +75,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .map(m -> new NodesWithoutReferences(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> referencePathParser =
         regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.").next(attributeValueParser)
-            .map(m -> new NodesByReferenceSpecification(m.first.group(2), m.second));
+            .map(m -> new NodesByReferencePath(m.first.group(2), m.second));
 
     attributeValueParser.setCombinator(
         idParser

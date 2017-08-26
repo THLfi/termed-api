@@ -22,8 +22,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
- * Filters specification so that only attributes present in given domain type are searched.
- * Useful for filtering user submitted queries.
+ * Filters specification so that only attributes present in given domain type are searched. Useful
+ * for filtering user submitted queries.
  */
 public class TypeBasedNodeSpecificationFilter implements
     BiFunction<Type, Specification<NodeId, Node>, Specification<NodeId, Node>> {
@@ -51,7 +51,7 @@ public class TypeBasedNodeSpecificationFilter implements
     if (isAcceptedIdentifierSpecification(specification) ||
         isAcceptedAuditSpecification(specification) ||
         isAcceptedTextAttributeSpecification(specification, textAttrIds) ||
-        isAcceptedReferenceAttributeSpecification(specification, refAttrs.keySet())) {
+        isAcceptedReferenceAttributeSpecification(specification, refAttrs)) {
       return specification;
     }
     if (specification instanceof NodesByGraphId &&
@@ -62,11 +62,12 @@ public class TypeBasedNodeSpecificationFilter implements
         Objects.equals(domain.getId(), ((NodesByTypeId) specification).getTypeId())) {
       return specification;
     }
-    if (specification instanceof NodesByReferenceSpecification &&
-        refAttrs.containsKey(((NodesByReferenceSpecification) specification).getAttributeId())) {
-      NodesByReferenceSpecification nodesByRefSpec = (NodesByReferenceSpecification) specification;
+    if (specification instanceof NodesByReferencePath &&
+        refAttrs.containsKey(((NodesByReferencePath) specification).getAttributeId())) {
+      NodesByReferencePath nodesByRefSpec = (NodesByReferencePath) specification;
       ReferenceAttribute refAttr = refAttrs.get(nodesByRefSpec.getAttributeId());
-      return new NodesByReferenceSpecification(nodesByRefSpec.getAttributeId(), apply(
+      // apply filter recursively for nested "sub" specification
+      return new NodesByReferencePath(nodesByRefSpec.getAttributeId(), apply(
           readPermittedTypes.get(refAttr.getRange()), nodesByRefSpec.getValueSpecification()));
     }
     if (specification instanceof AndSpecification) {
@@ -101,11 +102,17 @@ public class TypeBasedNodeSpecificationFilter implements
   }
 
   private boolean isAcceptedReferenceAttributeSpecification(Specification<NodeId, Node> s,
-      Set<String> acceptedReferenceAttrs) {
-    return (s instanceof NodesByReference && acceptedReferenceAttrs
-        .contains(((NodesByReference) s).getAttributeId()))
-        || (s instanceof NodesWithoutReferences && acceptedReferenceAttrs
-        .contains(((NodesWithoutReferences) s).getAttributeId()));
+      Map<String, ReferenceAttribute> acceptedReferenceAttrs) {
+    String attributeId = null;
+    if (s instanceof NodesByReference) {
+      attributeId = ((NodesByReference) s).getAttributeId();
+    }
+    if (s instanceof NodesWithoutReferences) {
+      attributeId = ((NodesWithoutReferences) s).getAttributeId();
+    }
+    return attributeId != null &&
+        acceptedReferenceAttrs.containsKey(attributeId) &&
+        readPermittedTypes.containsKey(acceptedReferenceAttrs.get(attributeId).getRange());
   }
 
   private AndSpecification<NodeId, Node> filterAndSpecification(Type domain,

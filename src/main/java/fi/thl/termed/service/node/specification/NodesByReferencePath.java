@@ -19,7 +19,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
-public class NodesByReferenceSpecification implements LuceneSpecification<NodeId, Node>,
+public class NodesByReferencePath implements LuceneSpecification<NodeId, Node>,
     DependentSpecification<NodeId, Node> {
 
   private final String attributeId;
@@ -27,7 +27,7 @@ public class NodesByReferenceSpecification implements LuceneSpecification<NodeId
 
   private Set<UUID> valueNodeIds;
 
-  public NodesByReferenceSpecification(String attributeId,
+  public NodesByReferencePath(String attributeId,
       Specification<NodeId, Node> valueSpecification) {
     this.attributeId = attributeId;
     this.valueSpecification = valueSpecification;
@@ -43,8 +43,8 @@ public class NodesByReferenceSpecification implements LuceneSpecification<NodeId
 
   @Override
   public void resolve(Function<Specification<NodeId, Node>, Stream<NodeId>> resolver) {
-    if (valueSpecification instanceof NodesByReferenceSpecification) {
-      ((NodesByReferenceSpecification) valueSpecification).resolve(resolver);
+    if (valueSpecification instanceof NodesByReferencePath) {
+      ((NodesByReferencePath) valueSpecification).resolve(resolver);
     }
     valueNodeIds = resolver.apply(valueSpecification).map(NodeId::getId).collect(toSet());
   }
