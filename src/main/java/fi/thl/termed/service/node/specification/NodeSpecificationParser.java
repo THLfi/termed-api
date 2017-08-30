@@ -65,7 +65,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)\\*")
             .map(m -> new NodesByPropertyPrefix(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> propertyParser =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)")
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s\\)\\*]*)")
             .map(m -> new NodesByProperty(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> referenceParser =
         regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.id:(" + UUID + ")")
