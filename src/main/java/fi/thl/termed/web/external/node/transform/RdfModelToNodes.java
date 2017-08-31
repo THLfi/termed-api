@@ -34,10 +34,13 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
   private List<Type> types;
   private Function<NodeId, Optional<Node>> nodeProvider;
+  private boolean importCodes;
 
-  public RdfModelToNodes(List<Type> types, Function<NodeId, Optional<Node>> nodeProvider) {
+  public RdfModelToNodes(List<Type> types, Function<NodeId, Optional<Node>> nodeProvider,
+      boolean importCodes) {
     this.types = types.stream().filter(t -> !isNullOrEmpty(t.getUri())).collect(toList());
     this.nodeProvider = nodeProvider;
+    this.importCodes = importCodes;
   }
 
   @Override
@@ -56,7 +59,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
         } else {
           node.setId(nameUUIDFromString(uri));
           node.setUri(uri);
-          node.setCode(StringUtils.normalize(URIs.localName(uri)));
+          node.setCode(importCodes ? StringUtils.normalize(URIs.localName(uri)) : null);
         }
 
         node.setType(new TypeId(type));
