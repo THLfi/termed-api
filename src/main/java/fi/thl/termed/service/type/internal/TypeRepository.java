@@ -1,5 +1,6 @@
 package fi.thl.termed.service.type.internal;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -7,6 +8,7 @@ import static java.util.stream.Collectors.toSet;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import fi.thl.termed.domain.Attribute;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.ObjectRolePermission;
@@ -95,10 +97,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
         textAttributeRepository.getKeys(new TextAttributesByTypeId(id), user)
             .filter(oldAttrId -> !textAttributeIds.contains(oldAttrId)).collect(toList());
 
-    int i = 0;
-    for (TextAttribute textAttribute : textAttributes) {
-      textAttribute.setIndex(i++);
-    }
+    ensureIncreasingAttributeIndices(textAttributes);
 
     textAttributeRepository.delete(deletedAttributeIds, user);
     textAttributeRepository.save(textAttributes, user);
@@ -112,13 +111,20 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
         referenceAttributeRepository.getKeys(new ReferenceAttributesByTypeId(id), user)
             .filter(oldAttrId -> !refAttributeIds.contains(oldAttrId)).collect(toList());
 
-    int i = 0;
-    for (ReferenceAttribute refAttribute : refAttrs) {
-      refAttribute.setIndex(i++);
-    }
+    ensureIncreasingAttributeIndices(refAttrs);
 
     referenceAttributeRepository.delete(deletedAttributeIds, user);
     referenceAttributeRepository.save(refAttrs, user);
+  }
+
+  private void ensureIncreasingAttributeIndices(List<? extends Attribute> attributes) {
+    int prevIndex = -1;
+    for (Attribute attr : attributes) {
+      int attrIndex = firstNonNull(attr.getIndex(), -1);
+      int validIndex = attrIndex > prevIndex ? attrIndex : prevIndex + 1;
+      attr.setIndex(validIndex);
+      prevIndex = validIndex;
+    }
   }
 
   @Override
