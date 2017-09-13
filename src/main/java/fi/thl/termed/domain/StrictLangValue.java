@@ -1,5 +1,7 @@
 package fi.thl.termed.domain;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.MoreObjects;
 import fi.thl.termed.util.RegularExpressions;
 import java.util.Objects;
@@ -30,7 +32,7 @@ public class StrictLangValue {
   }
 
   public String getLang() {
-    return lang;
+    return nullToEmpty(lang);
   }
 
   public void setLang(String lang) {

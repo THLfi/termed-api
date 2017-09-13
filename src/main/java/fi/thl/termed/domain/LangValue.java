@@ -1,8 +1,8 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.nullToEmpty;
 
+import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 /**
@@ -28,7 +28,7 @@ public class LangValue {
   }
 
   public String getLang() {
-    return Strings.nullToEmpty(lang);
+    return nullToEmpty(lang);
   }
 
   public String getValue() {
@@ -45,7 +45,7 @@ public class LangValue {
     }
     LangValue that = (LangValue) o;
     return Objects.equals(lang, that.lang) &&
-           Objects.equals(value, that.value);
+        Objects.equals(value, that.value);
   }
 
   @Override
