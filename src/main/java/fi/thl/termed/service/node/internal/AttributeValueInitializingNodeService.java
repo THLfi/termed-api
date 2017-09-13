@@ -1,53 +1,87 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.util.Collections.singletonList;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.ReferenceAttribute;
+import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.TextAttribute;
+import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.spring.exception.BadRequestException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 public class AttributeValueInitializingNodeService
     extends ForwardingService<NodeId, Node> {
 
-  public AttributeValueInitializingNodeService(Service<NodeId, Node> delegate) {
+  private BiFunction<TypeId, User, Optional<Type>> typeSource;
+
+  public AttributeValueInitializingNodeService(Service<NodeId, Node> delegate,
+      BiFunction<TypeId, User, Optional<Type>> typeSource) {
     super(delegate);
+    this.typeSource = typeSource;
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User currentUser) {
-    nodes.forEach(this::resolveAttributes);
-    return super.save(nodes, args, currentUser);
+  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
+    resolveAttributes(nodes, user);
+    return super.save(nodes, args, user);
   }
 
   @Override
-  public NodeId save(Node node, Map<String, Object> args, User currentUser) {
-    resolveAttributes(node);
-    return super.save(node, args, currentUser);
+  public NodeId save(Node node, Map<String, Object> args, User user) {
+    resolveAttributes(singletonList(node), user);
+    return super.save(node, args, user);
   }
 
   @Override
   public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
       Map<String, Object> args, User user) {
-    saves.forEach(this::resolveAttributes);
+    resolveAttributes(saves, user);
     return super.deleteAndSave(deletes, saves, args, user);
   }
 
-  private void resolveAttributes(Node node) {
-    for (StrictLangValue value : node.getProperties().values()) {
-      value.setRegex(firstNonNull(value.getRegex(), RegularExpressions.ALL));
-    }
-    for (NodeId value : node.getReferences().values()) {
-      value.setType(new TypeId(
-          firstNonNull(value.getTypeId(), node.getTypeId()),
-          firstNonNull(value.getTypeGraphId(), node.getTypeGraphId())));
-    }
+  private void resolveAttributes(List<Node> nodes, User user) {
+    Map<TextAttributeId, TextAttribute> textAttributeCache = new HashMap<>();
+    Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache = new HashMap<>();
+    nodes.forEach(node -> resolveAttributes(node, user, textAttributeCache, refAttributeCache));
+  }
+
+  private void resolveAttributes(Node node, User user,
+      Map<TextAttributeId, TextAttribute> textAttributeCache,
+      Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache) {
+
+    Type type = typeSource.apply(node.getType(), user).orElseThrow(BadRequestException::new);
+
+    node.getProperties().forEach((attributeId, value) -> {
+      TextAttribute textAttribute = textAttributeCache.computeIfAbsent(
+          new TextAttributeId(node.getType(), attributeId),
+          textAttributeId -> type.getTextAttributes().stream()
+              .filter(typeAttr -> Objects.equals(typeAttr.getId(), textAttributeId.getId()))
+              .findAny().orElseThrow(BadRequestException::new));
+
+      value.setRegex(textAttribute.getRegex());
+    });
+
+    node.getReferences().forEach((attributeId, value) -> {
+      ReferenceAttribute refAttribute = refAttributeCache.computeIfAbsent(
+          new ReferenceAttributeId(node.getType(), attributeId),
+          refAttributeId -> type.getReferenceAttributes().stream()
+              .filter(typeAttr -> Objects.equals(typeAttr.getId(), refAttributeId.getId()))
+              .findAny().orElseThrow(BadRequestException::new));
+
+      value.setType(refAttribute.getRange());
+    });
   }
 
 }

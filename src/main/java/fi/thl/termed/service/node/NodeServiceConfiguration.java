@@ -11,6 +11,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttributeId;
+import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService;
 import fi.thl.termed.service.node.internal.DocumentToNode;
@@ -56,6 +57,9 @@ public class NodeServiceConfiguration {
   @Autowired
   private PermissionEvaluator<ReferenceAttributeId> referenceAttributeEvaluator;
 
+  @Autowired
+  private Service<TypeId, Type> typeService;
+
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
   @Autowired
@@ -84,7 +88,7 @@ public class NodeServiceConfiguration {
     service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
     service = new NodeWriteEventPostingService(service, eventBus);
 
-    service = new AttributeValueInitializingNodeService(service);
+    service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new IdInitializingNodeService(service);
 
     return service;
