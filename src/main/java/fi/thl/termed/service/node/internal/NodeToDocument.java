@@ -53,6 +53,8 @@ public class NodeToDocument implements Function<Node, Document> {
 
     doc.add(stringField("createdDate", n.getCreatedDate()));
     doc.add(stringField("lastModifiedDate", n.getLastModifiedDate()));
+    doc.add(sortableField("createdDate.sortable", n.getCreatedDate()));
+    doc.add(sortableField("lastModifiedDate.sortable", n.getLastModifiedDate()));
 
     addProperties(doc, n.getProperties());
     addReferences(doc, n.getReferences());
@@ -133,6 +135,11 @@ public class NodeToDocument implements Function<Node, Document> {
   private Field sortableField(String name, String value) {
     return new SortedDocValuesField(name,
         new BytesRef(value.substring(0, min(MAX_SORTABLE_FIELD_LENGTH, value.length()))));
+  }
+
+  private Field sortableField(String name, Date value) {
+    return new SortedDocValuesField(name,
+        new BytesRef(DateTools.dateToString(value, Resolution.MILLISECOND)));
   }
 
 }

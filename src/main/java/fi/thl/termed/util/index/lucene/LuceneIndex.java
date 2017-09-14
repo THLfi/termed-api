@@ -28,6 +28,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
@@ -69,6 +71,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private TimerTask commitTask;
 
   private ExecutorService indexingExecutor;
+
+  private Pattern descendingSortPattern = Pattern.compile("(.*)[ |+]desc$");
 
   public LuceneIndex(String directoryPath,
       Converter<K, String> keyConverter,
@@ -231,8 +235,14 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     if (ListUtils.isNullOrEmpty(orderBy)) {
       return new Sort(SortField.FIELD_SCORE);
     }
+
     List<SortField> sortFields = orderBy.stream()
-        .map(field -> new SortField(field, SortField.Type.STRING))
+        .map(field -> {
+          Matcher m = descendingSortPattern.matcher(field);
+          return m.matches() ?
+              new SortField(m.group(1), SortField.Type.STRING, true) :
+              new SortField(field, SortField.Type.STRING);
+        })
         .collect(Collectors.toList());
     return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
   }
