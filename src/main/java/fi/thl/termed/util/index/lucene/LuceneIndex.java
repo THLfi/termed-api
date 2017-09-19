@@ -171,18 +171,33 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public boolean isEmpty() {
+  public long count(Specification<K, V> specification) {
+    IndexSearcher searcher = null;
     try {
-      IndexSearcher searcher = searcherManager.acquire();
-      try {
-        TotalHitCountCollector hitCountCollector = new TotalHitCountCollector();
-        searcher.search(new MatchAllDocsQuery(), hitCountCollector);
-        return hitCountCollector.getTotalHits() == 0;
-      } finally {
-        searcherManager.release(searcher);
-      }
+      searcher = searcherManager.acquire();
+      TotalHitCountCollector hitCountCollector = new TotalHitCountCollector();
+      Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
+      searcher.search(query, hitCountCollector);
+      return hitCountCollector.getTotalHits();
     } catch (IOException e) {
       throw new LuceneException(e);
+    } finally {
+      tryRelease(searcher);
+    }
+  }
+
+  @Override
+  public boolean isEmpty() {
+    IndexSearcher searcher = null;
+    try {
+      searcher = searcherManager.acquire();
+      TotalHitCountCollector hitCountCollector = new TotalHitCountCollector();
+      searcher.search(new MatchAllDocsQuery(), hitCountCollector);
+      return hitCountCollector.getTotalHits() == 0;
+    } catch (IOException e) {
+      throw new LuceneException(e);
+    } finally {
+      tryRelease(searcher);
     }
   }
 

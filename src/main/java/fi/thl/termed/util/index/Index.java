@@ -25,6 +25,8 @@ public interface Index<K extends Serializable, V> {
 
   Stream<K> getKeys(Specification<K, V> specification, List<String> sort, int max);
 
+  long count(Specification<K, V> spec);
+
   Stream<V> get(List<K> ids);
 
   Optional<V> get(K id);

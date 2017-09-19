@@ -40,7 +40,8 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args, User user) {
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
+      User user) {
     return delegate.deleteAndSave(deletes, saves, args, user);
   }
 
@@ -52,6 +53,21 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   @Override
   public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
     return delegate.getKeys(specification, args, user);
+  }
+
+  @Override
+  public long count(User user) {
+    return delegate.count(user);
+  }
+
+  @Override
+  public long count(Specification<K, V> specification, User user) {
+    return delegate.count(specification, user);
+  }
+
+  @Override
+  public long count(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.count(specification, args, user);
   }
 
   @Override

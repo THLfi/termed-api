@@ -279,11 +279,26 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       User user) {
     boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
 
+    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      return super.getKeys(spec, args, user);
+    }
+
     resolve(spec, user);
 
-    return !bypassIndex && spec instanceof LuceneSpecification ?
-        index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1)) :
-        super.getKeys(spec, args, user);
+    return index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1));
+  }
+
+  @Override
+  public long count(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
+    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+
+    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      return super.count(spec, args, user);
+    }
+
+    resolve(spec, user);
+
+    return index.count(spec);
   }
 
   private void resolve(Specification<NodeId, Node> spec, User user) {

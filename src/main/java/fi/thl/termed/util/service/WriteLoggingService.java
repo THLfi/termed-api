@@ -67,6 +67,11 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
+  public long count(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return delegate.count(specification, args, user);
+  }
+
+  @Override
   public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
     return delegate.get(ids, args, user);
   }

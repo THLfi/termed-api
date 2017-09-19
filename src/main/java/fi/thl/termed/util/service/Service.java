@@ -88,6 +88,21 @@ public interface Service<K extends Serializable, V> {
   Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user);
 
   /**
+   * Count of specified values.
+   */
+  default long count(User user) {
+    return count(new MatchAll<>(), user);
+  }
+
+  default long count(Specification<K, V> specification, User user) {
+    return count(specification, emptyMap(), user);
+  }
+
+  default long count(Specification<K, V> specification, Map<String, Object> args, User user) {
+    return getKeys(specification, args, user).count();
+  }
+
+  /**
    * Get values by ids.
    */
   default Stream<V> get(List<K> ids, User user) {

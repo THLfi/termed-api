@@ -95,6 +95,12 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
+  public long count(Specification<NodeId, Node> specification, Map<String, Object> args,
+      User user) {
+    return delegate.count(specification, args, user);
+  }
+
+  @Override
   public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
     return delegate.get(ids, args, user);
   }
@@ -103,5 +109,4 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   public Optional<Node> get(NodeId id, Map<String, Object> args, User user) {
     return delegate.get(id, args, user);
   }
-
 }

@@ -79,6 +79,12 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
+  public long count(Specification<NodeId, Node> specification, Map<String, Object> args,
+      User user) {
+    return delegate.count(specification, args, user);
+  }
+
+  @Override
   public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
     return filterValues(delegate.get(filterKeys(ids, user), args, user), user);
   }
