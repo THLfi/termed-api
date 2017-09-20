@@ -10,6 +10,7 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Specification;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
   private Service<NodeId, Node> delegate;
+
   private PermissionEvaluator<NodeId> nodeEvaluator;
   private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
   private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
@@ -42,60 +44,64 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, Map<String, Object> args, User user) {
-    return delegate.save(values, args, user);
+  public List<NodeId> save(List<Node> values, User user, Arg... args) {
+    return delegate.save(values, user, args);
   }
 
   @Override
-  public NodeId save(Node value, Map<String, Object> args, User user) {
-    return delegate.save(value, args, user);
+  public NodeId save(Node value, User user, Arg... args) {
+    return delegate.save(value, user, args);
   }
 
   @Override
-  public void delete(List<NodeId> ids, Map<String, Object> args, User user) {
-    delegate.delete(ids, args, user);
+  public void delete(List<NodeId> ids, User user, Arg... args) {
+    delegate.delete(ids, user, args);
   }
 
   @Override
-  public void delete(NodeId id, Map<String, Object> args, User user) {
-    delegate.delete(id, args, user);
+  public void delete(NodeId id, User user, Arg... args) {
+    delegate.delete(id, user, args);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
-      Map<String, Object> args, User user) {
-    return delegate.deleteAndSave(deletes, saves, args, user);
+  public List<NodeId> deleteAndSave(List<NodeId> deletes,
+      List<Node> save, User user, Arg... args) {
+    return delegate.deleteAndSave(deletes, save, user, args);
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
-    return filterValues(delegate.get(spec, args, user), user);
+  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return filterValues(delegate.get(spec, user, args), user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
-      User user) {
-    return filterKeys(delegate.getKeys(spec, args, user), user);
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return filterKeys(delegate.getKeys(spec, user, args), user);
   }
 
   @Override
-  public long count(Specification<NodeId, Node> specification, Map<String, Object> args,
-      User user) {
-    return delegate.count(specification, args, user);
+  public long count(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return delegate.count(spec, user, args);
   }
 
   @Override
-  public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
-    return filterValues(delegate.get(filterKeys(ids, user), args, user), user);
+  public boolean exists(NodeId id, User user, Arg... args) {
+    return nodeEvaluator.hasPermission(user, id, Permission.READ) &&
+        delegate.exists(id, user, args);
   }
 
   @Override
-  public Optional<Node> get(NodeId id, Map<String, Object> args, User user) {
+  public Stream<Node> get(List<NodeId> ids, User user, Arg... args) {
+    return filterValues(delegate.get(filterKeys(ids, user), user, args), user);
+  }
+
+  @Override
+  public Optional<Node> get(NodeId id, User user, Arg... args) {
     if (!nodeEvaluator.hasPermission(user, id, Permission.READ)) {
       return Optional.empty();
     }
 
-    return delegate.get(id, args, user)
+    return delegate.get(id, user, args)
         .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
         .map(new AttributePermissionFilter(user, Permission.READ));
   }

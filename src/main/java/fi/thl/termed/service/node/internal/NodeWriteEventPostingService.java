@@ -1,6 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.util.ObjectUtils.castBoolean;
+import static fi.thl.termed.util.collect.ArgUtils.findBoolean;
 import static java.util.Collections.singletonList;
 
 import com.google.common.eventbus.EventBus;
@@ -9,11 +9,11 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -30,44 +30,16 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
     this.eventBus = eventBus;
   }
 
-  @Override
-  public List<NodeId> save(List<Node> values, Map<String, Object> args, User user) {
-    List<NodeId> ids = delegate.save(values, args, user);
-    fireSaveEvents(ids, user.getUsername(), castBoolean(args.get("sync"), false));
-    return ids;
-  }
-
   private void fireSaveEvents(List<NodeId> ids, String user, boolean sync) {
-    Date date = new Date();
-    eventBus.post(new NodeSavedEvent(user, date, sync, ids));
-  }
-
-  @Override
-  public NodeId save(Node value, Map<String, Object> args, User user) {
-    NodeId id = delegate.save(value, args, user);
-    fireSaveEvent(id, user.getUsername(), castBoolean(args.get("sync"), false));
-    return id;
+    eventBus.post(new NodeSavedEvent(user, new Date(), sync, ids));
   }
 
   private void fireSaveEvent(NodeId id, String user, boolean sync) {
     eventBus.post(new NodeSavedEvent(user, new Date(), sync, singletonList(id)));
   }
 
-  @Override
-  public void delete(List<NodeId> ids, Map<String, Object> args, User user) {
-    delegate.delete(ids, args, user);
-    fireDeleteEvents(ids, user.getUsername(), castBoolean(args.get("sync"), false));
-  }
-
   private void fireDeleteEvents(List<NodeId> ids, String user, boolean sync) {
-    Date date = new Date();
-    eventBus.post(new NodeDeletedEvent(user, date, sync, ids));
-  }
-
-  @Override
-  public void delete(NodeId id, Map<String, Object> args, User user) {
-    delegate.delete(id, args, user);
-    fireDeleteEvent(id, user.getUsername(), castBoolean(args.get("sync"), false));
+    eventBus.post(new NodeDeletedEvent(user, new Date(), sync, ids));
   }
 
   private void fireDeleteEvent(NodeId id, String user, boolean sync) {
@@ -75,38 +47,68 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
-      Map<String, Object> args, User user) {
-    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, args, user);
-    fireDeleteEvents(deletes, user.getUsername(), castBoolean(args.get("sync"), false));
-    fireSaveEvents(ids, user.getUsername(), castBoolean(args.get("sync"), false));
+  public List<NodeId> save(List<Node> values, User user, Arg... args) {
+    List<NodeId> ids = delegate.save(values, user, args);
+    fireSaveEvents(ids, user.getUsername(), findBoolean(args, "sync"));
     return ids;
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
-    return delegate.get(spec, args, user);
+  public NodeId save(Node value, User user, Arg... args) {
+    NodeId id = delegate.save(value, user, args);
+    fireSaveEvent(id, user.getUsername(), findBoolean(args, "sync"));
+    return id;
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
-      User user) {
-    return delegate.getKeys(spec, args, user);
+  public void delete(List<NodeId> ids, User user, Arg... args) {
+    delegate.delete(ids, user, args);
+    fireDeleteEvents(ids, user.getUsername(), findBoolean(args, "sync"));
   }
 
   @Override
-  public long count(Specification<NodeId, Node> specification, Map<String, Object> args,
-      User user) {
-    return delegate.count(specification, args, user);
+  public void delete(NodeId id, User user, Arg... args) {
+    delegate.delete(id, user, args);
+    fireDeleteEvent(id, user.getUsername(), findBoolean(args, "sync"));
   }
 
   @Override
-  public Stream<Node> get(List<NodeId> ids, Map<String, Object> args, User user) {
-    return delegate.get(ids, args, user);
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
+      Arg... args) {
+    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, user, args);
+    fireDeleteEvents(deletes, user.getUsername(), findBoolean(args, "sync"));
+    fireSaveEvents(ids, user.getUsername(), findBoolean(args, "sync"));
+    return ids;
   }
 
   @Override
-  public Optional<Node> get(NodeId id, Map<String, Object> args, User user) {
-    return delegate.get(id, args, user);
+  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return delegate.get(spec, user, args);
   }
+
+  @Override
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return delegate.getKeys(spec, user, args);
+  }
+
+  @Override
+  public long count(Specification<NodeId, Node> specification, User user, Arg... args) {
+    return delegate.count(specification, user, args);
+  }
+
+  @Override
+  public boolean exists(NodeId id, User user, Arg... args) {
+    return delegate.exists(id, user, args);
+  }
+
+  @Override
+  public Stream<Node> get(List<NodeId> ids, User user, Arg... args) {
+    return delegate.get(ids, user, args);
+  }
+
+  @Override
+  public Optional<Node> get(NodeId id, User user, Arg... args) {
+    return delegate.get(id, user, args);
+  }
+
 }

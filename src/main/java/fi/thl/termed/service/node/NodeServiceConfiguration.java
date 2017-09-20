@@ -31,7 +31,6 @@ import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
@@ -94,7 +93,7 @@ public class NodeServiceConfiguration {
     return service;
   }
 
-  private AbstractRepository<NodeId, Node> nodeRepository() {
+  private Service<NodeId, Node> nodeRepository() {
     return new NodeRepository(
         new AuthorizedDao<>(nodeSystemDao(), nodeEvaluator()),
         new AuthorizedDao<>(textAttributeValueSystemDao(), textAttributeValueEvaluator()),

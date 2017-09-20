@@ -1,10 +1,10 @@
 package fi.thl.termed.util.service;
 
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -26,59 +26,63 @@ public class WriteLoggingService<K extends Serializable, V> implements Service<K
   }
 
   @Override
-  public List<K> save(List<V> values, Map<String, Object> args, User user) {
+  public List<K> save(List<V> values, User user, Arg... args) {
     log.info("save {} values (user: {})", values.size(), user.getUsername());
-    return delegate.save(values, args, user);
+    return delegate.save(values, user, args);
   }
 
   @Override
-  public K save(V value, Map<String, Object> args, User user) {
+  public K save(V value, User user, Arg... args) {
     log.info("save {} (user: {})", value, user.getUsername());
-    return delegate.save(value, args, user);
+    return delegate.save(value, user, args);
   }
 
   @Override
-  public void delete(List<K> ids, Map<String, Object> args, User user) {
+  public void delete(List<K> ids, User user, Arg... args) {
     log.info("delete {} (user: {})", ids, user.getUsername());
-    delegate.delete(ids, args, user);
+    delegate.delete(ids, user, args);
   }
 
   @Override
-  public void delete(K id, Map<String, Object> args, User user) {
+  public void delete(K id, User user, Arg... args) {
     log.info("delete {} (user: {})", id, user.getUsername());
-    delegate.delete(id, args, user);
+    delegate.delete(id, user, args);
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
-      User user) {
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, User user, Arg... args) {
     log.info("delete {} and save {} values (user: {})", deletes, saves.size(), user.getUsername());
-    return delegate.deleteAndSave(deletes, saves, args, user);
+    return delegate.deleteAndSave(deletes, saves, user, args);
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return delegate.get(specification, args, user);
+  public Stream<V> get(Specification<K, V> specification, User user, Arg... args) {
+    return delegate.get(specification, user, args);
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return delegate.getKeys(specification, args, user);
+  public Stream<K> getKeys(Specification<K, V> specification, User user, Arg... args) {
+    return delegate.getKeys(specification, user, args);
   }
 
   @Override
-  public long count(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return delegate.count(specification, args, user);
+  public long count(Specification<K, V> specification, User user, Arg... args) {
+    return delegate.count(specification, user, args);
   }
 
   @Override
-  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
-    return delegate.get(ids, args, user);
+  public boolean exists(K key, User user, Arg... args) {
+    return delegate.exists(key, user, args);
   }
 
   @Override
-  public Optional<V> get(K id, Map<String, Object> args, User user) {
-    return delegate.get(id, args, user);
+  public Stream<V> get(List<K> ids, User user, Arg... args) {
+    return delegate.get(ids, user, args);
+  }
+
+  @Override
+  public Optional<V> get(K id, User user, Arg... args) {
+    return delegate.get(id, user, args);
   }
 
 }

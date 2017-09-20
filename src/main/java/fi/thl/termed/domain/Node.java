@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
+import fi.thl.termed.util.collect.Identifiable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;

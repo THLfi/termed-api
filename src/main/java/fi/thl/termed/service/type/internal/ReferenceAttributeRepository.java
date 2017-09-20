@@ -18,6 +18,7 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
@@ -43,10 +44,10 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  protected void insert(ReferenceAttributeId id, ReferenceAttribute referenceAttribute, User user) {
-    referenceAttributeDao.insert(id, referenceAttribute, user);
-    insertPermissions(id, referenceAttribute.getPermissions(), user);
-    insertProperties(id, referenceAttribute.getProperties(), user);
+  public void insert(ReferenceAttributeId id, ReferenceAttribute attr, User user) {
+    referenceAttributeDao.insert(id, attr, user);
+    insertPermissions(id, attr.getPermissions(), user);
+    insertProperties(id, attr.getProperties(), user);
   }
 
   private void insertPermissions(ReferenceAttributeId attributeId,
@@ -62,7 +63,7 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  protected void update(ReferenceAttributeId id, ReferenceAttribute attribute, User user) {
+  public void update(ReferenceAttributeId id, ReferenceAttribute attribute, User user) {
     referenceAttributeDao.update(id, attribute, user);
     updatePermissions(id, attribute.getPermissions(), user);
     updateProperties(id, attribute.getProperties(), user);
@@ -102,7 +103,7 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void delete(ReferenceAttributeId id, Map<String, Object> args, User user) {
+  public void delete(ReferenceAttributeId id, User user, Arg... args) {
     deletePermissions(id, user);
     deleteProperties(id, user);
     referenceAttributeDao.delete(id, user);
@@ -119,25 +120,25 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public boolean exists(ReferenceAttributeId id, User user) {
+  public boolean exists(ReferenceAttributeId id, User user, Arg... args) {
     return referenceAttributeDao.exists(id, user);
   }
 
   @Override
   public Stream<ReferenceAttribute> get(
-      Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
-    return referenceAttributeDao.getValues(specification, user).stream()
+      Specification<ReferenceAttributeId, ReferenceAttribute> spec, User user, Arg... args) {
+    return referenceAttributeDao.getValues(spec, user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
   public Stream<ReferenceAttributeId> getKeys(
-      Specification<ReferenceAttributeId, ReferenceAttribute> specification, User user) {
-    return referenceAttributeDao.getKeys(specification, user).stream();
+      Specification<ReferenceAttributeId, ReferenceAttribute> spec, User user, Arg... args) {
+    return referenceAttributeDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<ReferenceAttribute> get(ReferenceAttributeId id, User user) {
+  public Optional<ReferenceAttribute> get(ReferenceAttributeId id, User user, Arg... args) {
     return referenceAttributeDao.get(id, user).map(attribute -> populateValue(attribute, user));
   }
 

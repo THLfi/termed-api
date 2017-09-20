@@ -1,6 +1,6 @@
 package fi.thl.termed.web.system.node;
 
-import static com.google.common.collect.ImmutableMap.of;
+import static fi.thl.termed.util.collect.Arg.arg;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -50,7 +50,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, of("sync", sync), user);
+    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "changeset=true", produces = {})
@@ -69,7 +69,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, of("sync", sync), user);
+    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
   }
 
   @PostJsonMapping(path = "/nodes", params = "changeset=true", produces = {})
@@ -83,7 +83,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, of("sync", sync), user);
+    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
   }
 
   private Node merge(Node node, Node patch) {

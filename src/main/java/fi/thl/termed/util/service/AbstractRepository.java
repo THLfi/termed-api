@@ -1,7 +1,8 @@
 package fi.thl.termed.util.service;
 
-import fi.thl.termed.domain.Identifiable;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.collect.Identifiable;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,14 +12,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * For implementing a service that persists objects.
- */
 public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
 
   @Override
-  public List<K> save(List<V> values, Map<String, Object> args, User user) {
+  public List<K> save(List<V> values, User user, Arg... args) {
     List<K> keys = new ArrayList<>();
 
     Map<K, V> inserts = new LinkedHashMap<>();
@@ -43,7 +41,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public K save(V value, Map<String, Object> args, User user) {
+  public K save(V value, User user, Arg... args) {
     K key = value.identifier();
 
     if (!exists(key, user)) {
@@ -54,8 +52,6 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
     return key;
   }
-
-  protected abstract boolean exists(K key, User user);
 
   protected void insert(Map<K, V> map, User user) {
     map.forEach((k, v) -> insert(k, v, user));
@@ -69,35 +65,25 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
 
   protected abstract void update(K id, V value, User user);
 
-  @Override
-  public void delete(List<K> ids, Map<String, Object> args, User user) {
-    ids.forEach(id -> delete(id, args, user));
+  public void delete(List<K> ids, User user, Arg... args) {
+    ids.forEach(id -> delete(id, user, args));
   }
 
-  @Override
-  public List<K> deleteAndSave(List<K> delete, List<V> save, Map<String, Object> args, User user) {
-    delete(delete, args, user);
-    return save(save, args, user);
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, User user, Arg... args) {
+    delete(deletes, user, args);
+    return save(saves, user, args);
   }
 
-  @Override
-  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
-    return ids.stream().map(id -> get(id, user)).filter(Optional::isPresent).map(Optional::get);
+  public long count(Specification<K, V> specification, User user, Arg... args) {
+    return getKeys(specification, user, args).count();
   }
 
-  @Override
-  public Optional<V> get(K id, Map<String, Object> args, User user) {
-    return get(id, user);
+  public boolean exists(K key, User user, Arg... args) {
+    return get(key, user, args).isPresent();
   }
 
-  @Override
-  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return get(specification, user);
-  }
-
-  @Override
-  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return getKeys(specification, user);
+  public Stream<V> get(List<K> ids, User u, Arg... args) {
+    return ids.stream().map(id -> get(id, u, args)).filter(Optional::isPresent).map(Optional::get);
   }
 
 }

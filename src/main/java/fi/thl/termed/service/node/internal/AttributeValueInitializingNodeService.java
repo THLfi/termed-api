@@ -11,6 +11,7 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.exception.BadRequestException;
@@ -33,22 +34,22 @@ public class AttributeValueInitializingNodeService
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
+  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
     resolveAttributes(nodes, user);
-    return super.save(nodes, args, user);
+    return super.save(nodes, user, args);
   }
 
   @Override
-  public NodeId save(Node node, Map<String, Object> args, User user) {
+  public NodeId save(Node node, User user, Arg... args) {
     resolveAttributes(singletonList(node), user);
-    return super.save(node, args, user);
+    return super.save(node, user, args);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
-      Map<String, Object> args, User user) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
+      Arg... args) {
     resolveAttributes(saves, user);
-    return super.deleteAndSave(deletes, saves, args, user);
+    return super.deleteAndSave(deletes, saves, user, args);
   }
 
   private void resolveAttributes(List<Node> nodes, User user) {

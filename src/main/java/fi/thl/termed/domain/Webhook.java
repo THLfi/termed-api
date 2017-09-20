@@ -1,6 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
+import fi.thl.termed.util.collect.Identifiable;
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;

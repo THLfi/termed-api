@@ -25,9 +25,11 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
@@ -41,15 +43,15 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   private Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao;
   private Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao;
 
-  private AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository;
-  private AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
+  private Service<TextAttributeId, TextAttribute> textAttributeRepository;
+  private Service<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
 
   public TypeRepository(
       Dao<TypeId, Type> typeDao,
       Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao,
       Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao,
-      AbstractRepository<TextAttributeId, TextAttribute> textAttributeRepository,
-      AbstractRepository<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
+      Service<TextAttributeId, TextAttribute> textAttributeRepository,
+      Service<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository) {
     this.typeDao = typeDao;
     this.typePermissionDao = typePermissionDao;
     this.typePropertyDao = typePropertyDao;
@@ -58,8 +60,8 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, Map<String, Object> args, User user) {
-    return super.save(addTypeIndices(types), args, user);
+  public List<TypeId> save(List<Type> types, User user, Arg... args) {
+    return super.save(addTypeIndices(types), user, args);
   }
 
   private List<Type> addTypeIndices(List<Type> types) {
@@ -187,7 +189,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public void delete(TypeId id, Map<String, Object> args, User user) {
+  public void delete(TypeId id, User user, Arg... args) {
     deletePermissions(id, user);
     deleteProperties(id, user);
     deleteTextAttributes(id, user);
@@ -215,23 +217,22 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public boolean exists(TypeId id, User user) {
+  public boolean exists(TypeId id, User user, Arg... args) {
     return typeDao.exists(id, user);
   }
 
   @Override
-  public Stream<Type> get(Specification<TypeId, Type> specification, User user) {
-    return typeDao.getValues(specification, user).stream()
-        .map(cls -> populateValue(cls, user));
+  public Stream<Type> get(Specification<TypeId, Type> spec, User user, Arg... args) {
+    return typeDao.getValues(spec, user).stream().map(cls -> populateValue(cls, user));
   }
 
   @Override
-  public Stream<TypeId> getKeys(Specification<TypeId, Type> specification, User user) {
-    return typeDao.getKeys(specification, user).stream();
+  public Stream<TypeId> getKeys(Specification<TypeId, Type> spec, User user, Arg... args) {
+    return typeDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<Type> get(TypeId id, User user) {
+  public Optional<Type> get(TypeId id, User user, Arg... args) {
     return typeDao.get(id, user).map(cls -> populateValue(cls, user));
   }
 

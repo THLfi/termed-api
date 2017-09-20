@@ -1,8 +1,7 @@
 package fi.thl.termed.web.system.node;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByAnyPropertyPrefix;
-import static fi.thl.termed.util.StringUtils.tokenize;
+import static fi.thl.termed.util.collect.Arg.args;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -61,7 +60,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
+        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -83,7 +82,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
+        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -105,7 +104,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, of("sort", sort, "max", max), user), Node.class);
+        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

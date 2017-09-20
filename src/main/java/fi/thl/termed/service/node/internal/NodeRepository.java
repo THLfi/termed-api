@@ -15,6 +15,7 @@ import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
@@ -45,7 +46,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
    * With bulk insert, first save all nodes, then dependant values.
    */
   @Override
-  protected void insert(Map<NodeId, Node> map, User user) {
+  public void insert(Map<NodeId, Node> map, User user) {
     addCreatedInfo(map.values(), user);
     nodeDao.insert(map, user);
 
@@ -62,7 +63,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  protected void insert(NodeId id, Node node, User user) {
+  public void insert(NodeId id, Node node, User user) {
     addCreatedInfo(node, new Date(), user);
     nodeDao.insert(id, node, user);
     insertTextAttrValues(id, node.getProperties(), user);
@@ -95,7 +96,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  protected void update(NodeId id, Node node, User user) {
+  public void update(NodeId id, Node node, User user) {
     addLastModifiedInfo(node, nodeDao.get(id, user).orElseThrow(IllegalStateException::new), user);
     nodeDao.update(id, node, user);
     updateTextAttrValues(id, node.getProperties(), user);
@@ -142,7 +143,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public void delete(NodeId nodeId, Map<String, Object> args, User user) {
+  public void delete(NodeId nodeId, User user, Arg... args) {
     deleteRefAttrValues(nodeId, user);
     deleteInverseRefAttrValues(nodeId, user);
     deleteTextAttrValues(nodeId, user);
@@ -165,23 +166,22 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public boolean exists(NodeId nodeId, User user) {
+  public boolean exists(NodeId nodeId, User user, Arg... args) {
     return nodeDao.exists(nodeId, user);
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> specification, User user) {
-    return nodeDao.getValues(specification, user).stream()
-        .map(node -> populateValue(node, user));
+  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return nodeDao.getValues(spec, user).stream().map(node -> populateValue(node, user));
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> specification, User user) {
-    return nodeDao.getKeys(specification, user).stream();
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
+    return nodeDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<Node> get(NodeId id, User user) {
+  public Optional<Node> get(NodeId id, User user, Arg... args) {
     return nodeDao.get(id, user).map(node -> populateValue(node, user));
   }
 

@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.internal;
 import static fi.thl.termed.util.ObjectUtils.castBoolean;
 import static fi.thl.termed.util.ObjectUtils.castInteger;
 import static fi.thl.termed.util.ObjectUtils.castStringList;
+import static fi.thl.termed.util.collect.ArgUtils.findBoolean;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Sets;
@@ -19,6 +20,8 @@ import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.collect.ArgUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
@@ -71,7 +74,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User user) {
+  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     nodes.forEach(node -> super.get(new AndSpecification<>(
@@ -84,7 +87,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    List<NodeId> ids = super.save(nodes, args, user);
+    List<NodeId> ids = super.save(nodes, user, args);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
@@ -110,7 +113,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public NodeId save(Node node, Map<String, Object> args, User user) {
+  public NodeId save(Node node, User user, Arg... args) {
     Set<NodeId> reindexingRequired = Sets.newHashSet();
 
     super.get(new AndSpecification<>(
@@ -123,7 +126,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         });
 
-    NodeId id = super.save(node, args, user);
+    NodeId id = super.save(node, user, args);
     reindexingRequired.add(id);
 
     super.get(id, indexer).ifPresent(n -> {
@@ -141,7 +144,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public void delete(List<NodeId> nodeIds, Map<String, Object> args, User user) {
+  public void delete(List<NodeId> nodeIds, User user, Arg... args) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     reindexingRequired.addAll(nodeIds);
@@ -156,13 +159,13 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    super.delete(nodeIds, args, user);
+    super.delete(nodeIds, user, args);
 
     reindex(reindexingRequired);
   }
 
   @Override
-  public void delete(NodeId nodeId, Map<String, Object> args, User user) {
+  public void delete(NodeId nodeId, User user, Arg... args) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     reindexingRequired.add(nodeId);
@@ -177,14 +180,14 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         });
 
-    super.delete(nodeId, args, user);
+    super.delete(nodeId, user, args);
 
     reindex(reindexingRequired);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
-      Map<String, Object> args, User user) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
+      Arg... args) {
 
     Set<NodeId> reindexingRequired = new HashSet<>();
 
@@ -210,7 +213,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    List<NodeId> ids = super.deleteAndSave(deletes, saves, args, user);
+    List<NodeId> ids = super.deleteAndSave(deletes, saves, user, args);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
@@ -259,41 +262,46 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
-    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
+    Map<String, Object> argMap = ArgUtils.map(args);
+
+    boolean bypassIndex = castBoolean(argMap.get("bypassIndex"), false);
 
     if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.get(spec, args, user);
+      return super.get(spec, user, args);
     }
 
     resolve(spec, user);
 
     return ((LuceneIndex<NodeId, Node>) index).get(spec,
-        castStringList(args.get("sort")),
-        castInteger(args.get("max"), -1),
-        new DocumentToNode(gson, castBoolean(args.get("loadReferrers"), true)));
+        castStringList(argMap.get("sort")),
+        castInteger(argMap.get("max"), -1),
+        new DocumentToNode(gson, castBoolean(argMap.get("loadReferrers"), true)));
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, Map<String, Object> args,
-      User user) {
-    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
+    Map<String, Object> argMap = ArgUtils.map(args);
+
+    boolean bypassIndex = castBoolean(argMap.get("bypassIndex"), false);
 
     if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.getKeys(spec, args, user);
+      return super.getKeys(spec, user, args);
     }
 
     resolve(spec, user);
 
-    return index.getKeys(spec, castStringList(args.get("sort")), castInteger(args.get("max"), -1));
+    return index.getKeys(spec,
+        castStringList(argMap.get("sort")),
+        castInteger(argMap.get("max"), -1));
   }
 
   @Override
-  public long count(Specification<NodeId, Node> spec, Map<String, Object> args, User user) {
-    boolean bypassIndex = castBoolean(args.get("bypassIndex"), false);
+  public long count(Specification<NodeId, Node> spec, User user, Arg... args) {
+    boolean bypassIndex = findBoolean(args, "bypassIndex", false);
 
     if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.count(spec, args, user);
+      return super.count(spec, user, args);
     }
 
     resolve(spec, user);

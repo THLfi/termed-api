@@ -7,10 +7,10 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
-import java.util.Map;
 
 public class InitializingGraphService extends ForwardingService<GraphId, Graph> {
 
@@ -19,15 +19,15 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
   }
 
   @Override
-  public List<GraphId> save(List<Graph> graphs, Map<String, Object> args, User currentUser) {
+  public List<GraphId> save(List<Graph> graphs, User user, Arg... args) {
     graphs.forEach(this::initialize);
-    return super.save(graphs, args, currentUser);
+    return super.save(graphs, user, args);
   }
 
   @Override
-  public GraphId save(Graph graph, Map<String, Object> args, User currentUser) {
+  public GraphId save(Graph graph, User user, Arg... args) {
     initialize(graph);
-    return super.save(graph, args, currentUser);
+    return super.save(graph, user, args);
   }
 
   private void initialize(Graph graph) {

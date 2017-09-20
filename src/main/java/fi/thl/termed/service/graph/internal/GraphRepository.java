@@ -21,6 +21,7 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
@@ -121,7 +122,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void delete(GraphId id, Map<String, Object> args, User user) {
+  public void delete(GraphId id, User user, Arg... args) {
     deleteRoles(id, user);
     deletePermissions(id, user);
     deleteProperties(id, user);
@@ -142,23 +143,23 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public boolean exists(GraphId id, User user) {
+  public boolean exists(GraphId id, User user, Arg... args) {
     return graphDao.exists(id, user);
   }
 
   @Override
-  public Stream<Graph> get(Specification<GraphId, Graph> specification, User user) {
-    return graphDao.getValues(specification, user).stream()
+  public Stream<Graph> get(Specification<GraphId, Graph> spec, User user, Arg... args) {
+    return graphDao.getValues(spec, user).stream()
         .map(graph -> populateValue(graph, user));
   }
 
   @Override
-  public Stream<GraphId> getKeys(Specification<GraphId, Graph> specification, User user) {
-    return graphDao.getKeys(specification, user).stream();
+  public Stream<GraphId> getKeys(Specification<GraphId, Graph> spec, User user, Arg... args) {
+    return graphDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<Graph> get(GraphId id, User user) {
+  public Optional<Graph> get(GraphId id, User user, Arg... args) {
     return graphDao.get(id, user).map(graph -> populateValue(graph, user));
   }
 

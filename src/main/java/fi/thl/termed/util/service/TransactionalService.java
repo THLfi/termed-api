@@ -1,10 +1,11 @@
 package fi.thl.termed.util.service;
 
 import fi.thl.termed.domain.User;
+import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.collect.Identifiable;
 import fi.thl.termed.util.specification.Specification;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -13,7 +14,8 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
+public class TransactionalService<K extends Serializable, V extends Identifiable<K>>
+    implements Service<K, V> {
 
   private Service<K, V> delegate;
 
@@ -32,55 +34,64 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.get(specification, args, user));
+  public List<K> save(List<V> values, User user, Arg... args) {
+    return runInTransaction(() -> delegate.save(values, user, args));
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.getKeys(specification, args, user));
+  public K save(V value, User user, Arg... args) {
+    return runInTransaction(() -> delegate.save(value, user, args));
   }
 
   @Override
-  public Stream<V> get(List<K> ids, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.get(ids, args, user));
-  }
-
-  @Override
-  public Optional<V> get(K id, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.get(id, args, user));
-  }
-
-  @Override
-  public List<K> save(List<V> values, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.save(values, args, user));
-  }
-
-  @Override
-  public K save(V value, Map<String, Object> args, User user) {
-    return runInTransaction(() -> delegate.save(value, args, user));
-  }
-
-  @Override
-  public void delete(List<K> ids, Map<String, Object> args, User user) {
+  public void delete(List<K> ids, User user, Arg... args) {
     runInTransaction(() -> {
-      delegate.delete(ids, args, user);
+      delegate.delete(ids, user, args);
       return null;
     });
   }
 
   @Override
-  public void delete(K id, Map<String, Object> args, User user) {
+  public void delete(K id, User user, Arg... args) {
     runInTransaction(() -> {
-      delegate.delete(id, args, user);
+      delegate.delete(id, user, args);
       return null;
     });
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, Map<String, Object> args,
-      User user) {
-    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, args, user));
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, User user, Arg... args) {
+    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, user, args));
+  }
+
+  @Override
+  public Stream<V> get(Specification<K, V> specification, User user, Arg... args) {
+    return runInTransaction(() -> delegate.get(specification, user, args));
+  }
+
+  @Override
+  public Stream<K> getKeys(Specification<K, V> specification, User user, Arg... args) {
+    return runInTransaction(() -> delegate.getKeys(specification, user, args));
+  }
+
+  @Override
+  public long count(Specification<K, V> specification, User user, Arg... args) {
+    return runInTransaction(() -> delegate.count(specification, user, args));
+  }
+
+  @Override
+  public boolean exists(K id, User user, Arg... args) {
+    return runInTransaction(() -> delegate.exists(id, user, args));
+  }
+
+  @Override
+  public Stream<V> get(List<K> ids, User user, Arg... args) {
+    return runInTransaction(() -> delegate.get(ids, user, args));
+  }
+
+  @Override
+  public Optional<V> get(K id, User user, Arg... args) {
+    return runInTransaction(() -> delegate.get(id, user, args));
   }
 
   private <E> E runInTransaction(Supplier<E> supplier) {

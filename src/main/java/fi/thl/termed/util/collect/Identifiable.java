@@ -1,4 +1,4 @@
-package fi.thl.termed.domain;
+package fi.thl.termed.util.collect;
 
 public interface Identifiable<K> {
 

@@ -12,6 +12,7 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.specification.Specification;
@@ -63,7 +64,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void delete(String id, Map<String, Object> args, User user) {
+  public void delete(String id, User user, Arg... args) {
     deleteProperties(id, user);
     propertyDao.delete(id, user);
   }
@@ -74,23 +75,23 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public boolean exists(String id, User user) {
+  public boolean exists(String id, User user, Arg... args) {
     return propertyDao.exists(id, user);
   }
 
   @Override
-  public Stream<Property> get(Specification<String, Property> specification, User user) {
-    return propertyDao.getValues(specification, user).stream()
+  public Stream<Property> get(Specification<String, Property> spec, User user, Arg... args) {
+    return propertyDao.getValues(spec, user).stream()
         .map(property -> populateValue(property, user));
   }
 
   @Override
-  public Stream<String> getKeys(Specification<String, Property> specification, User user) {
-    return propertyDao.getKeys(specification, user).stream();
+  public Stream<String> getKeys(Specification<String, Property> spec, User user, Arg... args) {
+    return propertyDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<Property> get(String id, User user) {
+  public Optional<Property> get(String id, User user, Arg... args) {
     return propertyDao.get(id, user).map(property -> populateValue(property, user));
   }
 

@@ -1,7 +1,7 @@
 package fi.thl.termed.web.external.node;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static fi.thl.termed.service.node.specification.NodeQueryToSpecification.toSpecification;
+import static fi.thl.termed.util.collect.Arg.args;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
@@ -122,7 +122,7 @@ public class NodeDtoReadController {
     }
 
     return toDto(
-        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
+        nodeService.get(spec, user, args("sort", query.sort, "max", query.max)).collect(toList()),
         query, user);
   }
 
@@ -143,7 +143,7 @@ public class NodeDtoReadController {
         .forEach(type -> spec.or(toSpecification(type, query.where)));
 
     return toDto(
-        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
+        nodeService.get(spec, user, args("sort", query.sort, "max", query.max)).collect(toList()),
         query, user);
   }
 
@@ -165,7 +165,7 @@ public class NodeDtoReadController {
     Specification<NodeId, Node> spec = toSpecification(type, query.where);
 
     return toDto(
-        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
+        nodeService.get(spec, user, args("sort", query.sort, "max", query.max)).collect(toList()),
         query, user);
   }
 
@@ -193,7 +193,7 @@ public class NodeDtoReadController {
             : new NodesWithoutReferrers(attributeId));
 
     return toDto(
-        nodeService.get(spec, of("sort", query.sort, "max", query.max), user).collect(toList()),
+        nodeService.get(spec, user, args("sort", query.sort, "max", query.max)).collect(toList()),
         query, user);
   }
 

@@ -1,7 +1,5 @@
 package fi.thl.termed.service.node.util;
 
-import static java.util.Collections.emptyMap;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import fi.thl.termed.domain.Node;
@@ -9,6 +7,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferrers;
 import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.Service;
 import java.util.Collection;
 import java.util.List;
@@ -26,18 +25,17 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private Service<NodeId, Node> nodeService;
-  private Map<String, Object> args;
   private User user;
+  private Arg[] args;
 
   public IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user) {
-    this(nodeService, emptyMap(), user);
+    this(nodeService, user, new Arg[0]);
   }
 
-  public IndexedReferrerLoader(
-      Service<NodeId, Node> nodeService, Map<String, Object> args, User user) {
+  public IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user, Arg... args) {
     this.nodeService = nodeService;
-    this.args = args;
     this.user = user;
+    this.args = args;
   }
 
   @Override
@@ -45,7 +43,7 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
     Map<NodeId, Node> referrerValueMap = Maps.uniqueIndex(
-        nodeService.get(new NodeReferrers(new NodeId(node), attributeId), args, user).iterator(),
+        nodeService.get(new NodeReferrers(new NodeId(node), attributeId), user, args).iterator(),
         Node::identifier);
 
     Collection<NodeId> referrerIds = node.getReferrers().get(attributeId);

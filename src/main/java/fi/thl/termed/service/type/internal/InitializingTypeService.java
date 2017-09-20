@@ -8,10 +8,10 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Set some default values for attributes
@@ -23,22 +23,22 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, Map<String, Object> args, User user) {
+  public List<TypeId> save(List<Type> types, User user, Arg... args) {
     types.forEach(this::initialize);
-    return super.save(types, args, user);
+    return super.save(types, user, args);
   }
 
   @Override
-  public TypeId save(Type cls, Map<String, Object> args, User user) {
+  public TypeId save(Type cls, User user, Arg... args) {
     initialize(cls);
-    return super.save(cls, args, user);
+    return super.save(cls, user, args);
   }
 
   @Override
-  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves,
-      Map<String, Object> args, User user) {
+  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves, User user,
+      Arg... args) {
     saves.forEach(this::initialize);
-    return super.deleteAndSave(deletes, saves, args, user);
+    return super.deleteAndSave(deletes, saves, user, args);
   }
 
   private void initialize(Type type) {

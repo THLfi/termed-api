@@ -3,6 +3,7 @@ package fi.thl.termed.domain;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Multimap;
 
+import fi.thl.termed.util.collect.Identifiable;
 import java.util.Objects;
 
 import fi.thl.termed.util.collect.MultimapUtils;

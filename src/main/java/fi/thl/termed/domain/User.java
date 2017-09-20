@@ -2,6 +2,7 @@ package fi.thl.termed.domain;
 
 import com.google.common.base.MoreObjects;
 
+import fi.thl.termed.util.collect.Identifiable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

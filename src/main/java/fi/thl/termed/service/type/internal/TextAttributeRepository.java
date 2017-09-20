@@ -18,6 +18,7 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
@@ -42,10 +43,10 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  protected void insert(TextAttributeId id, TextAttribute textAttribute, User user) {
-    textAttributeDao.insert(id, textAttribute, user);
-    insertProperties(id, textAttribute.getProperties(), user);
-    insertPermissions(id, textAttribute.getPermissions(), user);
+  public void insert(TextAttributeId id, TextAttribute attr, User user) {
+    textAttributeDao.insert(id, attr, user);
+    insertProperties(id, attr.getProperties(), user);
+    insertPermissions(id, attr.getPermissions(), user);
   }
 
   private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
@@ -61,10 +62,10 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  protected void update(TextAttributeId id, TextAttribute attribute, User user) {
-    textAttributeDao.update(id, attribute, user);
-    updatePermissions(id, attribute.getPermissions(), user);
-    updateProperties(id, attribute.getProperties(), user);
+  public void update(TextAttributeId id, TextAttribute attr, User user) {
+    textAttributeDao.update(id, attr, user);
+    updatePermissions(id, attr.getPermissions(), user);
+    updateProperties(id, attr.getProperties(), user);
   }
 
   private void updatePermissions(TextAttributeId attrId, Multimap<String, Permission> permissions,
@@ -101,7 +102,7 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public void delete(TextAttributeId id, Map<String, Object> args, User user) {
+  public void delete(TextAttributeId id, User user, Arg... args) {
     deletePermissions(id, user);
     deleteProperties(id, user);
     textAttributeDao.delete(id, user);
@@ -118,25 +119,25 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public boolean exists(TextAttributeId id, User user) {
+  public boolean exists(TextAttributeId id, User user, Arg... args) {
     return textAttributeDao.exists(id, user);
   }
 
   @Override
-  public Stream<TextAttribute> get(Specification<TextAttributeId, TextAttribute> specification,
-      User user) {
-    return textAttributeDao.getValues(specification, user).stream()
+  public Stream<TextAttribute> get(Specification<TextAttributeId, TextAttribute> spec, User user,
+      Arg... args) {
+    return textAttributeDao.getValues(spec, user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
   public Stream<TextAttributeId> getKeys(
-      Specification<TextAttributeId, TextAttribute> specification, User user) {
-    return textAttributeDao.getKeys(specification, user).stream();
+      Specification<TextAttributeId, TextAttribute> spec, User user, Arg... args) {
+    return textAttributeDao.getKeys(spec, user).stream();
   }
 
   @Override
-  public Optional<TextAttribute> get(TextAttributeId id, User user) {
+  public Optional<TextAttribute> get(TextAttributeId id, User user, Arg... args) {
     return textAttributeDao.get(id, user).map(attribute -> populateValue(attribute, user));
   }
 

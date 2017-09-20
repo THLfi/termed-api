@@ -6,10 +6,10 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,22 +22,22 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, Map<String, Object> args, User currentUser) {
+  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
     nodes.forEach(this::resolveId);
-    return super.save(nodes, args, currentUser);
+    return super.save(nodes, user, args);
   }
 
   @Override
-  public NodeId save(Node node, Map<String, Object> args, User currentUser) {
+  public NodeId save(Node node, User user, Arg... args) {
     resolveId(node);
-    return super.save(node, args, currentUser);
+    return super.save(node, user, args);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves,
-      Map<String, Object> args, User user) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
+      Arg... args) {
     saves.forEach(this::resolveId);
-    return super.deleteAndSave(deletes, saves, args, user);
+    return super.deleteAndSave(deletes, saves, user, args);
   }
 
   private void resolveId(Node node) {
