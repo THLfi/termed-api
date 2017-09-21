@@ -1,6 +1,6 @@
 package fi.thl.termed.web.system.node;
 
-import static fi.thl.termed.util.collect.Arg.arg;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -36,7 +36,7 @@ public class NodeDeleteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody NodeId nodeId,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeId, user, arg("sync", sync));
+    nodeService.delete(nodeId, opts(sync), user);
   }
 
   @DeleteMapping(path = "/nodes", params = "batch=true")
@@ -45,7 +45,7 @@ public class NodeDeleteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<NodeId> nodeIds,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeIds, user, arg("sync", sync));
+    nodeService.delete(nodeIds, opts(sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/nodes")
@@ -55,7 +55,7 @@ public class NodeDeleteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
     nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user).collect(toList()),
-        user, arg("sync", sync));
+        opts(sync), user);
   }
 
   @DeleteMapping(path = "/graphs/{graphId}/nodes", params = "batch=true")
@@ -67,7 +67,7 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     nodeService.delete(nodeIds.stream()
         .map(id -> new NodeId(id.getId(), id.getTypeId(), graphId))
-        .collect(toList()), user, arg("sync", sync));
+        .collect(toList()), opts(sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -79,7 +79,7 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     nodeService.delete(nodeService.getKeys(new AndSpecification<>(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), user).collect(toList()), user, arg("sync", sync));
+        new NodesByTypeId(typeId)), user).collect(toList()), opts(sync), user);
   }
 
   @DeleteMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "batch=true")
@@ -92,7 +92,7 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     nodeService.delete(nodeIds.stream()
         .map(id -> new NodeId(id.getId(), typeId, graphId))
-        .collect(toList()), user, arg("sync", sync));
+        .collect(toList()), opts(sync), user);
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")
@@ -103,7 +103,7 @@ public class NodeDeleteController {
       @PathVariable("id") UUID id,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(new NodeId(id, typeId, graphId), user, arg("sync", sync));
+    nodeService.delete(new NodeId(id, typeId, graphId), opts(sync), user);
   }
 
 }

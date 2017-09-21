@@ -1,5 +1,7 @@
 package fi.thl.termed.web.system.dump;
 
+import static fi.thl.termed.util.service.SaveMode.saveMode;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Dump;
@@ -19,6 +21,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,13 +40,16 @@ public class RestoreController {
 
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)
-  public void restore(@RequestBody Dump dump, @AuthenticationPrincipal User user) {
+  public void restore(@RequestBody Dump dump,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
     TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
 
     try {
-      graphService.save(dump.getGraphs(), user);
-      typeService.save(dump.getTypes(), user);
-      nodeService.save(dump.getNodes(), user);
+      graphService.save(dump.getGraphs(), saveMode(mode), opts(sync), user);
+      typeService.save(dump.getTypes(), saveMode(mode), opts(sync), user);
+      nodeService.save(dump.getNodes(), saveMode(mode), opts(sync), user);
     } catch (RuntimeException | Error e) {
       manager.rollback(tx);
       throw e;

@@ -1,6 +1,10 @@
 package fi.thl.termed.service.node;
 
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
+import static fi.thl.termed.util.service.SaveMode.INSERT;
+import static fi.thl.termed.util.service.SaveMode.UPDATE;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -54,8 +58,9 @@ public class NodeServiceIntegrationTest {
     testGraphId = UUIDs.nameUUIDFromString("testGraph");
     testUser = new User("testUser", passwordEncoder.encode(randomUUIDString()), AppRole.ADMIN);
 
-    userService.save(testUser, new User("testInitializer", "", AppRole.SUPERUSER));
-    graphService.save(new Graph(testGraphId), testUser);
+    userService.save(testUser, UPSERT, defaultOpts(),
+        new User("testInitializer", "", AppRole.SUPERUSER));
+    graphService.save(new Graph(testGraphId), UPSERT, defaultOpts(), testUser);
 
     GraphId graphId = new GraphId(testGraphId);
     TypeId personId = new TypeId("Person", graphId);
@@ -74,7 +79,7 @@ public class NodeServiceIntegrationTest {
     group.setReferenceAttributes(singletonList(
         new ReferenceAttribute("member", groupId, personId)));
 
-    typeService.save(asList(person, group), testUser);
+    typeService.save(asList(person, group), UPSERT, defaultOpts(), testUser);
   }
 
   @Test
@@ -84,7 +89,7 @@ public class NodeServiceIntegrationTest {
 
     assertFalse(nodeService.get(nodeId, testUser).isPresent());
 
-    nodeService.save(examplePerson, testUser);
+    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
     assertTrue(nodeService.get(nodeId, testUser).isPresent());
   }
@@ -99,7 +104,7 @@ public class NodeServiceIntegrationTest {
 
     assertFalse(nodeService.get(nodeId, testUser).isPresent());
 
-    nodeService.save(examplePerson, testUser);
+    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNode = nodeService.get(nodeId, testUser);
 
@@ -114,7 +119,7 @@ public class NodeServiceIntegrationTest {
     Node examplePerson = new Node(nodeId);
     examplePerson.setProperties(ImmutableMultimap.of(
         "firstName", new StrictLangValue("Jack")));
-    nodeService.save(examplePerson, testUser);
+    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNodeOptional = nodeService.get(nodeId, testUser);
 
@@ -126,7 +131,7 @@ public class NodeServiceIntegrationTest {
     persistedNode.setProperties(ImmutableMultimap.of(
         "firstName", new StrictLangValue("John"),
         "lastName", new StrictLangValue("Doe")));
-    nodeService.save(persistedNode, testUser);
+    nodeService.save(persistedNode, UPDATE, defaultOpts(), testUser);
 
     persistedNodeOptional = nodeService.get(nodeId, testUser);
 
@@ -154,7 +159,7 @@ public class NodeServiceIntegrationTest {
     john.addReference("knows", jackId);
     jack.addReference("knows", maryId);
 
-    nodeService.save(asList(john, jack, mary), testUser);
+    nodeService.save(asList(john, jack, mary), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNode = nodeService.get(jackId, testUser);
 
@@ -185,7 +190,7 @@ public class NodeServiceIntegrationTest {
     john.addReference("knows", jackId);
     jack.addReference("knows", maryId);
 
-    nodeService.save(asList(john, jack, mary), testUser);
+    nodeService.save(asList(john, jack, mary), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedOptionalNode = nodeService.get(jackId, testUser);
 
@@ -197,7 +202,7 @@ public class NodeServiceIntegrationTest {
     assertEquals(maryId, persistedNode.getReferences().get("knows").iterator().next());
 
     persistedNode.setReferences(ImmutableMultimap.of());
-    nodeService.save(persistedNode, testUser);
+    nodeService.save(persistedNode, UPDATE, defaultOpts(), testUser);
 
     persistedOptionalNode = nodeService.get(jackId, testUser);
     assertTrue(persistedOptionalNode.isPresent());

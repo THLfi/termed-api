@@ -8,9 +8,10 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 
 /**
@@ -23,22 +24,22 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, User user, Arg... args) {
+  public List<TypeId> save(List<Type> types, SaveMode mode, WriteOptions opts, User user) {
     types.forEach(this::initialize);
-    return super.save(types, user, args);
+    return super.save(types, mode, opts, user);
   }
 
   @Override
-  public TypeId save(Type cls, User user, Arg... args) {
+  public TypeId save(Type cls, SaveMode mode, WriteOptions opts, User user) {
     initialize(cls);
-    return super.save(cls, user, args);
+    return super.save(cls, mode, opts, user);
   }
 
   @Override
-  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves, User user,
-      Arg... args) {
+  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves, SaveMode mode,
+      WriteOptions opts, User user) {
     saves.forEach(this::initialize);
-    return super.deleteAndSave(deletes, saves, user, args);
+    return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   private void initialize(Type type) {

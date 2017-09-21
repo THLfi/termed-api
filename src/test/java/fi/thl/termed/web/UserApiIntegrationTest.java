@@ -1,16 +1,17 @@
 package fi.thl.termed.web;
 
-import org.apache.http.HttpStatus;
-import org.junit.Before;
-import org.junit.Test;
+import static com.jayway.restassured.RestAssured.given;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
+import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.Test;
 
 public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
@@ -31,12 +32,12 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     User initializer = new User("initializer", "", AppRole.SUPERUSER);
 
     userRepository.save(new User(testAdminUsername,
-                                 passwordEncoder.encode(testAdminPassword),
-                                 AppRole.ADMIN), initializer);
+        passwordEncoder.encode(testAdminPassword),
+        AppRole.ADMIN), UPSERT, defaultOpts(), initializer);
 
     userRepository.save(new User(testSuperuserUsername,
-                                 passwordEncoder.encode(testSuperuserPassword),
-                                 AppRole.SUPERUSER), initializer);
+        passwordEncoder.encode(testSuperuserPassword),
+        AppRole.SUPERUSER), UPSERT, defaultOpts(), initializer);
   }
 
   @Test

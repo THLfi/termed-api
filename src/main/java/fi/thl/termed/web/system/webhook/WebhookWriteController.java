@@ -1,5 +1,7 @@
 package fi.thl.termed.web.system.webhook;
 
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -31,19 +33,20 @@ public class WebhookWriteController {
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
     return webhookService.get(new WebhookByUrl(url), user)
         .findFirst().map(Webhook::getId)
-        .orElseGet(() -> webhookService.save(new Webhook(randomUUID(), url), user));
+        .orElseGet(() ->
+            webhookService.save(new Webhook(randomUUID(), url), UPSERT, defaultOpts(), user));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(NO_CONTENT)
   public void delete(@PathVariable("id") UUID id, @AuthenticationPrincipal User user) {
-    webhookService.delete(id, user);
+    webhookService.delete(id, defaultOpts(), user);
   }
 
   @DeleteMapping
   @ResponseStatus(NO_CONTENT)
   public void delete(@AuthenticationPrincipal User user) {
-    webhookService.delete(webhookService.getKeys(user).collect(toList()), user);
+    webhookService.delete(webhookService.getKeys(user).collect(toList()), defaultOpts(), user);
   }
 
 }

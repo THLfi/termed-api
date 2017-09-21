@@ -1,6 +1,8 @@
 package fi.thl.termed.web.system.node;
 
 import static fi.thl.termed.util.collect.Arg.arg;
+import static fi.thl.termed.util.service.SaveMode.saveMode;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -37,6 +39,7 @@ public class NodeChangesetController {
   public void deleteAndSaveOfType(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
@@ -50,13 +53,14 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
+    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "changeset=true", produces = {})
   @ResponseStatus(NO_CONTENT)
   public void deleteAndSaveOfGraph(
       @PathVariable("graphId") UUID graphId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
@@ -69,12 +73,13 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
+    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/nodes", params = "changeset=true", produces = {})
   @ResponseStatus(NO_CONTENT)
   public void deleteAndSave(
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
@@ -83,7 +88,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, user, arg("sync", sync));
+    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
   }
 
   private Node merge(Node node, Node patch) {

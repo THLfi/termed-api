@@ -25,6 +25,8 @@ import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +51,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void insert(GraphId id, Graph graph, User user) {
+  public void insert(GraphId id, Graph graph, SaveMode mode, WriteOptions opts, User user) {
     graphDao.insert(id, graph, user);
     insertRoles(id, graph.getRoles(), user);
     insertPermissions(id, graph.getPermissions(), user);
@@ -72,7 +74,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void update(GraphId id, Graph graph, User user) {
+  public void update(GraphId id, Graph graph, SaveMode mode, WriteOptions opts, User user) {
     graphDao.update(id, graph, user);
     updateRoles(id, graph.getRoles(), user);
     updatePermissions(id, graph.getPermissions(), user);
@@ -122,7 +124,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public void delete(GraphId id, User user, Arg... args) {
+  public void delete(GraphId id, WriteOptions opts, User user) {
     deleteRoles(id, user);
     deletePermissions(id, user);
     deleteProperties(id, user);

@@ -1,5 +1,8 @@
 package fi.thl.termed;
 
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -61,7 +64,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
     if (!userService.getKeys(initializer).findAny().isPresent()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
-      userService.save(admin, initializer);
+      userService.save(admin, UPSERT, defaultOpts(), initializer);
       log.info("Created new admin user with password: {}", password);
     }
   }
@@ -74,7 +77,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
     for (Property property : properties) {
       property.setIndex(index++);
     }
-    propertyService.save(properties, initializer);
+    propertyService.save(properties, UPSERT, defaultOpts(), initializer);
   }
 
   @PreDestroy

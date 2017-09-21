@@ -22,6 +22,8 @@ import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
@@ -44,7 +46,8 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void insert(ReferenceAttributeId id, ReferenceAttribute attr, User user) {
+  public void insert(ReferenceAttributeId id, ReferenceAttribute attr, SaveMode mode,
+      WriteOptions opts, User user) {
     referenceAttributeDao.insert(id, attr, user);
     insertPermissions(id, attr.getPermissions(), user);
     insertProperties(id, attr.getProperties(), user);
@@ -63,7 +66,8 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void update(ReferenceAttributeId id, ReferenceAttribute attribute, User user) {
+  public void update(ReferenceAttributeId id, ReferenceAttribute attribute, SaveMode mode,
+      WriteOptions opts, User user) {
     referenceAttributeDao.update(id, attribute, user);
     updatePermissions(id, attribute.getPermissions(), user);
     updateProperties(id, attribute.getProperties(), user);
@@ -103,7 +107,7 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public void delete(ReferenceAttributeId id, User user, Arg... args) {
+  public void delete(ReferenceAttributeId id, WriteOptions opts, User user) {
     deletePermissions(id, user);
     deleteProperties(id, user);
     referenceAttributeDao.delete(id, user);

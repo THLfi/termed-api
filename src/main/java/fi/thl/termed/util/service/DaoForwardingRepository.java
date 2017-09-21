@@ -22,17 +22,17 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
   }
 
   @Override
-  protected void insert(K id, V value, User user) {
+  protected void insert(K id, V value, SaveMode mode, WriteOptions opts, User user) {
     delegate.insert(id, value, user);
   }
 
   @Override
-  protected void update(K id, V value, User user) {
+  protected void update(K id, V value, SaveMode mode, WriteOptions opts, User user) {
     delegate.update(id, value, user);
   }
 
   @Override
-  public void delete(K id, User user, Arg... args) {
+  public void delete(K id, WriteOptions opts, User user) {
     delegate.delete(id, user);
   }
 

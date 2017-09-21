@@ -1,21 +1,23 @@
 package fi.thl.termed.web.system.property;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import static fi.thl.termed.util.service.SaveMode.saveMode;
+import static fi.thl.termed.util.service.WriteOptions.opts;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
-
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/properties")
@@ -30,22 +32,29 @@ public class PropertyWriteController {
 
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)
-  public void post(@RequestBody Property property, @AuthenticationPrincipal User currentUser) {
-    propertyService.save(property, currentUser);
+  public void post(@RequestBody Property property,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User currentUser) {
+    propertyService.save(property, saveMode(mode), opts(sync), currentUser);
   }
 
   @PutJsonMapping(path = "/{id}", produces = {})
   @ResponseStatus(NO_CONTENT)
   public void put(@PathVariable("id") String id, @RequestBody Property property,
-                  @AuthenticationPrincipal User currentUser) {
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User currentUser) {
     property.setId(id);
-    propertyService.save(property, currentUser);
+    propertyService.save(property, saveMode(mode), opts(sync), currentUser);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(NO_CONTENT)
-  public void delete(@PathVariable("id") String id, @AuthenticationPrincipal User user) {
-    propertyService.delete(id, user);
+  public void delete(@PathVariable("id") String id,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    propertyService.delete(id, opts(sync), user);
   }
 
 }

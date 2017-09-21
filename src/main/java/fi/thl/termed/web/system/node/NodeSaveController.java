@@ -1,6 +1,7 @@
 package fi.thl.termed.web.system.node;
 
-import static fi.thl.termed.util.collect.Arg.arg;
+import static fi.thl.termed.util.service.SaveMode.saveMode;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -38,23 +39,25 @@ public class NodeSaveController {
   public void saveAllOfType(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
     TypeId type = new TypeId(typeId, new GraphId(graphId));
     nodes.forEach(node -> node.setType(type));
-    nodeService.save(nodes, user, arg("sync", sync));
+    nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node saveOneOfType(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
-    NodeId nodeId = nodeService.save(node, user, arg("sync", sync));
+    NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -62,39 +65,43 @@ public class NodeSaveController {
   @ResponseStatus(NO_CONTENT)
   public void saveAllOfGraph(
       @PathVariable("graphId") UUID graphId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
     nodes.forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
-    nodeService.save(nodes, user, arg("sync", sync));
+    nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node saveOneOfGraph(
       @PathVariable("graphId") UUID graphId,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
     node.setType(new TypeId(node.getTypeId(), graphId));
-    NodeId nodeId = nodeService.save(node, user, arg("sync", sync));
+    NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
   @PostJsonMapping(path = "/nodes", params = "batch=true", produces = {})
   @ResponseStatus(NO_CONTENT)
   public void saveAll(
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
-    nodeService.save(nodes, user);
+    nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/nodes", produces = {})
   public Node saveOne(
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
-    NodeId nodeId = nodeService.save(node, user, arg("sync", sync));
+    NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -103,12 +110,13 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
     node.setType(new TypeId(typeId, new GraphId(graphId)));
     node.setId(id);
-    NodeId nodeId = nodeService.save(node, user, arg("sync", sync));
+    NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -117,6 +125,7 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
@@ -128,7 +137,7 @@ public class NodeSaveController {
     node.getProperties().entries().forEach(e -> baseNode.addProperty(e.getKey(), e.getValue()));
     node.getReferences().entries().forEach(e -> baseNode.addReference(e.getKey(), e.getValue()));
 
-    NodeId nodeId = nodeService.save(baseNode, user, arg("sync", sync));
+    NodeId nodeId = nodeService.save(baseNode, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 

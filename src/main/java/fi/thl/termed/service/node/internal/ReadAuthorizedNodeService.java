@@ -12,7 +12,9 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
@@ -44,29 +46,29 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, User user, Arg... args) {
-    return delegate.save(values, user, args);
+  public List<NodeId> save(List<Node> values, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.save(values, mode, opts, user);
   }
 
   @Override
-  public NodeId save(Node value, User user, Arg... args) {
-    return delegate.save(value, user, args);
+  public NodeId save(Node value, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.save(value, mode, opts, user);
   }
 
   @Override
-  public void delete(List<NodeId> ids, User user, Arg... args) {
-    delegate.delete(ids, user, args);
+  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
+    delegate.delete(ids, opts, user);
   }
 
   @Override
-  public void delete(NodeId id, User user, Arg... args) {
-    delegate.delete(id, user, args);
+  public void delete(NodeId id, WriteOptions opts, User user) {
+    delegate.delete(id, opts, user);
   }
 
   @Override
   public List<NodeId> deleteAndSave(List<NodeId> deletes,
-      List<Node> save, User user, Arg... args) {
-    return delegate.deleteAndSave(deletes, save, user, args);
+      List<Node> save, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.deleteAndSave(deletes, save, mode, opts, user);
   }
 
   @Override

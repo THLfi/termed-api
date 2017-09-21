@@ -25,7 +25,9 @@ import fi.thl.termed.util.collect.ArgUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.AndSpecification;
 import fi.thl.termed.util.specification.CompositeSpecification;
 import fi.thl.termed.util.specification.DependentSpecification;
@@ -74,7 +76,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
+  public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     nodes.forEach(node -> super.get(new AndSpecification<>(
@@ -87,7 +89,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    List<NodeId> ids = super.save(nodes, user, args);
+    List<NodeId> ids = super.save(nodes, mode, opts, user);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());
@@ -113,7 +115,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public NodeId save(Node node, User user, Arg... args) {
+  public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = Sets.newHashSet();
 
     super.get(new AndSpecification<>(
@@ -126,7 +128,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         });
 
-    NodeId id = super.save(node, user, args);
+    NodeId id = super.save(node, mode, opts, user);
     reindexingRequired.add(id);
 
     super.get(id, indexer).ifPresent(n -> {
@@ -144,7 +146,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public void delete(List<NodeId> nodeIds, User user, Arg... args) {
+  public void delete(List<NodeId> nodeIds, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     reindexingRequired.addAll(nodeIds);
@@ -159,13 +161,13 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    super.delete(nodeIds, user, args);
+    super.delete(nodeIds, opts, user);
 
     reindex(reindexingRequired);
   }
 
   @Override
-  public void delete(NodeId nodeId, User user, Arg... args) {
+  public void delete(NodeId nodeId, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
     reindexingRequired.add(nodeId);
@@ -180,14 +182,14 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         });
 
-    super.delete(nodeId, user, args);
+    super.delete(nodeId, opts, user);
 
     reindex(reindexingRequired);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
-      Arg... args) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+      WriteOptions opts, User user) {
 
     Set<NodeId> reindexingRequired = new HashSet<>();
 
@@ -213,7 +215,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    List<NodeId> ids = super.deleteAndSave(deletes, saves, user, args);
+    List<NodeId> ids = super.deleteAndSave(deletes, saves, mode, opts, user);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());

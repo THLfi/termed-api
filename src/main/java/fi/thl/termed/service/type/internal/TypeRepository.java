@@ -2,6 +2,7 @@ package fi.thl.termed.service.type.internal;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -29,7 +30,9 @@ import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
@@ -60,8 +63,8 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, User user, Arg... args) {
-    return super.save(addTypeIndices(types), user, args);
+  public List<TypeId> save(List<Type> types, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(addTypeIndices(types), mode, opts, user);
   }
 
   private List<Type> addTypeIndices(List<Type> types) {
@@ -76,7 +79,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
    * With bulk insert, first save all types, then dependant values.
    */
   @Override
-  public void insert(Map<TypeId, Type> map, User user) {
+  public void insert(Map<TypeId, Type> map, SaveMode mode, WriteOptions opts, User user) {
     typeDao.insert(map, user);
 
     for (Map.Entry<TypeId, Type> entry : map.entrySet()) {
@@ -86,12 +89,13 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
       insertPermissions(id, type.getPermissions(), user);
       insertProperties(id, type.getProperties(), user);
 
-      saveTextAttributes(id, type.getTextAttributes(), user);
-      saveReferenceAttributes(id, type.getReferenceAttributes(), user);
+      saveTextAttributes(id, type.getTextAttributes(), mode, opts, user);
+      saveReferenceAttributes(id, type.getReferenceAttributes(), mode, opts, user);
     }
   }
 
-  private void saveTextAttributes(TypeId id, List<TextAttribute> textAttributes, User user) {
+  private void saveTextAttributes(TypeId id, List<TextAttribute> textAttributes, SaveMode mode,
+      WriteOptions opts, User user) {
     Set<TextAttributeId> textAttributeIds =
         textAttributes.stream().map(TextAttribute::identifier).collect(toSet());
 
@@ -101,11 +105,12 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     ensureIncreasingAttributeIndices(textAttributes);
 
-    textAttributeRepository.delete(deletedAttributeIds, user);
-    textAttributeRepository.save(textAttributes, user);
+    textAttributeRepository.delete(deletedAttributeIds, opts, user);
+    textAttributeRepository.save(textAttributes, mode, opts, user);
   }
 
-  private void saveReferenceAttributes(TypeId id, List<ReferenceAttribute> refAttrs, User user) {
+  private void saveReferenceAttributes(TypeId id, List<ReferenceAttribute> refAttrs, SaveMode mode,
+      WriteOptions opts, User user) {
     Set<ReferenceAttributeId> refAttributeIds =
         refAttrs.stream().map(ReferenceAttribute::identifier).collect(toSet());
 
@@ -115,8 +120,8 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     ensureIncreasingAttributeIndices(refAttrs);
 
-    referenceAttributeRepository.delete(deletedAttributeIds, user);
-    referenceAttributeRepository.save(refAttrs, user);
+    referenceAttributeRepository.delete(deletedAttributeIds, opts, user);
+    referenceAttributeRepository.save(refAttrs, mode, opts, user);
   }
 
   private void ensureIncreasingAttributeIndices(List<? extends Attribute> attributes) {
@@ -130,15 +135,14 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public void insert(TypeId id, Type type, User user) {
+  public void insert(TypeId id, Type type, SaveMode mode, WriteOptions opts, User user) {
     typeDao.insert(id, type, user);
 
     insertPermissions(id, type.getPermissions(), user);
     insertProperties(id, type.getProperties(), user);
 
-    saveTextAttributes(id, type.getTextAttributes(), user);
-    saveReferenceAttributes(id, type.getReferenceAttributes(), user);
-
+    saveTextAttributes(id, type.getTextAttributes(), mode, opts, user);
+    saveReferenceAttributes(id, type.getReferenceAttributes(), mode, opts, user);
   }
 
   private void insertPermissions(TypeId id, Multimap<String, Permission> permissions, User user) {
@@ -151,14 +155,15 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public void update(TypeId id, Type type, User user) {
+  public void update(TypeId id, Type type, SaveMode mode, WriteOptions opts, User user) {
     typeDao.update(id, type, user);
 
     updatePermissions(id, type.getPermissions(), user);
     updateProperties(id, type.getProperties(), user);
 
-    saveTextAttributes(id, type.getTextAttributes(), user);
-    saveReferenceAttributes(id, type.getReferenceAttributes(), user);
+    // upsert dependent objects even if given mode is UPDATE
+    saveTextAttributes(id, type.getTextAttributes(), UPSERT, opts, user);
+    saveReferenceAttributes(id, type.getReferenceAttributes(), UPSERT, opts, user);
   }
 
   private void updatePermissions(TypeId id, Multimap<String, Permission> permissions, User user) {
@@ -189,11 +194,11 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  public void delete(TypeId id, User user, Arg... args) {
+  public void delete(TypeId id, WriteOptions opts, User user) {
     deletePermissions(id, user);
     deleteProperties(id, user);
-    deleteTextAttributes(id, user);
-    deleteReferenceAttributes(id, user);
+    deleteTextAttributes(id, opts, user);
+    deleteReferenceAttributes(id, opts, user);
     typeDao.delete(id, user);
   }
 
@@ -206,14 +211,14 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     typePropertyDao.delete(typePropertyDao.getKeys(new TypePropertiesByTypeId(id), user), user);
   }
 
-  private void deleteTextAttributes(TypeId id, User user) {
+  private void deleteTextAttributes(TypeId id, WriteOptions opts, User user) {
     textAttributeRepository.delete(textAttributeRepository.getKeys(
-        new TextAttributesByTypeId(id), user).collect(toList()), user);
+        new TextAttributesByTypeId(id), user).collect(toList()), opts, user);
   }
 
-  private void deleteReferenceAttributes(TypeId id, User user) {
+  private void deleteReferenceAttributes(TypeId id, WriteOptions opts, User user) {
     referenceAttributeRepository.delete(referenceAttributeRepository.getKeys(
-        new ReferenceAttributesByTypeId(id), user).collect(toList()), user);
+        new ReferenceAttributesByTypeId(id), user).collect(toList()), opts, user);
   }
 
   @Override

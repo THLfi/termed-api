@@ -1,5 +1,7 @@
 package fi.thl.termed.web.external.node;
 
+import static fi.thl.termed.util.service.SaveMode.saveMode;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -52,6 +54,8 @@ public class NodeRdfWriteController {
   private void post(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(value = "importCodes", defaultValue = "true") boolean importCodes,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Model model,
       @AuthenticationPrincipal User currentUser) {
 
@@ -64,7 +68,7 @@ public class NodeRdfWriteController {
     List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
         .apply(new JenaRdfModel(model));
 
-    nodeService.save(nodes, currentUser);
+    nodeService.save(nodes, saveMode(mode), opts(sync), currentUser);
   }
 
 }

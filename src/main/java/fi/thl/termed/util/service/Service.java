@@ -17,27 +17,27 @@ public interface Service<K extends Serializable, V> {
   /**
    * Save (insert or update) values with dependencies.
    */
-  List<K> save(List<V> values, User user, Arg... args);
+  List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user);
 
   /**
    * Save (insert or update) one value with dependencies.
    */
-  K save(V value, User user, Arg... args);
+  K save(V value, SaveMode mode, WriteOptions opts, User user);
 
   /**
    * Delete values with dependencies by ids.
    */
-  void delete(List<K> ids, User user, Arg... args);
+  void delete(List<K> ids, WriteOptions opts, User user);
 
   /**
    * Delete value with dependencies by id.
    */
-  void delete(K id, User user, Arg... args);
+  void delete(K id, WriteOptions opts, User user);
 
   /**
    * Delete and save values in one transaction. Returns ids of saved objects.
    */
-  List<K> deleteAndSave(List<K> deletes, List<V> save, User user, Arg... args);
+  List<K> deleteAndSave(List<K> deletes, List<V> save, SaveMode mode, WriteOptions opts, User user);
 
   /**
    * Get specified values.

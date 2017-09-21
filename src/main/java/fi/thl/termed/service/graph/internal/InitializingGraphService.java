@@ -7,9 +7,10 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 
 public class InitializingGraphService extends ForwardingService<GraphId, Graph> {
@@ -19,15 +20,22 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
   }
 
   @Override
-  public List<GraphId> save(List<Graph> graphs, User user, Arg... args) {
+  public List<GraphId> save(List<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
     graphs.forEach(this::initialize);
-    return super.save(graphs, user, args);
+    return super.save(graphs, mode, opts, user);
   }
 
   @Override
-  public GraphId save(Graph graph, User user, Arg... args) {
+  public GraphId save(Graph graph, SaveMode mode, WriteOptions opts, User user) {
     initialize(graph);
-    return super.save(graph, user, args);
+    return super.save(graph, mode, opts, user);
+  }
+
+  @Override
+  public List<GraphId> deleteAndSave(List<GraphId> deletes, List<Graph> saves, SaveMode mode,
+      WriteOptions opts, User user) {
+    saves.forEach(this::initialize);
+    return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   private void initialize(Graph graph) {

@@ -12,6 +12,8 @@ import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,7 +32,7 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void insert(String username, User user, User auth) {
+  public void insert(String username, User user, SaveMode mode, WriteOptions opts, User auth) {
     userDao.insert(username, user, auth);
 
     for (GraphRole graphRole : user.getGraphRoles()) {
@@ -40,7 +42,7 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void update(String username, User newUser, User auth) {
+  public void update(String username, User newUser, SaveMode mode, WriteOptions opts, User auth) {
     userDao.update(username, newUser, auth);
 
     Set<GraphRole> newRoles = ImmutableSet.copyOf(newUser.getGraphRoles());
@@ -61,7 +63,7 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public void delete(String username, User auth, Arg... args) {
+  public void delete(String username, WriteOptions opts, User auth) {
     userGraphRoleDao.delete(userGraphRoleDao.getKeys(
         new UserGraphRolesByUsername(username), auth), auth);
     userDao.delete(username, auth);

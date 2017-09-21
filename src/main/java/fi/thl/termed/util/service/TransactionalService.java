@@ -34,34 +34,35 @@ public class TransactionalService<K extends Serializable, V extends Identifiable
   }
 
   @Override
-  public List<K> save(List<V> values, User user, Arg... args) {
-    return runInTransaction(() -> delegate.save(values, user, args));
+  public List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user) {
+    return runInTransaction(() -> delegate.save(values, mode, opts, user));
   }
 
   @Override
-  public K save(V value, User user, Arg... args) {
-    return runInTransaction(() -> delegate.save(value, user, args));
+  public K save(V value, SaveMode mode, WriteOptions opts, User user) {
+    return runInTransaction(() -> delegate.save(value, mode, opts, user));
   }
 
   @Override
-  public void delete(List<K> ids, User user, Arg... args) {
+  public void delete(List<K> ids, WriteOptions opts, User user) {
     runInTransaction(() -> {
-      delegate.delete(ids, user, args);
+      delegate.delete(ids, opts, user);
       return null;
     });
   }
 
   @Override
-  public void delete(K id, User user, Arg... args) {
+  public void delete(K id, WriteOptions opts, User user) {
     runInTransaction(() -> {
-      delegate.delete(id, user, args);
+      delegate.delete(id, opts, user);
       return null;
     });
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, User user, Arg... args) {
-    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, user, args));
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+      User user) {
+    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, mode, opts, user));
   }
 
   @Override

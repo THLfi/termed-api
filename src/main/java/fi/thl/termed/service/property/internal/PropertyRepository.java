@@ -15,6 +15,8 @@ import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +34,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void insert(String id, Property property, User user) {
+  public void insert(String id, Property property, SaveMode mode, WriteOptions opts, User user) {
     propertyDao.insert(id, property, user);
     insertProperties(id, property.getProperties(), user);
   }
@@ -42,7 +44,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void update(String id, Property property, User user) {
+  public void update(String id, Property property, SaveMode mode, WriteOptions opts, User user) {
     propertyDao.update(id, property, user);
     updateProperties(id, property.getProperties(), user);
   }
@@ -64,7 +66,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public void delete(String id, User user, Arg... args) {
+  public void delete(String id, WriteOptions opts, User user) {
     deleteProperties(id, user);
     propertyDao.delete(id, user);
   }

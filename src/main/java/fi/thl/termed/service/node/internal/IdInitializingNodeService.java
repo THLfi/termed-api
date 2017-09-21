@@ -6,9 +6,10 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,22 +23,22 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
+  public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     nodes.forEach(this::resolveId);
-    return super.save(nodes, user, args);
+    return super.save(nodes, mode, opts, user);
   }
 
   @Override
-  public NodeId save(Node node, User user, Arg... args) {
+  public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
     resolveId(node);
-    return super.save(node, user, args);
+    return super.save(node, mode, opts, user);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
-      Arg... args) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+      WriteOptions opts, User user) {
     saves.forEach(this::resolveId);
-    return super.deleteAndSave(deletes, saves, user, args);
+    return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   private void resolveId(Node node) {

@@ -20,28 +20,29 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> save(List<V> values, User user, Arg... args) {
-    return delegate.save(values, user, args);
+  public List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.save(values, mode, opts, user);
   }
 
   @Override
-  public K save(V value, User user, Arg... args) {
-    return delegate.save(value, user, args);
+  public K save(V value, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.save(value, mode, opts, user);
   }
 
   @Override
-  public void delete(List<K> ids, User user, Arg... args) {
-    delegate.delete(ids, user, args);
+  public void delete(List<K> ids, WriteOptions opts, User user) {
+    delegate.delete(ids, opts, user);
   }
 
   @Override
-  public void delete(K id, User user, Arg... args) {
-    delegate.delete(id, user, args);
+  public void delete(K id, WriteOptions opts, User user) {
+    delegate.delete(id, opts, user);
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> save, User user, Arg... args) {
-    return delegate.deleteAndSave(deletes, save, user, args);
+  public List<K> deleteAndSave(List<K> deletes, List<V> save, SaveMode mode, WriteOptions opts,
+      User user) {
+    return delegate.deleteAndSave(deletes, save, mode, opts, user);
   }
 
   @Override

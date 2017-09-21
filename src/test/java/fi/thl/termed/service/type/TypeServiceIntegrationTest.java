@@ -3,6 +3,10 @@ package fi.thl.termed.service.type;
 import static com.google.common.collect.ImmutableMultimap.of;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
+import static fi.thl.termed.util.service.SaveMode.INSERT;
+import static fi.thl.termed.util.service.SaveMode.UPDATE;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -53,8 +57,9 @@ public class TypeServiceIntegrationTest {
     testGraphId = nameUUIDFromString("testGraph");
     testUser = new User("testUser", passwordEncoder.encode(randomUUIDString()), AppRole.ADMIN);
 
-    userService.save(testUser, new User("testInitializer", "", AppRole.SUPERUSER));
-    graphService.save(new Graph(testGraphId), testUser);
+    userService.save(testUser, UPSERT, defaultOpts(),
+        new User("testInitializer", "", AppRole.SUPERUSER));
+    graphService.save(new Graph(testGraphId), UPSERT, defaultOpts(), testUser);
   }
 
   @Test
@@ -65,10 +70,10 @@ public class TypeServiceIntegrationTest {
     assertFalse("Type should not exist, previous tests may have failed to delete types properly",
         typeService.get(conceptId, testUser).isPresent());
 
-    typeService.save(concept, testUser);
+    typeService.save(concept, INSERT, defaultOpts(), testUser);
     assertTrue(typeService.get(conceptId, testUser).isPresent());
 
-    typeService.delete(conceptId, testUser);
+    typeService.delete(conceptId, defaultOpts(), testUser);
     assertFalse(typeService.get(conceptId, testUser).isPresent());
   }
 
@@ -81,7 +86,7 @@ public class TypeServiceIntegrationTest {
     assertFalse("Type should not exist, previous tests may have failed to delete types properly",
         typeService.get(conceptId, testUser).isPresent());
 
-    typeService.save(concept, testUser);
+    typeService.save(concept, INSERT, defaultOpts(), testUser);
 
     Type savedType = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -89,7 +94,7 @@ public class TypeServiceIntegrationTest {
         singleton(new LangValue("en", "Preferred label")),
         savedType.getProperties().get("prefLabel"));
 
-    typeService.delete(conceptId, testUser);
+    typeService.delete(conceptId, defaultOpts(), testUser);
   }
 
   @Test
@@ -101,7 +106,7 @@ public class TypeServiceIntegrationTest {
     assertFalse("Type should not exist, previous tests may have failed to delete types properly",
         typeService.get(conceptId, testUser).isPresent());
 
-    typeService.save(concept, testUser);
+    typeService.save(concept, INSERT, defaultOpts(), testUser);
 
     Type savedConcept = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -111,7 +116,7 @@ public class TypeServiceIntegrationTest {
 
     savedConcept.setProperties(of("prefLabel", new LangValue("en", "Primary label")));
 
-    typeService.save(savedConcept, testUser);
+    typeService.save(savedConcept, UPDATE, defaultOpts(), testUser);
 
     savedConcept = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -119,7 +124,7 @@ public class TypeServiceIntegrationTest {
         singleton(new LangValue("en", "Primary label")),
         savedConcept.getProperties().get("prefLabel"));
 
-    typeService.delete(conceptId, testUser);
+    typeService.delete(conceptId, defaultOpts(), testUser);
   }
 
   @Test
@@ -135,7 +140,7 @@ public class TypeServiceIntegrationTest {
     assertFalse("Type should not exist, previous tests may have failed to delete types properly",
         typeService.get(conceptId, testUser).isPresent());
 
-    typeService.save(concept, testUser);
+    typeService.save(concept, INSERT, defaultOpts(), testUser);
 
     Type savedType = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -147,7 +152,7 @@ public class TypeServiceIntegrationTest {
     assertEquals(singletonList("broader"),
         savedType.getReferenceAttributes().stream().map(Attribute::getId).collect(toList()));
 
-    typeService.delete(conceptId, testUser);
+    typeService.delete(conceptId, defaultOpts(), testUser);
   }
 
   @Test
@@ -163,7 +168,7 @@ public class TypeServiceIntegrationTest {
     assertFalse("Type should not exist, previous tests may have failed to delete types properly",
         typeService.get(conceptId, testUser).isPresent());
 
-    typeService.save(concept, testUser);
+    typeService.save(concept, INSERT, defaultOpts(), testUser);
 
     Type savedType = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -178,7 +183,7 @@ public class TypeServiceIntegrationTest {
     concept.setTextAttributes(singletonList(
         new TextAttribute("prefLabel", conceptId)));
     concept.setReferenceAttributes(emptyList());
-    typeService.save(concept, testUser);
+    typeService.save(concept, UPDATE, defaultOpts(), testUser);
 
     savedType = typeService.get(conceptId, testUser)
         .orElseThrow(IllegalStateException::new);
@@ -189,7 +194,7 @@ public class TypeServiceIntegrationTest {
     assertEquals(emptyList(),
         savedType.getReferenceAttributes().stream().map(Attribute::getId).collect(toList()));
 
-    typeService.delete(conceptId, testUser);
+    typeService.delete(conceptId, defaultOpts(), testUser);
   }
 
 }

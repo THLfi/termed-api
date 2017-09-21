@@ -1,9 +1,16 @@
 package fi.thl.termed.util.service;
 
+import static fi.thl.termed.domain.AppRole.SUPERUSER;
+import static fi.thl.termed.util.service.SaveMode.INSERT;
+import static fi.thl.termed.util.service.SaveMode.UPDATE;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
+
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.Identifiable;
 import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.spring.exception.BadRequestException;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,8 +22,10 @@ import java.util.stream.Stream;
 public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
 
+  private User helper = new User("abstract-repository-helper", "", SUPERUSER);
+
   @Override
-  public List<K> save(List<V> values, User user, Arg... args) {
+  public List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user) {
     List<K> keys = new ArrayList<>();
 
     Map<K, V> inserts = new LinkedHashMap<>();
@@ -25,53 +34,68 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     for (V value : values) {
       K key = value.identifier();
 
-      if (!exists(key, user)) {
-        inserts.put(key, value);
-      } else {
+      boolean exists = exists(key, helper);
+      boolean existsForUser = exists(key, user);
+
+      if (exists && (mode == UPDATE || mode == UPSERT)) {
         updates.put(key, value);
+      } else if (!exists && (mode == INSERT || mode == UPSERT)) {
+        inserts.put(key, value);
+      } else if (existsForUser) {
+        throw new BadRequestException();
+      } else {
+        throw new NotFoundException();
       }
 
       keys.add(key);
     }
 
-    insert(inserts, user);
-    update(updates, user);
+    insert(inserts, mode, opts, user);
+    update(updates, mode, opts, user);
 
     return keys;
   }
 
   @Override
-  public K save(V value, User user, Arg... args) {
+  public K save(V value, SaveMode mode, WriteOptions opts, User user) {
     K key = value.identifier();
 
-    if (!exists(key, user)) {
-      insert(key, value, user);
+    boolean exists = exists(key, helper);
+    boolean existsForUser = exists(key, user);
+
+    if (exists && (mode == UPDATE || mode == UPSERT)) {
+      update(key, value, mode, opts, user);
+    } else if (!exists && (mode == INSERT || mode == UPSERT)) {
+      insert(key, value, mode, opts, user);
+    } else if (existsForUser) {
+      throw new BadRequestException();
     } else {
-      update(key, value, user);
+      throw new NotFoundException();
     }
 
     return key;
   }
 
-  protected void insert(Map<K, V> map, User user) {
-    map.forEach((k, v) -> insert(k, v, user));
+  protected void insert(Map<K, V> map, SaveMode mode, WriteOptions opts, User user) {
+    map.forEach((k, v) -> insert(k, v, mode, opts, user));
   }
 
-  protected void update(Map<K, V> map, User user) {
-    map.forEach((k, v) -> update(k, v, user));
+  protected void update(Map<K, V> map, SaveMode mode, WriteOptions opts, User user) {
+    map.forEach((k, v) -> update(k, v, mode, opts, user));
   }
 
-  protected abstract void insert(K id, V value, User user);
+  protected abstract void insert(K id, V value, SaveMode mode, WriteOptions opts, User user);
 
-  protected abstract void update(K id, V value, User user);
+  protected abstract void update(K id, V value, SaveMode mode, WriteOptions opts, User user);
 
-  public void delete(List<K> ids, User user, Arg... args) {
-    ids.forEach(id -> delete(id, user, args));
+  public void delete(List<K> ids, WriteOptions opts, User user) {
+    ids.forEach(id -> delete(id, opts, user));
   }
 
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, User user, Arg... args) {
-    delete(deletes, user, args);
-    return save(saves, user, args);
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+      User user) {
+    delete(deletes, opts, user);
+    return save(saves, mode, opts, user);
   }
 
   public long count(Specification<K, V> specification, User user, Arg... args) {

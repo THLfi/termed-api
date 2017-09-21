@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.util.collect.ArgUtils.findBoolean;
 import static java.util.Collections.singletonList;
 
 import com.google.common.eventbus.EventBus;
@@ -10,7 +9,9 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
 import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Date;
 import java.util.List;
@@ -47,37 +48,37 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, User user, Arg... args) {
-    List<NodeId> ids = delegate.save(values, user, args);
-    fireSaveEvents(ids, user.getUsername(), findBoolean(args, "sync"));
+  public List<NodeId> save(List<Node> values, SaveMode mode, WriteOptions opts, User user) {
+    List<NodeId> ids = delegate.save(values, mode, opts, user);
+    fireSaveEvents(ids, user.getUsername(), opts.isSync());
     return ids;
   }
 
   @Override
-  public NodeId save(Node value, User user, Arg... args) {
-    NodeId id = delegate.save(value, user, args);
-    fireSaveEvent(id, user.getUsername(), findBoolean(args, "sync"));
+  public NodeId save(Node value, SaveMode mode, WriteOptions opts, User user) {
+    NodeId id = delegate.save(value, mode, opts, user);
+    fireSaveEvent(id, user.getUsername(), opts.isSync());
     return id;
   }
 
   @Override
-  public void delete(List<NodeId> ids, User user, Arg... args) {
-    delegate.delete(ids, user, args);
-    fireDeleteEvents(ids, user.getUsername(), findBoolean(args, "sync"));
+  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
+    delegate.delete(ids, opts, user);
+    fireDeleteEvents(ids, user.getUsername(), opts.isSync());
   }
 
   @Override
-  public void delete(NodeId id, User user, Arg... args) {
-    delegate.delete(id, user, args);
-    fireDeleteEvent(id, user.getUsername(), findBoolean(args, "sync"));
+  public void delete(NodeId id, WriteOptions opts, User user) {
+    delegate.delete(id, opts, user);
+    fireDeleteEvent(id, user.getUsername(), opts.isSync());
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
-      Arg... args) {
-    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, user, args);
-    fireDeleteEvents(deletes, user.getUsername(), findBoolean(args, "sync"));
-    fireSaveEvents(ids, user.getUsername(), findBoolean(args, "sync"));
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+      WriteOptions opts, User user) {
+    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, mode, opts, user);
+    fireDeleteEvents(deletes, user.getUsername(), opts.isSync());
+    fireSaveEvents(ids, user.getUsername(), opts.isSync());
     return ids;
   }
 

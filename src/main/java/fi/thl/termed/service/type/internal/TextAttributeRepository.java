@@ -22,6 +22,8 @@ import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +45,8 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public void insert(TextAttributeId id, TextAttribute attr, User user) {
+  public void insert(TextAttributeId id, TextAttribute attr, SaveMode mode, WriteOptions opts,
+      User user) {
     textAttributeDao.insert(id, attr, user);
     insertProperties(id, attr.getProperties(), user);
     insertPermissions(id, attr.getPermissions(), user);
@@ -62,7 +65,8 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public void update(TextAttributeId id, TextAttribute attr, User user) {
+  public void update(TextAttributeId id, TextAttribute attr, SaveMode mode, WriteOptions opts,
+      User user) {
     textAttributeDao.update(id, attr, user);
     updatePermissions(id, attr.getPermissions(), user);
     updateProperties(id, attr.getProperties(), user);
@@ -102,7 +106,7 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public void delete(TextAttributeId id, User user, Arg... args) {
+  public void delete(TextAttributeId id, WriteOptions opts, User user) {
     deletePermissions(id, user);
     deleteProperties(id, user);
     textAttributeDao.delete(id, user);

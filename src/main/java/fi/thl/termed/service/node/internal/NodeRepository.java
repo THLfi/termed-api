@@ -19,6 +19,8 @@ import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.specification.Specification;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -46,7 +48,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
    * With bulk insert, first save all nodes, then dependant values.
    */
   @Override
-  public void insert(Map<NodeId, Node> map, User user) {
+  public void insert(Map<NodeId, Node> map, SaveMode mode, WriteOptions opts, User user) {
     addCreatedInfo(map.values(), user);
     nodeDao.insert(map, user);
 
@@ -63,7 +65,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public void insert(NodeId id, Node node, User user) {
+  public void insert(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
     addCreatedInfo(node, new Date(), user);
     nodeDao.insert(id, node, user);
     insertTextAttrValues(id, node.getProperties(), user);
@@ -96,7 +98,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public void update(NodeId id, Node node, User user) {
+  public void update(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
     addLastModifiedInfo(node, nodeDao.get(id, user).orElseThrow(IllegalStateException::new), user);
     nodeDao.update(id, node, user);
     updateTextAttrValues(id, node.getProperties(), user);
@@ -143,7 +145,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public void delete(NodeId nodeId, User user, Arg... args) {
+  public void delete(NodeId nodeId, WriteOptions opts, User user) {
     deleteRefAttrValues(nodeId, user);
     deleteInverseRefAttrValues(nodeId, user);
     deleteTextAttrValues(nodeId, user);

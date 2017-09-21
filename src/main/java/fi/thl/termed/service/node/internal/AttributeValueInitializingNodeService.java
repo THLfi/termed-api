@@ -11,9 +11,10 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.exception.BadRequestException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,22 +35,22 @@ public class AttributeValueInitializingNodeService
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, User user, Arg... args) {
+  public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     resolveAttributes(nodes, user);
-    return super.save(nodes, user, args);
+    return super.save(nodes, mode, opts, user);
   }
 
   @Override
-  public NodeId save(Node node, User user, Arg... args) {
+  public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
     resolveAttributes(singletonList(node), user);
-    return super.save(node, user, args);
+    return super.save(node, mode, opts, user);
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, User user,
-      Arg... args) {
+  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+      WriteOptions opts, User user) {
     resolveAttributes(saves, user);
-    return super.deleteAndSave(deletes, saves, user, args);
+    return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   private void resolveAttributes(List<Node> nodes, User user) {
