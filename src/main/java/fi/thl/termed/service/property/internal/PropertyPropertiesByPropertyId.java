@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class PropertyPropertiesByPropertyId
     extends AbstractSqlSpecification<PropertyValueId<String>, LangValue> {

@@ -5,7 +5,7 @@ import java.util.Objects;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class ReferenceAttributesByTypeId
     extends AbstractSqlSpecification<ReferenceAttributeId, ReferenceAttribute> {

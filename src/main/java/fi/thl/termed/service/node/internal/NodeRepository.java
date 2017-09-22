@@ -15,13 +15,13 @@ import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -168,22 +168,23 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public boolean exists(NodeId nodeId, User user, Arg... args) {
+  public boolean exists(NodeId nodeId, User user) {
     return nodeDao.exists(nodeId, user);
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return nodeDao.getValues(spec, user).stream().map(node -> populateValue(node, user));
+  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+    return nodeDao.getValues(query.getWhere(), user).stream()
+        .map(node -> populateValue(node, user));
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return nodeDao.getKeys(spec, user).stream();
+  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    return nodeDao.getKeys(query.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<Node> get(NodeId id, User user, Arg... args) {
+  public Optional<Node> get(NodeId id, User user, Select... selects) {
     return nodeDao.get(id, user).map(node -> populateValue(node, user));
   }
 

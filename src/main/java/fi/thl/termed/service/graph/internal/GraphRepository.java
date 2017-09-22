@@ -21,13 +21,13 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -145,23 +145,23 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public boolean exists(GraphId id, User user, Arg... args) {
+  public boolean exists(GraphId id, User user) {
     return graphDao.exists(id, user);
   }
 
   @Override
-  public Stream<Graph> get(Specification<GraphId, Graph> spec, User user, Arg... args) {
-    return graphDao.getValues(spec, user).stream()
+  public Stream<Graph> getValues(Query<GraphId, Graph> query, User user) {
+    return graphDao.getValues(query.getWhere(), user).stream()
         .map(graph -> populateValue(graph, user));
   }
 
   @Override
-  public Stream<GraphId> getKeys(Specification<GraphId, Graph> spec, User user, Arg... args) {
-    return graphDao.getKeys(spec, user).stream();
+  public Stream<GraphId> getKeys(Query<GraphId, Graph> query, User user) {
+    return graphDao.getKeys(query.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<Graph> get(GraphId id, User user, Arg... args) {
+  public Optional<Graph> get(GraphId id, User user, Select... selects) {
     return graphDao.get(id, user).map(graph -> populateValue(graph, user));
   }
 

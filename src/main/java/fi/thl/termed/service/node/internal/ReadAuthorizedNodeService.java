@@ -10,17 +10,17 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -67,49 +67,39 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
   @Override
   public List<NodeId> deleteAndSave(List<NodeId> deletes,
-      List<Node> save, SaveMode mode, WriteOptions opts, User user) {
-    return delegate.deleteAndSave(deletes, save, mode, opts, user);
+      List<Node> saves, SaveMode mode, WriteOptions opts, User user) {
+    return delegate.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return filterValues(delegate.get(spec, user, args), user);
+  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+    return filterValues(delegate.getValues(query, user), user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return filterKeys(delegate.getKeys(spec, user, args), user);
+  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    return filterKeys(delegate.getKeys(query, user), user);
   }
 
   @Override
-  public long count(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return delegate.count(spec, user, args);
+  public long count(Specification<NodeId, Node> spec, User user) {
+    return delegate.count(spec, user);
   }
 
   @Override
-  public boolean exists(NodeId id, User user, Arg... args) {
-    return nodeEvaluator.hasPermission(user, id, Permission.READ) &&
-        delegate.exists(id, user, args);
+  public boolean exists(NodeId id, User user) {
+    return nodeEvaluator.hasPermission(user, id, Permission.READ) && delegate.exists(id, user);
   }
 
   @Override
-  public Stream<Node> get(List<NodeId> ids, User user, Arg... args) {
-    return filterValues(delegate.get(filterKeys(ids, user), user, args), user);
-  }
-
-  @Override
-  public Optional<Node> get(NodeId id, User user, Arg... args) {
+  public Optional<Node> get(NodeId id, User user, Select... selects) {
     if (!nodeEvaluator.hasPermission(user, id, Permission.READ)) {
       return Optional.empty();
     }
 
-    return delegate.get(id, user, args)
+    return delegate.get(id, user, selects)
         .filter(r -> nodeEvaluator.hasPermission(user, new NodeId(r), Permission.READ))
         .map(new AttributePermissionFilter(user, Permission.READ));
-  }
-
-  private List<NodeId> filterKeys(List<NodeId> keys, User user) {
-    return filterKeys(keys.stream(), user).collect(Collectors.toList());
   }
 
   private Stream<NodeId> filterKeys(Stream<NodeId> keys, User user) {
@@ -208,6 +198,5 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
     }
 
   }
-
 
 }

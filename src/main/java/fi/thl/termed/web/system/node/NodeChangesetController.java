@@ -1,6 +1,5 @@
 package fi.thl.termed.web.system.node;
 
-import static fi.thl.termed.util.collect.Arg.arg;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Optional.ofNullable;

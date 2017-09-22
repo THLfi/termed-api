@@ -27,7 +27,7 @@ public class PropertyReadController {
 
   @GetJsonMapping
   public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.get(user).collect(toList());
+    return propertyService.getValues(user).collect(toList());
   }
 
   @GetJsonMapping("/{id}")

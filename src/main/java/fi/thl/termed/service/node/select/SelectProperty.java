@@ -1,9 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectProperty extends SelectAttribute {
+import fi.thl.termed.util.query.Select;
 
-  public SelectProperty(String attributeId) {
-    super(attributeId);
+public class SelectProperty extends Select {
+
+  public SelectProperty(String field) {
+    super(field);
   }
 
 }

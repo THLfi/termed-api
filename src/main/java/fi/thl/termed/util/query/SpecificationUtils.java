@@ -1,4 +1,4 @@
-package fi.thl.termed.util.specification;
+package fi.thl.termed.util.query;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;

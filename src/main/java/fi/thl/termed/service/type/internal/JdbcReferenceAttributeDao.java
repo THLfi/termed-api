@@ -13,7 +13,7 @@ import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 import static com.google.common.base.Strings.emptyToNull;
 

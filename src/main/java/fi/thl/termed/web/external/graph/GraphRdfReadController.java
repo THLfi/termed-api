@@ -29,8 +29,8 @@ public class GraphRdfReadController {
 
   @GetRdfMapping
   public Model get(@AuthenticationPrincipal User currentUser) {
-    List<Graph> graphs = graphService.get(currentUser).collect(toList());
-    List<Property> properties = propertyService.get(currentUser).collect(toList());
+    List<Graph> graphs = graphService.getValues(currentUser).collect(toList());
+    List<Property> properties = propertyService.getValues(currentUser).collect(toList());
     return new JenaRdfModel(new GraphsToRdfModel(properties).apply(graphs)).getModel();
   }
 

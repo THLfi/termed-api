@@ -12,8 +12,8 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.OrSpecification;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.OrSpecification;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class NodeCountController {
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @AuthenticationPrincipal User user) {
 
-    List<Type> types = typeService.get(user).collect(toList());
+    List<Type> types = typeService.getValues(user).collect(toList());
 
     Specification<NodeId, Node> spec = types.stream()
         .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
@@ -61,9 +61,9 @@ public class NodeCountController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    List<Type> types = typeService.get(user).collect(toList());
+    List<Type> types = typeService.getValues(user).collect(toList());
 
-    Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
+    Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
         .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
@@ -77,7 +77,7 @@ public class NodeCountController {
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @AuthenticationPrincipal User user) {
 
-    List<Type> types = typeService.get(user).collect(toList());
+    List<Type> types = typeService.getValues(user).collect(toList());
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 

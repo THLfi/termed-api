@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectAllProperties extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectAllProperties INSTANCE = new SelectAllProperties();
+public class SelectAllProperties extends Select {
+
+  public SelectAllProperties() {
+    super("properties.*");
+  }
 
 }

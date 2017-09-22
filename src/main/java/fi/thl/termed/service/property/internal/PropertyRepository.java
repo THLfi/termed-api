@@ -12,12 +12,12 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -77,23 +77,23 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public boolean exists(String id, User user, Arg... args) {
+  public boolean exists(String id, User user) {
     return propertyDao.exists(id, user);
   }
 
   @Override
-  public Stream<Property> get(Specification<String, Property> spec, User user, Arg... args) {
-    return propertyDao.getValues(spec, user).stream()
+  public Stream<Property> getValues(Query<String, Property> query, User user) {
+    return propertyDao.getValues(query.getWhere(), user).stream()
         .map(property -> populateValue(property, user));
   }
 
   @Override
-  public Stream<String> getKeys(Specification<String, Property> spec, User user, Arg... args) {
-    return propertyDao.getKeys(spec, user).stream();
+  public Stream<String> getKeys(Query<String, Property> query, User user) {
+    return propertyDao.getKeys(query.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<Property> get(String id, User user, Arg... args) {
+  public Optional<Property> get(String id, User user, Select... selects) {
     return propertyDao.get(id, user).map(property -> populateValue(property, user));
   }
 

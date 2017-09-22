@@ -10,7 +10,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.AndSpecification;
+import fi.thl.termed.util.query.AndSpecification;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -5,7 +5,7 @@ import java.util.Objects;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class TextAttributesByTypeId
     extends AbstractSqlSpecification<TextAttributeId, TextAttribute> {

@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectLastModifiedDate extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectLastModifiedDate INSTANCE = new SelectLastModifiedDate();
+public class SelectLastModifiedDate extends Select {
+
+  public SelectLastModifiedDate() {
+    super("lastModifiedDate");
+  }
 
 }

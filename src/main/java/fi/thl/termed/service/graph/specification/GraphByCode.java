@@ -1,11 +1,10 @@
 package fi.thl.termed.service.graph.specification;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class GraphByCode extends AbstractSqlSpecification<GraphId, Graph> {
 

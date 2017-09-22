@@ -1,7 +1,6 @@
 package fi.thl.termed.web.system.node;
 
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByAnyPropertyPrefix;
-import static fi.thl.termed.util.collect.Arg.args;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -15,9 +14,10 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.json.JsonStream;
+import fi.thl.termed.util.query.OrSpecification;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.specification.OrSpecification;
-import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class NodeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Specification<NodeId, Node> spec = typeService.get(user)
+    Specification<NodeId, Node> spec = typeService.getValues(user)
         .map(type -> specifyByAnyPropertyPrefix(type, query))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
@@ -60,7 +60,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
+        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -74,7 +74,7 @@ public class NodeReadController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = typeService.get(new TypesByGraphId(graphId), user)
+    Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
         .map(type -> specifyByAnyPropertyPrefix(type, query))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
@@ -82,7 +82,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
+        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -104,7 +104,7 @@ public class NodeReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     JsonStream.write(response.getOutputStream(), gson,
-        nodeService.get(spec, user, args("sort", sort, "max", max)), Node.class);
+        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

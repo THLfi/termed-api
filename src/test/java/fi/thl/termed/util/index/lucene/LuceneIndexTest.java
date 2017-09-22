@@ -9,8 +9,8 @@ import org.junit.Test;
 
 import java.io.Serializable;
 
-import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.Specification;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

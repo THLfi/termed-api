@@ -1,6 +1,6 @@
 package fi.thl.termed.util.index;
 
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;

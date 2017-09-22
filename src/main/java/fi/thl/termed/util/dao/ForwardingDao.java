@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 
 public class ForwardingDao<K extends Serializable, V> implements Dao<K, V> {
 

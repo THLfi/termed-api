@@ -4,8 +4,6 @@ import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Multimaps.transformValues;
 
 import com.google.common.collect.Multimap;
-import fi.thl.termed.service.node.select.Select;
-import fi.thl.termed.service.node.select.SelectAll;
 import fi.thl.termed.service.node.select.SelectAllProperties;
 import fi.thl.termed.service.node.select.SelectAllReferences;
 import fi.thl.termed.service.node.select.SelectAllReferrers;
@@ -20,6 +18,8 @@ import fi.thl.termed.service.node.select.SelectReference;
 import fi.thl.termed.service.node.select.SelectReferrer;
 import fi.thl.termed.service.node.select.SelectType;
 import fi.thl.termed.service.node.select.SelectUri;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.SelectAll;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -36,55 +36,51 @@ public class FilteredNodeTree implements NodeTree {
 
   @Override
   public UUID getId() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectId.INSTANCE) ?
-        source.getId() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectId()) ? source.getId() : null;
   }
 
   @Override
   public String getCode() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectCode.INSTANCE) ?
-        source.getCode() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectCode()) ? source.getCode() : null;
   }
 
   @Override
   public String getUri() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectUri.INSTANCE) ?
-        source.getUri() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectUri()) ? source.getUri() : null;
   }
 
   @Override
   public String getCreatedBy() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectCreatedBy.INSTANCE) ?
+    return s.contains(new SelectAll()) || s.contains(new SelectCreatedBy()) ?
         source.getCreatedBy() : null;
   }
 
   @Override
   public Date getCreatedDate() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectCreatedDate.INSTANCE) ?
+    return s.contains(new SelectAll()) || s.contains(new SelectCreatedDate()) ?
         source.getCreatedDate() : null;
   }
 
   @Override
   public String getLastModifiedBy() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectLastModifiedBy.INSTANCE) ?
+    return s.contains(new SelectAll()) || s.contains(new SelectLastModifiedBy()) ?
         source.getLastModifiedBy() : null;
   }
 
   @Override
   public Date getLastModifiedDate() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectLastModifiedDate.INSTANCE) ?
+    return s.contains(new SelectAll()) || s.contains(new SelectLastModifiedDate()) ?
         source.getLastModifiedDate() : null;
   }
 
   @Override
   public TypeId getType() {
-    return s.contains(SelectAll.INSTANCE) || s.contains(SelectType.INSTANCE) ?
-        source.getType() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectType()) ? source.getType() : null;
   }
 
   @Override
   public Multimap<String, StrictLangValue> getProperties() {
-    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllProperties.INSTANCE)) {
+    if (s.contains(new SelectAll()) || s.contains(new SelectAllProperties())) {
       return source.getProperties();
     }
 
@@ -93,7 +89,7 @@ public class FilteredNodeTree implements NodeTree {
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferences() {
-    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferences.INSTANCE)) {
+    if (s.contains(new SelectAll()) || s.contains(new SelectAllReferences())) {
       return source.getReferences();
     }
 
@@ -104,7 +100,7 @@ public class FilteredNodeTree implements NodeTree {
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferrers() {
-    if (s.contains(SelectAll.INSTANCE) || s.contains(SelectAllReferrers.INSTANCE)) {
+    if (s.contains(new SelectAll()) || s.contains(new SelectAllReferrers())) {
       return source.getReferrers();
     }
 

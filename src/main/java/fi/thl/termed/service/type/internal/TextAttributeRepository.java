@@ -18,13 +18,13 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -123,25 +123,23 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public boolean exists(TextAttributeId id, User user, Arg... args) {
+  public boolean exists(TextAttributeId id, User user) {
     return textAttributeDao.exists(id, user);
   }
 
   @Override
-  public Stream<TextAttribute> get(Specification<TextAttributeId, TextAttribute> spec, User user,
-      Arg... args) {
-    return textAttributeDao.getValues(spec, user).stream()
+  public Stream<TextAttribute> getValues(Query<TextAttributeId, TextAttribute> query, User user) {
+    return textAttributeDao.getValues(query.getWhere(), user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public Stream<TextAttributeId> getKeys(
-      Specification<TextAttributeId, TextAttribute> spec, User user, Arg... args) {
-    return textAttributeDao.getKeys(spec, user).stream();
+  public Stream<TextAttributeId> getKeys(Query<TextAttributeId, TextAttribute> spec, User user) {
+    return textAttributeDao.getKeys(spec.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<TextAttribute> get(TextAttributeId id, User user, Arg... args) {
+  public Optional<TextAttribute> get(TextAttributeId id, User user, Select... selects) {
     return textAttributeDao.get(id, user).map(attribute -> populateValue(attribute, user));
   }
 

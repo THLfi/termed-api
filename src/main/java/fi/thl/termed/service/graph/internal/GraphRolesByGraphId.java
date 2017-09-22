@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphRole;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class GraphRolesByGraphId extends AbstractSqlSpecification<GraphRole, Empty> {
 

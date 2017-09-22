@@ -26,14 +26,14 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +100,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
         textAttributes.stream().map(TextAttribute::identifier).collect(toSet());
 
     List<TextAttributeId> deletedAttributeIds =
-        textAttributeRepository.getKeys(new TextAttributesByTypeId(id), user)
+        textAttributeRepository.getKeys(new Query<>(new TextAttributesByTypeId(id)), user)
             .filter(oldAttrId -> !textAttributeIds.contains(oldAttrId)).collect(toList());
 
     ensureIncreasingAttributeIndices(textAttributes);
@@ -115,7 +115,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
         refAttrs.stream().map(ReferenceAttribute::identifier).collect(toSet());
 
     List<ReferenceAttributeId> deletedAttributeIds =
-        referenceAttributeRepository.getKeys(new ReferenceAttributesByTypeId(id), user)
+        referenceAttributeRepository.getKeys(new Query<>(new ReferenceAttributesByTypeId(id)), user)
             .filter(oldAttrId -> !refAttributeIds.contains(oldAttrId)).collect(toList());
 
     ensureIncreasingAttributeIndices(refAttrs);
@@ -213,31 +213,31 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private void deleteTextAttributes(TypeId id, WriteOptions opts, User user) {
     textAttributeRepository.delete(textAttributeRepository.getKeys(
-        new TextAttributesByTypeId(id), user).collect(toList()), opts, user);
+        new Query<>(new TextAttributesByTypeId(id)), user).collect(toList()), opts, user);
   }
 
   private void deleteReferenceAttributes(TypeId id, WriteOptions opts, User user) {
     referenceAttributeRepository.delete(referenceAttributeRepository.getKeys(
-        new ReferenceAttributesByTypeId(id), user).collect(toList()), opts, user);
+        new Query<>(new ReferenceAttributesByTypeId(id)), user).collect(toList()), opts, user);
   }
 
   @Override
-  public boolean exists(TypeId id, User user, Arg... args) {
+  public boolean exists(TypeId id, User user) {
     return typeDao.exists(id, user);
   }
 
   @Override
-  public Stream<Type> get(Specification<TypeId, Type> spec, User user, Arg... args) {
-    return typeDao.getValues(spec, user).stream().map(cls -> populateValue(cls, user));
+  public Stream<Type> getValues(Query<TypeId, Type> spec, User user) {
+    return typeDao.getValues(spec.getWhere(), user).stream().map(cls -> populateValue(cls, user));
   }
 
   @Override
-  public Stream<TypeId> getKeys(Specification<TypeId, Type> spec, User user, Arg... args) {
-    return typeDao.getKeys(spec, user).stream();
+  public Stream<TypeId> getKeys(Query<TypeId, Type> spec, User user) {
+    return typeDao.getKeys(spec.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<Type> get(TypeId id, User user, Arg... args) {
+  public Optional<Type> get(TypeId id, User user, Select... selects) {
     return typeDao.get(id, user).map(cls -> populateValue(cls, user));
   }
 
@@ -251,10 +251,10 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     type.setProperties(new PropertyValueModelToDto<TypeId>().apply(
         typePropertyDao.getMap(new TypePropertiesByTypeId(id), user)));
 
-    type.setTextAttributes(textAttributeRepository.get(
+    type.setTextAttributes(textAttributeRepository.getValues(
         new TextAttributesByTypeId(id), user).collect(toList()));
 
-    type.setReferenceAttributes(referenceAttributeRepository.get(
+    type.setReferenceAttributes(referenceAttributeRepository.getValues(
         new ReferenceAttributesByTypeId(id), user).collect(toList()));
 
     return type;

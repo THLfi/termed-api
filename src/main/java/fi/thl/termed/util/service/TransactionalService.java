@@ -1,9 +1,9 @@
 package fi.thl.termed.util.service;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
-import fi.thl.termed.util.collect.Identifiable;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +14,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-public class TransactionalService<K extends Serializable, V extends Identifiable<K>>
-    implements Service<K, V> {
+public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
 
   private Service<K, V> delegate;
 
@@ -66,33 +65,28 @@ public class TransactionalService<K extends Serializable, V extends Identifiable
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, User user, Arg... args) {
-    return runInTransaction(() -> delegate.get(specification, user, args));
+  public Stream<V> getValues(Query<K, V> query, User user) {
+    return runInTransaction(() -> delegate.getValues(query, user));
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, User user, Arg... args) {
-    return runInTransaction(() -> delegate.getKeys(specification, user, args));
+  public Stream<K> getKeys(Query<K, V> query, User user) {
+    return runInTransaction(() -> delegate.getKeys(query, user));
   }
 
   @Override
-  public long count(Specification<K, V> specification, User user, Arg... args) {
-    return runInTransaction(() -> delegate.count(specification, user, args));
+  public long count(Specification<K, V> spec, User user) {
+    return runInTransaction(() -> delegate.count(spec, user));
   }
 
   @Override
-  public boolean exists(K id, User user, Arg... args) {
-    return runInTransaction(() -> delegate.exists(id, user, args));
+  public boolean exists(K id, User user) {
+    return runInTransaction(() -> delegate.exists(id, user));
   }
 
   @Override
-  public Stream<V> get(List<K> ids, User user, Arg... args) {
-    return runInTransaction(() -> delegate.get(ids, user, args));
-  }
-
-  @Override
-  public Optional<V> get(K id, User user, Arg... args) {
-    return runInTransaction(() -> delegate.get(id, user, args));
+  public Optional<V> get(K id, User user, Select... selects) {
+    return runInTransaction(() -> delegate.get(id, user, selects));
   }
 
   private <E> E runInTransaction(Supplier<E> supplier) {

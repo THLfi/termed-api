@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectAllReferences extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectAllReferences INSTANCE = new SelectAllReferences();
+public class SelectAllReferences extends Select {
+
+  public SelectAllReferences() {
+    super("references.*");
+  }
 
 }

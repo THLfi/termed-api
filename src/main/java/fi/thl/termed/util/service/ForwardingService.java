@@ -1,8 +1,9 @@
 package fi.thl.termed.util.service;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -40,44 +41,44 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> save, SaveMode mode, WriteOptions opts,
+  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
       User user) {
-    return delegate.deleteAndSave(deletes, save, mode, opts, user);
+    return delegate.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
   @Override
-  public Stream<V> get(User user, Arg... args) {
-    return delegate.get(user, args);
+  public Stream<V> getValues(User user) {
+    return delegate.getValues(user);
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, User user, Arg... args) {
-    return delegate.get(specification, user, args);
+  public Stream<V> getValues(Query<K, V> query, User user) {
+    return delegate.getValues(query, user);
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, User user, Arg... args) {
-    return delegate.getKeys(specification, user, args);
+  public Stream<K> getKeys(User user) {
+    return delegate.getKeys(user);
   }
 
   @Override
-  public long count(Specification<K, V> specification, User user, Arg... args) {
-    return delegate.count(specification, user, args);
+  public Stream<K> getKeys(Query<K, V> query, User user) {
+    return delegate.getKeys(query, user);
   }
 
   @Override
-  public boolean exists(K key, User user, Arg... args) {
-    return delegate.exists(key, user, args);
+  public long count(Specification<K, V> spec, User user) {
+    return delegate.count(spec, user);
   }
 
   @Override
-  public Stream<V> get(List<K> ids, User user, Arg... args) {
-    return delegate.get(ids, user, args);
+  public boolean exists(K key, User user) {
+    return delegate.exists(key, user);
   }
 
   @Override
-  public Optional<V> get(K id, User user, Arg... args) {
-    return delegate.get(id, user, args);
+  public Optional<V> get(K id, User user, Select... selects) {
+    return delegate.get(id, user, selects);
   }
 
 }

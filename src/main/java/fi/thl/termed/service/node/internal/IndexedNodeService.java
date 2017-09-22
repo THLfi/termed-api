@@ -1,9 +1,5 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.util.ObjectUtils.castBoolean;
-import static fi.thl.termed.util.ObjectUtils.castInteger;
-import static fi.thl.termed.util.ObjectUtils.castStringList;
-import static fi.thl.termed.util.collect.ArgUtils.findBoolean;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Sets;
@@ -16,27 +12,28 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.domain.event.ReindexEvent;
+import fi.thl.termed.service.node.select.SelectAllReferrers;
+import fi.thl.termed.service.node.select.SelectReferrer;
 import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.ProgressReporter;
-import fi.thl.termed.util.collect.Arg;
-import fi.thl.termed.util.collect.ArgUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
+import fi.thl.termed.util.query.AndSpecification;
+import fi.thl.termed.util.query.CompositeSpecification;
+import fi.thl.termed.util.query.DependentSpecification;
+import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.NotSpecification;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.SelectAll;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.AndSpecification;
-import fi.thl.termed.util.specification.CompositeSpecification;
-import fi.thl.termed.util.specification.DependentSpecification;
-import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.NotSpecification;
-import fi.thl.termed.util.specification.Specification;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -79,7 +76,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
-    nodes.forEach(node -> super.get(new AndSpecification<>(
+    nodes.forEach(node -> super.getValues(new AndSpecification<>(
         new NodesByGraphId(node.getTypeGraphId()),
         new NodesByTypeId(node.getTypeId()),
         new NodeById(node.getId())), indexer)
@@ -118,7 +115,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = Sets.newHashSet();
 
-    super.get(new AndSpecification<>(
+    super.getValues(new AndSpecification<>(
         new NodesByGraphId(node.getTypeGraphId()),
         new NodesByTypeId(node.getTypeId()),
         new NodeById(node.getId())), user)
@@ -151,7 +148,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.addAll(nodeIds);
 
-    nodeIds.forEach(nodeId -> super.get(new AndSpecification<>(
+    nodeIds.forEach(nodeId -> super.getValues(new AndSpecification<>(
         new NodesByGraphId(nodeId.getTypeGraphId()),
         new NodesByTypeId(nodeId.getTypeId()),
         new NodeById(nodeId.getId())), indexer)
@@ -172,7 +169,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.add(nodeId);
 
-    super.get(new AndSpecification<>(
+    super.getValues(new AndSpecification<>(
         new NodesByGraphId(nodeId.getTypeGraphId()),
         new NodesByTypeId(nodeId.getTypeId()),
         new NodeById(nodeId.getId())), indexer)
@@ -195,7 +192,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.addAll(deletes);
 
-    deletes.forEach(delete -> super.get(new AndSpecification<>(
+    deletes.forEach(delete -> super.getValues(new AndSpecification<>(
         new NodesByGraphId(delete.getTypeGraphId()),
         new NodesByTypeId(delete.getTypeId()),
         new NodeById(delete.getId())), indexer)
@@ -205,7 +202,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           reindexingRequired.addAll(n.getReferrers().values());
         }));
 
-    saves.forEach(save -> super.get(new AndSpecification<>(
+    saves.forEach(save -> super.getValues(new AndSpecification<>(
         new NodesByGraphId(save.getTypeGraphId()),
         new NodesByTypeId(save.getTypeId()),
         new NodeById(save.getId())), indexer)
@@ -264,46 +261,43 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
-    Map<String, Object> argMap = ArgUtils.map(args);
-
-    boolean bypassIndex = castBoolean(argMap.get("bypassIndex"), false);
-
-    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.get(spec, user, args);
+  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+    if (!(query.getWhere() instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      return super.getValues(query, user);
     }
 
-    resolve(spec, user);
+    resolve(query.getWhere(), user);
 
-    return ((LuceneIndex<NodeId, Node>) index).get(spec,
-        castStringList(argMap.get("sort")),
-        castInteger(argMap.get("max"), -1),
-        new DocumentToNode(gson, castBoolean(argMap.get("loadReferrers"), true)));
+    boolean loadReferrers = query.getSelect().stream()
+        .anyMatch(select -> select instanceof SelectReferrer
+            || select instanceof SelectAllReferrers
+            || select instanceof SelectAll);
+
+    return ((LuceneIndex<NodeId, Node>) index).get(
+        query.getWhere(),
+        query.getSort(),
+        query.getMax(),
+        new DocumentToNode(gson, loadReferrers));
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
-    Map<String, Object> argMap = ArgUtils.map(args);
-
-    boolean bypassIndex = castBoolean(argMap.get("bypassIndex"), false);
-
-    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.getKeys(spec, user, args);
+  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    if (!(query.getWhere() instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      return super.getKeys(query, user);
     }
 
-    resolve(spec, user);
+    resolve(query.getWhere(), user);
 
-    return index.getKeys(spec,
-        castStringList(argMap.get("sort")),
-        castInteger(argMap.get("max"), -1));
+    return index.getKeys(
+        query.getWhere(),
+        query.getSort(),
+        query.getMax());
   }
 
   @Override
-  public long count(Specification<NodeId, Node> spec, User user, Arg... args) {
-    boolean bypassIndex = findBoolean(args, "bypassIndex", false);
-
-    if (bypassIndex || !(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.count(spec, user, args);
+  public long count(Specification<NodeId, Node> spec, User user) {
+    if (!(spec instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
+      return super.count(spec, user);
     }
 
     resolve(spec, user);
@@ -313,7 +307,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private void resolve(Specification<NodeId, Node> spec, User user) {
     if (spec instanceof DependentSpecification) {
-      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(s, user));
+      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(new Query<>(s), user));
     }
     if (spec instanceof NotSpecification) {
       resolve(((NotSpecification<NodeId, Node>) spec).getSpecification(), user);

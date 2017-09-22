@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class GraphByUri extends AbstractSqlSpecification<GraphId, Graph> {
 

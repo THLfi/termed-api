@@ -13,7 +13,7 @@ import java.util.UUID;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.query.LuceneSpecification;
 
 public class NodesByReferrer implements LuceneSpecification<NodeId, Node> {
 

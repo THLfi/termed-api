@@ -18,8 +18,8 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 /**
  * Base class to help with implementing a JDBC Dao.

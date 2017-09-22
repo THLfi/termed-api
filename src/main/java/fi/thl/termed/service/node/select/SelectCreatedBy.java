@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectCreatedBy extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectCreatedBy INSTANCE = new SelectCreatedBy();
+public class SelectCreatedBy extends Select {
+
+  public SelectCreatedBy() {
+    super("createdBy");
+  }
 
 }

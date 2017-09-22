@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 
 public interface SystemDao<K extends Serializable, V> {
 

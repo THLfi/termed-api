@@ -36,7 +36,7 @@ public class TypeReadController {
 
   @GetJsonMapping("/types")
   public List<Type> getTypes(@AuthenticationPrincipal User currentUser) {
-    return typeService.get(currentUser).collect(toList());
+    return typeService.getValues(currentUser).collect(toList());
   }
 
   @GetJsonMapping("/graphs/{graphId}/types")
@@ -44,7 +44,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User currentUser) {
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    return typeService.get(new TypesByGraphId(graphId), currentUser).collect(toList());
+    return typeService.getValues(new TypesByGraphId(graphId), currentUser).collect(toList());
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}")

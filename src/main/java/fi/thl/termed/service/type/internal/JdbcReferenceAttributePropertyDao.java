@@ -13,7 +13,7 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class JdbcReferenceAttributePropertyDao
     extends AbstractJdbcDao<PropertyValueId<ReferenceAttributeId>, LangValue> {

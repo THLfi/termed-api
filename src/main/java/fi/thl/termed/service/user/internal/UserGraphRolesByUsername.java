@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserGraphRole;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class UserGraphRolesByUsername extends AbstractSqlSpecification<UserGraphRole, Empty> {
 

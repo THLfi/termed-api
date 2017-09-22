@@ -6,7 +6,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class TextAttributePropertiesByAttributeId
     extends AbstractSqlSpecification<PropertyValueId<TextAttributeId>, LangValue> {

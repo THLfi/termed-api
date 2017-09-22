@@ -5,7 +5,7 @@ import java.util.Objects;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.ObjectRolePermission;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class TypePermissionsByTypeId
     extends AbstractSqlSpecification<ObjectRolePermission<TypeId>, GrantedPermission> {

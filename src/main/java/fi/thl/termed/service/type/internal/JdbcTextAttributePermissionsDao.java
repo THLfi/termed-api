@@ -16,7 +16,7 @@ import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class JdbcTextAttributePermissionsDao
     extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> {

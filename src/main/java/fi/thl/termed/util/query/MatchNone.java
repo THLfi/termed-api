@@ -1,4 +1,4 @@
-package fi.thl.termed.util.specification;
+package fi.thl.termed.util.query;
 
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;

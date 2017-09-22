@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectAllReferrers extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectAllReferrers INSTANCE = new SelectAllReferrers();
+public class SelectAllReferrers extends Select {
+
+  public SelectAllReferrers() {
+    super("referrers.*");
+  }
 
 }

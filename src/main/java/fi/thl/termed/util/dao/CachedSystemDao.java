@@ -8,7 +8,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import fi.thl.termed.domain.event.ClearDaoCachesEvent;
 import fi.thl.termed.domain.event.LogDiagnosticsEvent;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

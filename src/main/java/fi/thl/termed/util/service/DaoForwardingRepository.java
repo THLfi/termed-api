@@ -1,10 +1,10 @@
 package fi.thl.termed.util.service;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.Identifiable;
 import fi.thl.termed.util.dao.Dao;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -37,22 +37,22 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, User user, Arg... args) {
-    return delegate.getValues(specification, user).stream();
+  public Stream<V> getValues(Query<K, V> query, User user) {
+    return delegate.getValues(query.getWhere(), user).stream();
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, User user, Arg... args) {
-    return delegate.getKeys(specification, user).stream();
+  public Stream<K> getKeys(Query<K, V> query, User user) {
+    return delegate.getKeys(query.getWhere(), user).stream();
   }
 
   @Override
-  public boolean exists(K key, User user, Arg... args) {
+  public boolean exists(K key, User user) {
     return delegate.exists(key, user);
   }
 
   @Override
-  public Optional<V> get(K id, User user, Arg... args) {
+  public Optional<V> get(K id, User user, Select... selects) {
     return delegate.get(id, user);
   }
 

@@ -1,7 +1,7 @@
 package fi.thl.termed.service.webhook.specification;
 
 import fi.thl.termed.domain.Webhook;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;

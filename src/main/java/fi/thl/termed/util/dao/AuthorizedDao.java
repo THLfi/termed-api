@@ -8,7 +8,7 @@ import static fi.thl.termed.domain.Permission.UPDATE;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

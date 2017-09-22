@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import fi.thl.termed.util.query.Select;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +26,7 @@ public final class Selects {
         .filter(s -> s instanceof SelectReference)
         .map(s -> (SelectReference) s)
         .collect(toMap(
-            SelectReference::getAttributeId,
+            SelectReference::getField,
             SelectReference::getDepth)));
   }
 
@@ -34,7 +35,7 @@ public final class Selects {
         .filter(s -> s instanceof SelectReferrer)
         .map(s -> (SelectReferrer) s)
         .collect(toMap(
-            SelectReferrer::getAttributeId,
+            SelectReferrer::getField,
             SelectReferrer::getDepth)));
   }
 

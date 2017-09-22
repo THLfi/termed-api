@@ -12,7 +12,7 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class JdbcTypePropertyDao extends AbstractJdbcDao<PropertyValueId<TypeId>, LangValue> {
 

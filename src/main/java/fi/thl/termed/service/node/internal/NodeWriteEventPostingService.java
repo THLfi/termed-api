@@ -8,11 +8,12 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
-import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -83,33 +84,38 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> get(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return delegate.get(spec, user, args);
+  public Stream<Node> getValues(User user) {
+    return delegate.getValues(user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(Specification<NodeId, Node> spec, User user, Arg... args) {
-    return delegate.getKeys(spec, user, args);
+  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+    return delegate.getValues(query, user);
   }
 
   @Override
-  public long count(Specification<NodeId, Node> specification, User user, Arg... args) {
-    return delegate.count(specification, user, args);
+  public Stream<NodeId> getKeys(User user) {
+    return delegate.getKeys(user);
   }
 
   @Override
-  public boolean exists(NodeId id, User user, Arg... args) {
-    return delegate.exists(id, user, args);
+  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+    return delegate.getKeys(query, user);
   }
 
   @Override
-  public Stream<Node> get(List<NodeId> ids, User user, Arg... args) {
-    return delegate.get(ids, user, args);
+  public long count(Specification<NodeId, Node> spec, User user) {
+    return delegate.count(spec, user);
   }
 
   @Override
-  public Optional<Node> get(NodeId id, User user, Arg... args) {
-    return delegate.get(id, user, args);
+  public boolean exists(NodeId key, User user) {
+    return delegate.exists(key, user);
+  }
+
+  @Override
+  public Optional<Node> get(NodeId id, User user, Select... selects) {
+    return delegate.get(id, user, selects);
   }
 
 }

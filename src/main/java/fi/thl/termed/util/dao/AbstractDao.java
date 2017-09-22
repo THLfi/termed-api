@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.MatchAll;
+import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.query.MatchAll;
 
 public abstract class AbstractDao<K extends Serializable, V> implements Dao<K, V> {
 

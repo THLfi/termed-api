@@ -1,17 +1,22 @@
 package fi.thl.termed.service.node.util;
 
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferences;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.collect.Arg;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.service.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -26,25 +31,27 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
 
   private Service<NodeId, Node> nodeService;
   private User user;
-  private Arg[] args;
+  private Set<Select> selects;
 
   public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user) {
-    this(nodeService, user, new Arg[0]);
-  }
-
-  public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, Arg... args) {
     this.nodeService = nodeService;
     this.user = user;
-    this.args = args;
+    this.selects = singleton(new SelectAll());
+  }
+
+  public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, Set<Select> selects) {
+    this.nodeService = nodeService;
+    this.user = user;
+    this.selects = selects;
   }
 
   @Override
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    Map<NodeId, Node> referenceValueMap = Maps.uniqueIndex(
-        nodeService.get(new NodeReferences(new NodeId(node), attributeId), user, args).iterator(),
-        Node::identifier);
+    Map<NodeId, Node> referenceValueMap = nodeService.getValues(
+        new Query<>(selects, new NodeReferences(new NodeId(node), attributeId)), user)
+        .collect(toMap(Node::identifier, n -> n));
 
     Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
 

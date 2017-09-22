@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class NodeReferenceAttributeValuesByNodeId
     extends AbstractSqlSpecification<NodeAttributeValueId, NodeId> {

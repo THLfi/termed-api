@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import fi.thl.termed.util.specification.Specification;
+import fi.thl.termed.util.query.Specification;
 
 /**
  * Simple memory based dao implementation. Useful e.g. in tests.

@@ -52,9 +52,9 @@ public class DumpController {
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
       writeJson(
-          graphService.get(user).iterator(),
-          typeService.get(user).iterator(),
-          nodeService.get(user).iterator(),
+          graphService.getValues(user).iterator(),
+          typeService.getValues(user).iterator(),
+          nodeService.getValues(user).iterator(),
           writer);
     }
   }
@@ -70,8 +70,8 @@ public class DumpController {
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
       writeJson(
           ids.stream().flatMap(id -> toStream(graphService.get(new GraphId(id), user))).iterator(),
-          ids.stream().flatMap(id -> typeService.get(new TypesByGraphId(id), user)).iterator(),
-          ids.stream().flatMap(id -> nodeService.get(new NodesByGraphId(id), user)).iterator(),
+          ids.stream().flatMap(id -> typeService.getValues(new TypesByGraphId(id), user)).iterator(),
+          ids.stream().flatMap(id -> nodeService.getValues(new NodesByGraphId(id), user)).iterator(),
           writer);
     }
   }

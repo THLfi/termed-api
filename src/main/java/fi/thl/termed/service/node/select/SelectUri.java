@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectUri extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectUri INSTANCE = new SelectUri();
+public class SelectUri extends Select {
+
+  public SelectUri() {
+    super("uri");
+  }
 
 }

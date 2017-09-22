@@ -3,7 +3,7 @@ package fi.thl.termed.service.webhook.internal;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;

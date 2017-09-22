@@ -24,7 +24,7 @@ public class WebhookReadController {
 
   @GetJsonMapping
   public List<Webhook> get(@AuthenticationPrincipal User user) {
-    return webhookService.get(user).collect(toList());
+    return webhookService.getValues(user).collect(toList());
   }
 
   @GetJsonMapping("/{id}")

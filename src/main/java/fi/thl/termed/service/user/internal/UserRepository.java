@@ -9,12 +9,12 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserGraphRole;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -70,23 +70,23 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public boolean exists(String username, User auth, Arg... args) {
+  public boolean exists(String username, User auth) {
     return userDao.exists(username, auth);
   }
 
   @Override
-  public Stream<User> get(Specification<String, User> specification, User auth, Arg... args) {
-    return userDao.getValues(specification, auth).stream()
+  public Stream<User> getValues(Query<String, User> query, User auth) {
+    return userDao.getValues(query.getWhere(), auth).stream()
         .map(user -> populateValue(user, auth));
   }
 
   @Override
-  public Stream<String> getKeys(Specification<String, User> specification, User user, Arg... args) {
-    return userDao.getKeys(specification, user).stream();
+  public Stream<String> getKeys(Query<String, User> query, User user) {
+    return userDao.getKeys(query.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<User> get(String username, User auth, Arg... args) {
+  public Optional<User> get(String username, User auth, Select... selects) {
     return userDao.get(username, auth).map(user -> populateValue(user, auth));
   }
 

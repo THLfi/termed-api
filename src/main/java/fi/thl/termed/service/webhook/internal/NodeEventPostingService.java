@@ -43,7 +43,7 @@ public class NodeEventPostingService {
 
   @Subscribe
   public void subscribe(NodeEvent nodeEvent) {
-    webhookService.get(eventBroadcaster).forEach(hook -> {
+    webhookService.getValues(eventBroadcaster).forEach(hook -> {
       HttpPost request = new HttpPost(hook.getUrl());
       request.addHeader("Content-Type", "application/json");
       request.setEntity(new StringEntity(gson.toJson(new WebEvent(nodeEvent)), UTF_8));

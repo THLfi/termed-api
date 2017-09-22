@@ -6,9 +6,7 @@ import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.Identifiable;
-import fi.thl.termed.util.specification.Specification;
 import fi.thl.termed.util.spring.exception.BadRequestException;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.Serializable;
@@ -16,8 +14,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
@@ -87,27 +83,5 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   protected abstract void insert(K id, V value, SaveMode mode, WriteOptions opts, User user);
 
   protected abstract void update(K id, V value, SaveMode mode, WriteOptions opts, User user);
-
-  public void delete(List<K> ids, WriteOptions opts, User user) {
-    ids.forEach(id -> delete(id, opts, user));
-  }
-
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
-      User user) {
-    delete(deletes, opts, user);
-    return save(saves, mode, opts, user);
-  }
-
-  public long count(Specification<K, V> specification, User user, Arg... args) {
-    return getKeys(specification, user, args).count();
-  }
-
-  public boolean exists(K key, User user, Arg... args) {
-    return get(key, user, args).isPresent();
-  }
-
-  public Stream<V> get(List<K> ids, User u, Arg... args) {
-    return ids.stream().map(id -> get(id, u, args)).filter(Optional::isPresent).map(Optional::get);
-  }
 
 }

@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import fi.thl.termed.util.specification.Specification;
-import fi.thl.termed.util.specification.MatchAll;
+import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.query.MatchAll;
 
 public abstract class AbstractSystemDao<K extends Serializable, V> implements SystemDao<K, V> {
 

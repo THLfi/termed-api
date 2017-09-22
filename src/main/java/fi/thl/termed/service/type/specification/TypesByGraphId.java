@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.specification.AbstractSqlSpecification;
+import fi.thl.termed.util.query.AbstractSqlSpecification;
 
 public class TypesByGraphId extends AbstractSqlSpecification<TypeId, Type> {
 

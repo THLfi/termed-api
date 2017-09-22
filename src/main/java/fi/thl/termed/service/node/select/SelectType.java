@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectType extends SingletonSelect {
+import fi.thl.termed.util.query.Select;
 
-  public static final SelectType INSTANCE = new SelectType();
+public class SelectType extends Select {
+
+  public SelectType() {
+    super("type");
+  }
 
 }

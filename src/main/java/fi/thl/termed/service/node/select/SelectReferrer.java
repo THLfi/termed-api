@@ -1,6 +1,6 @@
 package fi.thl.termed.service.node.select;
 
-public class SelectReferrer extends SelectAttributeWithDepth {
+public class SelectReferrer extends SelectWithDepth {
 
   public SelectReferrer(String attributeId) {
     super(attributeId);

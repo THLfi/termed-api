@@ -12,7 +12,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class JdbcNodeTextAttributeValueDao
     extends AbstractJdbcDao<NodeAttributeValueId, StrictLangValue> {

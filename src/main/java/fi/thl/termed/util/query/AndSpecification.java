@@ -1,4 +1,4 @@
-package fi.thl.termed.util.specification;
+package fi.thl.termed.util.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;

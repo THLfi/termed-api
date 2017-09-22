@@ -18,13 +18,13 @@ import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.domain.transform.PropertyValueModelToDto;
 import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.collect.Arg;
 import fi.thl.termed.util.collect.MapUtils;
 import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.specification.Specification;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -124,25 +124,25 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public boolean exists(ReferenceAttributeId id, User user, Arg... args) {
+  public boolean exists(ReferenceAttributeId id, User user) {
     return referenceAttributeDao.exists(id, user);
   }
 
   @Override
-  public Stream<ReferenceAttribute> get(
-      Specification<ReferenceAttributeId, ReferenceAttribute> spec, User user, Arg... args) {
-    return referenceAttributeDao.getValues(spec, user).stream()
+  public Stream<ReferenceAttribute> getValues(
+      Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
+    return referenceAttributeDao.getValues(spec.getWhere(), user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
   public Stream<ReferenceAttributeId> getKeys(
-      Specification<ReferenceAttributeId, ReferenceAttribute> spec, User user, Arg... args) {
-    return referenceAttributeDao.getKeys(spec, user).stream();
+      Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
+    return referenceAttributeDao.getKeys(spec.getWhere(), user).stream();
   }
 
   @Override
-  public Optional<ReferenceAttribute> get(ReferenceAttributeId id, User user, Arg... args) {
+  public Optional<ReferenceAttribute> get(ReferenceAttributeId id, User user, Select... selects) {
     return referenceAttributeDao.get(id, user).map(attribute -> populateValue(attribute, user));
   }
 

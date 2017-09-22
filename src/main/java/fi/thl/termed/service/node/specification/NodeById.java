@@ -12,8 +12,8 @@ import java.util.UUID;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.specification.LuceneSpecification;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class NodeById
     implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {

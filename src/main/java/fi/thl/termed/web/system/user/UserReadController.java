@@ -22,7 +22,7 @@ public class UserReadController {
 
   @GetJsonMapping
   public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.get(currentUser).collect(toList());
+    return userService.getValues(currentUser).collect(toList());
   }
 
   @GetJsonMapping("/{username}")

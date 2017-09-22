@@ -1,4 +1,4 @@
-package fi.thl.termed.util.specification;
+package fi.thl.termed.util.query;
 
 import com.google.common.base.MoreObjects;
 import java.io.Serializable;

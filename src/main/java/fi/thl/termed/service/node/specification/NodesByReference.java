@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.specification.LuceneSpecification;
+import fi.thl.termed.util.query.LuceneSpecification;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.lucene.index.Term;

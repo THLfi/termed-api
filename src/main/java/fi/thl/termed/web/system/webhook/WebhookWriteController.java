@@ -31,7 +31,7 @@ public class WebhookWriteController {
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
-    return webhookService.get(new WebhookByUrl(url), user)
+    return webhookService.getValues(new WebhookByUrl(url), user)
         .findFirst().map(Webhook::getId)
         .orElseGet(() ->
             webhookService.save(new Webhook(randomUUID(), url), UPSERT, defaultOpts(), user));

@@ -14,7 +14,7 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
-import fi.thl.termed.util.specification.SqlSpecification;
+import fi.thl.termed.util.query.SqlSpecification;
 
 public class JdbcGraphPermissionsDao
     extends AbstractJdbcDao<ObjectRolePermission<GraphId>, GrantedPermission> {

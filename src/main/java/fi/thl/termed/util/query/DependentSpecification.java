@@ -1,4 +1,4 @@
-package fi.thl.termed.util.specification;
+package fi.thl.termed.util.query;
 
 import java.io.Serializable;
 import java.util.function.Function;
