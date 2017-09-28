@@ -2,6 +2,7 @@ package fi.thl.termed.service.node.specification;
 
 import static fi.thl.termed.util.collect.StreamUtils.zip;
 
+import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
@@ -24,7 +25,7 @@ public final class NodeSpecifications {
   }
 
   public static Specification<NodeId, Node> specifyByQuery(
-      List<Type> types, Type domain, String query) {
+      List<Graph> graphs, List<Type> types, Type domain, String query) {
 
     AndSpecification<NodeId, Node> spec = new AndSpecification<>();
 
@@ -32,7 +33,9 @@ public final class NodeSpecifications {
     spec.and(new NodesByTypeId(domain.getId()));
 
     if (!query.isEmpty()) {
-      spec.and(new TypeBasedNodeSpecificationFilter(types).apply(domain, queryParser.apply(query)));
+      spec.and(new TypeBasedNodeSpecificationFilter(types).apply(domain,
+          new NodeGraphAndTypeSpecificationResolver(graphs, types)
+              .apply(queryParser.apply(query))));
     }
 
     return spec;

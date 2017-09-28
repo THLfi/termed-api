@@ -1,6 +1,7 @@
 package fi.thl.termed.web.system.node;
 
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
@@ -11,9 +12,9 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
@@ -32,21 +33,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeCountController {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
-  @Autowired
   private Service<GraphId, Graph> graphService;
   @Autowired
   private Service<TypeId, Type> typeService;
+  @Autowired
+  private Service<NodeId, Node> nodeService;
 
   @GetJsonMapping("/node-count")
   public long get(
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @AuthenticationPrincipal User user) {
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
 
     Specification<NodeId, Node> spec = types.stream()
-        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
+        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     return nodeService.count(spec, user);
@@ -61,10 +63,11 @@ public class NodeCountController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
 
     Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
-        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
+        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
     return nodeService.count(spec, user);
@@ -77,11 +80,13 @@ public class NodeCountController {
       @RequestParam(value = "where", defaultValue = "") List<String> where,
       @AuthenticationPrincipal User user) {
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
+
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(types, domain, String.join(" AND ", where));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, join(" AND ", where));
 
     return nodeService.count(spec, user);
   }

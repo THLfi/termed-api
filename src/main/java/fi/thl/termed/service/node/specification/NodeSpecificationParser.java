@@ -55,9 +55,18 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> graphIdParser =
         regexMatchResult("(type\\.graph\\.id|graph\\.id|graphId):(" + UUID + ")")
             .map(m -> new NodesByGraphId(UUIDs.fromString(m.group(2))));
+    ParserCombinator<Specification<NodeId, Node>> graphCodeParser =
+        regexMatchResult("(type\\.graph\\.code|graph\\.code|graphCode):(" + CODE + ")")
+            .map(m -> new NodesByGraphCode(m.group(2)));
+    ParserCombinator<Specification<NodeId, Node>> graphUriParser =
+        regexMatchResult("(type\\.graph\\.uri|graph\\.uri|graphUri):([^\\s]+)")
+            .map(m -> new NodesByGraphUri(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> typeIdParser =
         regexMatchResult("(type\\.id|typeId):(" + CODE + ")")
             .map(m -> new NodesByTypeId(m.group(2)));
+    ParserCombinator<Specification<NodeId, Node>> typeUriParser =
+        regexMatchResult("(type\\.ur|typeUri):([^\\s]+)")
+            .map(m -> new NodesByTypeUri(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> propertyQuotedParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:\"([^\"]*)\"")
             .map(m -> new NodesByPropertyPhrase(m.group(2), m.group(4), m.group(5)));
@@ -85,7 +94,10 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .or(createdDateParser)
             .or(lastModifiedDateParser)
             .or(graphIdParser)
+            .or(graphCodeParser)
+            .or(graphUriParser)
             .or(typeIdParser)
+            .or(typeUriParser)
             .or(propertyQuotedParser)
             .or(propertyPrefixParser)
             .or(propertyParser)

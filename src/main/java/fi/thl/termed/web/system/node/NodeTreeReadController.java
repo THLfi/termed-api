@@ -3,6 +3,7 @@ package fi.thl.termed.web.system.node;
 import static fi.thl.termed.service.node.select.Selects.selectReferences;
 import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
+import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -67,12 +68,13 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
 
     Specification<NodeId, Node> spec = types.stream()
-        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
+        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
-    Set<Select> selects = Selects.parse(String.join(",", select));
+    Set<Select> selects = Selects.parse(join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
         nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
@@ -94,12 +96,13 @@ public class NodeTreeReadController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
 
     Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
-        .map(domain -> specifyByQuery(types, domain, String.join(" AND ", where)))
+        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
-    Set<Select> selects = Selects.parse(String.join(",", select));
+    Set<Select> selects = Selects.parse(join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
         nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
@@ -120,12 +123,13 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
+    List<Graph> graphs = graphService.getValues(user).collect(toList());
     List<Type> types = typeService.getValues(user).collect(toList());
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(types, domain, String.join(" AND ", where));
-    Set<Select> selects = Selects.parse(String.join(",", select));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, join(" AND ", where));
+    Set<Select> selects = Selects.parse(join(",", select));
 
     Stream<SimpleNodeTree> trees = toTrees(
         nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
@@ -145,7 +149,7 @@ public class NodeTreeReadController {
 
     Node node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
-    Set<Select> selects = Selects.parse(String.join(",", select));
+    Set<Select> selects = Selects.parse(join(",", select));
 
     return toTree(node, selects, user);
   }
