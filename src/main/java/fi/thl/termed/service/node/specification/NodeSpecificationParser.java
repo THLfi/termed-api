@@ -65,7 +65,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("(type\\.id|typeId):(" + CODE + ")")
             .map(m -> new NodesByTypeId(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> typeUriParser =
-        regexMatchResult("(type\\.ur|typeUri):([^\\s]+)")
+        regexMatchResult("(type\\.uri|typeUri):([^\\s]+)")
             .map(m -> new NodesByTypeUri(m.group(2)));
     ParserCombinator<Specification<NodeId, Node>> propertyQuotedParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:\"([^\"]*)\"")
