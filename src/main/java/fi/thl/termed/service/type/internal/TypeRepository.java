@@ -199,6 +199,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     deleteProperties(id, user);
     deleteTextAttributes(id, opts, user);
     deleteReferenceAttributes(id, opts, user);
+    deleteReferringReferenceAttributes(id, opts, user);
     typeDao.delete(id, user);
   }
 
@@ -213,12 +214,17 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private void deleteTextAttributes(TypeId id, WriteOptions opts, User user) {
     textAttributeRepository.delete(textAttributeRepository.getKeys(
-        new Query<>(new TextAttributesByTypeId(id)), user).collect(toList()), opts, user);
+        new TextAttributesByTypeId(id), user).collect(toList()), opts, user);
   }
 
   private void deleteReferenceAttributes(TypeId id, WriteOptions opts, User user) {
     referenceAttributeRepository.delete(referenceAttributeRepository.getKeys(
-        new Query<>(new ReferenceAttributesByTypeId(id)), user).collect(toList()), opts, user);
+        new ReferenceAttributesByTypeId(id), user).collect(toList()), opts, user);
+  }
+
+  private void deleteReferringReferenceAttributes(TypeId id, WriteOptions opts, User user) {
+    referenceAttributeRepository.delete(referenceAttributeRepository.getKeys(
+        new ReferenceAttributesByRangeId(id), user).collect(toList()), opts, user);
   }
 
   @Override
