@@ -65,7 +65,7 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
   @Override
   public void delete(List<K> keys) {
     specificationCache.invalidateAll();
-    keyValueCache.invalidate(keys);
+    keyValueCache.invalidateAll(keys);
     delegate.delete(keys);
   }
 
