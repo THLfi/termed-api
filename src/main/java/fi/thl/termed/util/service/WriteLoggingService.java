@@ -34,7 +34,7 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
 
   @Override
   public void delete(List<K> ids, WriteOptions opts, User user) {
-    log.info("delete {} (user: {})", ids, user.getUsername());
+    log.info("delete {} values (user: {})", ids.size(), user.getUsername());
     super.delete(ids, opts, user);
   }
 
@@ -47,7 +47,8 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
   @Override
   public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
       User user) {
-    log.info("delete {} and save {} values (user: {})", deletes, saves.size(), user.getUsername());
+    log.info("delete {} values and save {} values (user: {})", deletes.size(), saves.size(),
+        user.getUsername());
     return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
