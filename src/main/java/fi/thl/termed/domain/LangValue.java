@@ -27,6 +27,14 @@ public class LangValue {
     this.value = value;
   }
 
+  public static LangValue of(String value) {
+    return new LangValue("", value);
+  }
+
+  public static LangValue of(String lang, String value) {
+    return new LangValue(lang, value);
+  }
+
   public String getLang() {
     return nullToEmpty(lang);
   }

@@ -1,20 +1,20 @@
 package fi.thl.termed;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
+import fi.thl.termed.util.json.DateTypeAdapter;
+import fi.thl.termed.util.json.ImmutableListDeserializer;
+import fi.thl.termed.util.json.ImmutableMultimapTypeAdapterFactory;
+import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
+import java.util.Date;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Date;
-
-import fi.thl.termed.util.json.DateTypeAdapter;
-import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
 
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
@@ -32,7 +32,9 @@ public class Application extends SpringBootServletInitializer {
   public Gson gson() {
     return new GsonBuilder().setPrettyPrinting()
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
+        .registerTypeAdapter(ImmutableList.class, new ImmutableListDeserializer())
         .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
+        .registerTypeAdapterFactory(new ImmutableMultimapTypeAdapterFactory())
         .create();
   }
 

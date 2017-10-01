@@ -45,7 +45,7 @@ public class NodesToRdfModel implements Function<List<Node>, RdfModel> {
 
   private void loadTypeCache(List<Type> typeList) {
     for (Type c : typeList) {
-      types.put(new TypeId(c), c);
+      types.put(c.identifier(), c);
       loadTextAttributeCache(c);
       loadReferenceAttributeCache(c);
     }
@@ -69,19 +69,19 @@ public class NodesToRdfModel implements Function<List<Node>, RdfModel> {
 
     for (Node node : nodeList) {
       RdfResource rdfResource = new RdfResource(getNodeUri(new NodeId(node)));
-      rdfResource.addObject(RDF.type.getURI(), getTypeUri(new TypeId(node)));
+      rdfResource.addObject(RDF.type.getURI(), getTypeUri(node.getType()));
 
       for (Map.Entry<String, StrictLangValue> entry : node.getProperties().entries()) {
         StrictLangValue langValue = entry.getValue();
         String attributeUri = getTextAttributeUri(
-            new TextAttributeId(new TypeId(node), entry.getKey()));
+            new TextAttributeId(node.getType(), entry.getKey()));
         rdfResource.addLiteral(attributeUri, langValue.getLang(), langValue.getValue());
       }
 
       for (Map.Entry<String, NodeId> entry : node.getReferences().entries()) {
         NodeId value = entry.getValue();
         String attributeUri = getReferenceAttributeUri(
-            new ReferenceAttributeId(new TypeId(node), entry.getKey()));
+            new ReferenceAttributeId(node.getType(), entry.getKey()));
         rdfResource.addObject(attributeUri, getNodeUri(value));
       }
 
@@ -93,7 +93,7 @@ public class NodesToRdfModel implements Function<List<Node>, RdfModel> {
 
   private String getTypeUri(TypeId typeId) {
     Type cls = types.get(typeId);
-    return firstNonNull(emptyToNull(cls.getUri()),
+    return firstNonNull(cls.getUri().orElse(null),
                         TERMED_NS + typeId.getGraphId() +
                         "/types/" + typeId.getId());
   }

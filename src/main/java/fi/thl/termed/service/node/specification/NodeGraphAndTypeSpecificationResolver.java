@@ -34,8 +34,9 @@ public class NodeGraphAndTypeSpecificationResolver implements
         .collect(groupingBy(Graph::getUri));
     this.graphsByCode = graphs.stream().filter(g -> !isNullOrEmpty(g.getCode()))
         .collect(groupingBy(Graph::getCode));
-    this.typesByUri = types.stream().filter(t -> !isNullOrEmpty(t.getUri()))
-        .collect(groupingBy(Type::getUri));
+    this.typesByUri = types.stream()
+        .filter(t -> t.getUri().isPresent())
+        .collect(groupingBy(t -> t.getUri().orElseThrow(IllegalStateException::new)));
   }
 
   @Override

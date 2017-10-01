@@ -1,19 +1,16 @@
 package fi.thl.termed.service.type.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
-import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
-import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcReferenceAttributePropertyDao
     extends AbstractJdbcDao<PropertyValueId<ReferenceAttributeId>, LangValue> {
@@ -79,7 +76,7 @@ public class JdbcReferenceAttributePropertyDao
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from reference_attribute_property where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
 
   }
@@ -101,7 +98,7 @@ public class JdbcReferenceAttributePropertyDao
 
   @Override
   protected <E> Optional<E> get(PropertyValueId<ReferenceAttributeId> id,
-                                RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
@@ -119,9 +116,8 @@ public class JdbcReferenceAttributePropertyDao
   protected RowMapper<PropertyValueId<ReferenceAttributeId>> buildKeyMapper() {
     return (rs, rowNum) -> {
       TypeId domainId =
-          new TypeId(rs.getString("reference_attribute_domain_id"),
-                     UUIDs.fromString(rs.getString("reference_attribute_domain_graph_id"))
-          );
+          TypeId.of(rs.getString("reference_attribute_domain_id"),
+              GraphId.fromUuidString(rs.getString("reference_attribute_domain_graph_id")));
 
       ReferenceAttributeId referenceAttributeId =
           new ReferenceAttributeId(domainId, rs.getString("reference_attribute_id"));

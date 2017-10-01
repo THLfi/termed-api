@@ -5,7 +5,6 @@ import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
@@ -43,7 +42,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
-    TypeId type = new TypeId(typeId, new GraphId(graphId));
+    TypeId type = TypeId.of(typeId, graphId);
     nodes.forEach(node -> node.setType(type));
     nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
@@ -56,7 +55,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
-    node.setType(new TypeId(typeId, new GraphId(graphId)));
+    node.setType(TypeId.of(typeId, graphId));
     NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
@@ -69,7 +68,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody List<Node> nodes,
       @AuthenticationPrincipal User user) {
-    nodes.forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
+    nodes.forEach(node -> node.setType(TypeId.of(node.getTypeId(), graphId)));
     nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
@@ -80,7 +79,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
-    node.setType(new TypeId(node.getTypeId(), graphId));
+    node.setType(TypeId.of(node.getTypeId(), graphId));
     NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
@@ -114,7 +113,7 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
-    node.setType(new TypeId(typeId, new GraphId(graphId)));
+    node.setType(TypeId.of(typeId, graphId));
     node.setId(id);
     NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);

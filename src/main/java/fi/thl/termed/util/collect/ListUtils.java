@@ -1,6 +1,7 @@
 package fi.thl.termed.util.collect;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -54,11 +55,19 @@ public final class ListUtils {
   }
 
   public static <T> List<T> nullToEmpty(List<T> list) {
-    return list == null ? Collections.<T>emptyList() : list;
+    return list == null ? Collections.emptyList() : list;
+  }
+
+  public static <T> ImmutableList<T> nullToEmpty(ImmutableList<T> list) {
+    return list == null ? ImmutableList.of() : list;
   }
 
   public static <T> boolean isNullOrEmpty(List<T> list) {
     return list == null || list.isEmpty();
+  }
+
+  public static <E> ImmutableList<E> nullableImmutableCopyOf(List<E> list) {
+    return list != null ? ImmutableList.copyOf(list) : null;
   }
 
   /**

@@ -1,21 +1,17 @@
 package fi.thl.termed.service.type.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
+import static com.google.common.base.Strings.emptyToNull;
 
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
-
-import static com.google.common.base.Strings.emptyToNull;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {
 
@@ -69,10 +65,10 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
 
   @Override
   protected <E> List<E> get(SqlSpecification<TextAttributeId, TextAttribute> specification,
-                            RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from text_attribute where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
@@ -103,8 +99,8 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   @Override
   protected RowMapper<TextAttributeId> buildKeyMapper() {
     return (rs, rowNum) -> {
-      TypeId domainId =
-          new TypeId(rs.getString("domain_id"), UUIDs.fromString(rs.getString("domain_graph_id")));
+      TypeId domainId = TypeId.of(rs.getString("domain_id"),
+          GraphId.fromUuidString(rs.getString("domain_graph_id")));
       return new TextAttributeId(domainId, rs.getString("id"));
     };
   }
@@ -112,8 +108,8 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   @Override
   protected RowMapper<TextAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("domain_graph_id")));
-      TypeId domain = new TypeId(rs.getString("domain_id"), domainGraph);
+      GraphId domainGraph = GraphId.fromUuidString(rs.getString("domain_graph_id"));
+      TypeId domain = TypeId.of(rs.getString("domain_id"), domainGraph);
 
       TextAttribute textAttribute = new TextAttribute(rs.getString("id"), domain);
       textAttribute.setUri(rs.getString("uri"));

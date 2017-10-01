@@ -136,7 +136,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
   private ExtendedIterator<Triple> findByType(String typeUri) {
     Optional<TypeId> typeOptional = types.values().stream()
         .filter(type -> Objects.equals(type.getUri(), typeUri))
-        .map(TypeId::new).findFirst();
+        .map(Type::identifier).findFirst();
 
     if (!typeOptional.isPresent()) {
       return WrappedIterator.emptyIterator();

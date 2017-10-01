@@ -6,7 +6,6 @@ import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -66,18 +65,20 @@ public class NodeServiceIntegrationTest {
     TypeId personId = new TypeId("Person", graphId);
     TypeId groupId = new TypeId("Group", graphId);
 
-    Type person = new Type(personId);
-    person.setTextAttributes(asList(
-        new TextAttribute("firstName", personId),
-        new TextAttribute("lastName", personId)));
-    person.setReferenceAttributes(singletonList(
-        new ReferenceAttribute("knows", personId, personId)));
+    Type person = Type.builder().id(personId)
+        .textAttributes(
+            new TextAttribute("firstName", personId),
+            new TextAttribute("lastName", personId))
+        .referenceAttributes(
+            new ReferenceAttribute("knows", personId, personId))
+        .build();
 
-    Type group = new Type(groupId);
-    group.setTextAttributes(singletonList(
-        new TextAttribute("name", groupId)));
-    group.setReferenceAttributes(singletonList(
-        new ReferenceAttribute("member", groupId, personId)));
+    Type group = Type.builder().id(groupId)
+        .textAttributes(
+            new TextAttribute("name", groupId))
+        .referenceAttributes(
+            new ReferenceAttribute("member", groupId, personId))
+        .build();
 
     typeService.save(asList(person, group), UPSERT, defaultOpts(), testUser);
   }

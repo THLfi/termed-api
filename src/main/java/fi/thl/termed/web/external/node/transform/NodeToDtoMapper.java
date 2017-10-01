@@ -154,7 +154,7 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
     TypeDto dto = new TypeDto();
 
     dto.setId(type.getId());
-    dto.setUri(type.getUri());
+    dto.setUri(type.getUri().orElse(null));
     dto.setGraph(graphDto(type.getGraph(), select));
 
     dto.setTextAttributes(

@@ -48,7 +48,8 @@ public class NodeToTriples implements Function<Node, Stream<Triple>> {
 
     org.apache.jena.graph.Node subject = createURI(uri(node));
 
-    builder.accept(Triple.create(subject, RDF.type.asNode(), createURI(type.getUri())));
+    builder.accept(Triple.create(subject, RDF.type.asNode(), createURI(type.getUri().orElseThrow(
+        () -> new RuntimeException("URI missing from Type: " + type.getId())))));
 
     for (Map.Entry<String, StrictLangValue> entry : node.getProperties().entries()) {
       TextAttributeId attrId = new TextAttributeId(node.getType(), entry.getKey());

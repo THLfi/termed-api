@@ -95,7 +95,7 @@ public class NodeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Type type = typeService.get(new TypeId(typeId, graphId), user)
+    Type type = typeService.get(TypeId.of(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = specifyByAnyPropertyPrefix(type, query);

@@ -37,7 +37,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
         updates.put(key, value);
       } else if (!exists && (mode == INSERT || mode == UPSERT)) {
         inserts.put(key, value);
-      } else if (existsForUser) {
+      } else if (exists == existsForUser) {
         throw new BadRequestException();
       } else {
         throw new NotFoundException();
@@ -63,7 +63,7 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       update(key, value, mode, opts, user);
     } else if (!exists && (mode == INSERT || mode == UPSERT)) {
       insert(key, value, mode, opts, user);
-    } else if (existsForUser) {
+    } else if (exists == existsForUser) {
       throw new BadRequestException();
     } else {
       throw new NotFoundException();

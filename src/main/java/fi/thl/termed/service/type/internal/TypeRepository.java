@@ -2,6 +2,7 @@ package fi.thl.termed.service.type.internal;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static fi.thl.termed.util.collect.StreamUtils.zipWithIndex;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -68,11 +69,8 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   private List<Type> addTypeIndices(List<Type> types) {
-    int i = 0;
-    for (Type type : types) {
-      type.setIndex(i++);
-    }
-    return types;
+    return zipWithIndex(types.stream(), (t, i) -> Type.builderFromCopyOf(t).index(i).build())
+        .collect(toList());
   }
 
   /**
@@ -249,21 +247,22 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private Type populateValue(Type type, User user) {
     TypeId id = type.identifier();
-    type = new Type(type);
-
-    type.setPermissions(new RolePermissionsModelToDto<TypeId>().apply(
-        typePermissionDao.getMap(new TypePermissionsByTypeId(id), user)));
-
-    type.setProperties(new PropertyValueModelToDto<TypeId>().apply(
-        typePropertyDao.getMap(new TypePropertiesByTypeId(id), user)));
-
-    type.setTextAttributes(textAttributeRepository.getValues(
-        new TextAttributesByTypeId(id), user).collect(toList()));
-
-    type.setReferenceAttributes(referenceAttributeRepository.getValues(
-        new ReferenceAttributesByTypeId(id), user).collect(toList()));
-
-    return type;
+    return Type.builder().id(id)
+        .uri(type.getUri().orElse(null))
+        .index(type.getIndex().orElse(null))
+        .permissions(
+            new RolePermissionsModelToDto<TypeId>().apply(
+                typePermissionDao.getMap(new TypePermissionsByTypeId(id), user)))
+        .properties(
+            new PropertyValueModelToDto<TypeId>().apply(
+                typePropertyDao.getMap(new TypePropertiesByTypeId(id), user)))
+        .textAttributes(
+            textAttributeRepository.getValues(
+                new TextAttributesByTypeId(id), user).collect(toList()))
+        .referenceAttributes(
+            referenceAttributeRepository.getValues(
+                new ReferenceAttributesByTypeId(id), user).collect(toList()))
+        .build();
   }
 
 }

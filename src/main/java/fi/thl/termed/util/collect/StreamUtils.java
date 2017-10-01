@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.BiFunction;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public final class StreamUtils {
@@ -39,6 +40,10 @@ public final class StreamUtils {
         return zipper.apply(leftIterator.next(), rightIterator.next());
       }
     }, Spliterator.ORDERED), l.isParallel() || r.isParallel());
+  }
+
+  public static <L, Z> Stream<Z> zipWithIndex(Stream<L> l, BiFunction<L, Integer, Z> zipper) {
+    return zip(l, IntStream.iterate(0, i -> i + 1).boxed(), zipper);
   }
 
 }

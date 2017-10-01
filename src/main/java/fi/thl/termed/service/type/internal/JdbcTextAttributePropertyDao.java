@@ -1,19 +1,16 @@
 package fi.thl.termed.service.type.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
-import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcTextAttributePropertyDao
     extends AbstractJdbcDao<PropertyValueId<TextAttributeId>, LangValue> {
@@ -79,7 +76,7 @@ public class JdbcTextAttributePropertyDao
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from text_attribute_property where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
@@ -101,7 +98,7 @@ public class JdbcTextAttributePropertyDao
 
   @Override
   protected <E> Optional<E> get(PropertyValueId<TextAttributeId> id,
-                                RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     TextAttributeId textAttributeId = id.getSubjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
@@ -119,9 +116,8 @@ public class JdbcTextAttributePropertyDao
   protected RowMapper<PropertyValueId<TextAttributeId>> buildKeyMapper() {
     return (rs, rowNum) -> {
 
-      TypeId domainId = new TypeId(rs.getString("text_attribute_domain_id"),
-                                   UUIDs.fromString(rs.getString("text_attribute_domain_graph_id"))
-      );
+      TypeId domainId = TypeId.of(rs.getString("text_attribute_domain_id"),
+          GraphId.fromUuidString(rs.getString("text_attribute_domain_graph_id")));
 
       TextAttributeId textAttributeId =
           new TextAttributeId(domainId, rs.getString("text_attribute_id"));

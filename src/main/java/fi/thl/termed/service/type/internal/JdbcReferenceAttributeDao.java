@@ -1,21 +1,17 @@
 package fi.thl.termed.service.type.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
+import static com.google.common.base.Strings.emptyToNull;
 
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
-
-import static com.google.common.base.Strings.emptyToNull;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcReferenceAttributeDao
     extends AbstractJdbcDao<ReferenceAttributeId, ReferenceAttribute> {
@@ -26,7 +22,7 @@ public class JdbcReferenceAttributeDao
 
   @Override
   public void insert(ReferenceAttributeId referenceAttributeId,
-                     ReferenceAttribute referenceAttribute) {
+      ReferenceAttribute referenceAttribute) {
 
     TypeId domainId = referenceAttributeId.getDomainId();
 
@@ -43,7 +39,7 @@ public class JdbcReferenceAttributeDao
 
   @Override
   public void update(ReferenceAttributeId referenceAttributeId,
-                     ReferenceAttribute referenceAttribute) {
+      ReferenceAttribute referenceAttribute) {
 
     TypeId domainId = referenceAttributeId.getDomainId();
 
@@ -80,7 +76,7 @@ public class JdbcReferenceAttributeDao
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from reference_attribute where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
@@ -98,7 +94,7 @@ public class JdbcReferenceAttributeDao
 
   @Override
   protected <E> Optional<E> get(ReferenceAttributeId referenceAttributeId,
-                                RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     TypeId domainId = referenceAttributeId.getDomainId();
 
     return jdbcTemplate.query(
@@ -112,8 +108,8 @@ public class JdbcReferenceAttributeDao
   @Override
   protected RowMapper<ReferenceAttributeId> buildKeyMapper() {
     return (rs, rowNum) -> {
-      TypeId domainId = new TypeId(
-          rs.getString("domain_id"), UUIDs.fromString(rs.getString("domain_graph_id")));
+      TypeId domainId = TypeId.of(
+          rs.getString("domain_id"), GraphId.fromUuidString(rs.getString("domain_graph_id")));
       return new ReferenceAttributeId(domainId, rs.getString("id"));
     };
   }
@@ -121,11 +117,11 @@ public class JdbcReferenceAttributeDao
   @Override
   protected RowMapper<ReferenceAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = new GraphId(UUIDs.fromString(rs.getString("domain_graph_id")));
-      TypeId domain = new TypeId(rs.getString("domain_id"), domainGraph);
+      GraphId domainGraph = GraphId.fromUuidString(rs.getString("domain_graph_id"));
+      TypeId domain = TypeId.of(rs.getString("domain_id"), domainGraph);
 
-      GraphId rangeGraph = new GraphId(UUIDs.fromString(rs.getString("range_graph_id")));
-      TypeId range = new TypeId(rs.getString("range_id"), rangeGraph);
+      GraphId rangeGraph = GraphId.fromUuidString(rs.getString("range_graph_id"));
+      TypeId range = TypeId.of(rs.getString("range_id"), rangeGraph);
 
       ReferenceAttribute referenceAttribute =
           new ReferenceAttribute(rs.getString("id"), rs.getString("uri"), domain, range);

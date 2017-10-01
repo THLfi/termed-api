@@ -1,34 +1,17 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TypeId implements Serializable {
 
   private final String id;
 
   private final GraphId graph;
-
-  public TypeId(Node node) {
-    this(node.getType());
-  }
-
-  public TypeId(NodeId nodeId) {
-    this(nodeId.getType());
-  }
-
-  public TypeId(TypeId typeId) {
-    this(typeId.getId(), typeId.getGraph());
-  }
-
-  public TypeId(Type cls) {
-    this(cls.getId(), cls.getGraph());
-  }
 
   public TypeId(String id, UUID graphId) {
     this(id, new GraphId(graphId));
@@ -37,6 +20,14 @@ public class TypeId implements Serializable {
   public TypeId(String id, GraphId graph) {
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
     this.graph = checkNotNull(graph, "graph can't be null in %s", getClass());
+  }
+
+  public static TypeId of(String id, UUID graphId) {
+    return of(id, GraphId.of(graphId));
+  }
+
+  public static TypeId of(String id, GraphId graphId) {
+    return new TypeId(id, graphId);
   }
 
   public String getId() {
@@ -61,7 +52,7 @@ public class TypeId implements Serializable {
     }
     TypeId typeId = (TypeId) o;
     return Objects.equals(id, typeId.id) &&
-           Objects.equals(graph, typeId.graph);
+        Objects.equals(graph, typeId.graph);
   }
 
   @Override

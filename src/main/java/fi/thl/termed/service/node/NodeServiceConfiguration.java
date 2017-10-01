@@ -104,21 +104,21 @@ public class NodeServiceConfiguration {
   private PermissionEvaluator<NodeId> nodeEvaluator() {
     return new DisjunctionPermissionEvaluator<>(
         appAdminEvaluator(),
-        (u, o, p) -> classEvaluator.hasPermission(u, new TypeId(o), p));
+        (u, o, p) -> classEvaluator.hasPermission(u, o.getType(), p));
   }
 
   private PermissionEvaluator<NodeAttributeValueId> textAttributeValueEvaluator() {
     return new DisjunctionPermissionEvaluator<>(
         appAdminEvaluator(),
         (u, o, p) -> textAttributeEvaluator.hasPermission(
-            u, new TextAttributeId(new TypeId(o.getNodeId()), o.getAttributeId()), p));
+            u, new TextAttributeId(o.getNodeId().getType(), o.getAttributeId()), p));
   }
 
   private PermissionEvaluator<NodeAttributeValueId> referenceAttributeValueEvaluator() {
     return new DisjunctionPermissionEvaluator<>(
         appAdminEvaluator(),
         (u, o, p) -> referenceAttributeEvaluator.hasPermission(
-            u, new ReferenceAttributeId(new TypeId(o.getNodeId()), o.getAttributeId()), p));
+            u, new ReferenceAttributeId(o.getNodeId().getType(), o.getAttributeId()), p));
   }
 
   private SystemDao<NodeId, Node> nodeSystemDao() {

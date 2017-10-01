@@ -44,13 +44,13 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
 
   private void initialize(Type type) {
     for (TextAttribute textAttribute : type.getTextAttributes()) {
-      textAttribute.setDomain(new TypeId(type));
+      textAttribute.setDomain(type.identifier());
       textAttribute.setRegex(firstNonNull(textAttribute.getRegex(), RegularExpressions.ALL));
     }
 
     for (ReferenceAttribute referenceAttribute : type.getReferenceAttributes()) {
-      referenceAttribute.setDomain(new TypeId(type));
-      referenceAttribute.setRange(new TypeId(
+      referenceAttribute.setDomain(type.identifier());
+      referenceAttribute.setRange(TypeId.of(
           firstNonNull(referenceAttribute.getRangeId(), type.getId()),
           firstNonNull(referenceAttribute.getRangeGraphId(), type.getGraphId())));
     }

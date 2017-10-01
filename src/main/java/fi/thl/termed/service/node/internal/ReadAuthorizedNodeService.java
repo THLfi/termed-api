@@ -40,7 +40,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
       PermissionEvaluator<TextAttributeId> textAttrEvaluator,
       PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {
     this.delegate = delegate;
-    this.nodeEvaluator = (u, r, p) -> classEvaluator.hasPermission(u, new TypeId(r), p);
+    this.nodeEvaluator = (u, r, p) -> classEvaluator.hasPermission(u, r.getType(), p);
     this.textAttrEvaluator = textAttrEvaluator;
     this.refAttrEvaluator = refAttrEvaluator;
   }
@@ -123,7 +123,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
     @Override
     public Node apply(Node node) {
-      TypeId typeId = new TypeId(node);
+      TypeId typeId = node.getType();
 
       node.setProperties(LinkedHashMultimap.create(Multimaps.filterKeys(
           node.getProperties(), new AcceptPropertyPredicate(typeId))));

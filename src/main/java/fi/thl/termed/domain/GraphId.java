@@ -1,12 +1,12 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
+import static java.util.Objects.requireNonNull;
 
+import com.google.common.base.MoreObjects;
+import fi.thl.termed.util.UUIDs;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
 
 public class GraphId implements Serializable {
 
@@ -18,6 +18,18 @@ public class GraphId implements Serializable {
 
   public GraphId(UUID id) {
     this.id = requireNonNull(id, () -> "id can't be null in " + getClass());
+  }
+
+  public static GraphId fromUuidString(String id) {
+    return of(UUIDs.fromString(id));
+  }
+
+  public static GraphId of(Graph graph) {
+    return of(graph.getId());
+  }
+
+  public static GraphId of(UUID id) {
+    return new GraphId(id);
   }
 
   public UUID getId() {

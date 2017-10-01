@@ -4,7 +4,6 @@ import static fi.thl.termed.util.RegularExpressions.URN_UUID;
 import static fi.thl.termed.util.UUIDs.fromString;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;
@@ -15,7 +14,6 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.StringUtils;
 import fi.thl.termed.util.URIs;
 import fi.thl.termed.util.rdf.RdfModel;
@@ -38,7 +36,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
   public RdfModelToNodes(List<Type> types, Function<NodeId, Optional<Node>> nodeProvider,
       boolean importCodes) {
-    this.types = types.stream().filter(t -> !isNullOrEmpty(t.getUri())).collect(toList());
+    this.types = types.stream().filter(t -> t.getUri().isPresent()).collect(toList());
     this.nodeProvider = nodeProvider;
     this.importCodes = importCodes;
   }
@@ -49,7 +47,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
     // init nodes
     for (Type type : types) {
-      for (RdfResource r : rdfModel.find(RDF.type.getURI(), type.getUri())) {
+      for (RdfResource r : rdfModel.find(RDF.type.getURI(), type.getUri().orElse(null))) {
         String uri = r.getUri();
 
         Node node = new Node();
@@ -62,14 +60,14 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
           node.setCode(importCodes ? StringUtils.normalize(URIs.localName(uri)) : null);
         }
 
-        node.setType(new TypeId(type));
+        node.setType(type.identifier());
         nodes.put(r.getUri(), node);
       }
     }
 
     // populate attributes
     for (Type type : types) {
-      for (RdfResource rdfResource : rdfModel.find(RDF.type.getURI(), type.getUri())) {
+      for (RdfResource rdfResource : rdfModel.find(RDF.type.getURI(), type.getUri().orElse(null))) {
         Node node = nodes.get(rdfResource.getUri());
         setTextAttrValues(type, node, rdfResource);
 

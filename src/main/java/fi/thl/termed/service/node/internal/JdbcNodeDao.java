@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import fi.thl.termed.domain.GraphId;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
@@ -106,8 +107,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   protected RowMapper<Node> buildValueMapper() {
     return (rs, rowNum) -> {
       Node node = new Node(UUIDs.fromString(rs.getString("id")));
-      node.setType(new TypeId(
-          rs.getString("type_id"), UUIDs.fromString(rs.getString("graph_id"))));
+      node.setType(TypeId.of(rs.getString("type_id"),
+          GraphId.fromUuidString(rs.getString("graph_id"))));
 
       node.setCode(rs.getString("code"));
       node.setUri(rs.getString("uri"));

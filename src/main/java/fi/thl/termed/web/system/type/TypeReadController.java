@@ -2,16 +2,6 @@ package fi.thl.termed.web.system.type;
 
 import static java.util.stream.Collectors.toList;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -23,6 +13,14 @@ import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
@@ -43,7 +41,7 @@ public class TypeReadController {
   public List<Type> getTypes(
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User currentUser) {
-    graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
+    graphService.get(GraphId.of(graphId), currentUser).orElseThrow(NotFoundException::new);
     return typeService.getValues(new TypesByGraphId(graphId), currentUser).collect(toList());
   }
 
@@ -52,7 +50,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @AuthenticationPrincipal User currentUser) {
-    return typeService.get(new TypeId(typeId, graphId), currentUser)
+    return typeService.get(TypeId.of(typeId, graphId), currentUser)
         .orElseThrow(NotFoundException::new);
   }
 
@@ -61,8 +59,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @AuthenticationPrincipal User currentUser) {
-
-    return typeService.get(new TypeId(typeId, graphId), currentUser)
+    return typeService.get(TypeId.of(typeId, graphId), currentUser)
         .orElseThrow(NotFoundException::new).getTextAttributes();
   }
 
@@ -72,8 +69,7 @@ public class TypeReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("attributeId") String attributeId,
       @AuthenticationPrincipal User currentUser) {
-
-    return typeService.get(new TypeId(typeId, graphId), currentUser)
+    return typeService.get(TypeId.of(typeId, graphId), currentUser)
         .orElseThrow(NotFoundException::new)
         .getTextAttributes().stream()
         .filter(attr -> Objects.equals(attr.getId(), attributeId))
@@ -85,7 +81,7 @@ public class TypeReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @AuthenticationPrincipal User currentUser) {
-    return typeService.get(new TypeId(typeId, graphId), currentUser)
+    return typeService.get(TypeId.of(typeId, graphId), currentUser)
         .orElseThrow(NotFoundException::new).getReferenceAttributes();
   }
 
@@ -95,8 +91,7 @@ public class TypeReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("attributeId") String attributeId,
       @AuthenticationPrincipal User currentUser) {
-
-    return typeService.get(new TypeId(typeId, graphId), currentUser)
+    return typeService.get(TypeId.of(typeId, graphId), currentUser)
         .orElseThrow(NotFoundException::new)
         .getReferenceAttributes().stream()
         .filter(attr -> Objects.equals(attr.getId(), attributeId))

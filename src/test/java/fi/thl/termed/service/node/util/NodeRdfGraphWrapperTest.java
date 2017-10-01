@@ -1,7 +1,6 @@
 package fi.thl.termed.service.node.util;
 
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
-import static java.util.Collections.singletonList;
 import static org.apache.jena.rdf.model.ResourceFactory.createLangLiteral;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 import static org.apache.jena.rdf.model.ResourceFactory.createStatement;
@@ -44,12 +43,13 @@ public class NodeRdfGraphWrapperTest {
     UUID graphId = nameUUIDFromString("test-graph");
 
     TypeId conceptId = new TypeId("Concept", graphId);
-    Type concept = new Type(conceptId);
-    concept.setUri(SKOS.Concept.getURI());
-    concept.setTextAttributes(singletonList(
-        new TextAttribute("prefLabel", SKOS.prefLabel.getURI(), conceptId)));
-    concept.setReferenceAttributes(singletonList(
-        new ReferenceAttribute("broader", SKOS.broader.getURI(), conceptId, conceptId)));
+    Type concept = Type.builder().id(conceptId)
+        .uri(SKOS.Concept.getURI())
+        .textAttributes(new TextAttribute("prefLabel", SKOS.prefLabel.getURI(), conceptId))
+        .referenceAttributes(
+            new ReferenceAttribute("broader", SKOS.broader.getURI(), conceptId, conceptId))
+        .build();
+
     types.add(concept);
 
     NodeId concept1Id = new NodeId(nameUUIDFromString("1"), conceptId);

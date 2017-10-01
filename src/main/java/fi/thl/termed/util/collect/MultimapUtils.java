@@ -12,4 +12,12 @@ public final class MultimapUtils {
     return map == null ? ImmutableMultimap.<K, V>of() : map;
   }
 
+  public static <K, V> ImmutableMultimap<K, V> nullToEmpty(ImmutableMultimap<K, V> map) {
+    return map == null ? ImmutableMultimap.<K, V>of() : map;
+  }
+
+  public static <K, V> ImmutableMultimap<K, V> nullableImmutableCopyOf(Multimap<K, V> map) {
+    return map != null ? ImmutableMultimap.<K, V>copyOf(map) : null;
+  }
+
 }

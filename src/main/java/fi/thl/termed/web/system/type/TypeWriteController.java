@@ -49,7 +49,7 @@ public class TypeWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    type.setGraph(new GraphId(graphId));
+    type = Type.builder().id(type.getId(), graphId).copyOptionalsFrom(type).build();
     return typeService.get(typeService.save(type, saveMode(mode), opts(sync), user), user)
         .orElseThrow(NotFoundException::new);
   }
@@ -62,7 +62,8 @@ public class TypeWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    types.forEach(type -> type.setGraph(new GraphId(graphId)));
+    types.replaceAll(type ->
+        Type.builder().id(type.getId(), graphId).copyOptionalsFrom(type).build());
     typeService.save(types, saveMode(mode), opts(sync), user);
   }
 
@@ -74,10 +75,11 @@ public class TypeWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    types.forEach(type -> type.setGraph(new GraphId(graphId)));
+    types.replaceAll(type ->
+        Type.builder().id(type.getId(), graphId).copyOptionalsFrom(type).build());
 
     Set<TypeId> oldTypes = typeService.getKeys(new TypesByGraphId(graphId), user).collect(toSet());
-    Set<TypeId> newTypes = types.stream().map(TypeId::new).collect(toSet());
+    Set<TypeId> newTypes = types.stream().map(Type::identifier).collect(toSet());
 
     typeService.deleteAndSave(copyOf(difference(oldTypes, newTypes)),
         types, saveMode(mode), opts(sync), user);
@@ -91,8 +93,7 @@ public class TypeWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    type.setGraph(new GraphId(graphId));
-    type.setId(id);
+    type = Type.builder().id(id, graphId).copyOptionalsFrom(type).build();
     return typeService.get(typeService.save(type, saveMode(mode), opts(sync), user), user)
         .orElseThrow(NotFoundException::new);
   }
