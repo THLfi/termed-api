@@ -64,7 +64,7 @@ public class GraphWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    graph.setId(graphId);
+    graph = Graph.builder().id(graphId).copyOptionalsFrom(graph).build();
     return graphService.get(graphService.save(graph, saveMode(mode), opts(sync), user), user)
         .orElseThrow(NotFoundException::new);
   }

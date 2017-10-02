@@ -47,6 +47,21 @@ public class Type implements Identifiable<TypeId> {
     this.referenceAttributes = nullableImmutableCopyOf(referenceAttributes);
   }
 
+  public static IdBuilder builder() {
+    return new IdBuilder();
+  }
+
+  public static Builder builderFromCopyOf(Type type) {
+    Builder builder = new Builder(type.getId(), type.getGraph());
+    builder.uri(type.getUri().orElse(null));
+    builder.index(type.getIndex().orElse(null));
+    builder.permissions(type.getPermissions());
+    builder.properties(type.getProperties());
+    builder.textAttributes(type.getTextAttributes());
+    builder.referenceAttributes(type.getReferenceAttributes());
+    return builder;
+  }
+
   public String getId() {
     return id;
   }
@@ -81,21 +96,6 @@ public class Type implements Identifiable<TypeId> {
 
   public ImmutableList<ReferenceAttribute> getReferenceAttributes() {
     return nullToEmpty(referenceAttributes);
-  }
-
-  public static TypeIdBuilder builder() {
-    return new TypeIdBuilder();
-  }
-
-  public static TypeBuilder builderFromCopyOf(Type type) {
-    TypeBuilder builder = new TypeBuilder(type.getId(), type.getGraph());
-    builder.uri(type.getUri().orElse(null));
-    builder.index(type.getIndex().orElse(null));
-    builder.permissions(type.getPermissions());
-    builder.properties(type.getProperties());
-    builder.textAttributes(type.getTextAttributes());
-    builder.referenceAttributes(type.getReferenceAttributes());
-    return builder;
   }
 
   @Override
@@ -142,22 +142,23 @@ public class Type implements Identifiable<TypeId> {
         referenceAttributes);
   }
 
-  public static final class TypeIdBuilder {
+  public static final class IdBuilder {
 
-    public TypeBuilder id(String id, UUID graphId) {
-      return new TypeBuilder(id, GraphId.of(graphId));
+    public Builder id(String id, UUID graphId) {
+      return new Builder(id, GraphId.of(graphId));
     }
 
-    public TypeBuilder id(String id, GraphId graph) {
-      return new TypeBuilder(id, graph);
+    public Builder id(String id, GraphId graph) {
+      return new Builder(id, graph);
     }
 
-    public TypeBuilder id(TypeId typeId) {
-      return new TypeBuilder(typeId.getId(), typeId.getGraph());
+    public Builder id(TypeId typeId) {
+      return new Builder(typeId.getId(), typeId.getGraph());
     }
+
   }
 
-  public static final class TypeBuilder {
+  public static final class Builder {
 
     private final String id;
     private final GraphId graph;
@@ -169,12 +170,12 @@ public class Type implements Identifiable<TypeId> {
     private List<TextAttribute> textAttributes;
     private List<ReferenceAttribute> referenceAttributes;
 
-    TypeBuilder(String id, GraphId graph) {
+    Builder(String id, GraphId graph) {
       this.id = requireNonNull(id);
       this.graph = requireNonNull(graph);
     }
 
-    public TypeBuilder copyOptionalsFrom(Type type) {
+    public Builder copyOptionalsFrom(Type type) {
       this.uri = type.uri;
       this.index = type.index;
       this.permissions = type.permissions;
@@ -184,58 +185,58 @@ public class Type implements Identifiable<TypeId> {
       return this;
     }
 
-    public TypeBuilder uri(String uri) {
+    public Builder uri(String uri) {
       this.uri = uri;
       return this;
     }
 
-    public TypeBuilder index(Integer index) {
+    public Builder index(Integer index) {
       this.index = index;
       return this;
     }
 
-    public TypeBuilder permissions(Multimap<String, Permission> permissions) {
+    public Builder permissions(Multimap<String, Permission> permissions) {
       this.permissions = permissions;
       return this;
     }
 
-    public TypeBuilder properties(Multimap<String, LangValue> properties) {
+    public Builder properties(Multimap<String, LangValue> properties) {
       this.properties = properties;
       return this;
     }
 
-    public TypeBuilder properties(String k0, LangValue v0) {
+    public Builder properties(String k0, LangValue v0) {
       this.properties = ImmutableMultimap.of(k0, v0);
       return this;
     }
 
-    public TypeBuilder properties(String k0, LangValue v0, String k1, LangValue v1) {
+    public Builder properties(String k0, LangValue v0, String k1, LangValue v1) {
       this.properties = ImmutableMultimap.of(k0, v0, k1, v1);
       return this;
     }
 
-    public TypeBuilder properties(String k0, LangValue v0, String k1, LangValue v1, String k2,
+    public Builder properties(String k0, LangValue v0, String k1, LangValue v1, String k2,
         LangValue v2) {
       this.properties = ImmutableMultimap.of(k0, v0, k1, v1, k2, v2);
       return this;
     }
 
-    public TypeBuilder textAttributes(TextAttribute... textAttributes) {
+    public Builder textAttributes(TextAttribute... textAttributes) {
       this.textAttributes = Arrays.asList(textAttributes);
       return this;
     }
 
-    public TypeBuilder textAttributes(List<TextAttribute> textAttributes) {
+    public Builder textAttributes(List<TextAttribute> textAttributes) {
       this.textAttributes = textAttributes;
       return this;
     }
 
-    public TypeBuilder referenceAttributes(ReferenceAttribute... referenceAttributes) {
+    public Builder referenceAttributes(ReferenceAttribute... referenceAttributes) {
       this.referenceAttributes = Arrays.asList(referenceAttributes);
       return this;
     }
 
-    public TypeBuilder referenceAttributes(List<ReferenceAttribute> referenceAttributes) {
+    public Builder referenceAttributes(List<ReferenceAttribute> referenceAttributes) {
       this.referenceAttributes = referenceAttributes;
       return this;
     }
@@ -244,6 +245,7 @@ public class Type implements Identifiable<TypeId> {
       return new Type(id, graph, uri, index,
           permissions, properties, textAttributes, referenceAttributes);
     }
+
   }
 
 }

@@ -81,10 +81,10 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     updateProperties(id, graph.getProperties(), user);
   }
 
-  private void updateRoles(GraphId graph, List<String> roles, User user) {
-    Map<GraphRole, Empty> newRolesMap = new GraphRoleDtoToModel(graph).apply(roles);
+  private void updateRoles(GraphId graphId, List<String> roles, User user) {
+    Map<GraphRole, Empty> newRolesMap = new GraphRoleDtoToModel(graphId).apply(roles);
     Map<GraphRole, Empty> oldRolesMap = graphRoleDao.getMap(
-        new GraphRolesByGraphId(graph.getId()), user);
+        new GraphRolesByGraphId(graphId), user);
 
     MapDifference<GraphRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
 
@@ -132,7 +132,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void deleteRoles(GraphId id, User user) {
-    graphRoleDao.delete(graphRoleDao.getKeys(new GraphRolesByGraphId(id.getId()), user), user);
+    graphRoleDao.delete(graphRoleDao.getKeys(new GraphRolesByGraphId(id), user), user);
   }
 
   private void deletePermissions(GraphId id, User user) {
@@ -166,19 +166,16 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private Graph populateValue(Graph graph, User user) {
-    graph = new Graph(graph);
+    GraphId id = graph.identifier();
 
-    graph.setRoles(new GraphRoleModelToDto().apply(graphRoleDao.getMap(
-        new GraphRolesByGraphId(graph.getId()), user)));
-
-    graph.setPermissions(new RolePermissionsModelToDto<GraphId>().apply(
-        graphPermissionDao.getMap(new GraphPermissionsByGraphId(new GraphId(graph)), user)));
-
-    graph.setProperties(
-        new PropertyValueModelToDto<GraphId>().apply(graphPropertyDao.getMap(
-            new GraphPropertiesByGraphId(new GraphId(graph)), user)));
-
-    return graph;
+    return Graph.builderFromCopyOf(graph)
+        .roles(new GraphRoleModelToDto().apply(
+            graphRoleDao.getMap(new GraphRolesByGraphId(id), user)))
+        .permissions(new RolePermissionsModelToDto<GraphId>().apply(
+            graphPermissionDao.getMap(new GraphPermissionsByGraphId(id), user)))
+        .properties(new PropertyValueModelToDto<GraphId>().apply(
+            graphPropertyDao.getMap(new GraphPropertiesByGraphId(id), user)))
+        .build();
   }
 
 }

@@ -59,7 +59,7 @@ public class NodeServiceIntegrationTest {
 
     userService.save(testUser, UPSERT, defaultOpts(),
         new User("testInitializer", "", AppRole.SUPERUSER));
-    graphService.save(new Graph(testGraphId), UPSERT, defaultOpts(), testUser);
+    graphService.save(Graph.builder().id(testGraphId).build(), UPSERT, defaultOpts(), testUser);
 
     GraphId graphId = new GraphId(testGraphId);
     TypeId personId = new TypeId("Person", graphId);

@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.specification;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -30,13 +29,15 @@ public class NodeGraphAndTypeSpecificationResolver implements
    * @param types list of readable types
    */
   public NodeGraphAndTypeSpecificationResolver(List<Graph> graphs, List<Type> types) {
-    this.graphsByUri = graphs.stream().filter(g -> !isNullOrEmpty(g.getUri()))
-        .collect(groupingBy(Graph::getUri));
-    this.graphsByCode = graphs.stream().filter(g -> !isNullOrEmpty(g.getCode()))
-        .collect(groupingBy(Graph::getCode));
+    this.graphsByUri = graphs.stream()
+        .filter(g -> g.getUri().isPresent())
+        .collect(groupingBy(g -> g.getUri().orElse(null)));
+    this.graphsByCode = graphs.stream()
+        .filter(g -> g.getCode().isPresent())
+        .collect(groupingBy(g -> g.getCode().orElse(null)));
     this.typesByUri = types.stream()
         .filter(t -> t.getUri().isPresent())
-        .collect(groupingBy(t -> t.getUri().orElseThrow(IllegalStateException::new)));
+        .collect(groupingBy(t -> t.getUri().orElse(null)));
   }
 
   @Override

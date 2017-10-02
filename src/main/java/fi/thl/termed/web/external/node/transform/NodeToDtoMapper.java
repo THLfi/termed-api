@@ -178,8 +178,8 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
     Graph g = graphProvider.apply(graphId);
 
     dto.setId(graphId.getId());
-    dto.setUri(g.getUri());
-    dto.setCode(g.getCode());
+    dto.setUri(g.getUri().orElse(null));
+    dto.setCode(g.getCode().orElse(null));
 
     if (select.graph) {
       dto.setProperties(g.getProperties());

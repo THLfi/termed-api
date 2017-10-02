@@ -65,9 +65,9 @@ public class TypeServiceIntegrationTest {
   @Before
   public void setUp() {
     graphs = new Graph[]{
-        new Graph(randomUUID()),
-        new Graph(randomUUID()),
-        new Graph(randomUUID()),
+        Graph.builder().id(randomUUID()).build(),
+        Graph.builder().id(randomUUID()).build(),
+        Graph.builder().id(randomUUID()).build(),
     };
     user = new User("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()), ADMIN);
 

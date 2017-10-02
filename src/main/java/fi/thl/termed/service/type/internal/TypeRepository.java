@@ -247,9 +247,8 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private Type populateValue(Type type, User user) {
     TypeId id = type.identifier();
-    return Type.builder().id(id)
-        .uri(type.getUri().orElse(null))
-        .index(type.getIndex().orElse(null))
+
+    return Type.builderFromCopyOf(type)
         .permissions(
             new RolePermissionsModelToDto<TypeId>().apply(
                 typePermissionDao.getMap(new TypePermissionsByTypeId(id), user)))

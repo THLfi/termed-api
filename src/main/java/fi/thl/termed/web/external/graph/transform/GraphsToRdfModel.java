@@ -1,23 +1,20 @@
 package fi.thl.termed.web.external.graph.transform;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.emptyToNull;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import org.apache.jena.rdf.model.ModelFactory;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
+import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
-import fi.thl.termed.domain.Graph;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.rdf.RdfModel;
 import fi.thl.termed.util.rdf.RdfResource;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Strings.emptyToNull;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import org.apache.jena.rdf.model.ModelFactory;
 
 public class GraphsToRdfModel implements Function<List<Graph>, RdfModel> {
 
@@ -52,12 +49,12 @@ public class GraphsToRdfModel implements Function<List<Graph>, RdfModel> {
 
   private String getPropertyUri(Property property) {
     return firstNonNull(emptyToNull(property.getUri()),
-                        TERMED_PROPERTIES_NS + property.getId());
+        TERMED_PROPERTIES_NS + property.getId());
   }
 
   private String getGraphUri(Graph graph) {
-    return firstNonNull(emptyToNull(graph.getUri()),
-                        TERMED_GRAPHS_NS + graph.getId());
+    return firstNonNull(emptyToNull(graph.getUri().orElse(null)),
+        TERMED_GRAPHS_NS + graph.getId());
   }
 
 }

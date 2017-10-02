@@ -1,6 +1,5 @@
 package fi.thl.termed.service.graph.internal;
 
-import static fi.thl.termed.util.ObjectUtils.coalesce;
 import static java.util.UUID.randomUUID;
 
 import fi.thl.termed.domain.Graph;
@@ -12,6 +11,7 @@ import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
+import java.util.UUID;
 
 public class InitializingGraphService extends ForwardingService<GraphId, Graph> {
 
@@ -21,29 +21,35 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
 
   @Override
   public List<GraphId> save(List<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
-    graphs.forEach(this::initialize);
+    graphs.replaceAll(this::initialize);
     return super.save(graphs, mode, opts, user);
   }
 
   @Override
   public GraphId save(Graph graph, SaveMode mode, WriteOptions opts, User user) {
-    initialize(graph);
-    return super.save(graph, mode, opts, user);
+    return super.save(initialize(graph), mode, opts, user);
   }
 
   @Override
   public List<GraphId> deleteAndSave(List<GraphId> deletes, List<Graph> saves, SaveMode mode,
       WriteOptions opts, User user) {
-    saves.forEach(this::initialize);
+    saves.replaceAll(this::initialize);
     return super.deleteAndSave(deletes, saves, mode, opts, user);
   }
 
-  private void initialize(Graph graph) {
+  private Graph initialize(Graph graph) {
     if (graph.getId() == null) {
-      graph.setId(coalesce(UUIDs.nameUUIDFromString(graph.getCode()),
-          UUIDs.nameUUIDFromString(graph.getUri()),
-          randomUUID()));
+      UUID id = graph.getCode()
+          .map(UUIDs::nameUUIDFromString)
+          .orElse(graph.getUri()
+              .map(UUIDs::nameUUIDFromString)
+              .orElse(randomUUID()));
+
+      return Graph.builder().id(id)
+          .copyOptionalsFrom(graph)
+          .build();
     }
+    return graph;
   }
 
 }

@@ -2,6 +2,7 @@ package fi.thl.termed.service.type.internal;
 
 import static java.lang.String.format;
 
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
@@ -24,14 +25,14 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
     jdbcTemplate.update("insert into type (graph_id, id, uri, index) values (?, ?, ?, ?)",
         typeId.getGraphId(),
         typeId.getId(),
-        newType.getUri().orElse(null),
+        newType.getUri().map(Strings::emptyToNull).orElse(null),
         newType.getIndex().orElse(null));
   }
 
   @Override
   public void update(TypeId typeId, Type newType) {
     jdbcTemplate.update("update type set uri = ?, index = ? where graph_id = ? and id = ?",
-        newType.getUri().orElse(null),
+        newType.getUri().map(Strings::emptyToNull).orElse(null),
         newType.getIndex().orElse(null),
         typeId.getGraphId(),
         typeId.getId());
