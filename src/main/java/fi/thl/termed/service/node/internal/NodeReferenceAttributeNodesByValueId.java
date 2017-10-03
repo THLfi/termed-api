@@ -1,10 +1,10 @@
 package fi.thl.termed.service.node.internal;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class NodeReferenceAttributeNodesByValueId
     extends AbstractSqlSpecification<NodeAttributeValueId, NodeId> {
@@ -21,13 +21,10 @@ public class NodeReferenceAttributeNodesByValueId
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "value_graph_id = ? and value_type_id = ? and value_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{valueId.getTypeGraphId(), valueId.getTypeId(), valueId.getId()};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of(
+        "value_graph_id = ? and value_type_id = ? and value_id = ?",
+        valueId.getTypeGraphId(), valueId.getTypeId(), valueId.getId());
   }
 
 }

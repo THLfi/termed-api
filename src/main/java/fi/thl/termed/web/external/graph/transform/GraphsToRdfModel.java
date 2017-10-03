@@ -48,7 +48,7 @@ public class GraphsToRdfModel implements Function<List<Graph>, RdfModel> {
   }
 
   private String getPropertyUri(Property property) {
-    return firstNonNull(emptyToNull(property.getUri()),
+    return firstNonNull(emptyToNull(property.getUri().orElse(null)),
         TERMED_PROPERTIES_NS + property.getId());
   }
 

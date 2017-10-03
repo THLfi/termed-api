@@ -1,13 +1,11 @@
 package fi.thl.termed.util.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static java.util.Arrays.stream;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -62,31 +60,25 @@ public class OrSpecification<K extends Serializable, V> extends CompositeSpecifi
   }
 
   @Override
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of(sqlQueryTemplate(), sqlQueryParameters());
+  }
+
+  @Override
   public String sqlQueryTemplate() {
-    if (specifications.isEmpty()) {
-      return "1 = 0";
-    }
-
-    List<String> query = Lists.newArrayList();
-
-    for (Specification<K, V> spec : specifications) {
-      query.add("(" + ((SqlSpecification<K, V>) spec).sqlQueryTemplate() + ")");
-    }
-
-    return Joiner.on(" OR ").join(query);
+    return specifications.isEmpty() ?
+        "1 = 0" : specifications.stream()
+        .map(SqlSpecification.class::cast)
+        .map(spec -> "(" + spec.sqlQueryTemplate() + ")")
+        .collect(Collectors.joining(" OR "));
   }
 
   @Override
   public Object[] sqlQueryParameters() {
-    checkState(specifications.stream().allMatch(s -> s instanceof SqlSpecification));
-
-    List<Object> queryParameters = Lists.newArrayList();
-
-    for (Specification<K, V> spec : specifications) {
-      queryParameters.addAll(Arrays.asList(((SqlSpecification<K, V>) spec).sqlQueryParameters()));
-    }
-
-    return queryParameters.toArray(new Object[queryParameters.size()]);
+    return specifications.stream()
+        .map(SqlSpecification.class::cast)
+        .flatMap(spec -> stream(spec.sqlQueryParameters()))
+        .toArray(Object[]::new);
   }
 
 }

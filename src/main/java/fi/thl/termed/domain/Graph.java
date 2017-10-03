@@ -45,11 +45,7 @@ public class Graph implements Identifiable<GraphId> {
 
   public static Builder builderFromCopyOf(Graph graph) {
     Builder builder = new Builder(graph.getId());
-    builder.uri(graph.getUri().orElse(null));
-    builder.code(graph.getCode().orElse(null));
-    builder.roles(graph.getRoles());
-    builder.permissions(graph.getPermissions());
-    builder.properties(graph.getProperties());
+    builder.copyOptionalsFrom(graph);
     return builder;
   }
 

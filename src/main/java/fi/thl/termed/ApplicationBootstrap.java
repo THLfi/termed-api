@@ -1,5 +1,6 @@
 package fi.thl.termed;
 
+import static fi.thl.termed.util.io.ResourceUtils.resourceToString;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 
@@ -12,8 +13,8 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.io.ResourceUtils;
 import fi.thl.termed.util.service.Service;
+import java.lang.reflect.Type;
 import java.util.List;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -53,6 +54,9 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
 
   private User initializer = new User("initializer", "", AppRole.SUPERUSER);
 
+  private Type propertyListType = new TypeToken<List<Property>>() {
+  }.getType();
+
   @Override
   public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
     eventBus.post(new ApplicationReadyEvent());
@@ -70,14 +74,9 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultProperties() {
-    List<Property> properties = gson.fromJson(ResourceUtils.resourceToString(
-        "default/properties.json"), new TypeToken<List<Property>>() {
-    }.getType());
-    int index = 0;
-    for (Property property : properties) {
-      property.setIndex(index++);
-    }
-    propertyService.save(properties, UPSERT, defaultOpts(), initializer);
+    List<Property> props = gson.fromJson(resourceToString("default/properties.json"),
+        propertyListType);
+    propertyService.save(props, UPSERT, defaultOpts(), initializer);
   }
 
   @PreDestroy

@@ -4,6 +4,7 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.util.Objects;
 
 public class ReferenceAttributesByRangeId
@@ -11,7 +12,7 @@ public class ReferenceAttributesByRangeId
 
   private TypeId typeId;
 
-  public ReferenceAttributesByRangeId(TypeId typeId) {
+  ReferenceAttributesByRangeId(TypeId typeId) {
     this.typeId = typeId;
   }
 
@@ -21,13 +22,9 @@ public class ReferenceAttributesByRangeId
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "range_graph_id = ? and range_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{typeId.getGraphId(), typeId.getId()};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of(
+        "range_graph_id = ? and range_id = ?", typeId.getGraphId(), typeId.getId());
   }
 
 }

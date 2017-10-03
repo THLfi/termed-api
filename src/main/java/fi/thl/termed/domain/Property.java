@@ -1,38 +1,40 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Multimap;
+import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
+import static fi.thl.termed.util.collect.MultimapUtils.nullableImmutableCopyOf;
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Identifiable;
 import java.util.Objects;
-
-import fi.thl.termed.util.collect.MultimapUtils;
+import java.util.Optional;
 
 public class Property implements Identifiable<String> {
 
-  private String id;
+  private final String id;
+  private final String uri;
 
-  private String uri;
+  private final Integer index;
+  private final ImmutableMultimap<String, LangValue> properties;
 
-  private Integer index;
-
-  private Multimap<String, LangValue> properties;
-
-  public Property(String id) {
-    this.id = id;
-  }
-
-  public Property(String id, String uri, Integer index) {
-    this.id = id;
+  public Property(String id, String uri, Integer index, Multimap<String, LangValue> properties) {
+    this.id = requireNonNull(id);
     this.uri = uri;
     this.index = index;
+    this.properties = nullableImmutableCopyOf(properties);
   }
 
-  public Property(Property property) {
-    this.id = property.id;
-    this.uri = property.uri;
-    this.index = property.index;
-    this.properties = property.properties;
+  public static IdBuilder builder() {
+    return new IdBuilder();
+  }
+
+  public static Builder builderFromCopyOf(Property property) {
+    Builder builder = new Builder(property.getId());
+    builder.copyOptionalsFrom(property);
+    return builder;
   }
 
   @Override
@@ -44,32 +46,16 @@ public class Property implements Identifiable<String> {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public Optional<String> getUri() {
+    return ofNullable(uri);
   }
 
-  public String getUri() {
-    return uri;
+  public Optional<Integer> getIndex() {
+    return ofNullable(index);
   }
 
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
-  public Integer getIndex() {
-    return index;
-  }
-
-  public void setIndex(Integer index) {
-    this.index = index;
-  }
-
-  public Multimap<String, LangValue> getProperties() {
-    return MultimapUtils.nullToEmpty(properties);
-  }
-
-  public void setProperties(Multimap<String, LangValue> properties) {
-    this.properties = properties;
+  public ImmutableMultimap<String, LangValue> getProperties() {
+    return nullToEmpty(properties);
   }
 
   @Override
@@ -92,14 +78,78 @@ public class Property implements Identifiable<String> {
     }
     Property property = (Property) o;
     return Objects.equals(id, property.id) &&
-           Objects.equals(uri, property.uri) &&
-           Objects.equals(index, property.index) &&
-           Objects.equals(properties, property.properties);
+        Objects.equals(uri, property.uri) &&
+        Objects.equals(index, property.index) &&
+        Objects.equals(properties, property.properties);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, uri, index, properties);
+  }
+
+
+  public static final class IdBuilder {
+
+    public Builder id(String id) {
+      return new Builder(id);
+    }
+
+  }
+
+  public static final class Builder {
+
+    private final String id;
+    private String uri;
+    private Integer index;
+    private Multimap<String, LangValue> properties;
+
+    Builder(String id) {
+      this.id = requireNonNull(id);
+    }
+
+    public Builder copyOptionalsFrom(Property graph) {
+      this.uri = graph.uri;
+      this.index = graph.index;
+      this.properties = graph.properties;
+      return this;
+    }
+
+    public Builder uri(String uri) {
+      this.uri = uri;
+      return this;
+    }
+
+    public Builder index(Integer index) {
+      this.index = index;
+      return this;
+    }
+
+    public Builder properties(Multimap<String, LangValue> properties) {
+      this.properties = properties;
+      return this;
+    }
+
+    public Builder properties(String k0, LangValue v0) {
+      this.properties = ImmutableMultimap.of(k0, v0);
+      return this;
+    }
+
+    public Builder properties(String k0, LangValue v0, String k1, LangValue v1) {
+      this.properties = ImmutableMultimap.of(k0, v0, k1, v1);
+      return this;
+    }
+
+    public Builder properties(String k0, LangValue v0, String k1, LangValue v1, String k2,
+        LangValue v2) {
+      this.properties = ImmutableMultimap.of(k0, v0, k1, v1, k2, v2);
+      return this;
+    }
+
+    public Property build() {
+      return new Property(id, uri, index, properties);
+    }
+
   }
 
 }

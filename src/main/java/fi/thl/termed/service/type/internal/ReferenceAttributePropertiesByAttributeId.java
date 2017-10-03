@@ -1,19 +1,19 @@
 package fi.thl.termed.service.type.internal;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class ReferenceAttributePropertiesByAttributeId
     extends AbstractSqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
   private ReferenceAttributeId referenceAttributeId;
 
-  public ReferenceAttributePropertiesByAttributeId(ReferenceAttributeId referenceAttributeId) {
+  ReferenceAttributePropertiesByAttributeId(ReferenceAttributeId referenceAttributeId) {
     this.referenceAttributeId = referenceAttributeId;
   }
 
@@ -23,16 +23,11 @@ public class ReferenceAttributePropertiesByAttributeId
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
+  public ParametrizedSqlQuery sql() {
     TypeId domainId = referenceAttributeId.getDomainId();
-    return new Object[]{domainId.getGraphId(),
-                        domainId.getId(),
-                        referenceAttributeId.getId()};
+    return ParametrizedSqlQuery.of(
+        "reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ?",
+        domainId.getGraphId(), domainId.getId(), referenceAttributeId.getId());
   }
 
 }

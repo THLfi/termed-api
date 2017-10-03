@@ -1,11 +1,11 @@
 package fi.thl.termed.service.type.specification;
 
-import java.util.Objects;
-import java.util.UUID;
-
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
+import java.util.UUID;
 
 public class TypesByGraphId extends AbstractSqlSpecification<TypeId, Type> {
 
@@ -21,13 +21,8 @@ public class TypesByGraphId extends AbstractSqlSpecification<TypeId, Type> {
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "graph_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{graphId};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("graph_id = ?", graphId);
   }
 
 }

@@ -1,10 +1,10 @@
 package fi.thl.termed.service.graph.specification;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class GraphByCode extends AbstractSqlSpecification<GraphId, Graph> {
 
@@ -20,13 +20,8 @@ public class GraphByCode extends AbstractSqlSpecification<GraphId, Graph> {
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "code = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{code};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("code = ?", code);
   }
 
 }

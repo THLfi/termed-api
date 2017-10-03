@@ -1,10 +1,10 @@
 package fi.thl.termed.service.type.specification;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class TypesById extends AbstractSqlSpecification<TypeId, Type> {
 
@@ -20,13 +20,8 @@ public class TypesById extends AbstractSqlSpecification<TypeId, Type> {
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{id};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("id = ?", id);
   }
 
 }

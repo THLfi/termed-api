@@ -75,7 +75,8 @@ public class TypeServiceIntegrationTest {
     userService.save(user, INSERT, defaultOpts(), testDataLoader);
 
     if (!propertyService.exists("label", testDataLoader)) {
-      propertyService.save(new Property("label"), INSERT, defaultOpts(), testDataLoader);
+      propertyService.save(Property.builder().id("label").build(),
+          INSERT, defaultOpts(), testDataLoader);
       labelPropertyInsertedByTest = true;
     }
   }

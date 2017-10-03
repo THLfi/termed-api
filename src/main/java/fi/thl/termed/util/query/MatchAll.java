@@ -12,13 +12,8 @@ public class MatchAll<K extends Serializable, V> implements SqlSpecification<K, 
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "1 = 1";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[0];
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("1 = 1");
   }
 
 }

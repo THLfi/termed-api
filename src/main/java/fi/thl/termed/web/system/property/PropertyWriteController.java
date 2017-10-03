@@ -45,7 +45,7 @@ public class PropertyWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User currentUser) {
-    property.setId(id);
+    property = Property.builder().id(id).copyOptionalsFrom(property).build();
     propertyService.save(property, saveMode(mode), opts(sync), currentUser);
   }
 

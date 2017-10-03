@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Date;
 import java.util.Objects;
@@ -41,13 +42,8 @@ public class NodesLastModifiedSince
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "last_modified_date >= ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{date};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("last_modified_date >= ?", date);
   }
 
   @Override

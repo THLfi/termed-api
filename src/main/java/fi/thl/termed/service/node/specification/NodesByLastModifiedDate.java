@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,31 +48,26 @@ public class NodesByLastModifiedDate
   }
 
   @Override
-  public String sqlQueryTemplate() {
+  public ParametrizedSqlQuery sql() {
     List<String> clauses = new ArrayList<>();
-
-    if (lower != null) {
-      clauses.add("last_modified_date >= ?");
-    }
-    if (upper != null) {
-      clauses.add("last_modified_date <= ?");
-    }
-
-    return clauses.isEmpty() ? "1 = 1" : String.join(" AND ", clauses);
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
     List<Object> params = new ArrayList<>();
 
     if (lower != null) {
+      clauses.add("last_modified_date >= ?");
       params.add(lower);
     }
     if (upper != null) {
+      clauses.add("last_modified_date <= ?");
       params.add(upper);
     }
 
-    return params.toArray(new Object[params.size()]);
+    if (clauses.isEmpty()) {
+      return ParametrizedSqlQuery.of("1 = 1");
+    }
+
+    return ParametrizedSqlQuery.of(
+        String.join(" AND ", clauses),
+        params.toArray(new Object[params.size()]));
   }
 
   @Override

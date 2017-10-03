@@ -4,8 +4,14 @@ import java.io.Serializable;
 
 public interface SqlSpecification<K extends Serializable, V> extends Specification<K, V> {
 
-  String sqlQueryTemplate();
+  ParametrizedSqlQuery sql();
 
-  Object[] sqlQueryParameters();
+  default String sqlQueryTemplate() {
+    return sql().getQueryTemplate();
+  }
+
+  default Object[] sqlQueryParameters() {
+    return sql().getQueryParameters();
+  }
 
 }

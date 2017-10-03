@@ -2,21 +2,18 @@ package fi.thl.termed.service.node.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
+import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Objects;
+import java.util.UUID;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
-import java.util.Objects;
-import java.util.UUID;
-
-import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.query.LuceneSpecification;
-import fi.thl.termed.util.query.SqlSpecification;
-
-public class NodeById
-    implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
+public class NodeById implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
 
   private UUID id;
 
@@ -36,13 +33,8 @@ public class NodeById
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{id};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("id = ?", id);
   }
 
   @Override

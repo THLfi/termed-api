@@ -2,6 +2,7 @@ package fi.thl.termed.service.webhook.specification;
 
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
@@ -20,13 +21,8 @@ public class WebhookByUrl extends AbstractSqlSpecification<UUID, Webhook> {
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "url = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{url.toString()};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("url = ?", url.toString());
   }
 
 }

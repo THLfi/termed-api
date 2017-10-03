@@ -1,17 +1,17 @@
 package fi.thl.termed.service.property.internal;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class PropertyPropertiesByPropertyId
     extends AbstractSqlSpecification<PropertyValueId<String>, LangValue> {
 
   private String propertyId;
 
-  public PropertyPropertiesByPropertyId(String propertyId) {
+  PropertyPropertiesByPropertyId(String propertyId) {
     this.propertyId = propertyId;
   }
 
@@ -21,13 +21,8 @@ public class PropertyPropertiesByPropertyId
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "subject_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{propertyId};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("subject_id = ?", propertyId);
   }
 
 }

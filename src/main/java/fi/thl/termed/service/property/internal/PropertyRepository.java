@@ -2,6 +2,8 @@ package fi.thl.termed.service.property.internal;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
+import static fi.thl.termed.util.collect.StreamUtils.zipWithIndex;
+import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -18,6 +20,7 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,6 +34,16 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
       Dao<PropertyValueId<String>, LangValue> propertyValueDao) {
     this.propertyDao = propertyDao;
     this.propertyValueDao = propertyValueDao;
+  }
+
+  @Override
+  public List<String> save(List<Property> properties, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(addPropertyIndices(properties), mode, opts, user);
+  }
+
+  private List<Property> addPropertyIndices(List<Property> props) {
+    return zipWithIndex(props.stream(), (p, i) -> Property.builderFromCopyOf(p).index(i).build())
+        .collect(toList());
   }
 
   @Override
@@ -98,13 +111,10 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   private Property populateValue(Property property, User user) {
-    property = new Property(property);
-
-    property.setProperties(
-        new PropertyValueModelToDto<String>().apply(propertyValueDao.getMap(
-            new PropertyPropertiesByPropertyId(property.getId()), user)));
-
-    return property;
+    return Property.builderFromCopyOf(property)
+        .properties(new PropertyValueModelToDto<String>().apply(
+            propertyValueDao.getMap(new PropertyPropertiesByPropertyId(property.getId()), user)))
+        .build();
   }
 
 }

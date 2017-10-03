@@ -53,12 +53,7 @@ public class Type implements Identifiable<TypeId> {
 
   public static Builder builderFromCopyOf(Type type) {
     Builder builder = new Builder(type.getId(), type.getGraph());
-    builder.uri(type.getUri().orElse(null));
-    builder.index(type.getIndex().orElse(null));
-    builder.permissions(type.getPermissions());
-    builder.properties(type.getProperties());
-    builder.textAttributes(type.getTextAttributes());
-    builder.referenceAttributes(type.getReferenceAttributes());
+    builder.copyOptionalsFrom(type);
     return builder;
   }
 

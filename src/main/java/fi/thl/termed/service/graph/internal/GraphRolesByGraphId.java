@@ -4,13 +4,14 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.util.Objects;
 
 public class GraphRolesByGraphId extends AbstractSqlSpecification<GraphRole, Empty> {
 
   private GraphId graphId;
 
-  public GraphRolesByGraphId(GraphId graphId) {
+  GraphRolesByGraphId(GraphId graphId) {
     this.graphId = graphId;
   }
 
@@ -20,13 +21,8 @@ public class GraphRolesByGraphId extends AbstractSqlSpecification<GraphRole, Emp
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "graph_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{graphId.getId()};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("graph_id = ?", graphId.getId());
   }
 
 }

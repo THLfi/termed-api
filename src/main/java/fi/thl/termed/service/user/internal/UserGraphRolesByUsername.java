@@ -1,16 +1,16 @@
 package fi.thl.termed.service.user.internal;
 
-import java.util.Objects;
-
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
+import java.util.Objects;
 
 public class UserGraphRolesByUsername extends AbstractSqlSpecification<UserGraphRole, Empty> {
 
   private String username;
 
-  public UserGraphRolesByUsername(String username) {
+  UserGraphRolesByUsername(String username) {
     this.username = username;
   }
 
@@ -20,13 +20,8 @@ public class UserGraphRolesByUsername extends AbstractSqlSpecification<UserGraph
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "username = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{username};
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("username = ?", username);
   }
 
 }

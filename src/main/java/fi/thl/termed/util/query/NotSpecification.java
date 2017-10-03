@@ -35,13 +35,11 @@ public class NotSpecification<K extends Serializable, V>
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "NOT (" + ((SqlSpecification<K, V>) specification).sqlQueryTemplate() + ")";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return ((SqlSpecification<K, V>) specification).sqlQueryParameters();
+  public ParametrizedSqlQuery sql() {
+    SqlSpecification<K, V> sqlSpecification = ((SqlSpecification<K, V>) specification);
+    return ParametrizedSqlQuery.of(
+        "NOT (" + sqlSpecification.sqlQueryTemplate() + ")",
+        sqlSpecification.sqlQueryParameters());
   }
 
   @Override

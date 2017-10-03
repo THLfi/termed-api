@@ -1,9 +1,8 @@
 package fi.thl.termed.util.query;
 
+import java.io.Serializable;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
-
-import java.io.Serializable;
 
 public class MatchNone<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
@@ -19,13 +18,8 @@ public class MatchNone<K extends Serializable, V>
   }
 
   @Override
-  public String sqlQueryTemplate() {
-    return "1 = 0";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[0];
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("1 = 0");
   }
 
 }

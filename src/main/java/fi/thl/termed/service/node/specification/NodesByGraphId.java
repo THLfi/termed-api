@@ -2,18 +2,16 @@ package fi.thl.termed.service.node.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-
-import java.util.Objects;
-import java.util.UUID;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.LuceneSpecification;
+import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Objects;
+import java.util.UUID;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 public class NodesByGraphId
     implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
@@ -35,18 +33,13 @@ public class NodesByGraphId
   }
 
   @Override
+  public ParametrizedSqlQuery sql() {
+    return ParametrizedSqlQuery.of("graph_id = ?", graphId);
+  }
+
+  @Override
   public Query luceneQuery() {
     return new TermQuery(new Term("type.graph.id", graphId.toString()));
-  }
-
-  @Override
-  public String sqlQueryTemplate() {
-    return "graph_id = ?";
-  }
-
-  @Override
-  public Object[] sqlQueryParameters() {
-    return new Object[]{graphId};
   }
 
   @Override
