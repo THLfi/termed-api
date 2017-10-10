@@ -17,6 +17,7 @@ public class Node implements Identifiable<NodeId> {
   private UUID id;
   private String code;
   private String uri;
+  private Integer number;
 
   private String createdBy;
   private Date createdDate;
@@ -45,6 +46,7 @@ public class Node implements Identifiable<NodeId> {
     this.id = node.id;
     this.code = node.code;
     this.uri = node.uri;
+    this.number = node.number;
     this.createdBy = node.createdBy;
     this.createdDate = node.createdDate;
     this.lastModifiedBy = node.lastModifiedBy;
@@ -74,6 +76,14 @@ public class Node implements Identifiable<NodeId> {
 
   public void setCode(String code) {
     this.code = code;
+  }
+
+  public Integer getNumber() {
+    return number;
+  }
+
+  public void setNumber(Integer number) {
+    this.number = number;
   }
 
   public String getUri() {
@@ -192,6 +202,7 @@ public class Node implements Identifiable<NodeId> {
         .add("id", id)
         .add("code", code)
         .add("uri", uri)
+        .add("number", number)
         .add("createdBy", createdBy)
         .add("createdDate", createdDate)
         .add("lastModifiedBy", lastModifiedBy)
@@ -214,6 +225,7 @@ public class Node implements Identifiable<NodeId> {
     return Objects.equals(id, node.id) &&
            Objects.equals(code, node.code) &&
            Objects.equals(uri, node.uri) &&
+           Objects.equals(number, node.number) &&
            Objects.equals(createdBy, node.createdBy) &&
            Objects.equals(createdDate, node.createdDate) &&
            Objects.equals(lastModifiedBy, node.lastModifiedBy) &&
@@ -228,6 +240,7 @@ public class Node implements Identifiable<NodeId> {
     return Objects.hash(id,
                         code,
                         uri,
+                        number,
                         createdBy,
                         createdDate,
                         lastModifiedBy,

@@ -63,6 +63,7 @@ public class JdbcPostgresNodeDao extends JdbcNodeDao {
           k.getId().toString(),
           emptyToNull(v.getCode()),
           emptyToNull(v.getUri()),
+          v.getNumber().toString(),
           v.getCreatedBy(),
           new DateTime(v.getCreatedDate()).toString(),
           v.getLastModifiedBy(),

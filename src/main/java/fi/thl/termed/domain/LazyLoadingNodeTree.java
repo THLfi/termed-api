@@ -44,6 +44,11 @@ public class LazyLoadingNodeTree implements NodeTree {
   }
 
   @Override
+  public Integer getNumber() {
+    return source.getNumber();
+  }
+
+  @Override
   public String getCreatedBy() {
     return source.getCreatedBy();
   }

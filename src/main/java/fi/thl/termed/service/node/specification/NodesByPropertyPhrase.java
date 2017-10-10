@@ -1,13 +1,14 @@
 package fi.thl.termed.service.node.specification;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static fi.thl.termed.util.RegularExpressions.CODE;
+import static fi.thl.termed.util.RegularExpressions.IETF_LANGUAGE_TAG;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.query.LuceneSpecification;
 import java.util.Objects;
 import org.apache.lucene.index.Term;
@@ -21,8 +22,8 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
   private final String phrase;
 
   public NodesByPropertyPhrase(String attributeId, String lang, String phrase) {
-    Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
-    Preconditions.checkArgument(isNullOrEmpty(lang) || lang.matches("[a-z]{2}"));
+    Preconditions.checkArgument(attributeId.matches(CODE));
+    Preconditions.checkArgument(isNullOrEmpty(lang) || lang.matches(IETF_LANGUAGE_TAG));
     this.attributeId = attributeId;
     this.lang = nullToEmpty(lang);
     this.phrase = phrase;
@@ -77,5 +78,5 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
         .add("phrase", phrase)
         .toString();
   }
-  
+
 }

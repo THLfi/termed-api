@@ -22,12 +22,14 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * Coordinates CRUD-operations on Nodes to simpler DAOs.
+ */
 public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
   private Dao<NodeId, Node> nodeDao;
@@ -38,7 +40,6 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
       Dao<NodeId, Node> nodeDao,
       Dao<NodeAttributeValueId, StrictLangValue> textAttributeValueDao,
       Dao<NodeAttributeValueId, NodeId> referenceAttributeValueDao) {
-
     this.nodeDao = nodeDao;
     this.textAttributeValueDao = textAttributeValueDao;
     this.referenceAttributeValueDao = referenceAttributeValueDao;
@@ -49,7 +50,6 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
    */
   @Override
   public void insert(Map<NodeId, Node> map, SaveMode mode, WriteOptions opts, User user) {
-    addCreatedInfo(map.values(), user);
     nodeDao.insert(map, user);
 
     Map<NodeAttributeValueId, StrictLangValue> textAttrValues = new LinkedHashMap<>();
@@ -66,24 +66,9 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
   @Override
   public void insert(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
-    addCreatedInfo(node, new Date(), user);
     nodeDao.insert(id, node, user);
     insertTextAttrValues(id, node.getProperties(), user);
     insertRefAttrValues(id, node.getReferences(), user);
-  }
-
-  private void addCreatedInfo(Iterable<Node> values, User user) {
-    Date now = new Date();
-    for (Node node : values) {
-      addCreatedInfo(node, now, user);
-    }
-  }
-
-  private void addCreatedInfo(Node node, Date now, User user) {
-    node.setCreatedDate(now);
-    node.setCreatedBy(user.getUsername());
-    node.setLastModifiedDate(now);
-    node.setLastModifiedBy(user.getUsername());
   }
 
   private void insertTextAttrValues(NodeId id, Multimap<String, StrictLangValue> properties,
@@ -99,18 +84,9 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
   @Override
   public void update(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
-    addLastModifiedInfo(node, nodeDao.get(id, user).orElseThrow(IllegalStateException::new), user);
     nodeDao.update(id, node, user);
     updateTextAttrValues(id, node.getProperties(), user);
     updateRefAttrValues(id, node.getReferences(), user);
-  }
-
-  private void addLastModifiedInfo(Node newNode, Node oldNode, User user) {
-    Date now = new Date();
-    newNode.setCreatedDate(oldNode.getCreatedDate());
-    newNode.setCreatedBy(oldNode.getCreatedBy());
-    newNode.setLastModifiedDate(now);
-    newNode.setLastModifiedBy(user.getUsername());
   }
 
   private void updateTextAttrValues(NodeId nodeId, Multimap<String, StrictLangValue> properties,

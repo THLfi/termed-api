@@ -13,6 +13,7 @@ import fi.thl.termed.service.node.select.SelectCreatedDate;
 import fi.thl.termed.service.node.select.SelectId;
 import fi.thl.termed.service.node.select.SelectLastModifiedBy;
 import fi.thl.termed.service.node.select.SelectLastModifiedDate;
+import fi.thl.termed.service.node.select.SelectNumber;
 import fi.thl.termed.service.node.select.SelectProperty;
 import fi.thl.termed.service.node.select.SelectReference;
 import fi.thl.termed.service.node.select.SelectReferrer;
@@ -47,6 +48,12 @@ public class FilteredNodeTree implements NodeTree {
   @Override
   public String getUri() {
     return s.contains(new SelectAll()) || s.contains(new SelectUri()) ? source.getUri() : null;
+  }
+
+  @Override
+  public Integer getNumber() {
+    return s.contains(new SelectAll()) || s.contains(new SelectNumber()) ?
+        source.getNumber() : null;
   }
 
   @Override

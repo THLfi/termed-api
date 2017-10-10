@@ -17,6 +17,7 @@ import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService
 import fi.thl.termed.service.node.internal.DocumentToNode;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
+import fi.thl.termed.service.node.internal.JdbcNodeSequenceDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueDao;
@@ -24,6 +25,8 @@ import fi.thl.termed.service.node.internal.NodeRepository;
 import fi.thl.termed.service.node.internal.NodeToDocument;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
+import fi.thl.termed.service.node.internal.SerialNumberingNodeService;
+import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.index.Index;
@@ -31,7 +34,11 @@ import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.service.DaoSequenceService;
+import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.SynchronizedSequenceService;
+import fi.thl.termed.util.service.TransactionalSequenceService;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
 import javax.sql.DataSource;
@@ -50,7 +57,7 @@ public class NodeServiceConfiguration {
   private PlatformTransactionManager transactionManager;
 
   @Autowired
-  private PermissionEvaluator<TypeId> classEvaluator;
+  private PermissionEvaluator<TypeId> typeEvaluator;
   @Autowired
   private PermissionEvaluator<TextAttributeId> textAttributeEvaluator;
   @Autowired
@@ -82,11 +89,13 @@ public class NodeServiceConfiguration {
     // Although database backed repository is secured, lucene backed indexed service is not.
     // That's why we again filter any read requests.
     service = new ReadAuthorizedNodeService(
-        service, classEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
+        service, typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
     service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
     service = new NodeWriteEventPostingService(service, eventBus);
 
+    service = new TimestampingNodeService(service);
+    service = new SerialNumberingNodeService(service, nodeSequenceService());
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new IdInitializingNodeService(service);
 
@@ -101,10 +110,25 @@ public class NodeServiceConfiguration {
             referenceAttributeValueEvaluator()));
   }
 
+  private SequenceService<TypeId> nodeSequenceService() {
+    SequenceService<TypeId> sequenceService =
+        new DaoSequenceService<>(
+            new AuthorizedDao<>(nodeSequenceSystemDao(), nodeSequenceEvaluator()));
+
+    sequenceService = new TransactionalSequenceService<>(sequenceService, transactionManager);
+    sequenceService = new SynchronizedSequenceService<>(sequenceService);
+
+    return sequenceService;
+  }
+
   private PermissionEvaluator<NodeId> nodeEvaluator() {
     return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(),
-        (u, o, p) -> classEvaluator.hasPermission(u, o.getType(), p));
+        appAdminEvaluator(), (u, o, p) -> typeEvaluator.hasPermission(u, o.getType(), p));
+  }
+
+  private PermissionEvaluator<TypeId> nodeSequenceEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(
+        appAdminEvaluator(), typeEvaluator);
   }
 
   private PermissionEvaluator<NodeAttributeValueId> textAttributeValueEvaluator() {
@@ -123,6 +147,10 @@ public class NodeServiceConfiguration {
 
   private SystemDao<NodeId, Node> nodeSystemDao() {
     return new JdbcPostgresNodeDao(dataSource);
+  }
+
+  private SystemDao<TypeId, Integer> nodeSequenceSystemDao() {
+    return new JdbcNodeSequenceDao(dataSource);
   }
 
   private SystemDao<NodeAttributeValueId, StrictLangValue> textAttributeValueSystemDao() {

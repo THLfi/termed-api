@@ -7,9 +7,9 @@
 --
 
 CREATE TABLE lang (
-  lang varchar(2),
+  lang varchar(35),
   CONSTRAINT lang_pkey PRIMARY KEY (lang),
-  CONSTRAINT lang_lang_check CHECK (lang ~ '^[a-z]*$')
+  CONSTRAINT lang_lang_check CHECK (lang ~ '^[A-Za-z0-9\\-]*$')
 );
 
 CREATE TABLE users (
@@ -36,7 +36,7 @@ CREATE TABLE property_property (
   subject_id varchar(255),
   property_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   CONSTRAINT property_property_pkey PRIMARY KEY (subject_id, property_id, index),
   CONSTRAINT property_property_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES property(id),
@@ -59,7 +59,7 @@ CREATE TABLE graph_property (
   graph_id uuid,
   property_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   CONSTRAINT graph_property_pkey PRIMARY KEY (graph_id, property_id, index),
   CONSTRAINT graph_property_graph_id_fkey
@@ -89,7 +89,7 @@ CREATE TABLE type_property (
   type_id varchar(255),
   property_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   CONSTRAINT type_property_pkey
     PRIMARY KEY (type_graph_id, type_id, property_id, index),
@@ -130,7 +130,7 @@ CREATE TABLE text_attribute_property (
   text_attribute_id varchar(255),
   property_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   CONSTRAINT text_attribute_property_pkey
     PRIMARY KEY (text_attribute_domain_graph_id, text_attribute_domain_id, text_attribute_id, property_id, index),
@@ -177,7 +177,7 @@ CREATE TABLE reference_attribute_property (
   reference_attribute_id varchar(255),
   property_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   CONSTRAINT reference_attribute_property_pkey
     PRIMARY KEY (reference_attribute_domain_graph_id, reference_attribute_domain_id, reference_attribute_id, property_id, index),
@@ -197,12 +197,22 @@ CREATE INDEX reference_attribute_property_subject_id_idx
 -- Node tables (the actual data)
 --
 
+CREATE TABLE node_sequence (
+  graph_id uuid,
+  type_id varchar(255),
+  value integer NOT NULL,
+  CONSTRAINT node_sequence_pkey PRIMARY KEY (graph_id, type_id),
+  CONSTRAINT node_sequence_type_fkey FOREIGN KEY (graph_id, type_id)
+    REFERENCES type(graph_id, id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE node (
   graph_id uuid,
   type_id varchar(255),
   id uuid,
   code varchar(255),
   uri varchar(2000),
+  number integer NOT NULL,
   created_by varchar(255) NOT NULL,
   created_date timestamp NOT NULL,
   last_modified_by varchar(255) NOT NULL,
@@ -213,6 +223,7 @@ CREATE TABLE node (
   CONSTRAINT node_last_modified_by_fkey FOREIGN KEY (last_modified_by) REFERENCES users(username),
   CONSTRAINT node_graph_id_type_id_code_unique UNIQUE (graph_id, type_id, code),
   CONSTRAINT node_graph_id_uri_unique UNIQUE (graph_id, uri),
+  CONSTRAINT node_graph_id_type_id_number_unique UNIQUE (graph_id, type_id, number),
   CONSTRAINT node_code_check CHECK (code ~ '^[A-Za-z0-9_\\-]+$')
 );
 
@@ -221,14 +232,13 @@ CREATE INDEX node_graph_id_idx
 CREATE INDEX node_graph_id_type_id_idx
     ON node(graph_id, type_id);
 
-
 CREATE TABLE node_text_attribute_value (
   node_graph_id uuid,
   node_type_id varchar(255),
   node_id uuid,
   attribute_id varchar(255),
   index integer,
-  lang varchar(2) NOT NULL,
+  lang varchar(35) NOT NULL,
   value text NOT NULL,
   regex varchar(255) NOT NULL,
   CONSTRAINT node_text_attribute_value_pkey

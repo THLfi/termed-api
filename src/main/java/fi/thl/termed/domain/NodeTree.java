@@ -12,6 +12,8 @@ public interface NodeTree {
 
   String getUri();
 
+  Integer getNumber();
+
   String getCreatedBy();
 
   Date getCreatedDate();

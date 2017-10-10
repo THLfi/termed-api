@@ -50,6 +50,7 @@ public class NodeToDocument implements Function<Node, Document> {
     doc.add(stringField("id", n.getId()));
     doc.add(stringField("code", n.getCode()));
     doc.add(stringField("uri", n.getUri()));
+    doc.add(stringField("number", n.getNumber()));
 
     doc.add(stringField("createdDate", n.getCreatedDate()));
     doc.add(stringField("lastModifiedDate", n.getLastModifiedDate()));
@@ -130,6 +131,10 @@ public class NodeToDocument implements Function<Node, Document> {
   private Field stringField(String name, Date value) {
     return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND),
         Field.Store.NO);
+  }
+
+  private Field stringField(String name, Integer value) {
+    return new StringField(name, String.valueOf(value), Field.Store.NO);
   }
 
   private Field sortableField(String name, String value) {

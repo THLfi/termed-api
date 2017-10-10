@@ -36,11 +36,11 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
   public ReadAuthorizedNodeService(
       Service<NodeId, Node> delegate,
-      PermissionEvaluator<TypeId> classEvaluator,
+      PermissionEvaluator<TypeId> typeEvaluator,
       PermissionEvaluator<TextAttributeId> textAttrEvaluator,
       PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {
     this.delegate = delegate;
-    this.nodeEvaluator = (u, r, p) -> classEvaluator.hasPermission(u, r.getType(), p);
+    this.nodeEvaluator = (u, r, p) -> typeEvaluator.hasPermission(u, r.getType(), p);
     this.textAttrEvaluator = textAttrEvaluator;
     this.refAttrEvaluator = refAttrEvaluator;
   }

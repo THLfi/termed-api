@@ -14,6 +14,7 @@ public class SimpleNodeTree implements NodeTree {
   private UUID id;
   private String code;
   private String uri;
+  private Integer number;
 
   private String createdBy;
   private Date createdDate;
@@ -30,6 +31,7 @@ public class SimpleNodeTree implements NodeTree {
     this.id = tree.getId();
     this.code = tree.getCode();
     this.uri = tree.getUri();
+    this.number = tree.getNumber();
     this.createdBy = tree.getCreatedBy();
     this.createdDate = tree.getCreatedDate();
     this.lastModifiedBy = tree.getLastModifiedBy();
@@ -66,6 +68,15 @@ public class SimpleNodeTree implements NodeTree {
 
   public void setUri(String uri) {
     this.uri = uri;
+  }
+
+  @Override
+  public Integer getNumber() {
+    return number;
+  }
+
+  public void setNumber(Integer number) {
+    this.number = number;
   }
 
   @Override
@@ -152,6 +163,7 @@ public class SimpleNodeTree implements NodeTree {
     return Objects.equals(id, that.id) &&
         Objects.equals(code, that.code) &&
         Objects.equals(uri, that.uri) &&
+        Objects.equals(number, that.number) &&
         Objects.equals(createdBy, that.createdBy) &&
         Objects.equals(createdDate, that.createdDate) &&
         Objects.equals(lastModifiedBy, that.lastModifiedBy) &&
@@ -164,7 +176,7 @@ public class SimpleNodeTree implements NodeTree {
   @Override
   public int hashCode() {
     return Objects
-        .hash(id, code, uri, createdBy, createdDate, lastModifiedBy, lastModifiedDate, type,
+        .hash(id, code, uri, number, createdBy, createdDate, lastModifiedBy, lastModifiedDate, type,
             properties, references);
   }
 
@@ -174,6 +186,7 @@ public class SimpleNodeTree implements NodeTree {
         .add("id", id)
         .add("code", code)
         .add("uri", uri)
+        .add("number", number)
         .add("createdBy", createdBy)
         .add("createdDate", createdDate)
         .add("lastModifiedBy", lastModifiedBy)

@@ -1,21 +1,18 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.base.Strings.emptyToNull;
+
 import fi.thl.termed.domain.GraphId;
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
-
-import static com.google.common.base.Strings.emptyToNull;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
@@ -26,12 +23,13 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   @Override
   public void insert(NodeId nodeId, Node node) {
     jdbcTemplate.update(
-        "insert into node (graph_id, type_id, id, code, uri, created_by, created_date, last_modified_by, last_modified_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "insert into node (graph_id, type_id, id, code, uri, number, created_by, created_date, last_modified_by, last_modified_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
         emptyToNull(node.getCode()),
         emptyToNull(node.getUri()),
+        node.getNumber(),
         node.getCreatedBy(),
         node.getCreatedDate(),
         node.getLastModifiedBy(),
@@ -41,9 +39,10 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   @Override
   public void update(NodeId nodeId, Node node) {
     jdbcTemplate.update(
-        "update node set code = ?, uri = ?, created_by = ?, created_date = ?, last_modified_by = ?, last_modified_date = ? where graph_id = ? and type_id = ? and id = ?",
+        "update node set code = ?, uri = ?, number = ?, created_by = ?, created_date = ?, last_modified_by = ?, last_modified_date = ? where graph_id = ? and type_id = ? and id = ?",
         emptyToNull(node.getCode()),
         emptyToNull(node.getUri()),
+        node.getNumber(),
         node.getCreatedBy(),
         node.getCreatedDate(),
         node.getLastModifiedBy(),
@@ -69,7 +68,7 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
   @Override
   protected <E> List<E> get(SqlSpecification<NodeId, Node> specification,
-                            RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node where %s", specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
@@ -98,9 +97,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   @Override
   protected RowMapper<NodeId> buildKeyMapper() {
     return (rs, rowNum) -> new NodeId(UUIDs.fromString(rs.getString("id")),
-                                      rs.getString("type_id"),
-                                      UUIDs.fromString(rs.getString("graph_id"))
-    );
+        rs.getString("type_id"),
+        UUIDs.fromString(rs.getString("graph_id")));
   }
 
   @Override
@@ -112,6 +110,7 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
       node.setCode(rs.getString("code"));
       node.setUri(rs.getString("uri"));
+      node.setNumber(rs.getInt("number"));
 
       node.setCreatedBy(rs.getString("created_by"));
       node.setCreatedDate(rs.getTimestamp("created_date"));

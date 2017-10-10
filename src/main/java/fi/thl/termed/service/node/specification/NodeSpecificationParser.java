@@ -44,6 +44,9 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> uriParser =
         regexMatchResult("uri:([^\\s]+)")
             .map(m -> new NodesByUri(m.group(1)));
+    ParserCombinator<Specification<NodeId, Node>> numberParser =
+        regexMatchResult("(n|number):([0-9]*)")
+            .map(m -> new NodesByNumber(Integer.parseInt(m.group(1))));
     ParserCombinator<Specification<NodeId, Node>> createdDateParser =
         regexMatchResult("createdDate:"
             + "\\[(\\*|" + ISO_8601_DATE + ") TO (\\*|" + ISO_8601_DATE + ")\\]")
@@ -90,6 +93,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         idParser
             .or(codeParser)
             .or(uriParser)
+            .or(numberParser)
             .or(urnUuidParser)
             .or(createdDateParser)
             .or(lastModifiedDateParser)

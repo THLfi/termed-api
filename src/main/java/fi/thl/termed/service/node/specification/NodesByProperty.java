@@ -1,6 +1,8 @@
 package fi.thl.termed.service.node.specification;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static fi.thl.termed.util.RegularExpressions.CODE;
+import static fi.thl.termed.util.RegularExpressions.IETF_LANGUAGE_TAG;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.base.MoreObjects;
@@ -25,8 +27,8 @@ public class NodesByProperty implements LuceneSpecification<NodeId, Node> {
   }
 
   public NodesByProperty(String attributeId, String lang, String value) {
-    Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
-    Preconditions.checkArgument(isNullOrEmpty(lang) || lang.matches("[a-z]{2}"));
+    Preconditions.checkArgument(attributeId.matches(CODE));
+    Preconditions.checkArgument(isNullOrEmpty(lang) || lang.matches(IETF_LANGUAGE_TAG));
     this.attributeId = attributeId;
     this.lang = nullToEmpty(lang);
     this.value = value;
