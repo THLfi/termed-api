@@ -5,6 +5,8 @@ import static fi.thl.termed.util.Converter.newConverter;
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Graph;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
@@ -25,7 +27,7 @@ import fi.thl.termed.service.node.internal.NodeRepository;
 import fi.thl.termed.service.node.internal.NodeToDocument;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
-import fi.thl.termed.service.node.internal.SerialNumberingNodeService;
+import fi.thl.termed.service.node.internal.ExtIdsInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
@@ -65,6 +67,8 @@ public class NodeServiceConfiguration {
 
   @Autowired
   private Service<TypeId, Type> typeService;
+  @Autowired
+  private Service<GraphId, Graph> graphService;
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
@@ -95,7 +99,8 @@ public class NodeServiceConfiguration {
     service = new NodeWriteEventPostingService(service, eventBus);
 
     service = new TimestampingNodeService(service);
-    service = new SerialNumberingNodeService(service, nodeSequenceService());
+    service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),
+        typeService::get, graphService::get);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new IdInitializingNodeService(service);
 

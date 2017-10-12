@@ -3,14 +3,12 @@ package fi.thl.termed.domain;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-
 import fi.thl.termed.util.collect.Identifiable;
+import fi.thl.termed.util.collect.MultimapUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import fi.thl.termed.util.collect.MultimapUtils;
 
 public class Node implements Identifiable<NodeId> {
 
@@ -134,6 +132,10 @@ public class Node implements Identifiable<NodeId> {
     this.type = type;
   }
 
+  public GraphId getTypeGraph() {
+    return type != null ? type.getGraph() : null;
+  }
+
   public UUID getTypeGraphId() {
     return type != null ? type.getGraphId() : null;
   }
@@ -223,31 +225,31 @@ public class Node implements Identifiable<NodeId> {
     }
     Node node = (Node) o;
     return Objects.equals(id, node.id) &&
-           Objects.equals(code, node.code) &&
-           Objects.equals(uri, node.uri) &&
-           Objects.equals(number, node.number) &&
-           Objects.equals(createdBy, node.createdBy) &&
-           Objects.equals(createdDate, node.createdDate) &&
-           Objects.equals(lastModifiedBy, node.lastModifiedBy) &&
-           Objects.equals(lastModifiedDate, node.lastModifiedDate) &&
-           Objects.equals(type, node.type) &&
-           Objects.equals(properties, node.properties) &&
-           Objects.equals(references, node.references);
+        Objects.equals(code, node.code) &&
+        Objects.equals(uri, node.uri) &&
+        Objects.equals(number, node.number) &&
+        Objects.equals(createdBy, node.createdBy) &&
+        Objects.equals(createdDate, node.createdDate) &&
+        Objects.equals(lastModifiedBy, node.lastModifiedBy) &&
+        Objects.equals(lastModifiedDate, node.lastModifiedDate) &&
+        Objects.equals(type, node.type) &&
+        Objects.equals(properties, node.properties) &&
+        Objects.equals(references, node.references);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id,
-                        code,
-                        uri,
-                        number,
-                        createdBy,
-                        createdDate,
-                        lastModifiedBy,
-                        lastModifiedDate,
-                        type,
-                        properties,
-                        references);
+        code,
+        uri,
+        number,
+        createdBy,
+        createdDate,
+        lastModifiedBy,
+        lastModifiedDate,
+        type,
+        properties,
+        references);
   }
 
 }

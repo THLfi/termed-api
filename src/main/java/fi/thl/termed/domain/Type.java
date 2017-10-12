@@ -24,6 +24,7 @@ public class Type implements Identifiable<TypeId> {
   private final GraphId graph;
 
   private final String uri;
+  private final String nodeCodePrefix;
   private final Integer index;
 
   private final ImmutableMultimap<String, Permission> permissions;
@@ -32,7 +33,7 @@ public class Type implements Identifiable<TypeId> {
   private final ImmutableList<TextAttribute> textAttributes;
   private final ImmutableList<ReferenceAttribute> referenceAttributes;
 
-  public Type(String id, GraphId graph, String uri, Integer index,
+  public Type(String id, GraphId graph, String uri, String nodeCodePrefix, Integer index,
       Multimap<String, Permission> permissions,
       Multimap<String, LangValue> properties,
       List<TextAttribute> textAttributes,
@@ -40,6 +41,7 @@ public class Type implements Identifiable<TypeId> {
     this.id = requireNonNull(id);
     this.graph = requireNonNull(graph);
     this.uri = uri;
+    this.nodeCodePrefix = nodeCodePrefix;
     this.index = index;
     this.permissions = nullableImmutableCopyOf(permissions);
     this.properties = nullableImmutableCopyOf(properties);
@@ -73,6 +75,10 @@ public class Type implements Identifiable<TypeId> {
     return ofNullable(uri);
   }
 
+  public Optional<String> getNodeCodePrefix() {
+    return ofNullable(nodeCodePrefix);
+  }
+
   public Optional<Integer> getIndex() {
     return ofNullable(index);
   }
@@ -104,6 +110,7 @@ public class Type implements Identifiable<TypeId> {
         .add("id", id)
         .add("graph", graph)
         .add("uri", uri)
+        .add("nodeCodePrefix", nodeCodePrefix)
         .add("index", index)
         .add("permissions", permissions)
         .add("properties", properties)
@@ -124,6 +131,7 @@ public class Type implements Identifiable<TypeId> {
     return Objects.equals(id, cls.id) &&
         Objects.equals(graph, cls.graph) &&
         Objects.equals(uri, cls.uri) &&
+        Objects.equals(nodeCodePrefix, cls.nodeCodePrefix) &&
         Objects.equals(index, cls.index) &&
         Objects.equals(permissions, cls.permissions) &&
         Objects.equals(properties, cls.properties) &&
@@ -133,8 +141,8 @@ public class Type implements Identifiable<TypeId> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, graph, uri, index, permissions, properties, textAttributes,
-        referenceAttributes);
+    return Objects.hash(id, graph, uri, nodeCodePrefix, index, permissions, properties,
+        textAttributes, referenceAttributes);
   }
 
   public static final class IdBuilder {
@@ -159,6 +167,7 @@ public class Type implements Identifiable<TypeId> {
     private final GraphId graph;
 
     private String uri;
+    private String nodeCodePrefix;
     private Integer index;
     private Multimap<String, Permission> permissions;
     private Multimap<String, LangValue> properties;
@@ -172,6 +181,7 @@ public class Type implements Identifiable<TypeId> {
 
     public Builder copyOptionalsFrom(Type type) {
       this.uri = type.uri;
+      this.nodeCodePrefix = type.nodeCodePrefix;
       this.index = type.index;
       this.permissions = type.permissions;
       this.properties = type.properties;
@@ -182,6 +192,11 @@ public class Type implements Identifiable<TypeId> {
 
     public Builder uri(String uri) {
       this.uri = uri;
+      return this;
+    }
+
+    public Builder nodeCodePrefix(String nodeCodePrefix) {
+      this.nodeCodePrefix = nodeCodePrefix;
       return this;
     }
 
@@ -237,7 +252,7 @@ public class Type implements Identifiable<TypeId> {
     }
 
     public Type build() {
-      return new Type(id, graph, uri, index,
+      return new Type(id, graph, uri, nodeCodePrefix, index,
           permissions, properties, textAttributes, referenceAttributes);
     }
 

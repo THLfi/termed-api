@@ -22,17 +22,21 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
 
   @Override
   public void insert(TypeId typeId, Type newType) {
-    jdbcTemplate.update("insert into type (graph_id, id, uri, index) values (?, ?, ?, ?)",
+    jdbcTemplate.update(
+        "insert into type (graph_id, id, uri, node_code_prefix, index) values (?, ?, ?, ?, ?)",
         typeId.getGraphId(),
         typeId.getId(),
         newType.getUri().map(Strings::emptyToNull).orElse(null),
+        newType.getNodeCodePrefix().map(Strings::emptyToNull).orElse(null),
         newType.getIndex().orElse(null));
   }
 
   @Override
   public void update(TypeId typeId, Type newType) {
-    jdbcTemplate.update("update type set uri = ?, index = ? where graph_id = ? and id = ?",
+    jdbcTemplate.update(
+        "update type set uri = ?, node_code_prefix = ?, index = ? where graph_id = ? and id = ?",
         newType.getUri().map(Strings::emptyToNull).orElse(null),
+        newType.getNodeCodePrefix().map(Strings::emptyToNull).orElse(null),
         newType.getIndex().orElse(null),
         typeId.getGraphId(),
         typeId.getId());
@@ -84,6 +88,7 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
     return (rs, rowNum) -> Type.builder()
         .id(rs.getString("id"), UUIDs.fromString(rs.getString("graph_id")))
         .uri(rs.getString("uri"))
+        .nodeCodePrefix(rs.getString("node_code_prefix"))
         .index(rs.getInt("index"))
         .build();
   }

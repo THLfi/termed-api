@@ -75,11 +75,14 @@ CREATE TABLE type (
   graph_id uuid,
   id varchar(255),
   uri varchar(2000),
+  node_code_prefix varchar(255),
   index integer,
   CONSTRAINT type_pkey PRIMARY KEY (graph_id, id),
   CONSTRAINT type_graph_id_fkey FOREIGN KEY (graph_id) REFERENCES graph(id),
   CONSTRAINT type_id_check CHECK (id ~ '^[A-Za-z0-9_\\-]*$'),
-  CONSTRAINT type_graph_id_uri_unique UNIQUE (graph_id, uri)
+  CONSTRAINT type_graph_id_uri_unique UNIQUE (graph_id, uri),
+  CONSTRAINT type_node_code_prefix_check CHECK (node_code_prefix ~ '^[A-Za-z0-9_\\-]*$'),
+  CONSTRAINT type_node_code_prefix_unique UNIQUE (graph_id, node_code_prefix)
 );
 
 CREATE INDEX type_graph_id_idx ON type(graph_id);
