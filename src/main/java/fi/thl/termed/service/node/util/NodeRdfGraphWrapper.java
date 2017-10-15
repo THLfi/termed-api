@@ -135,7 +135,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
   private ExtendedIterator<Triple> findByType(String typeUri) {
     Optional<TypeId> typeOptional = types.values().stream()
-        .filter(type -> Objects.equals(type.getUri(), typeUri))
+        .filter(type -> Objects.equals(type.getUri().orElse(null), typeUri))
         .map(Type::identifier).findFirst();
 
     if (!typeOptional.isPresent()) {
@@ -159,7 +159,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
     }
 
     Specification<NodeId, Node> nodeSpec = referenceAttributes.values().stream()
-        .filter(refAttr -> predicateUri == null || Objects.equals(refAttr.getUri(), predicateUri))
+        .filter(refAttr -> predicateUri == null ||
+            Objects.equals(refAttr.getUri().orElse(null), predicateUri))
         .map(refAttr -> new AndSpecification<>(
             new NodesByGraphId(refAttr.getDomainGraphId()),
             new NodesByTypeId(refAttr.getDomainId()),
@@ -172,7 +173,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
   // predicateUri can be null
   private ExtendedIterator<Triple> findByLiteral(String predicateUri, String value) {
     Specification<NodeId, Node> nodeSpec = textAttributes.values().stream()
-        .filter(textAttr -> predicateUri == null || Objects.equals(textAttr.getUri(), predicateUri))
+        .filter(textAttr -> predicateUri == null ||
+            Objects.equals(textAttr.getUri().orElse(null), predicateUri))
         .map(textAttr -> new AndSpecification<>(
             new NodesByGraphId(textAttr.getDomainGraphId()),
             new NodesByTypeId(textAttr.getDomainId()),
