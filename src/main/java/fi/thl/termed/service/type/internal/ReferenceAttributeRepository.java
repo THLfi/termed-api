@@ -147,18 +147,15 @@ public class ReferenceAttributeRepository
   }
 
   private ReferenceAttribute populateValue(ReferenceAttribute attribute, User user) {
-    attribute = new ReferenceAttribute(attribute);
-
-    attribute.setPermissions(new RolePermissionsModelToDto<ReferenceAttributeId>().apply(
-        permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
-            new ReferenceAttributeId(attribute)), user)));
-
-    attribute.setProperties(
-        new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyDao.getMap(
-            new ReferenceAttributePropertiesByAttributeId(
-                new ReferenceAttributeId(attribute)), user)));
-
-    return attribute;
+    return ReferenceAttribute.builderFromCopyOf(attribute)
+        .permissions(new RolePermissionsModelToDto<ReferenceAttributeId>().apply(
+            permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
+                new ReferenceAttributeId(attribute)), user)))
+        .properties(
+            new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyDao.getMap(
+                new ReferenceAttributePropertiesByAttributeId(
+                    new ReferenceAttributeId(attribute)), user)))
+        .build();
   }
 
 }

@@ -1,7 +1,6 @@
 package fi.thl.termed.service.type.internal;
 
-import static com.google.common.base.Strings.emptyToNull;
-
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
@@ -28,9 +27,9 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
         domainId.getGraphId(),
         domainId.getId(),
         textAttributeId.getId(),
-        emptyToNull(textAttribute.getUri()),
+        textAttribute.getUri().map(Strings::emptyToNull).orElse(null),
         textAttribute.getRegex(),
-        textAttribute.getIndex());
+        textAttribute.getIndex().orElse(null));
   }
 
   @Override
@@ -39,9 +38,9 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
 
     jdbcTemplate.update(
         "update text_attribute set uri = ?, regex = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
-        emptyToNull(textAttribute.getUri()),
+        textAttribute.getUri().map(Strings::emptyToNull).orElse(null),
         textAttribute.getRegex(),
-        textAttribute.getIndex(),
+        textAttribute.getIndex().orElse(null),
         domainId.getGraphId(),
         domainId.getId(),
         textAttributeId.getId());
@@ -108,15 +107,16 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   @Override
   protected RowMapper<TextAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = GraphId.fromUuidString(rs.getString("domain_graph_id"));
-      TypeId domain = TypeId.of(rs.getString("domain_id"), domainGraph);
+      TypeId domain = TypeId.of(
+          rs.getString("domain_id"),
+          GraphId.fromUuidString(rs.getString("domain_graph_id")));
 
-      TextAttribute textAttribute = new TextAttribute(rs.getString("id"), domain);
-      textAttribute.setUri(rs.getString("uri"));
-      textAttribute.setRegex(rs.getString("regex"));
-      textAttribute.setIndex(rs.getInt("index"));
-
-      return textAttribute;
+      return TextAttribute.builder()
+          .id(rs.getString("id"), domain)
+          .regex(rs.getString("regex"))
+          .uri(rs.getString("uri"))
+          .index(rs.getInt("index"))
+          .build();
     };
   }
 

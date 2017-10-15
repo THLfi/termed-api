@@ -56,7 +56,7 @@ public class NodeToTriples implements Function<Node, Stream<Triple>> {
       TextAttribute attr = ofNullable(textAttributes.get(attrId))
           .orElseThrow(IllegalStateException::new);
       StrictLangValue langValue = entry.getValue();
-      builder.add(Triple.create(subject, createURI(attr.getUri()),
+      builder.add(Triple.create(subject, createURI(attr.getUri().orElse(null)),
           createLiteral(langValue.getValue(), langValue.getLang())));
     }
 
@@ -65,7 +65,7 @@ public class NodeToTriples implements Function<Node, Stream<Triple>> {
       ReferenceAttribute attr = ofNullable(referenceAttributes.get(attrId))
           .orElseThrow(IllegalStateException::new);
       String valueUri = uriProvider.apply(entry.getValue());
-      builder.add(Triple.create(subject, createURI(attr.getUri()), createURI(valueUri)));
+      builder.add(Triple.create(subject, createURI(attr.getUri().orElse(null)), createURI(valueUri)));
     }
 
     return builder.build();

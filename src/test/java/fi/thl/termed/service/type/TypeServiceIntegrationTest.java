@@ -233,10 +233,10 @@ public class TypeServiceIntegrationTest {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .textAttributes(
-            new TextAttribute("label", typeId),
-            new TextAttribute("note", typeId))
+            TextAttribute.builder().id("label", typeId).regexAll().build(),
+            TextAttribute.builder().id("note", typeId).regexAll().build())
         .referenceAttributes(
-            new ReferenceAttribute("child", typeId, typeId))
+            ReferenceAttribute.builder().id("child", typeId).range(typeId).build())
         .build();
 
     assertFalse(typeService.get(typeId, user).isPresent());
@@ -263,7 +263,8 @@ public class TypeServiceIntegrationTest {
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 
     Type type0 = Type.builder().id(typeId0)
-        .referenceAttributes(new ReferenceAttribute("neighbour", typeId0, typeId1))
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("neighbour", typeId0).range(typeId1).build())
         .build();
     Type type1 = Type.builder().id(typeId1)
         .build();
@@ -286,7 +287,8 @@ public class TypeServiceIntegrationTest {
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 
     Type type0 = Type.builder().id(typeId0)
-        .referenceAttributes(new ReferenceAttribute("neighbour", typeId0, typeId1))
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("neighbour", typeId0).range(typeId1).build())
         .build();
 
     assertFalse(typeService.get(typeId0, user).isPresent());
@@ -308,7 +310,8 @@ public class TypeServiceIntegrationTest {
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 
     Type type0 = Type.builder().id(typeId0)
-        .referenceAttributes(new ReferenceAttribute("neighbour", typeId0, typeId1))
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("neighbour", typeId0).range(typeId1).build())
         .build();
     Type type1 = Type.builder().id(typeId1)
         .build();
@@ -338,7 +341,8 @@ public class TypeServiceIntegrationTest {
     TypeId graph1TypeId = TypeId.of("TestType", graphs[1].identifier());
 
     Type graph0Type = Type.builder().id(graph0TypeId)
-        .referenceAttributes(new ReferenceAttribute("neighbour", graph0TypeId, graph1TypeId))
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("neighbour", graph0TypeId).range(graph1TypeId).build())
         .build();
     Type graph1Type = Type.builder().id(graph1TypeId)
         .build();
@@ -360,10 +364,10 @@ public class TypeServiceIntegrationTest {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .textAttributes(
-            new TextAttribute("label", typeId),
-            new TextAttribute("note", typeId))
+            TextAttribute.builder().id("label", typeId).regexAll().build(),
+            TextAttribute.builder().id("note", typeId).regexAll().build())
         .referenceAttributes(
-            new ReferenceAttribute("child", typeId, typeId))
+            ReferenceAttribute.builder().id("child", typeId).range(typeId).build())
         .build();
 
     assertFalse(typeService.get(typeId, user).isPresent());
@@ -382,7 +386,7 @@ public class TypeServiceIntegrationTest {
 
     // update and persist
     Type updatedType = Type.builderFromCopyOf(type)
-        .textAttributes(new TextAttribute("label", typeId))
+        .textAttributes(TextAttribute.builder().id("label", typeId).regexAll().build())
         .referenceAttributes(emptyList())
         .build();
 
@@ -407,7 +411,8 @@ public class TypeServiceIntegrationTest {
     TypeId graph1TypeId = TypeId.of("TestType", graphs[1].identifier());
 
     Type graph0Type = Type.builder().id(graph0TypeId)
-        .referenceAttributes(new ReferenceAttribute("neighbour", graph0TypeId, graph1TypeId))
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("neighbour", graph0TypeId).range(graph1TypeId).build())
         .build();
     Type graph1Type = Type.builder().id(graph1TypeId)
         .build();

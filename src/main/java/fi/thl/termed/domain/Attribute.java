@@ -1,99 +1,69 @@
 package fi.thl.termed.domain;
 
+import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
+import static fi.thl.termed.util.collect.MultimapUtils.nullableImmutableCopyOf;
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
-
-import fi.thl.termed.util.collect.MultimapUtils;
 
 public abstract class Attribute {
 
-  private String id;
-  private String uri;
+  protected final String id;
+  protected final TypeId domain;
 
-  private Integer index;
+  protected final String uri;
+  protected final Integer index;
 
-  private TypeId domain;
+  protected final ImmutableMultimap<String, Permission> permissions;
+  protected final ImmutableMultimap<String, LangValue> properties;
 
-  private Multimap<String, Permission> permissions;
-  private Multimap<String, LangValue> properties;
-
-  public Attribute(String id, TypeId domain) {
-    this.id = id;
-    this.domain = domain;
-  }
-
-  public Attribute(String id, String uri, TypeId domain) {
-    this.id = id;
+  Attribute(String id, TypeId domain, String uri, Integer index,
+      Multimap<String, Permission> permissions,
+      Multimap<String, LangValue> properties) {
+    this.id = requireNonNull(id);
+    this.domain = requireNonNull(domain);
     this.uri = uri;
-    this.domain = domain;
-  }
-
-  public Attribute(Attribute attribute) {
-    this.id = attribute.id;
-    this.uri = attribute.uri;
-    this.index = attribute.index;
-    this.domain = attribute.domain;
-    this.permissions = attribute.permissions;
-    this.properties = attribute.properties;
+    this.index = index;
+    this.permissions = nullableImmutableCopyOf(permissions);
+    this.properties = nullableImmutableCopyOf(properties);
   }
 
   public String getId() {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public String getUri() {
-    return uri;
-  }
-
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
-  public Integer getIndex() {
-    return index;
-  }
-
-  public void setIndex(Integer index) {
-    this.index = index;
-  }
-
   public TypeId getDomain() {
     return domain;
-  }
-
-  public void setDomain(TypeId domain) {
-    this.domain = domain;
-  }
-
-  public UUID getDomainGraphId() {
-    return domain != null ? domain.getGraphId() : null;
   }
 
   public String getDomainId() {
     return domain != null ? domain.getId() : null;
   }
 
-  public Multimap<String, Permission> getPermissions() {
-    return MultimapUtils.nullToEmpty(permissions);
+  public UUID getDomainGraphId() {
+    return domain != null ? domain.getGraphId() : null;
   }
 
-  public void setPermissions(Multimap<String, Permission> permissions) {
-    this.permissions = permissions;
+  public Optional<String> getUri() {
+    return ofNullable(uri);
   }
 
-  public Multimap<String, LangValue> getProperties() {
-    return MultimapUtils.nullToEmpty(properties);
+  public Optional<Integer> getIndex() {
+    return ofNullable(index);
   }
 
-  public void setProperties(Multimap<String, LangValue> properties) {
-    this.properties = properties;
+  public ImmutableMultimap<String, Permission> getPermissions() {
+    return nullToEmpty(permissions);
+  }
+
+  public ImmutableMultimap<String, LangValue> getProperties() {
+    return nullToEmpty(properties);
   }
 
   @Override
@@ -106,11 +76,11 @@ public abstract class Attribute {
     }
     Attribute attribute = (Attribute) o;
     return Objects.equals(id, attribute.id) &&
-           Objects.equals(uri, attribute.uri) &&
-           Objects.equals(index, attribute.index) &&
-           Objects.equals(domain, attribute.domain) &&
-           Objects.equals(permissions, attribute.permissions) &&
-           Objects.equals(properties, attribute.properties);
+        Objects.equals(uri, attribute.uri) &&
+        Objects.equals(index, attribute.index) &&
+        Objects.equals(domain, attribute.domain) &&
+        Objects.equals(permissions, attribute.permissions) &&
+        Objects.equals(properties, attribute.properties);
   }
 
   @Override

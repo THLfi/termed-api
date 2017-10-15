@@ -80,7 +80,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
   private void setTextAttrValues(Type type, Node node, RdfResource rdfResource) {
     for (TextAttribute textAttribute : type.getTextAttributes()) {
-      for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri())) {
+      for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri().orElse(null))) {
         node.addProperty(textAttribute.getId(),
             Ascii.truncate(langValues.getLang(), 2, ""),
             langValues.getValue(),
@@ -92,7 +92,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
   private void setRefAttrValues(Type type, Node node, RdfResource rdfResource,
       Map<String, Node> nodes) {
     for (ReferenceAttribute refAttribute : type.getReferenceAttributes()) {
-      for (String objectUri : rdfResource.getObjects(refAttribute.getUri())) {
+      for (String objectUri : rdfResource.getObjects(refAttribute.getUri().orElse(null))) {
         if (nodes.containsKey(objectUri)) {
           Node object = nodes.get(objectUri);
           if (object.getType().equals(refAttribute.getRange())) {

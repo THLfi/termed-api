@@ -67,17 +67,17 @@ public class NodeServiceIntegrationTest {
 
     Type person = Type.builder().id(personId)
         .textAttributes(
-            new TextAttribute("firstName", personId),
-            new TextAttribute("lastName", personId))
+            TextAttribute.builder().id("firstName", personId).regexAll().build(),
+            TextAttribute.builder().id("lastName", personId).regexAll().build())
         .referenceAttributes(
-            new ReferenceAttribute("knows", personId, personId))
+            ReferenceAttribute.builder().id("knows", personId).range(personId).build())
         .build();
 
     Type group = Type.builder().id(groupId)
         .textAttributes(
-            new TextAttribute("name", groupId))
+            TextAttribute.builder().id("name", groupId).regexAll().build())
         .referenceAttributes(
-            new ReferenceAttribute("member", groupId, personId))
+            ReferenceAttribute.builder().id("member", groupId).range(personId).build())
         .build();
 
     typeService.save(asList(person, group), UPSERT, defaultOpts(), testUser);

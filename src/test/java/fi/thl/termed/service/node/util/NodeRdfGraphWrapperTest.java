@@ -45,9 +45,10 @@ public class NodeRdfGraphWrapperTest {
     TypeId conceptId = new TypeId("Concept", graphId);
     Type concept = Type.builder().id(conceptId)
         .uri(SKOS.Concept.getURI())
-        .textAttributes(new TextAttribute("prefLabel", SKOS.prefLabel.getURI(), conceptId))
-        .referenceAttributes(
-            new ReferenceAttribute("broader", SKOS.broader.getURI(), conceptId, conceptId))
+        .textAttributes(TextAttribute.builder().id("prefLabel", conceptId)
+            .regexAll().uri(SKOS.prefLabel.getURI()).build())
+        .referenceAttributes(ReferenceAttribute.builder().id("broader", conceptId)
+            .range(conceptId).uri(SKOS.broader.getURI()).build())
         .build();
 
     types.add(concept);

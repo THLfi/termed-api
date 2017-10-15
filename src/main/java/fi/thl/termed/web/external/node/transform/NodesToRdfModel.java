@@ -101,7 +101,7 @@ public class NodesToRdfModel implements Function<List<Node>, RdfModel> {
   private String getTextAttributeUri(TextAttributeId attributeId) {
     TextAttribute attribute = textAttributes.get(attributeId);
     TypeId domainId = attributeId.getDomainId();
-    return firstNonNull(emptyToNull(attribute.getUri()),
+    return firstNonNull(emptyToNull(attribute.getUri().orElse(null)),
                         TERMED_NS + domainId.getGraphId() +
                         "/types/" + domainId.getId() +
                         "/textAttributes/" + attributeId.getId());
@@ -110,7 +110,7 @@ public class NodesToRdfModel implements Function<List<Node>, RdfModel> {
   private String getReferenceAttributeUri(ReferenceAttributeId attributeId) {
     ReferenceAttribute attribute = referenceAttributes.get(attributeId);
     TypeId domainId = attributeId.getDomainId();
-    return firstNonNull(emptyToNull(attribute.getUri()),
+    return firstNonNull(emptyToNull(attribute.getUri().orElse(null)),
                         TERMED_NS + domainId.getGraphId() +
                         "/types/" + domainId.getId() +
                         "/referenceAttributes/" + attributeId.getId());

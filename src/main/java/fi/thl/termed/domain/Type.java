@@ -147,6 +147,9 @@ public class Type implements Identifiable<TypeId> {
 
   public static final class IdBuilder {
 
+    IdBuilder() {
+    }
+
     public Builder id(String id, UUID graphId) {
       return new Builder(id, GraphId.of(graphId));
     }

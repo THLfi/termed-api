@@ -4,6 +4,7 @@ import static com.google.common.collect.ImmutableMultimap.copyOf;
 import static com.google.common.collect.Multimaps.transformValues;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import java.util.Date;
 import java.util.Objects;
@@ -11,21 +12,21 @@ import java.util.UUID;
 
 public class SimpleNodeTree implements NodeTree {
 
-  private UUID id;
-  private String code;
-  private String uri;
-  private Integer number;
+  private final UUID id;
+  private final String code;
+  private final String uri;
+  private final Integer number;
 
-  private String createdBy;
-  private Date createdDate;
-  private String lastModifiedBy;
-  private Date lastModifiedDate;
+  private final String createdBy;
+  private final Date createdDate;
+  private final String lastModifiedBy;
+  private final Date lastModifiedDate;
 
-  private TypeId type;
+  private final TypeId type;
 
-  private Multimap<String, StrictLangValue> properties;
-  private Multimap<String, SimpleNodeTree> references;
-  private Multimap<String, SimpleNodeTree> referrers;
+  private final ImmutableMultimap<String, StrictLangValue> properties;
+  private final ImmutableMultimap<String, SimpleNodeTree> references;
+  private final ImmutableMultimap<String, SimpleNodeTree> referrers;
 
   public SimpleNodeTree(NodeTree tree) {
     this.id = tree.getId();
@@ -48,17 +49,9 @@ public class SimpleNodeTree implements NodeTree {
     return id;
   }
 
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
   @Override
   public String getCode() {
     return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
   }
 
   @Override
@@ -66,17 +59,9 @@ public class SimpleNodeTree implements NodeTree {
     return uri;
   }
 
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
   @Override
   public Integer getNumber() {
     return number;
-  }
-
-  public void setNumber(Integer number) {
-    this.number = number;
   }
 
   @Override
@@ -84,17 +69,9 @@ public class SimpleNodeTree implements NodeTree {
     return createdBy;
   }
 
-  public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
-  }
-
   @Override
   public Date getCreatedDate() {
     return createdDate;
-  }
-
-  public void setCreatedDate(Date createdDate) {
-    this.createdDate = createdDate;
   }
 
   @Override
@@ -102,17 +79,9 @@ public class SimpleNodeTree implements NodeTree {
     return lastModifiedBy;
   }
 
-  public void setLastModifiedBy(String lastModifiedBy) {
-    this.lastModifiedBy = lastModifiedBy;
-  }
-
   @Override
   public Date getLastModifiedDate() {
     return lastModifiedDate;
-  }
-
-  public void setLastModifiedDate(Date lastModifiedDate) {
-    this.lastModifiedDate = lastModifiedDate;
   }
 
   @Override
@@ -120,17 +89,9 @@ public class SimpleNodeTree implements NodeTree {
     return type;
   }
 
-  public void setType(TypeId type) {
-    this.type = type;
-  }
-
   @Override
   public Multimap<String, StrictLangValue> getProperties() {
     return properties;
-  }
-
-  public void setProperties(Multimap<String, StrictLangValue> properties) {
-    this.properties = properties;
   }
 
   @Override
@@ -138,17 +99,9 @@ public class SimpleNodeTree implements NodeTree {
     return references;
   }
 
-  public void setReferences(Multimap<String, SimpleNodeTree> references) {
-    this.references = references;
-  }
-
   @Override
   public Multimap<String, SimpleNodeTree> getReferrers() {
     return referrers;
-  }
-
-  public void setReferrers(Multimap<String, SimpleNodeTree> referrers) {
-    this.referrers = referrers;
   }
 
   @Override

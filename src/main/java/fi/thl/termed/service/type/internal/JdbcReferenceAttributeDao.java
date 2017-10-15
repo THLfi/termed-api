@@ -1,7 +1,6 @@
 package fi.thl.termed.service.type.internal;
 
-import static com.google.common.base.Strings.emptyToNull;
-
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
@@ -31,10 +30,10 @@ public class JdbcReferenceAttributeDao
         domainId.getGraphId(),
         domainId.getId(),
         referenceAttributeId.getId(),
-        emptyToNull(referenceAttribute.getUri()),
+        referenceAttribute.getUri().map(Strings::emptyToNull).orElse(null),
         referenceAttribute.getRangeGraphId(),
         referenceAttribute.getRangeId(),
-        referenceAttribute.getIndex());
+        referenceAttribute.getIndex().orElse(null));
   }
 
   @Override
@@ -45,10 +44,10 @@ public class JdbcReferenceAttributeDao
 
     jdbcTemplate.update(
         "update reference_attribute set uri = ?, range_graph_id = ?, range_id = ?, index = ? where domain_graph_id = ? and domain_id = ? and id = ?",
-        emptyToNull(referenceAttribute.getUri()),
+        referenceAttribute.getUri().map(Strings::emptyToNull).orElse(null),
         referenceAttribute.getRangeGraphId(),
         referenceAttribute.getRangeId(),
-        referenceAttribute.getIndex(),
+        referenceAttribute.getIndex().orElse(null),
         domainId.getGraphId(),
         domainId.getId(),
         referenceAttributeId.getId());
@@ -117,17 +116,19 @@ public class JdbcReferenceAttributeDao
   @Override
   protected RowMapper<ReferenceAttribute> buildValueMapper() {
     return (rs, rowNum) -> {
-      GraphId domainGraph = GraphId.fromUuidString(rs.getString("domain_graph_id"));
-      TypeId domain = TypeId.of(rs.getString("domain_id"), domainGraph);
+      TypeId domain = TypeId.of(
+          rs.getString("domain_id"),
+          GraphId.fromUuidString(rs.getString("domain_graph_id")));
 
-      GraphId rangeGraph = GraphId.fromUuidString(rs.getString("range_graph_id"));
-      TypeId range = TypeId.of(rs.getString("range_id"), rangeGraph);
+      TypeId range = TypeId.of(
+          rs.getString("range_id"),
+          GraphId.fromUuidString(rs.getString("range_graph_id")));
 
-      ReferenceAttribute referenceAttribute =
-          new ReferenceAttribute(rs.getString("id"), rs.getString("uri"), domain, range);
-      referenceAttribute.setIndex(rs.getInt("index"));
-
-      return referenceAttribute;
+      return ReferenceAttribute.builder()
+          .id(rs.getString("id"), domain).range(range)
+          .uri(rs.getString("uri"))
+          .index(rs.getInt("index"))
+          .build();
     };
   }
 

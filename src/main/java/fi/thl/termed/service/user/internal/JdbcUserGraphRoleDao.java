@@ -1,19 +1,15 @@
 package fi.thl.termed.service.user.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.List;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> {
 
@@ -47,10 +43,10 @@ public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> 
 
   @Override
   protected <E> List<E> get(SqlSpecification<UserGraphRole, Empty> specification,
-                            RowMapper<E> mapper) {
+      RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from user_graph_role where %s",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
@@ -66,12 +62,12 @@ public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> 
 
   @Override
   protected <E> Optional<E> get(UserGraphRole id, RowMapper<E> mapper) {
-    return ListUtils.findFirst(jdbcTemplate.query(
+    return jdbcTemplate.query(
         "select * from user_graph_role where username = ? and graph_id = ? and role = ?",
         mapper,
         id.getUsername(),
         id.getGraphId(),
-        id.getRole()));
+        id.getRole()).stream().findFirst();
   }
 
   @Override

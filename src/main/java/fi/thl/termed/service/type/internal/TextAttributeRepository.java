@@ -144,17 +144,14 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   private TextAttribute populateValue(TextAttribute attribute, User user) {
-    attribute = new TextAttribute(attribute);
-
-    attribute.setPermissions(new RolePermissionsModelToDto<TextAttributeId>().apply(
-        permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
-            new TextAttributeId(attribute)), user)));
-
-    attribute.setProperties(new PropertyValueModelToDto<TextAttributeId>()
-        .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
-            new TextAttributeId(attribute)), user)));
-
-    return attribute;
+    return TextAttribute.builderFromCopyOf(attribute)
+        .permissions(new RolePermissionsModelToDto<TextAttributeId>().apply(
+            permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
+                new TextAttributeId(attribute)), user)))
+        .properties(new PropertyValueModelToDto<TextAttributeId>()
+            .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
+                new TextAttributeId(attribute)), user)))
+        .build();
   }
 
 }

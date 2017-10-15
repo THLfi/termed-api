@@ -1,6 +1,10 @@
 package fi.thl.termed.service.type.internal;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static fi.thl.termed.util.collect.DequeUtils.addFirst;
+import static fi.thl.termed.util.collect.DequeUtils.newArrayDeque;
+import static fi.thl.termed.util.collect.StreamUtils.zipWithIndex;
+import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
@@ -12,10 +16,13 @@ import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 /**
- * Set some default values for attributes
+ * Set default values for types and attributes: ascending indices, range and regex
  */
 public class InitializingTypeService extends ForwardingService<TypeId, Type> {
 
@@ -25,35 +32,86 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
 
   @Override
   public List<TypeId> save(List<Type> types, SaveMode mode, WriteOptions opts, User user) {
-    types.forEach(this::initialize);
-    return super.save(types, mode, opts, user);
+    return super.save(init(types), mode, opts, user);
   }
 
   @Override
-  public TypeId save(Type cls, SaveMode mode, WriteOptions opts, User user) {
-    initialize(cls);
-    return super.save(cls, mode, opts, user);
+  public TypeId save(Type type, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(init(type, type.getIndex().orElse(0)), mode, opts, user);
   }
 
   @Override
   public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves, SaveMode mode,
       WriteOptions opts, User user) {
-    saves.forEach(this::initialize);
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.deleteAndSave(deletes, init(saves), mode, opts, user);
   }
 
-  private void initialize(Type type) {
-    for (TextAttribute textAttribute : type.getTextAttributes()) {
-      textAttribute.setDomain(type.identifier());
-      textAttribute.setRegex(firstNonNull(textAttribute.getRegex(), RegularExpressions.ALL));
-    }
 
-    for (ReferenceAttribute referenceAttribute : type.getReferenceAttributes()) {
-      referenceAttribute.setDomain(type.identifier());
-      referenceAttribute.setRange(TypeId.of(
-          firstNonNull(referenceAttribute.getRangeId(), type.getId()),
-          firstNonNull(referenceAttribute.getRangeGraphId(), type.getGraphId())));
+  private List<Type> init(List<Type> types) {
+    return zipWithIndex(types.stream(), this::init).collect(toList());
+  }
+
+  private Type init(Type type, int index) {
+    return Type.builderFromCopyOf(type)
+        .index(index)
+        .textAttributes(initTextAttrs(type.identifier(), type.getTextAttributes()))
+        .referenceAttributes(initRefAttrs(type.identifier(), type.getReferenceAttributes()))
+        .build();
+  }
+
+  private List<TextAttribute> initTextAttrs(TypeId domain, List<TextAttribute> attributesList) {
+    if (attributesList.isEmpty()) {
+      return attributesList;
     }
+    Deque<TextAttribute> attributes = new ArrayDeque<>(attributesList);
+    return new ArrayList<>(initTextAttrs(domain, -1, attributes.removeFirst(), attributes));
+  }
+
+  // ensure that indices are ascending, add default regex if missing
+  private Deque<TextAttribute> initTextAttrs(TypeId domain, int previousIndex,
+      TextAttribute attribute, Deque<TextAttribute> rest) {
+
+    int index = attribute.getIndex().orElse(0);
+    int ascendingIndex = index > previousIndex ? index : previousIndex + 1;
+    String regex = firstNonNull(attribute.getRegex(), RegularExpressions.ALL);
+
+    TextAttribute result = TextAttribute.builder()
+        .id(attribute.getId(), domain).regex(regex)
+        .copyOptionalsFrom(attribute)
+        .index(ascendingIndex)
+        .build();
+
+    return rest.isEmpty() ? newArrayDeque(result)
+        : addFirst(result, initTextAttrs(domain, ascendingIndex, rest.removeFirst(), rest));
+  }
+
+  private List<ReferenceAttribute> initRefAttrs(TypeId domain,
+      List<ReferenceAttribute> attributesList) {
+    if (attributesList.isEmpty()) {
+      return attributesList;
+    }
+    Deque<ReferenceAttribute> attributes = new ArrayDeque<>(attributesList);
+    return new ArrayList<>(initRefAttrs(domain, -1, attributes.removeFirst(), attributes));
+  }
+
+  // ensure that indices are ascending, add range if missing
+  private Deque<ReferenceAttribute> initRefAttrs(TypeId domain, int previousIndex,
+      ReferenceAttribute attribute, Deque<ReferenceAttribute> rest) {
+
+    int index = attribute.getIndex().orElse(0);
+    int ascendingIndex = index > previousIndex ? index : previousIndex + 1;
+    TypeId range = TypeId.of(
+        firstNonNull(attribute.getRangeId(), domain.getId()),
+        firstNonNull(attribute.getRangeGraphId(), domain.getGraphId()));
+
+    ReferenceAttribute result = ReferenceAttribute.builder()
+        .id(attribute.getId(), domain).range(range)
+        .copyOptionalsFrom(attribute)
+        .index(ascendingIndex)
+        .build();
+
+    return rest.isEmpty() ? newArrayDeque(result)
+        : addFirst(result, initRefAttrs(domain, ascendingIndex, rest.removeFirst(), rest));
   }
 
 }

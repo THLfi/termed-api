@@ -1,19 +1,10 @@
 package fi.thl.termed.web.external.node.transform;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphDto;
 import fi.thl.termed.domain.GraphId;
@@ -28,8 +19,14 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeDto;
 import fi.thl.termed.domain.TypeId;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
 
@@ -57,7 +54,7 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
   }
 
   private NodeDto nodeToDto(Node node, Set<NodeId> visited, int depth,
-                            NodeQuery.Select select, NodeQuery.Recurse recurse) {
+      NodeQuery.Select select, NodeQuery.Recurse recurse) {
 
     visited.add(node.identifier());
 
@@ -91,7 +88,7 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
   }
 
   private Multimap<String, LangValue> mapProperties(Multimap<String, StrictLangValue> properties,
-                                                    NodeQuery.Select select) {
+      NodeQuery.Select select) {
 
     Multimap<String, LangValue> mappedProperties =
         Multimaps.transformValues(properties, LangValue::new);
@@ -105,8 +102,8 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
   }
 
   private Multimap<String, Node> filterAndLoadReferences(Node node, Set<NodeId> visited, int depth,
-                                                         NodeQuery.Select select,
-                                                         NodeQuery.Recurse recurse) {
+      NodeQuery.Select select,
+      NodeQuery.Recurse recurse) {
 
     // remove keys that have all values visited
     Multimap<String, NodeId> unfiltered = node.getReferences();
@@ -128,8 +125,8 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
   }
 
   private Multimap<String, Node> filterAndLoadReferrers(Node node, Set<NodeId> visited, int depth,
-                                                        NodeQuery.Select select,
-                                                        NodeQuery.Recurse recurse) {
+      NodeQuery.Select select,
+      NodeQuery.Recurse recurse) {
 
     // remove keys that have all values visited
     Multimap<String, NodeId> unfiltered = node.getReferrers();
@@ -159,12 +156,12 @@ public class NodeToDtoMapper implements BiFunction<Node, NodeQuery, NodeDto> {
 
     dto.setTextAttributes(
         type.getTextAttributes().stream()
-            .filter(attr -> !isNullOrEmpty(attr.getUri()))
-            .collect(Collectors.toMap(TextAttribute::getId, TextAttribute::getUri)));
+            .filter(attr -> attr.getUri().isPresent())
+            .collect(Collectors.toMap(TextAttribute::getId, a -> a.getUri().get())));
     dto.setReferenceAttributes(
         type.getReferenceAttributes().stream()
-            .filter(attr -> !isNullOrEmpty(attr.getUri()))
-            .collect(Collectors.toMap(ReferenceAttribute::getId, ReferenceAttribute::getUri)));
+            .filter(attr -> attr.getUri().isPresent())
+            .collect(Collectors.toMap(ReferenceAttribute::getId,  a -> a.getUri().get())));
 
     if (select.type) {
       dto.setProperties(type.getProperties());
