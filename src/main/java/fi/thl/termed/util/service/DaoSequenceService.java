@@ -1,5 +1,8 @@
 package fi.thl.termed.util.service;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.dao.Dao;
 import java.io.Serializable;
@@ -18,6 +21,8 @@ public class DaoSequenceService<K extends Serializable> implements SequenceServi
   }
 
   public int getAndAdvance(K sequenceId, int count, User user) {
+    checkArgument(count > 0);
+
     Optional<Integer> optionalValue = nodeSequenceDao.get(sequenceId, user);
 
     if (!optionalValue.isPresent()) {

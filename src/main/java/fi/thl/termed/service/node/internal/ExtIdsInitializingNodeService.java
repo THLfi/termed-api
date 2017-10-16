@@ -4,6 +4,7 @@ import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.groupingBy;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -21,6 +22,7 @@ import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -61,19 +63,29 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
   }
 
   private void addSerialNumbersWithDefaultCodesAndUris(List<Node> nodes, User user) {
-    nodes.forEach(node -> {
-      // use search to get node from index
-      Optional<Node> old = getValues(new AndSpecification<>(
-          new NodesByGraphId(node.getTypeGraphId()),
-          new NodesByTypeId(node.getTypeId()),
-          new NodeById(node.getId())), user).findAny();
+    nodes.stream().collect(groupingBy(Node::getType)).forEach((type, instances) -> {
+      List<Node> newNodes = new ArrayList<>();
 
-      if (old.isPresent()) {
-        node.setNumber(old.get().getNumber());
-      } else {
-        node.setNumber(nodeSequenceService.getAndAdvance(node.getType(), user));
-        addDefaultCodeIfMissing(node, user);
-        addDefaultUriIfMissing(node, user);
+      for (Node node : instances) {
+        Optional<Node> old = getValues(new AndSpecification<>(
+            new NodesByGraphId(node.getTypeGraphId()),
+            new NodesByTypeId(node.getTypeId()),
+            new NodeById(node.getId())), user).findAny();
+
+        if (old.isPresent()) {
+          node.setNumber(old.get().getNumber());
+        } else {
+          newNodes.add(node);
+        }
+      }
+
+      if (!newNodes.isEmpty()) {
+        int number = nodeSequenceService.getAndAdvance(type, newNodes.size(), user);
+        for (Node node : newNodes) {
+          node.setNumber(number++);
+          addDefaultCodeIfMissing(node, user);
+          addDefaultUriIfMissing(node, user);
+        }
       }
     });
   }

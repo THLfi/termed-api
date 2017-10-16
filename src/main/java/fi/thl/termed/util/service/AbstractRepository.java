@@ -31,13 +31,12 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       K key = value.identifier();
 
       boolean exists = exists(key, helper);
-      boolean existsForUser = exists(key, user);
 
       if (exists && (mode == UPDATE || mode == UPSERT)) {
         updates.put(key, value);
       } else if (!exists && (mode == INSERT || mode == UPSERT)) {
         inserts.put(key, value);
-      } else if (exists == existsForUser) {
+      } else if (exists == exists(key, user)) {
         throw new BadRequestException();
       } else {
         throw new NotFoundException();
