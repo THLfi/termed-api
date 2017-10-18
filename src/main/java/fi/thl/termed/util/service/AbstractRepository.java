@@ -3,12 +3,9 @@ package fi.thl.termed.util.service;
 import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
-import static fi.thl.termed.util.service.SaveMode.UPSERT;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Identifiable;
-import fi.thl.termed.util.spring.exception.BadRequestException;
-import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -30,16 +27,14 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     for (V value : values) {
       K key = value.identifier();
 
-      boolean exists = exists(key, helper);
-
-      if (exists && (mode == UPDATE || mode == UPSERT)) {
-        updates.put(key, value);
-      } else if (!exists && (mode == INSERT || mode == UPSERT)) {
+      if (mode == INSERT) {
         inserts.put(key, value);
-      } else if (exists == exists(key, user)) {
-        throw new BadRequestException();
+      } else if (mode == UPDATE) {
+        updates.put(key, value);
+      } else if (exists(key, helper)) {
+        updates.put(key, value);
       } else {
-        throw new NotFoundException();
+        inserts.put(key, value);
       }
 
       keys.add(key);
@@ -55,17 +50,14 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   public K save(V value, SaveMode mode, WriteOptions opts, User user) {
     K key = value.identifier();
 
-    boolean exists = exists(key, helper);
-    boolean existsForUser = exists(key, user);
-
-    if (exists && (mode == UPDATE || mode == UPSERT)) {
-      update(key, value, mode, opts, user);
-    } else if (!exists && (mode == INSERT || mode == UPSERT)) {
+    if (mode == INSERT) {
       insert(key, value, mode, opts, user);
-    } else if (exists == existsForUser) {
-      throw new BadRequestException();
+    } else if (mode == UPDATE) {
+      update(key, value, mode, opts, user);
+    } else if (exists(key, helper)) {
+      update(key, value, mode, opts, user);
     } else {
-      throw new NotFoundException();
+      insert(key, value, mode, opts, user);
     }
 
     return key;
