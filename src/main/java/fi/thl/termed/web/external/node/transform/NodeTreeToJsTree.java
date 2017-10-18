@@ -114,11 +114,11 @@ public class NodeTreeToJsTree implements Function<Tree<Node>, JsTree> {
   }
 
   private String getCode(Node node) {
-    if (node.getCode() != null) {
-      return node.getCode();
-    }
     if (node.getUri() != null) {
       return getLocalName(node.getUri());
+    }
+    if (node.getCode() != null) {
+      return node.getCode();
     }
     return "";
   }
