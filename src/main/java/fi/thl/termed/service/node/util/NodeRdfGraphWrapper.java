@@ -1,7 +1,9 @@
 package fi.thl.termed.service.node.util;
 
-import static fi.thl.termed.util.FunctionUtils.memoize;
-import static java.util.Optional.ofNullable;
+import static fi.thl.termed.service.node.util.UriResolvers.nodeUriResolver;
+import static fi.thl.termed.service.node.util.UriResolvers.refAttrUriResolver;
+import static fi.thl.termed.service.node.util.UriResolvers.textAttrUriResolver;
+import static fi.thl.termed.service.node.util.UriResolvers.typeUriResolver;
 import static org.apache.jena.graph.Node.ANY;
 
 import fi.thl.termed.domain.Node;
@@ -49,7 +51,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
   private Map<TextAttributeId, TextAttribute> textAttributes = new HashMap<>();
   private Map<ReferenceAttributeId, ReferenceAttribute> referenceAttributes = new HashMap<>();
 
-  private Function<Node, Stream<Triple>> toTriples;
+  private Function<Node, List<Triple>> toTriples;
 
   public NodeRdfGraphWrapper(List<Type> typeList,
       Function<Specification<NodeId, Node>, Stream<Node>> nodeProvider) {
@@ -62,15 +64,18 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
     this.nodeProvider = nodeProvider;
 
-    Function<NodeId, String> uriProvider = nodeId -> nodeProvider.apply(
-        new AndSpecification<>(
-            new NodesByGraphId(nodeId.getTypeGraphId()),
-            new NodesByTypeId(nodeId.getTypeId()),
-            new NodeById(nodeId.getId()))).findFirst()
-        .map(node -> ofNullable(node.getUri()).orElse("urn:uuid:" + node.getId()))
-        .orElse("urn:uuid:" + nodeId.getId());
+    Function<TypeId, Optional<Type>> getType = id -> typeList.stream()
+        .filter(t -> t.identifier().equals(id)).findFirst();
+    Function<NodeId, Optional<Node>> getNode = nodeId -> nodeProvider.apply(new AndSpecification<>(
+        new NodesByGraphId(nodeId.getTypeGraphId()),
+        new NodesByTypeId(nodeId.getTypeId()),
+        new NodeById(nodeId.getId()))).findFirst();
 
-    this.toTriples = new NodeToTriples(typeList, memoize(uriProvider, 100_000));
+    this.toTriples = new NodeToTriples(
+        typeUriResolver(getType),
+        textAttrUriResolver(getType),
+        refAttrUriResolver(getType),
+        nodeUriResolver(getNode));
   }
 
   @Override
@@ -124,7 +129,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
             byUriOrId(subjectUri)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
+        .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
   private Specification<NodeId, fi.thl.termed.domain.Node> byUriOrId(String nodeUri) {
@@ -146,7 +152,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
         new NodesByGraphId(typeOptional.get().getGraphId()),
         new NodesByTypeId(typeOptional.get().getId()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
+        .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
   // predicateUri can be null
@@ -167,7 +174,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByReference(refAttr.getId(), valueOptional.get().getId())))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
+        .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
   // predicateUri can be null
@@ -181,7 +189,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByProperty(textAttr.getId(), value)))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
+        .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
   private ExtendedIterator<Triple> findAll() {
@@ -191,7 +200,8 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByTypeId(type.getId())))
         .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec).flatMap(toTriples).iterator());
+    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
+        .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
 }
