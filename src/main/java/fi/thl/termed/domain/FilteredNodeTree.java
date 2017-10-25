@@ -51,7 +51,7 @@ public class FilteredNodeTree implements NodeTree {
   }
 
   @Override
-  public Integer getNumber() {
+  public Long getNumber() {
     return s.contains(new SelectAll()) || s.contains(new SelectNumber()) ?
         source.getNumber() : null;
   }

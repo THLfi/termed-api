@@ -133,7 +133,7 @@ public class NodeToDocument implements Function<Node, Document> {
         Field.Store.NO);
   }
 
-  private Field stringField(String name, Integer value) {
+  private Field stringField(String name, Long value) {
     return new StringField(name, String.valueOf(value), Field.Store.NO);
   }
 

@@ -110,7 +110,7 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
       node.setCode(rs.getString("code"));
       node.setUri(rs.getString("uri"));
-      node.setNumber(rs.getInt("number"));
+      node.setNumber(rs.getLong("number"));
 
       node.setCreatedBy(rs.getString("created_by"));
       node.setCreatedDate(rs.getTimestamp("created_date"));

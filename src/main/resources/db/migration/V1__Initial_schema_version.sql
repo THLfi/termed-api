@@ -203,7 +203,7 @@ CREATE INDEX reference_attribute_property_subject_id_idx
 CREATE TABLE node_sequence (
   graph_id uuid,
   type_id varchar(255),
-  value integer NOT NULL,
+  value bigint NOT NULL,
   CONSTRAINT node_sequence_pkey PRIMARY KEY (graph_id, type_id),
   CONSTRAINT node_sequence_type_fkey FOREIGN KEY (graph_id, type_id)
     REFERENCES type(graph_id, id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -215,7 +215,7 @@ CREATE TABLE node (
   id uuid,
   code varchar(255),
   uri varchar(2000),
-  number integer NOT NULL,
+  number bigint NOT NULL,
   created_by varchar(255) NOT NULL,
   created_date timestamp NOT NULL,
   last_modified_by varchar(255) NOT NULL,

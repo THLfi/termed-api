@@ -12,7 +12,7 @@ public interface NodeTree {
 
   String getUri();
 
-  Integer getNumber();
+  Long getNumber();
 
   String getCreatedBy();
 

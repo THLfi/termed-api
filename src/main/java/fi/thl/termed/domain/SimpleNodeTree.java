@@ -15,7 +15,7 @@ public class SimpleNodeTree implements NodeTree {
   private final UUID id;
   private final String code;
   private final String uri;
-  private final Integer number;
+  private final Long number;
 
   private final String createdBy;
   private final Date createdDate;
@@ -60,7 +60,7 @@ public class SimpleNodeTree implements NodeTree {
   }
 
   @Override
-  public Integer getNumber() {
+  public Long getNumber() {
     return number;
   }
 

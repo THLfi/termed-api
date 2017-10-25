@@ -18,8 +18,8 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.ArrayList;
@@ -29,12 +29,12 @@ import java.util.function.BiFunction;
 
 public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Node> {
 
-  private SequenceService<TypeId> nodeSequenceService;
+  private NamedSequenceService<TypeId> nodeSequenceService;
   private BiFunction<TypeId, User, Optional<Type>> typeSource;
   private BiFunction<GraphId, User, Optional<Graph>> graphSource;
 
   public ExtIdsInitializingNodeService(Service<NodeId, Node> delegate,
-      SequenceService<TypeId> nodeSequenceService,
+      NamedSequenceService<TypeId> nodeSequenceService,
       BiFunction<TypeId, User, Optional<Type>> typeSource,
       BiFunction<GraphId, User, Optional<Graph>> graphSource) {
     super(delegate);
@@ -80,7 +80,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       }
 
       if (!newNodes.isEmpty()) {
-        int number = nodeSequenceService.getAndAdvance(type, newNodes.size(), user);
+        long number = nodeSequenceService.getAndAdvance(type, (long) (newNodes.size()), user);
         for (Node node : newNodes) {
           node.setNumber(number++);
           addDefaultCodeIfMissing(node, user);

@@ -49,7 +49,7 @@ public class DepthLimitedNodeTree implements NodeTree {
   }
 
   @Override
-  public Integer getNumber() {
+  public Long getNumber() {
     return source.getNumber();
   }
 

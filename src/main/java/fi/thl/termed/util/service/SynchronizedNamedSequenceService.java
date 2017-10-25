@@ -9,23 +9,24 @@ import java.util.function.Supplier;
 /**
  * Adds simple "one at a time" synchronization to sequence service.
  */
-public class SynchronizedSequenceService<K extends Serializable> implements SequenceService<K> {
+public class SynchronizedNamedSequenceService<K extends Serializable> implements
+    NamedSequenceService<K> {
 
   private final Lock lock;
-  private SequenceService<K> delegate;
+  private NamedSequenceService<K> delegate;
 
-  public SynchronizedSequenceService(SequenceService<K> delegate) {
+  public SynchronizedNamedSequenceService(NamedSequenceService<K> delegate) {
     this.delegate = delegate;
     this.lock = new ReentrantLock();
   }
 
   @Override
-  public int getAndAdvance(K sequenceId, User user) {
+  public Long getAndAdvance(K sequenceId, User user) {
     return runSynchronized(() -> delegate.getAndAdvance(sequenceId, user));
   }
 
   @Override
-  public int getAndAdvance(K sequenceId, int count, User user) {
+  public Long getAndAdvance(K sequenceId, Long count, User user) {
     return runSynchronized(() -> delegate.getAndAdvance(sequenceId, count, user));
   }
 

@@ -44,7 +44,7 @@ public class LazyLoadingNodeTree implements NodeTree {
   }
 
   @Override
-  public Integer getNumber() {
+  public Long getNumber() {
     return source.getNumber();
   }
 

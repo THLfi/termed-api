@@ -9,14 +9,14 @@ import java.util.Optional;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Integer> {
+public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Long> {
 
   public JdbcNodeSequenceDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(TypeId typeId, Integer value) {
+  public void insert(TypeId typeId, Long value) {
     jdbcTemplate.update(
         "insert into node_sequence (graph_id, type_id, value) values (?, ?, ?)",
         typeId.getGraphId(),
@@ -25,7 +25,7 @@ public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Integer> {
   }
 
   @Override
-  public void update(TypeId typeId, Integer value) {
+  public void update(TypeId typeId, Long value) {
     jdbcTemplate.update(
         "update node_sequence set value = ? where graph_id = ? and type_id = ?",
         value,
@@ -47,7 +47,7 @@ public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Integer> {
   }
 
   @Override
-  protected <E> List<E> get(SqlSpecification<TypeId, Integer> specification,
+  protected <E> List<E> get(SqlSpecification<TypeId, Long> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_sequence where %s", specification.sqlQueryTemplate()),
@@ -80,8 +80,8 @@ public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Integer> {
   }
 
   @Override
-  protected RowMapper<Integer> buildValueMapper() {
-    return (rs, rowNum) -> rs.getInt("value");
+  protected RowMapper<Long> buildValueMapper() {
+    return (rs, rowNum) -> rs.getLong("value");
   }
 
 }

@@ -15,7 +15,7 @@ public class Node implements Identifiable<NodeId> {
   private UUID id;
   private String code;
   private String uri;
-  private Integer number;
+  private Long number;
 
   private String createdBy;
   private Date createdDate;
@@ -76,11 +76,11 @@ public class Node implements Identifiable<NodeId> {
     this.code = code;
   }
 
-  public Integer getNumber() {
+  public Long getNumber() {
     return number;
   }
 
-  public void setNumber(Integer number) {
+  public void setNumber(Long number) {
     this.number = number;
   }
 
