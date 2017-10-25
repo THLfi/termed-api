@@ -21,13 +21,13 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.spring.exception.BadRequestException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -128,14 +128,9 @@ public class GraphServiceIntegrationTest {
 
     assertFalse(graphService.exists(graphId, user));
 
-    try {
-      graphService.save(graph, UPDATE, defaultOpts(), user);
-      fail("Expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertFalse(graphService.exists(graphId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    graphService.save(graph, UPDATE, defaultOpts(), user);
+
+    assertFalse(graphService.exists(graphId, user));
   }
 
   @Test
@@ -149,8 +144,8 @@ public class GraphServiceIntegrationTest {
 
     try {
       graphService.save(graph, INSERT, defaultOpts(), user);
-      fail("Expected BadRequestException");
-    } catch (BadRequestException e) {
+      fail("Expected DuplicateKeyException");
+    } catch (DuplicateKeyException e) {
       assertTrue(graphService.exists(graphId, user));
     } catch (Throwable t) {
       fail("Unexpected error: " + t);

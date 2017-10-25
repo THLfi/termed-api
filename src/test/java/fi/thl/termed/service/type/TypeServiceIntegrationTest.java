@@ -29,7 +29,6 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.spring.exception.BadRequestException;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -149,14 +149,9 @@ public class TypeServiceIntegrationTest {
 
     assertFalse(typeService.exists(typeId, user));
 
-    try {
-      typeService.save(type, UPDATE, defaultOpts(), user);
-      fail("Expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertFalse(typeService.exists(typeId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    typeService.save(type, UPDATE, defaultOpts(), user);
+
+    assertFalse(typeService.exists(typeId, user));
   }
 
   @Test
@@ -171,8 +166,8 @@ public class TypeServiceIntegrationTest {
 
     try {
       typeService.save(type, INSERT, defaultOpts(), user);
-      fail("Expected BadRequestException");
-    } catch (BadRequestException e) {
+      fail("Expected DuplicateKeyException");
+    } catch (DuplicateKeyException e) {
       assertTrue(typeService.exists(typeId, user));
     } catch (Throwable t) {
       fail("Unexpected error: " + t);
