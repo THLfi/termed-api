@@ -54,13 +54,11 @@ import fi.thl.termed.util.service.SynchronizedNamedSequenceService;
 import fi.thl.termed.util.service.TransactionalNamedSequenceService;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
-import java.util.Arrays;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -91,15 +89,15 @@ public class NodeServiceConfiguration {
   @Autowired
   private EventBus eventBus;
 
-  @Autowired
-  private Environment env;
+  @Value("${fi.thl.termed.enableVersioning:false}")
+  private boolean enableVersioning;
 
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service = nodeRepository();
     service = new TransactionalService<>(service, transactionManager);
 
-    if (Arrays.asList(env.getActiveProfiles()).contains("dev")) {
+    if (enableVersioning) {
       service = new RevisionInitializingNodeService(service, revisionSequenceService());
     }
 
