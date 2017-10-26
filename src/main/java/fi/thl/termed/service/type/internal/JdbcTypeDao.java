@@ -27,7 +27,7 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
         typeId.getGraphId(),
         typeId.getId(),
         newType.getUri().map(Strings::emptyToNull).orElse(null),
-        newType.getNodeCodePrefix().map(Strings::emptyToNull).orElse(null),
+        newType.getNodeCodePrefix().orElse(null),
         newType.getIndex().orElse(null));
   }
 
@@ -36,7 +36,7 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
     jdbcTemplate.update(
         "update type set uri = ?, node_code_prefix = ?, index = ? where graph_id = ? and id = ?",
         newType.getUri().map(Strings::emptyToNull).orElse(null),
-        newType.getNodeCodePrefix().map(Strings::emptyToNull).orElse(null),
+        newType.getNodeCodePrefix().orElse(null),
         newType.getIndex().orElse(null),
         typeId.getGraphId(),
         typeId.getId());
