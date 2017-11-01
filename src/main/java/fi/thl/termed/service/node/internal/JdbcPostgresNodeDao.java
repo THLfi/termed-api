@@ -6,6 +6,8 @@ import static fi.thl.termed.util.postgresql.CopyManagerUtils.copyInAsCsv;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.dao.ForwardingSystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -15,18 +17,22 @@ import java.util.Map;
 import javax.sql.DataSource;
 import org.joda.time.DateTime;
 import org.postgresql.core.BaseConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
- * Implements faster bulk insert for Postgres. If backed database is not Postgres, delegates back to
- * generic JdbcNodeDao insert.
+ * Implements faster bulk insert for Postgres. If backed database is not Postgres, forwards insert
+ * to delegate.
  */
-public class JdbcPostgresNodeDao extends JdbcNodeDao {
+public class JdbcPostgresNodeDao extends ForwardingSystemDao<NodeId, Node> {
+
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   private DataSource dataSource;
 
-  public JdbcPostgresNodeDao(DataSource dataSource) {
-    super(dataSource);
+  public JdbcPostgresNodeDao(SystemDao<NodeId, Node> delegate, DataSource dataSource) {
+    super(delegate);
     this.dataSource = dataSource;
   }
 

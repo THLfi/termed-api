@@ -5,6 +5,8 @@ import static fi.thl.termed.util.postgresql.CopyManagerUtils.copyInAsCsv;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.dao.ForwardingSystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,18 +14,24 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.postgresql.core.BaseConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
- * Implements faster bulk insert for Postgres. If backed database is not Postgres, delegates back to
- * generic JdbcNodeDao insert.
+ * Implements faster bulk insert for Postgres. If backed database is not Postgres, forwards insert
+ * to delegate.
  */
-public class JdbcPostgresNodeReferenceAttributeValueDao extends JdbcNodeReferenceAttributeValueDao {
+public class JdbcPostgresNodeReferenceAttributeValueDao extends
+    ForwardingSystemDao<NodeAttributeValueId, NodeId> {
+
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   private DataSource dataSource;
 
-  public JdbcPostgresNodeReferenceAttributeValueDao(DataSource dataSource) {
-    super(dataSource);
+  public JdbcPostgresNodeReferenceAttributeValueDao(
+      SystemDao<NodeAttributeValueId, NodeId> delegate, DataSource dataSource) {
+    super(delegate);
     this.dataSource = dataSource;
   }
 

@@ -22,9 +22,12 @@ import fi.thl.termed.service.node.internal.DocumentToNode;
 import fi.thl.termed.service.node.internal.ExtIdsInitializingNodeService;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
+import fi.thl.termed.service.node.internal.JdbcNodeDao;
+import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcNodeRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcNodeSequenceDao;
+import fi.thl.termed.service.node.internal.JdbcNodeTextAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeTextAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeValueDao;
@@ -192,20 +195,25 @@ public class NodeServiceConfiguration {
             u, new ReferenceAttributeId(o.getNodeId().getType(), o.getAttributeId()), p));
   }
 
-  private SystemDao<NodeId, Node> nodeSystemDao() {
-    return new JdbcPostgresNodeDao(dataSource);
-  }
-
   private SystemDao<TypeId, Long> nodeSequenceSystemDao() {
     return new JdbcNodeSequenceDao(dataSource);
   }
 
+  private SystemDao<NodeId, Node> nodeSystemDao() {
+    SystemDao<NodeId, Node> nodeDao = new JdbcNodeDao(dataSource);
+    return new JdbcPostgresNodeDao(nodeDao, dataSource);
+  }
+
   private SystemDao<NodeAttributeValueId, StrictLangValue> textAttributeValueSystemDao() {
-    return new JdbcPostgresNodeTextAttributeValueDao(dataSource);
+    SystemDao<NodeAttributeValueId, StrictLangValue> textAttrValueDao =
+        new JdbcNodeTextAttributeValueDao(dataSource);
+    return new JdbcPostgresNodeTextAttributeValueDao(textAttrValueDao, dataSource);
   }
 
   private SystemDao<NodeAttributeValueId, NodeId> referenceAttributeValueSystemDao() {
-    return new JdbcPostgresNodeReferenceAttributeValueDao(dataSource);
+    SystemDao<NodeAttributeValueId, NodeId> refAttrValueDao =
+        new JdbcNodeReferenceAttributeValueDao(dataSource);
+    return new JdbcPostgresNodeReferenceAttributeValueDao(refAttrValueDao, dataSource);
   }
 
   private SystemDao<RevisionId<NodeId>, Revision<NodeId, Node>> nodeRevSysDao() {
