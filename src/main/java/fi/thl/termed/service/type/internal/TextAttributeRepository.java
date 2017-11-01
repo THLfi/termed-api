@@ -128,13 +128,15 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   @Override
-  public Stream<TextAttribute> getValues(Query<TextAttributeId, TextAttribute> query, User user) {
+  public Stream<TextAttribute> getValueStream(Query<TextAttributeId, TextAttribute> query,
+      User user) {
     return textAttributeDao.getValues(query.getWhere(), user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public Stream<TextAttributeId> getKeys(Query<TextAttributeId, TextAttribute> spec, User user) {
+  public Stream<TextAttributeId> getKeyStream(Query<TextAttributeId, TextAttribute> spec,
+      User user) {
     return textAttributeDao.getKeys(spec.getWhere(), user).stream();
   }
 
@@ -148,8 +150,8 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
         .permissions(new RolePermissionsModelToDto<TextAttributeId>().apply(
             permissionDao.getMap(new TextAttributePermissionsByTextAttributeId(
                 new TextAttributeId(attribute)), user)))
-        .properties(new PropertyValueModelToDto<TextAttributeId>()
-            .apply(propertyDao.getMap(new TextAttributePropertiesByAttributeId(
+        .properties(new PropertyValueModelToDto<TextAttributeId>().apply(
+            propertyDao.getMap(new TextAttributePropertiesByAttributeId(
                 new TextAttributeId(attribute)), user)))
         .build();
   }

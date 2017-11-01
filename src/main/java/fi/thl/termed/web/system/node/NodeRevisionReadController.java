@@ -1,7 +1,6 @@
 package fi.thl.termed.web.system.node;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -15,6 +14,7 @@ import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,9 +34,8 @@ public class NodeRevisionReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User user) {
-    return nodeRevisionReadService
-        .getKeys(new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId)), user)
-        .collect(toList());
+    return nodeRevisionReadService.getKeys(
+        new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId)), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions/{number}")
@@ -53,13 +52,15 @@ public class NodeRevisionReadController {
           .orElseThrow(IllegalStateException::new);
     }
 
-    RevisionId<NodeId> latestRevisionLessOrEqualToTargetRevision = nodeRevisionReadService
-        .getKeys(new NodeRevisionsLessOrEqualToRevision(revisionId), user)
-        .max(comparing(RevisionId::getRevision))
-        .orElseThrow(NotFoundException::new);
+    try (Stream<RevisionId<NodeId>> ids = nodeRevisionReadService
+        .getKeyStream(new NodeRevisionsLessOrEqualToRevision(revisionId), user)) {
 
-    return nodeRevisionReadService.get(latestRevisionLessOrEqualToTargetRevision, user)
-        .orElseThrow(IllegalStateException::new);
+      RevisionId<NodeId> latestRevisionLessOrEqualToTargetRevision =
+          ids.max(comparing(RevisionId::getRevision)).orElseThrow(NotFoundException::new);
+
+      return nodeRevisionReadService.get(latestRevisionLessOrEqualToTargetRevision, user)
+          .orElseThrow(IllegalStateException::new);
+    }
   }
 
 }

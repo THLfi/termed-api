@@ -1,6 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
-import static java.util.stream.Collectors.toList;
+import static fi.thl.termed.util.query.AndSpecification.and;
 
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
@@ -20,7 +20,6 @@ import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
-import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.CompositeSpecification;
 import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
@@ -58,7 +57,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
       // async reindex all
-      index.index(super.getKeys(indexer).collect(toList()), key -> super.get(key, indexer));
+      index.index(super.getKeys(indexer), key -> super.get(key, indexer));
     }
   }
 
@@ -69,22 +68,27 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Subscribe
   public void reindexOn(ReindexEvent e) {
-    index.index(super.getKeys(indexer).collect(toList()), key -> super.get(key, indexer));
+    index.index(super.getKeys(indexer), key -> super.get(key, indexer));
+  }
+
+  private Optional<Node> getFromIndex(NodeId nodeId, User user) {
+    try (Stream<Node> indexedNode = getValueStream(and(
+        new NodesByGraphId(nodeId.getTypeGraphId()),
+        new NodesByTypeId(nodeId.getTypeId()),
+        new NodeById(nodeId.getId())), user)) {
+      return indexedNode.findAny();
+    }
   }
 
   @Override
   public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = new HashSet<>();
 
-    nodes.forEach(node -> super.getValues(new AndSpecification<>(
-        new NodesByGraphId(node.getTypeGraphId()),
-        new NodesByTypeId(node.getTypeId()),
-        new NodeById(node.getId())), indexer)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        }));
+    // collect existing node reference and referrer ids from index
+    nodes.forEach(node -> getFromIndex(node.identifier(), user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    }));
 
     List<NodeId> ids = super.save(nodes, mode, opts, user);
 
@@ -115,15 +119,10 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
     Set<NodeId> reindexingRequired = Sets.newHashSet();
 
-    super.getValues(new AndSpecification<>(
-        new NodesByGraphId(node.getTypeGraphId()),
-        new NodesByTypeId(node.getTypeId()),
-        new NodeById(node.getId())), user)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        });
+    getFromIndex(node.identifier(), user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    });
 
     NodeId id = super.save(node, mode, opts, user);
     reindexingRequired.add(id);
@@ -148,15 +147,10 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.addAll(nodeIds);
 
-    nodeIds.forEach(nodeId -> super.getValues(new AndSpecification<>(
-        new NodesByGraphId(nodeId.getTypeGraphId()),
-        new NodesByTypeId(nodeId.getTypeId()),
-        new NodeById(nodeId.getId())), indexer)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        }));
+    nodeIds.forEach(nodeId -> getFromIndex(nodeId, user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    }));
 
     super.delete(nodeIds, opts, user);
 
@@ -169,15 +163,10 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.add(nodeId);
 
-    super.getValues(new AndSpecification<>(
-        new NodesByGraphId(nodeId.getTypeGraphId()),
-        new NodesByTypeId(nodeId.getTypeId()),
-        new NodeById(nodeId.getId())), indexer)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        });
+    getFromIndex(nodeId, user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    });
 
     super.delete(nodeId, opts, user);
 
@@ -192,25 +181,15 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     reindexingRequired.addAll(deletes);
 
-    deletes.forEach(delete -> super.getValues(new AndSpecification<>(
-        new NodesByGraphId(delete.getTypeGraphId()),
-        new NodesByTypeId(delete.getTypeId()),
-        new NodeById(delete.getId())), indexer)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        }));
+    deletes.forEach(nodeId -> getFromIndex(nodeId, user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    }));
 
-    saves.forEach(save -> super.getValues(new AndSpecification<>(
-        new NodesByGraphId(save.getTypeGraphId()),
-        new NodesByTypeId(save.getTypeId()),
-        new NodeById(save.getId())), indexer)
-        .findFirst()
-        .ifPresent(n -> {
-          reindexingRequired.addAll(n.getReferences().values());
-          reindexingRequired.addAll(n.getReferrers().values());
-        }));
+    saves.forEach(node -> getFromIndex(node.identifier(), user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    }));
 
     List<NodeId> ids = super.deleteAndSave(deletes, saves, mode, opts, user);
 
@@ -261,9 +240,9 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
     if (!(query.getWhere() instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.getValues(query, user);
+      return super.getValueStream(query, user);
     }
 
     resolve(query.getWhere(), user);
@@ -281,9 +260,9 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
     if (!(query.getWhere() instanceof LuceneSpecification) || !(index instanceof LuceneIndex)) {
-      return super.getKeys(query, user);
+      return super.getKeyStream(query, user);
     }
 
     resolve(query.getWhere(), user);
@@ -307,7 +286,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private void resolve(Specification<NodeId, Node> spec, User user) {
     if (spec instanceof DependentSpecification) {
-      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(new Query<>(s), user));
+      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(s, user));
     }
     if (spec instanceof NotSpecification) {
       resolve(((NotSpecification<NodeId, Node>) spec).getSpecification(), user);

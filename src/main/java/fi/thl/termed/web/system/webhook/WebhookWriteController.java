@@ -12,6 +12,7 @@ import fi.thl.termed.service.webhook.specification.WebhookByUrl;
 import fi.thl.termed.util.service.Service;
 import java.net.URI;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,10 +32,12 @@ public class WebhookWriteController {
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
-    return webhookService.getValues(new WebhookByUrl(url), user)
-        .findFirst().map(Webhook::getId)
-        .orElseGet(() ->
-            webhookService.save(new Webhook(randomUUID(), url), UPSERT, defaultOpts(), user));
+    try (Stream<Webhook> hooks = webhookService.getValueStream(new WebhookByUrl(url), user)) {
+      return hooks.findFirst()
+          .map(Webhook::getId)
+          .orElseGet(() ->
+              webhookService.save(new Webhook(randomUUID(), url), UPSERT, defaultOpts(), user));
+    }
   }
 
   @DeleteMapping("/{id}")
@@ -46,7 +49,7 @@ public class WebhookWriteController {
   @DeleteMapping
   @ResponseStatus(NO_CONTENT)
   public void delete(@AuthenticationPrincipal User user) {
-    webhookService.delete(webhookService.getKeys(user).collect(toList()), defaultOpts(), user);
+    webhookService.delete(webhookService.getKeyStream(user).collect(toList()), defaultOpts(), user);
   }
 
 }

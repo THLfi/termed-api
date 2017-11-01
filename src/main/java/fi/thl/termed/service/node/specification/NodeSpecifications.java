@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
 import static fi.thl.termed.util.collect.StreamUtils.zip;
+import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.Node;
@@ -9,6 +10,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -27,25 +29,25 @@ public final class NodeSpecifications {
   public static Specification<NodeId, Node> specifyByQuery(
       List<Graph> graphs, List<Type> types, Type domain, String query) {
 
-    AndSpecification<NodeId, Node> spec = new AndSpecification<>();
+    List<Specification<NodeId, Node>> clauses = new ArrayList<>();
 
-    spec.and(new NodesByGraphId(domain.getGraphId()));
-    spec.and(new NodesByTypeId(domain.getId()));
+    clauses.add(new NodesByGraphId(domain.getGraphId()));
+    clauses.add(new NodesByTypeId(domain.getId()));
 
     if (!query.isEmpty()) {
-      spec.and(new TypeBasedNodeSpecificationFilter(types).apply(domain,
+      clauses.add(new TypeBasedNodeSpecificationFilter(types).apply(domain,
           new NodeGraphAndTypeSpecificationResolver(graphs, types)
               .apply(queryParser.apply(query))));
     }
 
-    return spec;
+    return AndSpecification.and(clauses);
   }
 
   public static Specification<NodeId, Node> specifyByAnyPropertyPrefix(Type type, String query) {
-    AndSpecification<NodeId, Node> spec = new AndSpecification<>();
+    List<Specification<NodeId, Node>> clauses = new ArrayList<>();
 
-    spec.and(new NodesByGraphId(type.getGraphId()));
-    spec.and(new NodesByTypeId(type.getId()));
+    clauses.add(new NodesByGraphId(type.getGraphId()));
+    clauses.add(new NodesByTypeId(type.getId()));
 
     if (!query.isEmpty()) {
       List<String> prefixes = Arrays.asList(query.split("\\s"));
@@ -53,16 +55,16 @@ public final class NodeSpecifications {
       // boosts for first few text attributes in the query
       Stream<Integer> boosts = IntStream.iterate(8, b -> b > 2 ? b / 2 : 1).boxed();
 
-      Specification<NodeId, Node> prefixSpec = zip(type.getTextAttributes().stream(), boosts)
-          .flatMap(attributeAndBoost -> prefixes.stream()
-              .map(prefix -> new NodesByPropertyPrefix(
-                  attributeAndBoost.getKey().getId(), prefix, attributeAndBoost.getValue())))
-          .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+      List<Specification<NodeId, Node>> orClauses = zip(type.getTextAttributes().stream(), boosts)
+          .flatMap(attrAndBoost -> prefixes.stream()
+              .map(prefix -> new NodesByPropertyPrefix(attrAndBoost.getKey().getId(), prefix,
+                  attrAndBoost.getValue())))
+          .collect(toList());
 
-      spec.and(prefixSpec);
+      clauses.add(OrSpecification.or(orClauses));
     }
 
-    return spec;
+    return AndSpecification.and(clauses);
   }
 
 }

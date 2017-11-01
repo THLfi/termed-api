@@ -1,7 +1,6 @@
 package fi.thl.termed.web.system.node;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static org.apache.jena.rdf.model.ModelFactory.createModelForGraph;
 import static org.apache.jena.riot.Lang.TURTLE;
 
@@ -14,9 +13,9 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.NodeRdfGraphWrapper;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.io.ByteArrayOutputStream;
@@ -66,8 +65,9 @@ public class NodeSparqlReadController {
 
   private Model buildModelWrapper(UUID graphId, User user) {
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user).collect(toList());
-    Function<Specification<NodeId, Node>, Stream<Node>> nodes = s -> nodeService.getValues(s, user);
+    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+    Function<Specification<NodeId, Node>, Stream<Node>> nodes =
+        s -> nodeService.getValueStream(s, user);
     return createModelForGraph(new NodeRdfGraphWrapper(types, nodes));
   }
 

@@ -1,7 +1,5 @@
 package fi.thl.termed.web.system.property;
 
-import static java.util.stream.Collectors.toList;
-
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
@@ -27,7 +25,7 @@ public class PropertyReadController {
 
   @GetJsonMapping
   public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.getValues(user).collect(toList());
+    return propertyService.getValues(user);
   }
 
   @GetJsonMapping("/{id}")

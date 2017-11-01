@@ -1,6 +1,5 @@
 package fi.thl.termed.util.query;
 
-import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -8,13 +7,18 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 
-public class NotSpecification<K extends Serializable, V>
+public final class NotSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V> {
 
-  private Specification<K, V> specification;
+  private final Specification<K, V> specification;
 
-  public NotSpecification(Specification<K, V> specification) {
+  private NotSpecification(Specification<K, V> specification) {
     this.specification = specification;
+  }
+
+  public static <K extends Serializable, V> NotSpecification<K, V> not(
+      Specification<K, V> specification) {
+    return new NotSpecification<>(specification);
   }
 
   @Override
@@ -61,9 +65,7 @@ public class NotSpecification<K extends Serializable, V>
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("specification", specification)
-        .toString();
+    return "NOT " + specification.toString();
   }
 
 }

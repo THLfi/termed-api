@@ -1,7 +1,5 @@
 package fi.thl.termed.web.system.user;
 
-import static java.util.stream.Collectors.toList;
-
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
@@ -22,7 +20,7 @@ public class UserReadController {
 
   @GetJsonMapping
   public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.getValues(currentUser).collect(toList());
+    return userService.getValues(currentUser);
   }
 
   @GetJsonMapping("/{username}")

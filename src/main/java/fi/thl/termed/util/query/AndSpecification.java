@@ -1,7 +1,11 @@
 package fi.thl.termed.util.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
+import static java.lang.String.join;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,23 +18,27 @@ import org.apache.lucene.search.Query;
  * Accepts if all contained specifications accept. An empty AndSpecification does not accept
  * anything.
  */
-public class AndSpecification<K extends Serializable, V> extends CompositeSpecification<K, V> {
+public final class AndSpecification<K extends Serializable, V> extends
+    CompositeSpecification<K, V> {
 
-  public AndSpecification() {
+  private AndSpecification(List<Specification<K, V>> specifications) {
+    super(specifications);
+  }
+
+  public static <K extends Serializable, V> AndSpecification<K, V> and(
+      Specification<K, V> specification) {
+    return new AndSpecification<>(singletonList(specification));
   }
 
   @SafeVarargs
-  public AndSpecification(Specification<K, V>... specifications) {
-    super(specifications);
+  public static <K extends Serializable, V> AndSpecification<K, V> and(
+      Specification<K, V>... specifications) {
+    return new AndSpecification<>(asList(specifications));
   }
 
-  public AndSpecification(List<Specification<K, V>> specifications) {
-    super(specifications);
-  }
-
-  public AndSpecification<K, V> and(Specification<K, V> specification) {
-    specifications.add(checkNotNull(specification));
-    return this;
+  public static <K extends Serializable, V> AndSpecification<K, V> and(
+      List<Specification<K, V>> specifications) {
+    return new AndSpecification<>(specifications);
   }
 
   @Override
@@ -78,6 +86,12 @@ public class AndSpecification<K extends Serializable, V> extends CompositeSpecif
         .map(SqlSpecification.class::cast)
         .flatMap(spec -> stream(spec.sqlQueryParameters()))
         .toArray(Object[]::new);
+  }
+
+  @Override
+  public String toString() {
+    return format("(%s)",
+        join(" AND ", specifications.stream().map(Object::toString).collect(toList())));
   }
 
 }

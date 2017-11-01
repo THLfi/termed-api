@@ -1,7 +1,11 @@
 package fi.thl.termed.util.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
+import static java.lang.String.join;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,23 +18,26 @@ import org.apache.lucene.search.Query;
  * Accepts if any of the contained specifications accept. An empty OrSpecification does not accept
  * anything.
  */
-public class OrSpecification<K extends Serializable, V> extends CompositeSpecification<K, V> {
+public final class OrSpecification<K extends Serializable, V> extends CompositeSpecification<K, V> {
 
-  public OrSpecification() {
+  private OrSpecification(List<Specification<K, V>> specifications) {
+    super(specifications);
+  }
+
+  public static <K extends Serializable, V> OrSpecification<K, V> or(
+      Specification<K, V> specification) {
+    return new OrSpecification<>(singletonList(specification));
   }
 
   @SafeVarargs
-  public OrSpecification(Specification<K, V>... specifications) {
-    super(specifications);
+  public static <K extends Serializable, V> OrSpecification<K, V> or(
+      Specification<K, V>... specifications) {
+    return new OrSpecification<>(asList(specifications));
   }
 
-  public OrSpecification(List<Specification<K, V>> specifications) {
-    super(specifications);
-  }
-
-  public OrSpecification<K, V> or(Specification<K, V> specification) {
-    specifications.add(checkNotNull(specification));
-    return this;
+  public static <K extends Serializable, V> OrSpecification<K, V> or(
+      List<Specification<K, V>> specifications) {
+    return new OrSpecification<>(specifications);
   }
 
   @Override
@@ -79,6 +86,12 @@ public class OrSpecification<K extends Serializable, V> extends CompositeSpecifi
         .map(SqlSpecification.class::cast)
         .flatMap(spec -> stream(spec.sqlQueryParameters()))
         .toArray(Object[]::new);
+  }
+
+  @Override
+  public String toString() {
+    return format("(%s)",
+        join(" OR ", specifications.stream().map(Object::toString).collect(toList())));
   }
 
 }

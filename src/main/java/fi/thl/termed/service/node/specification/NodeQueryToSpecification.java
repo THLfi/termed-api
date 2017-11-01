@@ -24,10 +24,10 @@ public final class NodeQueryToSpecification {
   }
 
   public static AndSpecification<NodeId, Node> toSpecification(Type type, NodeQuery.Where where) {
-    AndSpecification<NodeId, Node> spec = new AndSpecification<>();
+    List<Specification<NodeId, Node>> spec = new ArrayList<>();
 
-    spec.and(new NodesByGraphId(type.getGraphId()));
-    spec.and(new NodesByTypeId(type.getId()));
+    spec.add(new NodesByGraphId(type.getGraphId()));
+    spec.add(new NodesByTypeId(type.getId()));
 
     Set<String> textAttributeIds = type.getTextAttributes().stream()
         .map(Attribute::getId).collect(Collectors.toSet());
@@ -37,16 +37,16 @@ public final class NodeQueryToSpecification {
     OrSpecification<NodeId, Node> propertySpec =
         propertySpecification(textAttributeIds, where.properties);
     if (!propertySpec.getSpecifications().isEmpty()) {
-      spec.and(propertySpec);
+      spec.add(propertySpec);
     }
 
     AndSpecification<NodeId, Node> referenceSpec =
         referenceSpecification(referenceAttributeIds, where.references);
     if (!referenceSpec.getSpecifications().isEmpty()) {
-      spec.and(referenceSpec);
+      spec.add(referenceSpec);
     }
 
-    return spec;
+    return AndSpecification.and(spec);
   }
 
   private static OrSpecification<NodeId, Node> propertySpecification(
@@ -64,7 +64,7 @@ public final class NodeQueryToSpecification {
           }
         }
 
-        specifications.add(new OrSpecification<>(propertyValueSpecs));
+        specifications.add(OrSpecification.or(propertyValueSpecs));
       } else {
         // if queried property key is not present, we can't match anything with it,
         // e.g. when we search for "definition:cat" and this type does not even have
@@ -73,7 +73,7 @@ public final class NodeQueryToSpecification {
       }
     }
 
-    return new OrSpecification<>(specifications);
+    return OrSpecification.or(specifications);
   }
 
   private static AndSpecification<NodeId, Node> referenceSpecification(
@@ -94,7 +94,7 @@ public final class NodeQueryToSpecification {
             referenceValuesSpecs.add(new NodesWithoutReferences(key));
           }
         }
-        specifications.add(new OrSpecification<>(referenceValuesSpecs));
+        specifications.add(OrSpecification.or(referenceValuesSpecs));
       } else {
         // if queried reference key is not present, we can't match anything,
         // e.g. when we search for "related:cat" and this type does not even have
@@ -103,7 +103,7 @@ public final class NodeQueryToSpecification {
       }
     }
 
-    return new AndSpecification<>(specifications);
+    return AndSpecification.and(specifications);
   }
 
 }

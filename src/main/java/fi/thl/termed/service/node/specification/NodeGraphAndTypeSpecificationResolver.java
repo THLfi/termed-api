@@ -11,6 +11,7 @@ import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -45,24 +46,24 @@ public class NodeGraphAndTypeSpecificationResolver implements
 
     if (specification instanceof NodesByGraphUri) {
       String graphUri = ((NodesByGraphUri) specification).getGraphUri();
-      OrSpecification<NodeId, Node> graphsById = new OrSpecification<>();
+      List<Specification<NodeId, Node>> graphsById = new ArrayList<>();
       graphsByUri.getOrDefault(graphUri, emptyList())
-          .forEach(g -> graphsById.or(new NodesByGraphId(g.getId())));
-      return graphsById;
+          .forEach(g -> graphsById.add(new NodesByGraphId(g.getId())));
+      return OrSpecification.or(graphsById);
     }
     if (specification instanceof NodesByGraphCode) {
       String graphCode = ((NodesByGraphCode) specification).getGraphCode();
-      OrSpecification<NodeId, Node> graphsById = new OrSpecification<>();
+      List<Specification<NodeId, Node>> graphsById = new ArrayList<>();
       graphsByCode.getOrDefault(graphCode, emptyList())
-          .forEach(g -> graphsById.or(new NodesByGraphId(g.getId())));
-      return graphsById;
+          .forEach(g -> graphsById.add(new NodesByGraphId(g.getId())));
+      return OrSpecification.or(graphsById);
     }
     if (specification instanceof NodesByTypeUri) {
       String typeUri = ((NodesByTypeUri) specification).getTypeUri();
-      OrSpecification<NodeId, Node> typesById = new OrSpecification<>();
+      List<Specification<NodeId, Node>> typesById = new ArrayList<>();
       typesByUri.getOrDefault(typeUri, emptyList())
-          .forEach(g -> typesById.or(new NodesByTypeId(g.getId())));
-      return typesById;
+          .forEach(g -> typesById.add(new NodesByTypeId(g.getId())));
+      return OrSpecification.or(typesById);
     }
 
     if (specification instanceof AndSpecification) {
@@ -80,20 +81,20 @@ public class NodeGraphAndTypeSpecificationResolver implements
 
   private AndSpecification<NodeId, Node> resolveAndSpecification(
       AndSpecification<NodeId, Node> specs) {
-    AndSpecification<NodeId, Node> resolved = new AndSpecification<>();
-    specs.forEach(spec -> resolved.and(apply(spec)));
-    return resolved;
+    List<Specification<NodeId, Node>> resolved = new ArrayList<>();
+    specs.forEach(spec -> resolved.add(apply(spec)));
+    return AndSpecification.and(resolved);
   }
 
   private OrSpecification<NodeId, Node> resolveOrSpecification(
       OrSpecification<NodeId, Node> specs) {
-    OrSpecification<NodeId, Node> resolved = new OrSpecification<>();
-    specs.forEach(spec -> resolved.or(apply(spec)));
-    return resolved;
+    List<Specification<NodeId, Node>> resolved = new ArrayList<>();
+    specs.forEach(spec -> resolved.add(apply(spec)));
+    return OrSpecification.or(resolved);
   }
 
   private Specification<NodeId, Node> resolveNotSpecification(NotSpecification<NodeId, Node> s) {
-    return new NotSpecification<>(apply(s.getSpecification()));
+    return NotSpecification.not(apply(s.getSpecification()));
   }
 
 }

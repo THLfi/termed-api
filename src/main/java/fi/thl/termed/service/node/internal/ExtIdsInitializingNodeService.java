@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.internal;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static fi.thl.termed.util.query.AndSpecification.and;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -16,7 +17,6 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Node> {
 
@@ -67,15 +68,16 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       List<Node> newNodes = new ArrayList<>();
 
       for (Node node : instances) {
-        Optional<Node> old = getValues(new AndSpecification<>(
+        try (Stream<Node> stream = getValueStream(and(
             new NodesByGraphId(node.getTypeGraphId()),
             new NodesByTypeId(node.getTypeId()),
-            new NodeById(node.getId())), user).findAny();
-
-        if (old.isPresent()) {
-          node.setNumber(old.get().getNumber());
-        } else {
-          newNodes.add(node);
+            new NodeById(node.getId())), user)) {
+          Optional<Node> old = stream.findAny();
+          if (old.isPresent()) {
+            node.setNumber(old.get().getNumber());
+          } else {
+            newNodes.add(node);
+          }
         }
       }
 

@@ -64,7 +64,7 @@ public class NodeRdfWriteController {
     Function<NodeId, Optional<Node>> nodeProvider = id -> nodeService.get(id, currentUser);
 
     graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), currentUser).collect(toList());
+    List<Type> types = typeService.getValueStream(new TypesByGraphId(graphId), currentUser).collect(toList());
     List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
         .apply(new JenaRdfModel(model));
 

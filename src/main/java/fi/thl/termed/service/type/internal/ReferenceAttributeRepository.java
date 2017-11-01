@@ -129,14 +129,14 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public Stream<ReferenceAttribute> getValues(
+  public Stream<ReferenceAttribute> getValueStream(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
     return referenceAttributeDao.getValues(spec.getWhere(), user).stream()
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public Stream<ReferenceAttributeId> getKeys(
+  public Stream<ReferenceAttributeId> getKeyStream(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
     return referenceAttributeDao.getKeys(spec.getWhere(), user).stream();
   }
@@ -151,10 +151,9 @@ public class ReferenceAttributeRepository
         .permissions(new RolePermissionsModelToDto<ReferenceAttributeId>().apply(
             permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
                 new ReferenceAttributeId(attribute)), user)))
-        .properties(
-            new PropertyValueModelToDto<ReferenceAttributeId>().apply(propertyDao.getMap(
-                new ReferenceAttributePropertiesByAttributeId(
-                    new ReferenceAttributeId(attribute)), user)))
+        .properties(new PropertyValueModelToDto<ReferenceAttributeId>().apply(
+            propertyDao.getMap(new ReferenceAttributePropertiesByAttributeId(
+                new ReferenceAttributeId(attribute)), user)))
         .build();
   }
 

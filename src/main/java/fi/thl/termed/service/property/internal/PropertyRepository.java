@@ -95,13 +95,13 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public Stream<Property> getValues(Query<String, Property> query, User user) {
+  public Stream<Property> getValueStream(Query<String, Property> query, User user) {
     return propertyDao.getValues(query.getWhere(), user).stream()
         .map(property -> populateValue(property, user));
   }
 
   @Override
-  public Stream<String> getKeys(Query<String, Property> query, User user) {
+  public Stream<String> getKeyStream(Query<String, Property> query, User user) {
     return propertyDao.getKeys(query.getWhere(), user).stream();
   }
 

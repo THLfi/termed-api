@@ -47,23 +47,63 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public Stream<V> getValues(User user) {
+  public List<V> getValues(User user) {
     return delegate.getValues(user);
   }
 
   @Override
-  public Stream<V> getValues(Query<K, V> query, User user) {
+  public List<V> getValues(Specification<K, V> spec, User user) {
+    return delegate.getValues(spec, user);
+  }
+
+  @Override
+  public List<V> getValues(Query<K, V> query, User user) {
     return delegate.getValues(query, user);
   }
 
   @Override
-  public Stream<K> getKeys(User user) {
+  public Stream<V> getValueStream(User user) {
+    return delegate.getValueStream(user);
+  }
+
+  @Override
+  public Stream<V> getValueStream(Specification<K, V> spec, User user) {
+    return delegate.getValueStream(spec, user);
+  }
+
+  @Override
+  public Stream<V> getValueStream(Query<K, V> query, User user) {
+    return delegate.getValueStream(query, user);
+  }
+
+  @Override
+  public List<K> getKeys(User user) {
     return delegate.getKeys(user);
   }
 
   @Override
-  public Stream<K> getKeys(Query<K, V> query, User user) {
+  public List<K> getKeys(Specification<K, V> spec, User user) {
+    return delegate.getKeys(spec, user);
+  }
+
+  @Override
+  public List<K> getKeys(Query<K, V> query, User user) {
     return delegate.getKeys(query, user);
+  }
+
+  @Override
+  public Stream<K> getKeyStream(User user) {
+    return delegate.getKeyStream(user);
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Specification<K, V> spec, User user) {
+    return delegate.getKeyStream(spec, user);
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Query<K, V> query, User user) {
+    return delegate.getKeyStream(query, user);
   }
 
   @Override

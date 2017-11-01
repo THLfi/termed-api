@@ -1,11 +1,10 @@
 package fi.thl.termed.util.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.copyOf;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -13,23 +12,10 @@ import java.util.Objects;
 public abstract class CompositeSpecification<K extends Serializable, V>
     implements SqlSpecification<K, V>, LuceneSpecification<K, V>, Iterable<Specification<K, V>> {
 
-  List<Specification<K, V>> specifications;
-
-  CompositeSpecification() {
-    this(new ArrayList<>());
-  }
-
-  @SafeVarargs
-  CompositeSpecification(Specification<K, V>... specifications) {
-    this(Arrays.asList(specifications));
-  }
+  final ImmutableList<Specification<K, V>> specifications;
 
   CompositeSpecification(List<Specification<K, V>> specifications) {
-    this.specifications = checkNotNull(specifications);
-  }
-
-  void addSpecification(Specification<K, V> specification) {
-    specifications.add(specification);
+    this.specifications = copyOf(specifications);
   }
 
   public List<Specification<K, V>> getSpecifications() {

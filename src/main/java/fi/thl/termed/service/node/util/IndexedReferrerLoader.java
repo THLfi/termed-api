@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,21 +50,24 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    Map<NodeId, Node> referrerValueMap = nodeService.getValues(
-        new Query<>(selects, new NodeReferrers(new NodeId(node), attributeId)), user)
-        .collect(toMap(Node::identifier, n -> n));
+    Query<NodeId, Node> query = new Query<>(selects,
+        new NodeReferrers(new NodeId(node), attributeId));
 
-    Collection<NodeId> referrerIds = node.getReferrers().get(attributeId);
+    try (Stream<Node> results = nodeService.getValueStream(query, user)) {
+      Map<NodeId, Node> referrerValueMap = results.collect(toMap(Node::identifier, n -> n));
 
-    if (!referrerValueMap.keySet().equals(referrerIds)) {
-      log.error("Index may be corrupted or outdated, requested: {}, found: {}",
-          referrerIds, referrerValueMap.keySet());
+      Collection<NodeId> referrerIds = node.getReferrers().get(attributeId);
+
+      if (!referrerValueMap.keySet().equals(referrerIds)) {
+        log.error("Index may be corrupted or outdated, requested: {}, found: {}",
+            referrerIds, referrerValueMap.keySet());
+      }
+
+      return referrerIds.stream()
+          .filter(referrerValueMap::containsKey)
+          .map(referrerValueMap::get)
+          .collect(Collectors.toList());
     }
-
-    return referrerIds.stream()
-        .filter(referrerValueMap::containsKey)
-        .map(referrerValueMap::get)
-        .collect(Collectors.toList());
   }
 
 }

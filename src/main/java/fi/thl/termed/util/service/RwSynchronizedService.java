@@ -63,33 +63,63 @@ public class RwSynchronizedService<K extends Serializable, V> implements Service
   }
 
   @Override
-  public Stream<V> getValues(User user) {
+  public List<V> getValues(User user) {
     return readLocked(() -> delegate.getValues(user));
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> spec, User user) {
+  public List<V> getValues(Specification<K, V> spec, User user) {
     return readLocked(() -> delegate.getValues(spec, user));
   }
 
   @Override
-  public Stream<V> getValues(Query<K, V> query, User user) {
+  public List<V> getValues(Query<K, V> query, User user) {
     return readLocked(() -> delegate.getValues(query, user));
   }
 
   @Override
-  public Stream<K> getKeys(User user) {
+  public Stream<V> getValueStream(User user) {
+    return readLocked(() -> delegate.getValueStream(user));
+  }
+
+  @Override
+  public Stream<V> getValueStream(Specification<K, V> spec, User user) {
+    return readLocked(() -> delegate.getValueStream(spec, user));
+  }
+
+  @Override
+  public Stream<V> getValueStream(Query<K, V> query, User user) {
+    return readLocked(() -> delegate.getValueStream(query, user));
+  }
+
+  @Override
+  public List<K> getKeys(User user) {
     return readLocked(() -> delegate.getKeys(user));
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> spec, User user) {
+  public List<K> getKeys(Specification<K, V> spec, User user) {
     return readLocked(() -> delegate.getKeys(spec, user));
   }
 
   @Override
-  public Stream<K> getKeys(Query<K, V> query, User user) {
+  public List<K> getKeys(Query<K, V> query, User user) {
     return readLocked(() -> delegate.getKeys(query, user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(User user) {
+    return readLocked(() -> delegate.getKeyStream(user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Specification<K, V> spec, User user) {
+    return readLocked(() -> delegate.getKeyStream(spec, user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Query<K, V> query, User user) {
+    return readLocked(() -> delegate.getKeyStream(query, user));
   }
 
   @Override

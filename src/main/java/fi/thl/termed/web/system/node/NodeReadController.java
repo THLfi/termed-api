@@ -1,6 +1,8 @@
 package fi.thl.termed.web.system.node;
 
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByAnyPropertyPrefix;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -14,7 +16,6 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.json.JsonStream;
-import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
@@ -23,6 +24,7 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -52,15 +54,15 @@ public class NodeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    Specification<NodeId, Node> spec = typeService.getValues(user)
-        .map(type -> specifyByAnyPropertyPrefix(type, query))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Specification<NodeId, Node> spec = or(toListAndClose(
+        typeService.getValueStream(user)
+            .map(type -> specifyByAnyPropertyPrefix(type, query))));
 
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
+    try (Stream<Node> nodes = nodeService.getValueStream(new Query<>(spec, sort, max), user)) {
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, nodes, Node.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -74,15 +76,15 @@ public class NodeReadController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
-        .map(type -> specifyByAnyPropertyPrefix(type, query))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Specification<NodeId, Node> spec = or(toListAndClose(
+        typeService.getValueStream(new TypesByGraphId(graphId), user)
+            .map(type -> specifyByAnyPropertyPrefix(type, query))));
 
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
+    try (Stream<Node> nodes = nodeService.getValueStream(new Query<>(spec, sort, max), user)) {
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, nodes, Node.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -100,11 +102,11 @@ public class NodeReadController {
 
     Specification<NodeId, Node> spec = specifyByAnyPropertyPrefix(type, query);
 
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-
-    JsonStream.write(response.getOutputStream(), gson,
-        nodeService.getValues(new Query<>(spec, sort, max), user), Node.class);
+    try (Stream<Node> nodes = nodeService.getValueStream(new Query<>(spec, sort, max), user)) {
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, nodes, Node.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

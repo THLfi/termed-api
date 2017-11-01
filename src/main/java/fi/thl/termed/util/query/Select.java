@@ -1,5 +1,6 @@
 package fi.thl.termed.util.query;
 
+import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 public class Select {
@@ -29,6 +30,13 @@ public class Select {
   @Override
   public int hashCode() {
     return Objects.hash(field);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("field", field)
+        .toString();
   }
 
 }

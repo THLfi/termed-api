@@ -63,13 +63,13 @@ public class NodeRevisionReadRepository implements
   }
 
   @Override
-  public Stream<Revision<NodeId, Node>> getValues(
+  public Stream<Revision<NodeId, Node>> getValueStream(
       Query<RevisionId<NodeId>, Revision<NodeId, Node>> query, User user) {
     return nodeRevisionDao.getValues(query.getWhere(), user).stream().map(r -> populate(r, user));
   }
 
   @Override
-  public Stream<RevisionId<NodeId>> getKeys(
+  public Stream<RevisionId<NodeId>> getKeyStream(
       Query<RevisionId<NodeId>, Revision<NodeId, Node>> query, User user) {
     return nodeRevisionDao.getKeys(query.getWhere(), user).stream();
   }

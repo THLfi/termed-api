@@ -48,6 +48,7 @@ import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.DaoNamedSequenceService;
 import fi.thl.termed.util.service.JdbcSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
+import fi.thl.termed.util.service.QueryProfilingService;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.SynchronizedNamedSequenceService;
@@ -121,6 +122,9 @@ public class NodeServiceConfiguration {
         typeService::get, graphService::get);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new IdInitializingNodeService(service);
+
+    service = new QueryProfilingService<>(service,
+        getClass().getPackage().getName() + ".Service", 1000);
 
     return service;
   }

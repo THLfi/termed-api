@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,21 +50,24 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
   public List<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
-    Map<NodeId, Node> referenceValueMap = nodeService.getValues(
-        new Query<>(selects, new NodeReferences(new NodeId(node), attributeId)), user)
-        .collect(toMap(Node::identifier, n -> n));
+    Query<NodeId, Node> query = new Query<>(selects,
+        new NodeReferences(new NodeId(node), attributeId));
 
-    Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
+    try (Stream<Node> results = nodeService.getValueStream(query, user)) {
+      Map<NodeId, Node> referenceValueMap = results.collect(toMap(Node::identifier, n -> n));
 
-    if (!referenceValueMap.keySet().equals(referenceIds)) {
-      log.error("Index may be corrupted or outdated, requested: {}, found: {}",
-          referenceIds, referenceValueMap.keySet());
+      Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
+
+      if (!referenceValueMap.keySet().equals(referenceIds)) {
+        log.error("Index may be corrupted or outdated, requested: {}, found: {}",
+            referenceIds, referenceValueMap.keySet());
+      }
+
+      return referenceIds.stream()
+          .filter(referenceValueMap::containsKey)
+          .map(referenceValueMap::get)
+          .collect(Collectors.toList());
     }
-
-    return referenceIds.stream()
-        .filter(referenceValueMap::containsKey)
-        .map(referenceValueMap::get)
-        .collect(Collectors.toList());
   }
 
 }

@@ -75,13 +75,13 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   @Override
-  public Stream<User> getValues(Query<String, User> query, User auth) {
+  public Stream<User> getValueStream(Query<String, User> query, User auth) {
     return userDao.getValues(query.getWhere(), auth).stream()
         .map(user -> populateValue(user, auth));
   }
 
   @Override
-  public Stream<String> getKeys(Query<String, User> query, User user) {
+  public Stream<String> getKeyStream(Query<String, User> query, User user) {
     return userDao.getKeys(query.getWhere(), user).stream();
   }
 

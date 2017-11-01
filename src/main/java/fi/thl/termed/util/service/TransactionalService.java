@@ -65,13 +65,63 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Stream<V> getValues(Query<K, V> query, User user) {
+  public List<V> getValues(User user) {
+    return runInTransaction(() -> delegate.getValues(user));
+  }
+
+  @Override
+  public List<V> getValues(Specification<K, V> spec, User user) {
+    return runInTransaction(() -> delegate.getValues(spec, user));
+  }
+
+  @Override
+  public List<V> getValues(Query<K, V> query, User user) {
     return runInTransaction(() -> delegate.getValues(query, user));
   }
 
   @Override
-  public Stream<K> getKeys(Query<K, V> query, User user) {
+  public Stream<V> getValueStream(User user) {
+    return runInTransaction(() -> delegate.getValueStream(user));
+  }
+
+  @Override
+  public Stream<V> getValueStream(Specification<K, V> spec, User user) {
+    return runInTransaction(() -> delegate.getValueStream(spec, user));
+  }
+
+  @Override
+  public Stream<V> getValueStream(Query<K, V> query, User user) {
+    return runInTransaction(() -> delegate.getValueStream(query, user));
+  }
+
+  @Override
+  public List<K> getKeys(User user) {
+    return runInTransaction(() -> delegate.getKeys(user));
+  }
+
+  @Override
+  public List<K> getKeys(Specification<K, V> spec, User user) {
+    return runInTransaction(() -> delegate.getKeys(spec, user));
+  }
+
+  @Override
+  public List<K> getKeys(Query<K, V> query, User user) {
     return runInTransaction(() -> delegate.getKeys(query, user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(User user) {
+    return runInTransaction(() -> delegate.getKeyStream(user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Specification<K, V> spec, User user) {
+    return runInTransaction(() -> delegate.getKeyStream(spec, user));
+  }
+
+  @Override
+  public Stream<K> getKeyStream(Query<K, V> query, User user) {
+    return runInTransaction(() -> delegate.getKeyStream(query, user));
   }
 
   @Override

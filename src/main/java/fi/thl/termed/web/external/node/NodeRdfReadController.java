@@ -18,13 +18,14 @@ import fi.thl.termed.service.node.specification.NodesByPropertyPrefix;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.web.external.node.transform.NodesToRdfModel;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -55,32 +56,36 @@ public class NodeRdfReadController {
   private Service<TypeId, Type> typeService;
 
   private Specification<NodeId, Node> toPrefixQuery(List<TextAttribute> attrs, String q) {
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
-    tokenize(q).forEach(t -> attrs.forEach(a -> spec.or(new NodesByPropertyPrefix(a.getId(), t))));
-    return spec;
+    List<Specification<NodeId, Node>> orClauses = new ArrayList<>();
+    tokenize(q).forEach(
+        t -> attrs.forEach(a -> orClauses.add(new NodesByPropertyPrefix(a.getId(), t))));
+    return OrSpecification.or(orClauses);
   }
 
   @GetMapping(value = "/nodes", produces = {LD_JSON_VALUE, RDF_XML_VALUE})
   public Model get(@PathVariable("graphId") UUID graphId,
-                   @RequestParam(value = "query", required = false, defaultValue = "") String query,
-                   @AuthenticationPrincipal User user) {
+      @RequestParam(value = "query", required = false, defaultValue = "") String query,
+      @AuthenticationPrincipal User user) {
     log.info("Exporting RDF-model {} (user: {})", graphId, user.getUsername());
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    OrSpecification<NodeId, Node> spec = new OrSpecification<>();
+    List<Specification<NodeId, Node>> orClauses = new ArrayList<>();
 
-    typeService.getValues(new TypesByGraphId(graphId), user).forEach(type -> {
-      AndSpecification<NodeId, Node> typeSpec = new AndSpecification<>();
-      typeSpec.and(new NodesByTypeId(type.getId()));
-      typeSpec.and(new NodesByGraphId(type.getGraphId()));
+    typeService.getValueStream(new TypesByGraphId(graphId), user).forEach(type -> {
+      List<Specification<NodeId, Node>> typeSpec = new ArrayList<>();
+      typeSpec.add(new NodesByTypeId(type.getId()));
+      typeSpec.add(new NodesByGraphId(type.getGraphId()));
       if (!query.isEmpty()) {
-        typeSpec.and(toPrefixQuery(type.getTextAttributes(), query));
+        typeSpec.add(toPrefixQuery(type.getTextAttributes(), query));
       }
-      spec.or(typeSpec);
+      orClauses.add(AndSpecification.and(typeSpec));
     });
 
-    List<Node> nodes = nodeService.getValues(spec, user).collect(toList());
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user).collect(toList());
+    OrSpecification<NodeId, Node> spec = OrSpecification.or(orClauses);
+
+    List<Node> nodes = nodeService.getValueStream(spec, user).collect(toList());
+    List<Type> types = typeService.getValueStream(new TypesByGraphId(graphId), user)
+        .collect(toList());
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(nodes)).getModel();
@@ -88,14 +93,15 @@ public class NodeRdfReadController {
 
   @GetRdfMapping("/types/{typeId}/nodes/{id}")
   public Model get(@PathVariable("graphId") UUID graphId,
-                   @PathVariable("typeId") String typeId,
-                   @PathVariable("id") UUID id,
-                   @AuthenticationPrincipal User user) {
+      @PathVariable("typeId") String typeId,
+      @PathVariable("id") UUID id,
+      @AuthenticationPrincipal User user) {
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
     List<Node> node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .map(Collections::singletonList).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user).collect(toList());
+    List<Type> types = typeService.getValueStream(new TypesByGraphId(graphId), user)
+        .collect(toList());
 
     return new JenaRdfModel(new NodesToRdfModel(
         types, nodeId -> nodeService.get(nodeId, user)).apply(node)).getModel();

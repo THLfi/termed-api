@@ -4,6 +4,9 @@ import static fi.thl.termed.service.node.util.UriResolvers.nodeUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.refAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.textAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.typeUriResolver;
+import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.OrSpecification.or;
+import static java.util.stream.Collectors.toList;
 import static org.apache.jena.graph.Node.ANY;
 
 import fi.thl.termed.domain.Node;
@@ -22,8 +25,6 @@ import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.query.AndSpecification;
-import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
     Function<TypeId, Optional<Type>> getType = id -> typeList.stream()
         .filter(t -> t.identifier().equals(id)).findFirst();
-    Function<NodeId, Optional<Node>> getNode = nodeId -> nodeProvider.apply(new AndSpecification<>(
+    Function<NodeId, Optional<Node>> getNode = nodeId -> nodeProvider.apply(and(
         new NodesByGraphId(nodeId.getTypeGraphId()),
         new NodesByTypeId(nodeId.getTypeId()),
         new NodeById(nodeId.getId()))).findFirst();
@@ -122,12 +123,12 @@ public class NodeRdfGraphWrapper extends GraphBase {
   }
 
   private ExtendedIterator<Triple> findBySubject(String subjectUri) {
-    Specification<NodeId, Node> nodeSpec = types.values().stream()
-        .map(type -> new AndSpecification<>(
+    Specification<NodeId, Node> nodeSpec = or(types.values().stream()
+        .map(type -> and(
             new NodesByGraphId(type.getGraphId()),
             new NodesByTypeId(type.getId()),
             byUriOrId(subjectUri)))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+        .collect(toList()));
 
     return WrappedIterator.create(nodeProvider.apply(nodeSpec)
         .flatMap(n -> toTriples.apply(n).stream()).iterator());
@@ -148,7 +149,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
       return WrappedIterator.emptyIterator();
     }
 
-    Specification<NodeId, Node> nodeSpec = new AndSpecification<>(
+    Specification<NodeId, Node> nodeSpec = and(
         new NodesByGraphId(typeOptional.get().getGraphId()),
         new NodesByTypeId(typeOptional.get().getId()));
 
@@ -165,14 +166,14 @@ public class NodeRdfGraphWrapper extends GraphBase {
       return WrappedIterator.emptyIterator();
     }
 
-    Specification<NodeId, Node> nodeSpec = referenceAttributes.values().stream()
+    Specification<NodeId, Node> nodeSpec = or(referenceAttributes.values().stream()
         .filter(refAttr -> predicateUri == null ||
             Objects.equals(refAttr.getUri().orElse(null), predicateUri))
-        .map(refAttr -> new AndSpecification<>(
+        .map(refAttr -> and(
             new NodesByGraphId(refAttr.getDomainGraphId()),
             new NodesByTypeId(refAttr.getDomainId()),
             new NodesByReference(refAttr.getId(), valueOptional.get().getId())))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+        .collect(toList()));
 
     return WrappedIterator.create(nodeProvider.apply(nodeSpec)
         .flatMap(n -> toTriples.apply(n).stream()).iterator());
@@ -180,25 +181,25 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
   // predicateUri can be null
   private ExtendedIterator<Triple> findByLiteral(String predicateUri, String value) {
-    Specification<NodeId, Node> nodeSpec = textAttributes.values().stream()
+    Specification<NodeId, Node> nodeSpec = or(textAttributes.values().stream()
         .filter(textAttr -> predicateUri == null ||
             Objects.equals(textAttr.getUri().orElse(null), predicateUri))
-        .map(textAttr -> new AndSpecification<>(
+        .map(textAttr -> and(
             new NodesByGraphId(textAttr.getDomainGraphId()),
             new NodesByTypeId(textAttr.getDomainId()),
             new NodesByProperty(textAttr.getId(), value)))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+        .collect(toList()));
 
     return WrappedIterator.create(nodeProvider.apply(nodeSpec)
         .flatMap(n -> toTriples.apply(n).stream()).iterator());
   }
 
   private ExtendedIterator<Triple> findAll() {
-    Specification<NodeId, Node> nodeSpec = types.values().stream()
-        .map(type -> new AndSpecification<>(
+    Specification<NodeId, Node> nodeSpec = or(types.values().stream()
+        .map(type -> and(
             new NodesByGraphId(type.getGraphId()),
             new NodesByTypeId(type.getId())))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+        .collect(toList()));
 
     return WrappedIterator.create(nodeProvider.apply(nodeSpec)
         .flatMap(n -> toTriples.apply(n).stream()).iterator());

@@ -154,19 +154,33 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
     });
   }
 
+  private <K extends Serializable, V> Map<RevisionId<K>, Revision<K, V>> toRevs(
+      Map<K, V> map, Long revision, RevisionType revisionType) {
+    return map.entrySet().stream().collect(toMap(
+        e -> RevisionId.of(e.getKey(), revision),
+        e -> Revision.of(e.getKey(), revision, revisionType, e.getValue())));
+  }
+
+  private <K extends Serializable, V> Map<RevisionId<K>, Revision<K, V>> toRevs(
+      Collection<K> keys, Long revision, RevisionType revisionType) {
+    return keys.stream().collect(toMap(
+        key -> RevisionId.of(key, revision),
+        key -> Revision.of(key, revision, revisionType, null)));
+  }
+
   @Override
   public boolean exists(NodeId nodeId, User user) {
     return nodeDao.exists(nodeId, user);
   }
 
   @Override
-  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
+  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
     return nodeDao.getValues(query.getWhere(), user).stream()
         .map(node -> populateValue(node, user));
   }
 
   @Override
-  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
+  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
     return nodeDao.getKeys(query.getWhere(), user).stream();
   }
 
@@ -193,20 +207,6 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
                 new NodeReferenceAttributeNodesByValueId(new NodeId(node)), user)));
 
     return node;
-  }
-
-  private <K extends Serializable, V> Map<RevisionId<K>, Revision<K, V>> toRevs(
-      Map<K, V> map, Long revision, RevisionType revisionType) {
-    return map.entrySet().stream().collect(toMap(
-        e -> RevisionId.of(e.getKey(), revision),
-        e -> Revision.of(e.getKey(), revision, revisionType, e.getValue())));
-  }
-
-  private <K extends Serializable, V> Map<RevisionId<K>, Revision<K, V>> toRevs(
-      Collection<K> keys, Long revision, RevisionType revisionType) {
-    return keys.stream().collect(toMap(
-        key -> RevisionId.of(key, revision),
-        key -> Revision.of(key, revision, revisionType, null)));
   }
 
 }

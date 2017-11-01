@@ -14,6 +14,7 @@ import fi.thl.termed.util.query.MatchNone;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,23 +119,23 @@ public class TypeBasedNodeSpecificationFilter implements
 
   private AndSpecification<NodeId, Node> filterAndSpecification(Type domain,
       AndSpecification<NodeId, Node> specs) {
-    AndSpecification<NodeId, Node> filtered = new AndSpecification<>();
-    specs.forEach(spec -> filtered.and(apply(domain, spec)));
-    return filtered;
+    List<Specification<NodeId, Node>> clauses = new ArrayList<>();
+    specs.forEach(spec -> clauses.add(apply(domain, spec)));
+    return AndSpecification.and(clauses);
   }
 
   private OrSpecification<NodeId, Node> filterOrSpecification(Type domain,
       OrSpecification<NodeId, Node> specs) {
-    OrSpecification<NodeId, Node> filtered = new OrSpecification<>();
-    specs.forEach(spec -> filtered.or(apply(domain, spec)));
-    return filtered;
+    List<Specification<NodeId, Node>> clauses = new ArrayList<>();
+    specs.forEach(spec -> clauses.add(apply(domain, spec)));
+    return OrSpecification.or(clauses);
   }
 
   private Specification<NodeId, Node> filterNotSpecification(Type domain,
       NotSpecification<NodeId, Node> s) {
     Specification<NodeId, Node> filteredInnerSpec = apply(domain, s.getSpecification());
     return filteredInnerSpec instanceof MatchNone ? new MatchNone<>()
-        : new NotSpecification<>(filteredInnerSpec);
+        : NotSpecification.not(filteredInnerSpec);
   }
 
 }

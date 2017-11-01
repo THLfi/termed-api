@@ -72,13 +72,33 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
-    return filterValues(delegate.getValues(query, user), user);
+  public Stream<Node> getValueStream(User user) {
+    return filterValues(delegate.getValueStream(user), user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
-    return filterKeys(delegate.getKeys(query, user), user);
+  public Stream<Node> getValueStream(Specification<NodeId, Node> spec, User user) {
+    return filterValues(delegate.getValueStream(spec, user), user);
+  }
+
+  @Override
+  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
+    return filterValues(delegate.getValueStream(query, user), user);
+  }
+
+  @Override
+  public Stream<NodeId> getKeyStream(User user) {
+    return filterKeys(delegate.getKeyStream(user), user);
+  }
+
+  @Override
+  public Stream<NodeId> getKeyStream(Specification<NodeId, Node> spec, User user) {
+    return filterKeys(delegate.getKeyStream(spec, user), user);
+  }
+
+  @Override
+  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
+    return filterKeys(delegate.getKeyStream(query, user), user);
   }
 
   @Override

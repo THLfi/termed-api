@@ -1,5 +1,6 @@
 package fi.thl.termed.web.system.node;
 
+import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -10,7 +11,6 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.query.AndSpecification;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,7 @@ public class NodeDeleteController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user).collect(toList()),
-        opts(sync), user);
+    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user), opts(sync), user);
   }
 
   @DeleteMapping(path = "/graphs/{graphId}/nodes", params = "batch=true")
@@ -77,9 +76,9 @@ public class NodeDeleteController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeService.getKeys(new AndSpecification<>(
+    nodeService.delete(nodeService.getKeys(and(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), user).collect(toList()), opts(sync), user);
+        new NodesByTypeId(typeId)), user), opts(sync), user);
   }
 
   @DeleteMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "batch=true")

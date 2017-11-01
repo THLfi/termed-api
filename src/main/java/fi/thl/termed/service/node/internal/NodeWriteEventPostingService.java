@@ -84,23 +84,23 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> getValues(User user) {
-    return delegate.getValues(user);
+  public Stream<Node> getValueStream(User user) {
+    return delegate.getValueStream(user);
   }
 
   @Override
-  public Stream<Node> getValues(Query<NodeId, Node> query, User user) {
-    return delegate.getValues(query, user);
+  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
+    return delegate.getValueStream(query, user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(User user) {
-    return delegate.getKeys(user);
+  public Stream<NodeId> getKeyStream(User user) {
+    return delegate.getKeyStream(user);
   }
 
   @Override
-  public Stream<NodeId> getKeys(Query<NodeId, Node> query, User user) {
-    return delegate.getKeys(query, user);
+  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
+    return delegate.getKeyStream(query, user);
   }
 
   @Override

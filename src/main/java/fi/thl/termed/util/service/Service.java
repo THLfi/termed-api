@@ -1,5 +1,7 @@
 package fi.thl.termed.util.service;
 
+import static java.util.stream.Collectors.toList;
+
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
@@ -54,46 +56,102 @@ public interface Service<K extends Serializable, V> {
   /**
    * Get all values.
    */
-  default Stream<V> getValues(User user) {
-    return getValues(new Query<>(new MatchAll<>()), user);
+  default List<V> getValues(User user) {
+    try (Stream<V> values = getValueStream(user)) {
+      return values.collect(toList());
+    }
   }
 
   /**
    * Get specified values.
    */
-  default Stream<V> getValues(Specification<K, V> spec, User user) {
-    return getValues(new Query<>(spec), user);
+  default List<V> getValues(Specification<K, V> spec, User user) {
+    try (Stream<V> values = getValueStream(spec, user)) {
+      return values.collect(toList());
+    }
   }
 
   /**
    * Query values.
    */
-  Stream<V> getValues(Query<K, V> query, User user);
+  default List<V> getValues(Query<K, V> query, User user) {
+    try (Stream<V> values = getValueStream(query, user)) {
+      return values.collect(toList());
+    }
+  }
+
+  /**
+   * Get all values as stream. Stream is expected to be closed afterwards.
+   */
+  default Stream<V> getValueStream(User user) {
+    return getValueStream(new Query<>(new MatchAll<>()), user);
+  }
+
+  /**
+   * Get specified values as stream. Stream is expected to be closed afterwards.
+   */
+  default Stream<V> getValueStream(Specification<K, V> spec, User user) {
+    return getValueStream(new Query<>(spec), user);
+  }
+
+  /**
+   * Query values as stream. Stream is expected to be closed afterwards.
+   */
+  Stream<V> getValueStream(Query<K, V> query, User user);
 
   /**
    * Get all keys.
    */
-  default Stream<K> getKeys(User user) {
-    return getKeys(new Query<>(new MatchAll<>()), user);
+  default List<K> getKeys(User user) {
+    try (Stream<K> keys = getKeyStream(user)) {
+      return keys.collect(toList());
+    }
   }
 
   /**
    * Get specified keys.
    */
-  default Stream<K> getKeys(Specification<K, V> spec, User user) {
-    return getKeys(new Query<>(spec), user);
+  default List<K> getKeys(Specification<K, V> spec, User user) {
+    try (Stream<K> keys = getKeyStream(spec, user)) {
+      return keys.collect(toList());
+    }
   }
 
   /**
    * Query keys.
    */
-  Stream<K> getKeys(Query<K, V> query, User user);
+  default List<K> getKeys(Query<K, V> query, User user) {
+    try (Stream<K> keys = getKeyStream(query, user)) {
+      return keys.collect(toList());
+    }
+  }
+
+  /**
+   * Get all keys as stream. Stream is expected to be closed afterwards.
+   */
+  default Stream<K> getKeyStream(User user) {
+    return getKeyStream(new Query<>(new MatchAll<>()), user);
+  }
+
+  /**
+   * Get specified keys as stream. Stream is expected to be closed afterwards.
+   */
+  default Stream<K> getKeyStream(Specification<K, V> spec, User user) {
+    return getKeyStream(new Query<>(spec), user);
+  }
+
+  /**
+   * Query keys as stream. Stream is expected to be closed afterwards.
+   */
+  Stream<K> getKeyStream(Query<K, V> query, User user);
 
   /**
    * Count of specified values.
    */
   default long count(Specification<K, V> spec, User user) {
-    return getKeys(spec, user).count();
+    try (Stream<K> keys = getKeyStream(spec, user)) {
+      return keys.count();
+    }
   }
 
   /**

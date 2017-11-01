@@ -20,9 +20,9 @@ public class SpecificationUtilsTest {
   public void shouldConvertToDnf() {
     Assert.assertEquals("((A ∧ X) ∨ (A ∧ Y) ∨ (B ∧ X) ∨ (B ∧ Y))",
         prettyPrint(SpecificationUtils.toDnf(
-            new AndSpecification<>(
-                new OrSpecification<>(new SimpleSpec("A"), new SimpleSpec("B")),
-                new OrSpecification<>(new SimpleSpec("X"), new SimpleSpec("Y"))))));
+            AndSpecification.and(
+                OrSpecification.or(new SimpleSpec("A"), new SimpleSpec("B")),
+                OrSpecification.or(new SimpleSpec("X"), new SimpleSpec("Y"))))));
 
     Assert.assertEquals("((A ∧ X ∧ I) ∨ (A ∧ X ∧ J) ∨ (A ∧ X ∧ K) ∨ "
             + "(A ∧ Y ∧ I) ∨ (A ∧ Y ∧ J) ∨ (A ∧ Y ∧ K) ∨ "
@@ -33,10 +33,10 @@ public class SpecificationUtilsTest {
             + "(C ∧ X ∧ I) ∨ (C ∧ X ∧ J) ∨ (C ∧ X ∧ K) ∨ "
             + "(C ∧ Y ∧ I) ∨ (C ∧ Y ∧ J) ∨ (C ∧ Y ∧ K) ∨ "
             + "(C ∧ Z ∧ I) ∨ (C ∧ Z ∧ J) ∨ (C ∧ Z ∧ K))",
-        prettyPrint(SpecificationUtils.toDnf(new AndSpecification<>(
-            new OrSpecification<>(new SimpleSpec("A"), new SimpleSpec("B"), new SimpleSpec("C")),
-            new OrSpecification<>(new SimpleSpec("X"), new SimpleSpec("Y"), new SimpleSpec("Z")),
-            new OrSpecification<>(new SimpleSpec("I"), new SimpleSpec("J"),
+        prettyPrint(SpecificationUtils.toDnf(AndSpecification.and(
+            OrSpecification.or(new SimpleSpec("A"), new SimpleSpec("B"), new SimpleSpec("C")),
+            OrSpecification.or(new SimpleSpec("X"), new SimpleSpec("Y"), new SimpleSpec("Z")),
+            OrSpecification.or(new SimpleSpec("I"), new SimpleSpec("J"),
                 new SimpleSpec("K"))))));
   }
 
@@ -46,25 +46,25 @@ public class SpecificationUtilsTest {
     String typeId = "Concept";
     String query = "cat";
 
-    Specification<NodeId, Node> expected = new OrSpecification<>(
-        new AndSpecification<>(
+    Specification<NodeId, Node> expected = OrSpecification.or(
+        AndSpecification.and(
             new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("prefLabel", query)),
-        new AndSpecification<>(
+        AndSpecification.and(
             new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("altLabel", query)),
-        new AndSpecification<>(
+        AndSpecification.and(
             new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("description", query)));
 
     Assert.assertEquals(expected, SpecificationUtils.toDnf(
-        new AndSpecification<>(
+        AndSpecification.and(
             new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
-            new OrSpecification<>(
+            OrSpecification.or(
                 new NodesByProperty("prefLabel", query),
                 new NodesByProperty("altLabel", query),
                 new NodesByProperty("description", query)))));
@@ -74,9 +74,9 @@ public class SpecificationUtilsTest {
   public void shouldConvertToCnf() {
     Assert.assertEquals("((A ∨ X) ∧ (A ∨ Y) ∧ (B ∨ X) ∧ (B ∨ Y))",
         prettyPrint(SpecificationUtils.toCnf(
-            new OrSpecification<>(
-                new AndSpecification<>(new SimpleSpec("A"), new SimpleSpec("B")),
-                new AndSpecification<>(new SimpleSpec("X"), new SimpleSpec("Y"))))));
+            OrSpecification.or(
+                AndSpecification.and(new SimpleSpec("A"), new SimpleSpec("B")),
+                AndSpecification.and(new SimpleSpec("X"), new SimpleSpec("Y"))))));
   }
 
   private <K extends Serializable, V> String prettyPrint(Specification<K, V> spec) {

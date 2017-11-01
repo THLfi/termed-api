@@ -1,7 +1,6 @@
 package fi.thl.termed.web.system.node;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static org.apache.jena.riot.Lang.NTRIPLES;
 import static org.apache.jena.riot.Lang.TURTLE;
 
@@ -14,9 +13,9 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.NodeRdfGraphWrapper;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,8 +55,9 @@ public class NodeRdfStreamReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (OutputStream out = response.getOutputStream()) {
-      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user).collect(toList());
-      Function<Specification<NodeId, Node>, Stream<Node>> nodes = s -> nodeService.getValues(s, user);
+      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+      Function<Specification<NodeId, Node>, Stream<Node>> nodes =
+          s -> nodeService.getValueStream(s, user);
 
       StreamRDFWriter.write(out, new NodeRdfGraphWrapper(types, nodes), NTRIPLES);
     }
@@ -73,8 +73,9 @@ public class NodeRdfStreamReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (OutputStream out = response.getOutputStream()) {
-      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user).collect(toList());
-      Function<Specification<NodeId, Node>, Stream<Node>> nodes = s -> nodeService.getValues(s, user);
+      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+      Function<Specification<NodeId, Node>, Stream<Node>> nodes =
+          s -> nodeService.getValueStream(s, user);
 
       StreamRDFWriter.write(out, new NodeRdfGraphWrapper(types, nodes), TURTLE);
     }

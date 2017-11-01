@@ -1,7 +1,5 @@
 package fi.thl.termed.web.system.graph;
 
-import static java.util.stream.Collectors.toList;
-
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
@@ -25,7 +23,7 @@ public class GraphReadController {
 
   @GetJsonMapping
   public List<Graph> getGraph(@AuthenticationPrincipal User user) {
-    return graphService.getValues(user).collect(toList());
+    return graphService.getValues(user);
   }
 
   @GetJsonMapping("/{graphId}")

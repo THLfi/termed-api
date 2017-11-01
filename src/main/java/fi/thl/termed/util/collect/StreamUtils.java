@@ -1,10 +1,12 @@
 package fi.thl.termed.util.collect;
 
 import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -15,6 +17,12 @@ import java.util.stream.Stream;
 public final class StreamUtils {
 
   private StreamUtils() {
+  }
+
+  public static <T> List<T> toListAndClose(Stream<T> stream) {
+    try (Stream<T> autoClosed = stream) {
+      return autoClosed.collect(toList());
+    }
   }
 
   public static <T> Stream<T> toStream(Optional<T> optional) {

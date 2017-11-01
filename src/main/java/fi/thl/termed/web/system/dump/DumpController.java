@@ -23,6 +23,7 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,17 +52,21 @@ public class DumpController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
-      writeJson(
-          graphService.getValues(user).iterator(),
-          typeService.getValues(user).iterator(),
-          nodeService.getValues(user).iterator(),
-          writer);
+      Stream<Graph> graphs = graphService.getValueStream(user);
+      Stream<Type> types = typeService.getValueStream(user);
+      Stream<Node> nodes = nodeService.getValueStream(user);
+
+      writeJson(graphs.iterator(), types.iterator(), nodes.iterator(), writer);
+
+      graphs.close();
+      types.close();
+      nodes.close();
     }
   }
 
   @GetJsonMapping(params = "graphId")
   public void dump(@RequestParam("graphId") List<UUID> ids,
-      @AuthenticationPrincipal User user,
+      @AuthenticationPrincipal User usr,
       HttpServletResponse response) throws IOException {
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
@@ -69,9 +74,12 @@ public class DumpController {
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
       writeJson(
-          ids.stream().flatMap(id -> toStream(graphService.get(new GraphId(id), user))).iterator(),
-          ids.stream().flatMap(id -> typeService.getValues(new TypesByGraphId(id), user)).iterator(),
-          ids.stream().flatMap(id -> nodeService.getValues(new NodesByGraphId(id), user)).iterator(),
+          ids.stream().flatMap(
+              id -> toStream(graphService.get(new GraphId(id), usr))).iterator(),
+          ids.stream().flatMap(
+              id -> typeService.getValueStream(new TypesByGraphId(id), usr)).iterator(),
+          ids.stream().flatMap(
+              id -> nodeService.getValueStream(new NodesByGraphId(id), usr)).iterator(),
           writer);
     }
   }

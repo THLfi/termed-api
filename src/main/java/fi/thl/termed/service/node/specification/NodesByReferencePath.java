@@ -8,11 +8,11 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.Specification;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -42,11 +42,11 @@ public class NodesByReferencePath implements LuceneSpecification<NodeId, Node>,
   }
 
   @Override
-  public void resolve(Function<Specification<NodeId, Node>, Stream<NodeId>> resolver) {
+  public void resolve(Function<Specification<NodeId, Node>, List<NodeId>> resolver) {
     if (valueSpecification instanceof NodesByReferencePath) {
       ((NodesByReferencePath) valueSpecification).resolve(resolver);
     }
-    valueNodeIds = resolver.apply(valueSpecification).map(NodeId::getId).collect(toSet());
+    valueNodeIds = resolver.apply(valueSpecification).stream().map(NodeId::getId).collect(toSet());
   }
 
   @Override

@@ -30,7 +30,7 @@ public final class SpecificationUtils {
       return toCnf((NotSpecification<K, V>) spec);
     }
     // wrap literal spec
-    return new AndSpecification<>(spec);
+    return AndSpecification.and(spec);
   }
 
   private static <K extends Serializable, V> AndSpecification<K, V> toCnf(
@@ -38,7 +38,7 @@ public final class SpecificationUtils {
     List<Specification<K, V>> results = new ArrayList<>();
     // flatten ANDs
     specs.forEach(spec -> toCnf(spec).forEach(results::add));
-    return new AndSpecification<>(results);
+    return AndSpecification.and(results);
   }
 
   private static <K extends Serializable, V> AndSpecification<K, V> toCnf(
@@ -47,7 +47,7 @@ public final class SpecificationUtils {
     List<List<Specification<K, V>>> conjunctions = new ArrayList<>();
     spec.forEach(s -> conjunctions.add(toCnf(s).getSpecifications()));
 
-    AndSpecification<K, V> results = new AndSpecification<>();
+    List<Specification<K, V>> results = new ArrayList<>();
 
     for (List<Specification<K, V>> distributed : ListUtils.distribute(conjunctions)) {
       List<Specification<K, V>> result = new ArrayList<>();
@@ -56,10 +56,10 @@ public final class SpecificationUtils {
       distributed.forEach(s -> result.addAll(s instanceof OrSpecification ?
           ((OrSpecification) s).getSpecifications() : singletonList(s)));
 
-      results.addSpecification(new OrSpecification<>(result));
+      results.add(OrSpecification.or(result));
     }
 
-    return results;
+    return AndSpecification.and(results);
   }
 
   private static <K extends Serializable, V> AndSpecification<K, V> toCnf(
@@ -72,16 +72,16 @@ public final class SpecificationUtils {
     }
     if (innerSpec instanceof AndSpecification) {
       List<Specification<K, V>> inverted = ((AndSpecification<K, V>) innerSpec)
-          .getSpecifications().stream().map(NotSpecification::new).collect(toList());
-      return toCnf(new OrSpecification<>(inverted));
+          .getSpecifications().stream().map(NotSpecification::not).collect(toList());
+      return toCnf(OrSpecification.or(inverted));
     }
     if (innerSpec instanceof OrSpecification) {
       List<Specification<K, V>> inverted = ((OrSpecification<K, V>) innerSpec)
-          .getSpecifications().stream().map(NotSpecification::new).collect(toList());
-      return toCnf(new AndSpecification<>(inverted));
+          .getSpecifications().stream().map(NotSpecification::not).collect(toList());
+      return toCnf(AndSpecification.and(inverted));
     }
 
-    return new AndSpecification<>(spec);
+    return AndSpecification.and(spec);
   }
 
   /**
@@ -101,7 +101,7 @@ public final class SpecificationUtils {
       return toDnf((NotSpecification<K, V>) spec);
     }
     // wrap literal spec
-    return new OrSpecification<>(spec);
+    return OrSpecification.or(spec);
   }
 
   private static <K extends Serializable, V> OrSpecification<K, V> toDnf(
@@ -109,7 +109,7 @@ public final class SpecificationUtils {
     List<Specification<K, V>> results = new ArrayList<>();
     // flatten Ors
     specs.forEach(spec -> toDnf(spec).forEach(results::add));
-    return new OrSpecification<>(results);
+    return OrSpecification.or(results);
   }
 
   private static <K extends Serializable, V> OrSpecification<K, V> toDnf(
@@ -118,7 +118,7 @@ public final class SpecificationUtils {
     List<List<Specification<K, V>>> conjunctions = new ArrayList<>();
     spec.forEach(s -> conjunctions.add(toDnf(s).getSpecifications()));
 
-    OrSpecification<K, V> results = new OrSpecification<>();
+    List<Specification<K, V>> results = new ArrayList<>();
 
     for (List<Specification<K, V>> distributed : ListUtils.distribute(conjunctions)) {
       List<Specification<K, V>> result = new ArrayList<>();
@@ -127,10 +127,10 @@ public final class SpecificationUtils {
       distributed.forEach(s -> result.addAll(s instanceof AndSpecification ?
           ((AndSpecification) s).getSpecifications() : singletonList(s)));
 
-      results.addSpecification(new AndSpecification<>(result));
+      results.add(AndSpecification.and(result));
     }
 
-    return results;
+    return OrSpecification.or(results);
   }
 
   private static <K extends Serializable, V> OrSpecification<K, V> toDnf(
@@ -143,16 +143,16 @@ public final class SpecificationUtils {
     }
     if (innerSpec instanceof AndSpecification) {
       List<Specification<K, V>> inverted = ((AndSpecification<K, V>) innerSpec)
-          .getSpecifications().stream().map(NotSpecification::new).collect(toList());
-      return toDnf(new OrSpecification<>(inverted));
+          .getSpecifications().stream().map(NotSpecification::not).collect(toList());
+      return toDnf(OrSpecification.or(inverted));
     }
     if (innerSpec instanceof OrSpecification) {
       List<Specification<K, V>> inverted = ((OrSpecification<K, V>) innerSpec)
-          .getSpecifications().stream().map(NotSpecification::new).collect(toList());
-      return toDnf(new AndSpecification<>(inverted));
+          .getSpecifications().stream().map(NotSpecification::not).collect(toList());
+      return toDnf(AndSpecification.and(inverted));
     }
 
-    return new OrSpecification<>(spec);
+    return OrSpecification.or(spec);
   }
 
 }

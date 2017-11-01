@@ -132,7 +132,8 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void deleteRoles(GraphId id, User user) {
-    graphRoleDao.delete(graphRoleDao.getKeys(new GraphRolesByGraphId(id), user), user);
+    graphRoleDao.delete(graphRoleDao.getKeys(
+        new GraphRolesByGraphId(id), user), user);
   }
 
   private void deletePermissions(GraphId id, User user) {
@@ -141,7 +142,8 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void deleteProperties(GraphId id, User user) {
-    graphPropertyDao.delete(graphPropertyDao.getKeys(new GraphPropertiesByGraphId(id), user), user);
+    graphPropertyDao.delete(graphPropertyDao.getKeys(
+        new GraphPropertiesByGraphId(id), user), user);
   }
 
   @Override
@@ -150,13 +152,13 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   @Override
-  public Stream<Graph> getValues(Query<GraphId, Graph> query, User user) {
+  public Stream<Graph> getValueStream(Query<GraphId, Graph> query, User user) {
     return graphDao.getValues(query.getWhere(), user).stream()
         .map(graph -> populateValue(graph, user));
   }
 
   @Override
-  public Stream<GraphId> getKeys(Query<GraphId, Graph> query, User user) {
+  public Stream<GraphId> getKeyStream(Query<GraphId, Graph> query, User user) {
     return graphDao.getKeys(query.getWhere(), user).stream();
   }
 

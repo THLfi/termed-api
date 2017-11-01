@@ -3,9 +3,10 @@ package fi.thl.termed.web.system.node;
 import static fi.thl.termed.service.node.select.Selects.selectReferences;
 import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 import com.google.gson.Gson;
@@ -26,7 +27,6 @@ import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.json.JsonStream;
-import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
@@ -68,20 +68,20 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user).collect(toList());
-    List<Type> types = typeService.getValues(user).collect(toList());
+    List<Graph> graphs = graphService.getValues(user);
+    List<Type> types = typeService.getValues(user);
 
-    Specification<NodeId, Node> spec = types.stream()
-        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Specification<NodeId, Node> spec = or(toListAndClose(types.stream()
+        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))));
     Set<Select> selects = Selects.parse(join(",", select));
 
-    Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
-
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    try (Stream<Node> nodes = nodeService
+        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/node-trees")
@@ -96,20 +96,21 @@ public class NodeTreeReadController {
 
     graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
 
-    List<Graph> graphs = graphService.getValues(user).collect(toList());
-    List<Type> types = typeService.getValues(user).collect(toList());
+    List<Graph> graphs = graphService.getValues(user);
+    List<Type> types = typeService.getValues(user);
 
-    Specification<NodeId, Node> spec = typeService.getValues(new TypesByGraphId(graphId), user)
-        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))
-        .collect(OrSpecification::new, OrSpecification::or, OrSpecification::or);
+    Specification<NodeId, Node> spec = or(toListAndClose(
+        typeService.getValueStream(new TypesByGraphId(graphId), user)
+            .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))));
     Set<Select> selects = Selects.parse(join(",", select));
 
-    Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
-
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    try (Stream<Node> nodes = nodeService
+        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees")
@@ -123,20 +124,21 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user).collect(toList());
-    List<Type> types = typeService.getValues(user).collect(toList());
+    List<Graph> graphs = graphService.getValues(user);
+    List<Type> types = typeService.getValues(user);
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, join(" AND ", where));
     Set<Select> selects = Selects.parse(join(",", select));
 
-    Stream<SimpleNodeTree> trees = toTrees(
-        nodeService.getValues(new Query<>(selects, spec, sort, max), user), selects, user);
-
-    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
-    response.setCharacterEncoding(UTF_8.toString());
-    JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    try (Stream<Node> nodes = nodeService
+        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+      response.setCharacterEncoding(UTF_8.toString());
+      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+    }
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees/{id}")
@@ -149,9 +151,8 @@ public class NodeTreeReadController {
 
     Node node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
-    Set<Select> selects = Selects.parse(join(",", select));
 
-    return toTree(node, selects, user);
+    return toTree(node, Selects.parse(join(",", select)), user);
   }
 
   private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {

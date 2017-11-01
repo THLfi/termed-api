@@ -65,7 +65,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (!userService.getKeys(initializer).findAny().isPresent()) {
+    if (userService.getKeys(initializer).isEmpty()) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.ADMIN);
       userService.save(admin, UPSERT, defaultOpts(), initializer);

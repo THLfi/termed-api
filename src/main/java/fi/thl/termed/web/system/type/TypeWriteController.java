@@ -3,11 +3,11 @@ package fi.thl.termed.web.system.type;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ext.com.google.common.collect.Sets.difference;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
+import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Type;
@@ -78,7 +78,8 @@ public class TypeWriteController {
     types.replaceAll(type ->
         Type.builder().id(type.getId(), graphId).copyOptionalsFrom(type).build());
 
-    Set<TypeId> oldTypes = typeService.getKeys(new TypesByGraphId(graphId), user).collect(toSet());
+    Set<TypeId> oldTypes = ImmutableSet.copyOf(
+        typeService.getKeys(new TypesByGraphId(graphId), user));
     Set<TypeId> newTypes = types.stream().map(Type::identifier).collect(toSet());
 
     typeService.deleteAndSave(copyOf(difference(oldTypes, newTypes)),
@@ -104,8 +105,7 @@ public class TypeWriteController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    typeService.delete(typeService.getKeys(new TypesByGraphId(graphId), user).collect(toList()),
-        opts(sync), user);
+    typeService.delete(typeService.getKeys(new TypesByGraphId(graphId), user), opts(sync), user);
   }
 
   @DeleteMapping(path = "/{id}")

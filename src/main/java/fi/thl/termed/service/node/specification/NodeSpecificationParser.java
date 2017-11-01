@@ -109,11 +109,11 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .or(referenceNullParser)
             .or(referencePathParser));
 
-    queryParser.setCombinator(termParser.many(regex(" OR ")).map(OrSpecification::new));
-    termParser.setCombinator(factorParser.many(string(" AND ")).map(AndSpecification::new));
+    queryParser.setCombinator(termParser.many(regex(" OR ")).map(OrSpecification::or));
+    termParser.setCombinator(factorParser.many(string(" AND ")).map(AndSpecification::and));
     factorParser.setCombinator(string("NOT ").optional()
         .next(attributeValueParser.or(skip(string("(")).next(queryParser).skip(string(")"))))
-        .map(r -> r.first.isPresent() ? new NotSpecification<>(r.second) : r.second));
+        .map(r -> r.first.isPresent() ? NotSpecification.not(r.second) : r.second));
 
     parser = queryParser.end();
   }
