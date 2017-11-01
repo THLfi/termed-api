@@ -1,11 +1,14 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.domain.RevisionType.DELETE;
+import static java.util.Optional.ofNullable;
+
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.Pair;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.List;
@@ -14,7 +17,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeReferenceAttributeValueRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Revision<NodeAttributeValueId, NodeId>> {
+    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> {
 
   public JdbcNodeReferenceAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -22,13 +25,12 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
 
   @Override
   public void insert(RevisionId<NodeAttributeValueId> revisionId,
-      Revision<NodeAttributeValueId, NodeId> revision) {
+      Pair<RevisionType, NodeId> revision) {
 
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    RevisionType revisionType = revision.getType();
-    Optional<NodeId> value = revision.getObject();
+    Optional<NodeId> value = ofNullable(revision.getSecond());
 
     jdbcTemplate.update(
         "insert into node_reference_attribute_value_aud (node_graph_id, node_type_id, node_id, revision, attribute_id, index, value_graph_id, value_type_id, value_id, revision_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -41,12 +43,12 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
         value.map(NodeId::getTypeGraphId).orElse(null),
         value.map(NodeId::getTypeId).orElse(null),
         value.map(NodeId::getId).orElse(null),
-        revisionType.toString());
+        revision.getFirst().toString());
   }
 
   @Override
   public void update(RevisionId<NodeAttributeValueId> revisionId,
-      Revision<NodeAttributeValueId, NodeId> revision) {
+      Pair<RevisionType, NodeId> revision) {
     throw new UnsupportedOperationException();
   }
 
@@ -62,7 +64,7 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<RevisionId<NodeAttributeValueId>, Revision<NodeAttributeValueId, NodeId>> specification,
+      SqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_reference_attribute_value_aud where %s order by index",
@@ -116,14 +118,19 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
   }
 
   @Override
-  protected RowMapper<Revision<NodeAttributeValueId, NodeId>> buildValueMapper() {
-    RowMapper<RevisionId<NodeAttributeValueId>> keyMapper = buildKeyMapper();
-    return (rs, rowNum) -> Revision.of(
-        keyMapper.mapRow(rs, rowNum),
-        RevisionType.valueOf(rs.getString("revision_type")),
-        new NodeId(UUIDs.fromString(rs.getString("value_id")),
-            rs.getString("value_type_id"),
-            UUIDs.fromString(rs.getString("value_graph_id"))));
+  protected RowMapper<Pair<RevisionType, NodeId>> buildValueMapper() {
+    return (rs, rowNum) -> {
+      RevisionType revisionType = RevisionType.valueOf(rs.getString("revision_type"));
+
+      if (revisionType == DELETE) {
+        return Pair.of(revisionType, null);
+      }
+
+      return Pair.of(revisionType,
+          new NodeId(UUIDs.fromString(rs.getString("value_id")),
+              rs.getString("value_type_id"),
+              UUIDs.fromString(rs.getString("value_graph_id"))));
+    };
   }
 
 }

@@ -1,7 +1,5 @@
 package fi.thl.termed.util.collect;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -11,8 +9,8 @@ public final class Pair<T1, T2> implements Serializable {
   private final T2 second;
 
   private Pair(T1 first, T2 second) {
-    this.first = requireNonNull(first);
-    this.second = requireNonNull(second);
+    this.first = first;
+    this.second = second;
   }
 
   public static <T1, T2> Pair<T1, T2> of(T1 first, T2 second) {

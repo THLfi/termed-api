@@ -1,12 +1,15 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.domain.RevisionType.DELETE;
+import static java.util.Optional.ofNullable;
+
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.Pair;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.List;
@@ -15,7 +18,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeTextAttributeValueRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Revision<NodeAttributeValueId, StrictLangValue>> {
+    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> {
 
   public JdbcNodeTextAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -23,13 +26,12 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
 
   @Override
   public void insert(RevisionId<NodeAttributeValueId> revisionId,
-      Revision<NodeAttributeValueId, StrictLangValue> revision) {
+      Pair<RevisionType, StrictLangValue> revision) {
 
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    RevisionType revisionType = revision.getType();
-    Optional<StrictLangValue> langValue = revision.getObject();
+    Optional<StrictLangValue> langValue = ofNullable(revision.getSecond());
 
     jdbcTemplate.update(
         "insert into node_text_attribute_value_aud (node_graph_id, node_type_id, node_id, revision, attribute_id, index, lang, value, regex, revision_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -42,12 +44,12 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
         langValue.map(StrictLangValue::getLang).orElse(null),
         langValue.map(StrictLangValue::getValue).orElse(null),
         langValue.map(StrictLangValue::getRegex).orElse(null),
-        revisionType.toString());
+        revision.getFirst().toString());
   }
 
   @Override
   public void update(RevisionId<NodeAttributeValueId> id,
-      Revision<NodeAttributeValueId, StrictLangValue> revision) {
+      Pair<RevisionType, StrictLangValue> revision) {
     throw new UnsupportedOperationException();
   }
 
@@ -63,7 +65,7 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<RevisionId<NodeAttributeValueId>, Revision<NodeAttributeValueId, StrictLangValue>> specification,
+      SqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_text_attribute_value_aud where %s order by index",
@@ -118,14 +120,20 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
   }
 
   @Override
-  protected RowMapper<Revision<NodeAttributeValueId, StrictLangValue>> buildValueMapper() {
-    RowMapper<RevisionId<NodeAttributeValueId>> keyMapper = buildKeyMapper();
-    return (rs, rowNum) -> Revision.of(
-        keyMapper.mapRow(rs, rowNum),
-        RevisionType.valueOf(rs.getString("revision_type")),
-        new StrictLangValue(rs.getString("lang"),
-            rs.getString("value"),
-            rs.getString("regex")));
+  protected RowMapper<Pair<RevisionType, StrictLangValue>> buildValueMapper() {
+    return (rs, rowNum) -> {
+      RevisionType revisionType = RevisionType.valueOf(rs.getString("revision_type"));
+
+      if (revisionType == DELETE) {
+        return Pair.of(revisionType, null);
+      }
+
+      return Pair.of(
+          RevisionType.valueOf(rs.getString("revision_type")),
+          new StrictLangValue(rs.getString("lang"),
+              rs.getString("value"),
+              rs.getString("regex")));
+    };
   }
 
 }

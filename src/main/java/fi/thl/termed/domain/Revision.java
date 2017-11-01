@@ -1,57 +1,43 @@
 package fi.thl.termed.domain;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.ofNullable;
 
 import com.google.common.base.MoreObjects;
 import fi.thl.termed.util.collect.Identifiable;
-import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
-import java.util.Optional;
 
-public class Revision<K extends Serializable, V> implements Identifiable<RevisionId<K>> {
+public class Revision implements Identifiable<Long> {
 
-  private final K id;
-  private final Long revision;
-  private final RevisionType type;
-  private final V object;
+  private final Long number;
+  private final String author;
+  private final Date date;
 
-  private Revision(K id, Long revision, RevisionType type, V object) {
-    this.id = requireNonNull(id);
-    this.revision = requireNonNull(revision);
-    this.type = requireNonNull(type);
-    this.object = object;
+  private Revision(Long number, String author, Date date) {
+    this.number = requireNonNull(number);
+    this.author = requireNonNull(author);
+    this.date = requireNonNull(date);
   }
 
-  public static <K extends Serializable, V> Revision<K, V> of(RevisionId<K> revisionId,
-      RevisionType type, V object) {
-    return new Revision<>(revisionId.getId(), revisionId.getRevision(), type, object);
-  }
-
-  public static <K extends Serializable, V> Revision<K, V> of(K id, Long revision,
-      RevisionType type, V object) {
-    return new Revision<>(id, revision, type, object);
+  public static Revision of(Long number, String author, Date date) {
+    return new Revision(number, author, date);
   }
 
   @Override
-  public RevisionId<K> identifier() {
-    return RevisionId.of(id, revision);
+  public Long identifier() {
+    return number;
   }
 
-  public K getId() {
-    return id;
+  public Long getNumber() {
+    return number;
   }
 
-  public Long getRevision() {
-    return revision;
+  public String getAuthor() {
+    return author;
   }
 
-  public RevisionType getType() {
-    return type;
-  }
-
-  public Optional<V> getObject() {
-    return ofNullable(object);
+  public Date getDate() {
+    return date;
   }
 
   @Override
@@ -62,25 +48,23 @@ public class Revision<K extends Serializable, V> implements Identifiable<Revisio
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Revision<?, ?> that = (Revision<?, ?>) o;
-    return Objects.equals(id, that.id) &&
-        Objects.equals(revision, that.revision) &&
-        Objects.equals(type, that.type) &&
-        Objects.equals(object, that.object);
+    Revision revision = (Revision) o;
+    return Objects.equals(number, revision.number) &&
+        Objects.equals(author, revision.author) &&
+        Objects.equals(date, revision.date);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, revision, type, object);
+    return Objects.hash(number, author, date);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("revision", revision)
-        .add("type", type)
-        .add("object", object)
+        .add("number", number)
+        .add("author", author)
+        .add("date", date)
         .toString();
   }
 

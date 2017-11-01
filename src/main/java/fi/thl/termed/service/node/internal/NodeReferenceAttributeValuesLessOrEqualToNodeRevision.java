@@ -2,14 +2,15 @@ package fi.thl.termed.service.node.internal;
 
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
+import fi.thl.termed.domain.RevisionType;
+import fi.thl.termed.util.collect.Pair;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.util.Objects;
 
 public class NodeReferenceAttributeValuesLessOrEqualToNodeRevision extends
-    AbstractSqlSpecification<RevisionId<NodeAttributeValueId>, Revision<NodeAttributeValueId, NodeId>> {
+    AbstractSqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> {
 
   private NodeId nodeId;
   private Long revision;
@@ -20,8 +21,7 @@ public class NodeReferenceAttributeValuesLessOrEqualToNodeRevision extends
   }
 
   @Override
-  public boolean test(RevisionId<NodeAttributeValueId> key,
-      Revision<NodeAttributeValueId, NodeId> value) {
+  public boolean test(RevisionId<NodeAttributeValueId> key, Pair<RevisionType, NodeId> value) {
     return Objects.equals(key.getId().getNodeId(), nodeId) && key.getRevision() <= revision;
   }
 

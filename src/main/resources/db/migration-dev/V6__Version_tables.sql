@@ -5,7 +5,9 @@
 CREATE SEQUENCE revision_seq;
 
 CREATE TABLE revision (
-  number bigint PRIMARY KEY
+  number bigint PRIMARY KEY,
+  author varchar(255),
+  date timestamp
 );
 
 CREATE TABLE node_aud (

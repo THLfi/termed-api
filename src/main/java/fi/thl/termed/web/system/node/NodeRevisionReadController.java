@@ -4,11 +4,12 @@ import static java.util.Comparator.comparing;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
+import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevision;
+import fi.thl.termed.util.collect.Pair;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRevisionReadController {
 
   @Autowired
-  private Service<RevisionId<NodeId>, Revision<NodeId, Node>> nodeRevisionReadService;
+  private Service<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevisionReadService;
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions")
   public List<RevisionId<NodeId>> getNodeRevisions(
@@ -39,7 +40,7 @@ public class NodeRevisionReadController {
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions/{number}")
-  public Revision<NodeId, Node> getNodeRevision(
+  public Pair<RevisionType, Node> getNodeRevision(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
