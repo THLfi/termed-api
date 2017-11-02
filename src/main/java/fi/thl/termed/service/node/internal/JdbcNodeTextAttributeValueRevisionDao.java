@@ -9,7 +9,8 @@ import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.List;
@@ -18,7 +19,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeTextAttributeValueRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> {
+    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> {
 
   public JdbcNodeTextAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -26,12 +27,12 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
 
   @Override
   public void insert(RevisionId<NodeAttributeValueId> revisionId,
-      Pair<RevisionType, StrictLangValue> revision) {
+      Tuple2<RevisionType, StrictLangValue> revision) {
 
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    Optional<StrictLangValue> langValue = ofNullable(revision.getSecond());
+    Optional<StrictLangValue> langValue = ofNullable(revision._2);
 
     jdbcTemplate.update(
         "insert into node_text_attribute_value_aud (node_graph_id, node_type_id, node_id, revision, attribute_id, index, lang, value, regex, revision_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -44,12 +45,12 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
         langValue.map(StrictLangValue::getLang).orElse(null),
         langValue.map(StrictLangValue::getValue).orElse(null),
         langValue.map(StrictLangValue::getRegex).orElse(null),
-        revision.getFirst().toString());
+        revision._1.toString());
   }
 
   @Override
   public void update(RevisionId<NodeAttributeValueId> id,
-      Pair<RevisionType, StrictLangValue> revision) {
+      Tuple2<RevisionType, StrictLangValue> revision) {
     throw new UnsupportedOperationException();
   }
 
@@ -65,7 +66,7 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> specification,
+      SqlSpecification<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_text_attribute_value_aud where %s order by index",
@@ -120,15 +121,15 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
   }
 
   @Override
-  protected RowMapper<Pair<RevisionType, StrictLangValue>> buildValueMapper() {
+  protected RowMapper<Tuple2<RevisionType, StrictLangValue>> buildValueMapper() {
     return (rs, rowNum) -> {
       RevisionType revisionType = RevisionType.valueOf(rs.getString("revision_type"));
 
       if (revisionType == DELETE) {
-        return Pair.of(revisionType, null);
+        return Tuple.of(revisionType, null);
       }
 
-      return Pair.of(
+      return Tuple.of(
           RevisionType.valueOf(rs.getString("revision_type")),
           new StrictLangValue(rs.getString("lang"),
               rs.getString("value"),

@@ -5,13 +5,13 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.util.Objects;
 
 public class NodeTextAttributeValuesLessOrEqualToNodeRevision extends
-    AbstractSqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> {
+    AbstractSqlSpecification<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> {
 
   private NodeId nodeId;
   private Long revision;
@@ -23,7 +23,7 @@ public class NodeTextAttributeValuesLessOrEqualToNodeRevision extends
 
   @Override
   public boolean test(RevisionId<NodeAttributeValueId> key,
-      Pair<RevisionType, StrictLangValue> value) {
+      Tuple2<RevisionType, StrictLangValue> value) {
     return Objects.equals(key.getId().getNodeId(), nodeId) && key.getRevision() <= revision;
   }
 

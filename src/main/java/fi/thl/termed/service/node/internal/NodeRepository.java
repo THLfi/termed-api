@@ -21,7 +21,8 @@ import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
 import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
@@ -45,16 +46,16 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   private Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao;
   private Dao<NodeAttributeValueId, NodeId> refAttrValueDao;
 
-  private Dao<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> textAttrValueRevDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> refAttrValueRevDao;
+  private Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao;
+  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao;
+  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao;
 
   public NodeRepository(Dao<NodeId, Node> nodeDao,
       Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao,
       Dao<NodeAttributeValueId, NodeId> refAttrValueDao,
-      Dao<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevDao,
-      Dao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> textAttrValueRevDao,
-      Dao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> refAttrValueRevDao) {
+      Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao) {
     this.nodeDao = nodeDao;
     this.textAttrValueDao = textAttrValueDao;
     this.refAttrValueDao = refAttrValueDao;
@@ -98,7 +99,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
     refAttrValueDao.insert(refAttrValues, user);
 
     opts.getRevision().ifPresent(r -> {
-      nodeRevDao.insert(RevisionId.of(id, r), Pair.of(INSERT, node), user);
+      nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(INSERT, node), user);
       textAttrValueRevDao.insert(toRevs(textAttrValues, r, INSERT), user);
       refAttrValueRevDao.insert(toRevs(refAttrValues, r, INSERT), user);
     });
@@ -122,7 +123,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
     refAttrValueDao.delete(copyOf(refsDiff.entriesOnlyOnRight().keySet()), user);
 
     opts.getRevision().ifPresent(r -> {
-      nodeRevDao.insert(RevisionId.of(id, r), Pair.of(UPDATE, node), user);
+      nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(UPDATE, node), user);
       textAttrValueRevDao.insert(toRevs(textsDiff.entriesOnlyOnLeft(), r, INSERT), user);
       textAttrValueRevDao.insert(toRevs(leftValues(textsDiff.entriesDiffering()), r, UPDATE), user);
       textAttrValueRevDao.insert(toRevs(textsDiff.entriesOnlyOnRight().keySet(), r, DELETE), user);
@@ -150,22 +151,22 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
       refAttrValueRevDao.insert(toRevs(refAttrValues, r, DELETE), user);
       refAttrValueRevDao.insert(toRevs(backRefAttrValues, r, DELETE), user);
       textAttrValueRevDao.insert(toRevs(textAttrValues, r, DELETE), user);
-      nodeRevDao.insert(RevisionId.of(id, r), Pair.of(DELETE, null), user);
+      nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(DELETE, null), user);
     });
   }
 
-  private <K extends Serializable, V> Map<RevisionId<K>, Pair<RevisionType, V>> toRevs(
+  private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
       Map<K, V> map, Long revision, RevisionType revisionType) {
     return map.entrySet().stream().collect(toMap(
         e -> RevisionId.of(e.getKey(), revision),
-        e -> Pair.of(revisionType, e.getValue())));
+        e -> Tuple.of(revisionType, e.getValue())));
   }
 
-  private <K extends Serializable, V> Map<RevisionId<K>, Pair<RevisionType, V>> toRevs(
+  private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
       Collection<K> keys, Long revision, RevisionType revisionType) {
     return keys.stream().collect(toMap(
         key -> RevisionId.of(key, revision),
-        key -> Pair.of(revisionType, null)));
+        key -> Tuple.of(revisionType, null)));
   }
 
   @Override

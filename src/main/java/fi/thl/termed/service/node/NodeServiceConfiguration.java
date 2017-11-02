@@ -40,7 +40,7 @@ import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.index.Index;
@@ -137,7 +137,7 @@ public class NodeServiceConfiguration {
   }
 
   @Bean
-  public Service<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevisionReadService() {
+  public Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadService() {
     return nodeRevisionReadRepository();
   }
 
@@ -164,7 +164,7 @@ public class NodeServiceConfiguration {
     return sequenceService;
   }
 
-  private Service<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevisionReadRepository() {
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadRepository() {
     return new NodeRevisionReadRepository(
         new AuthorizedDao<>(nodeRevSysDao(), appAdminEvaluator()),
         new AuthorizedDao<>(textAttributeValueRevSysDao(), appAdminEvaluator()),
@@ -216,15 +216,15 @@ public class NodeServiceConfiguration {
     return new JdbcPostgresNodeReferenceAttributeValueDao(refAttrValueDao, dataSource);
   }
 
-  private SystemDao<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevSysDao() {
+  private SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevSysDao() {
     return new JdbcNodeRevisionDao(dataSource);
   }
 
-  private SystemDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, StrictLangValue>> textAttributeValueRevSysDao() {
+  private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevSysDao() {
     return new JdbcNodeTextAttributeValueRevisionDao(dataSource);
   }
 
-  private SystemDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> referenceAttributeValueRevSysDao() {
+  private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevSysDao() {
     return new JdbcNodeReferenceAttributeValueRevisionDao(dataSource);
   }
 

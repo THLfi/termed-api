@@ -10,7 +10,8 @@ import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.List;
@@ -19,16 +20,16 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeId>, Pair<RevisionType, Node>> {
+    AbstractJdbcDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
   public JdbcNodeRevisionDao(DataSource dataSource) {
     super(dataSource);
   }
 
   @Override
-  public void insert(RevisionId<NodeId> revisionId, Pair<RevisionType, Node> revision) {
+  public void insert(RevisionId<NodeId> revisionId, Tuple2<RevisionType, Node> revision) {
     NodeId nodeId = revisionId.getId();
-    Optional<Node> node = ofNullable(revision.getSecond());
+    Optional<Node> node = ofNullable(revision._2);
     jdbcTemplate.update(
         "insert into node_aud (graph_id, type_id, id, revision, code, uri, number, created_by, created_date, last_modified_by, last_modified_date, revision_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         nodeId.getTypeGraphId(),
@@ -42,11 +43,11 @@ public class JdbcNodeRevisionDao extends
         node.map(Node::getCreatedDate).orElse(null),
         node.map(Node::getLastModifiedBy).orElse(null),
         node.map(Node::getLastModifiedDate).orElse(null),
-        revision.getFirst().toString());
+        revision._1.toString());
   }
 
   @Override
-  public void update(RevisionId<NodeId> revisionId, Pair<RevisionType, Node> revision) {
+  public void update(RevisionId<NodeId> revisionId, Tuple2<RevisionType, Node> revision) {
     throw new UnsupportedOperationException();
   }
 
@@ -62,7 +63,7 @@ public class JdbcNodeRevisionDao extends
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<RevisionId<NodeId>, Pair<RevisionType, Node>> specification,
+      SqlSpecification<RevisionId<NodeId>, Tuple2<RevisionType, Node>> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_aud where %s order by revision desc",
@@ -104,7 +105,7 @@ public class JdbcNodeRevisionDao extends
   }
 
   @Override
-  protected RowMapper<Pair<RevisionType, Node>> buildValueMapper() {
+  protected RowMapper<Tuple2<RevisionType, Node>> buildValueMapper() {
     return (rs, rowNum) -> {
       Node node = new Node(UUIDs.fromString(rs.getString("id")));
       node.setType(TypeId.of(rs.getString("type_id"),
@@ -121,7 +122,7 @@ public class JdbcNodeRevisionDao extends
       node.setLastModifiedBy(rs.getString("last_modified_by"));
       node.setLastModifiedDate(rs.getTimestamp("last_modified_date"));
 
-      return Pair.of(RevisionType.valueOf(rs.getString("revision_type")), node);
+      return Tuple.of(RevisionType.valueOf(rs.getString("revision_type")), node);
     };
   }
 

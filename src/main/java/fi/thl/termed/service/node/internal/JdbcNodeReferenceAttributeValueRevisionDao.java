@@ -8,7 +8,8 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.List;
@@ -17,7 +18,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeReferenceAttributeValueRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> {
+    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> {
 
   public JdbcNodeReferenceAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -25,12 +26,12 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
 
   @Override
   public void insert(RevisionId<NodeAttributeValueId> revisionId,
-      Pair<RevisionType, NodeId> revision) {
+      Tuple2<RevisionType, NodeId> revision) {
 
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    Optional<NodeId> value = ofNullable(revision.getSecond());
+    Optional<NodeId> value = ofNullable(revision._2);
 
     jdbcTemplate.update(
         "insert into node_reference_attribute_value_aud (node_graph_id, node_type_id, node_id, revision, attribute_id, index, value_graph_id, value_type_id, value_id, revision_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -43,12 +44,12 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
         value.map(NodeId::getTypeGraphId).orElse(null),
         value.map(NodeId::getTypeId).orElse(null),
         value.map(NodeId::getId).orElse(null),
-        revision.getFirst().toString());
+        revision._1.toString());
   }
 
   @Override
   public void update(RevisionId<NodeAttributeValueId> revisionId,
-      Pair<RevisionType, NodeId> revision) {
+      Tuple2<RevisionType, NodeId> revision) {
     throw new UnsupportedOperationException();
   }
 
@@ -64,7 +65,7 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
 
   @Override
   protected <E> List<E> get(
-      SqlSpecification<RevisionId<NodeAttributeValueId>, Pair<RevisionType, NodeId>> specification,
+      SqlSpecification<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.query(
         String.format("select * from node_reference_attribute_value_aud where %s order by index",
@@ -118,15 +119,15 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
   }
 
   @Override
-  protected RowMapper<Pair<RevisionType, NodeId>> buildValueMapper() {
+  protected RowMapper<Tuple2<RevisionType, NodeId>> buildValueMapper() {
     return (rs, rowNum) -> {
       RevisionType revisionType = RevisionType.valueOf(rs.getString("revision_type"));
 
       if (revisionType == DELETE) {
-        return Pair.of(revisionType, null);
+        return Tuple.of(revisionType, null);
       }
 
-      return Pair.of(revisionType,
+      return Tuple.of(revisionType,
           new NodeId(UUIDs.fromString(rs.getString("value_id")),
               rs.getString("value_type_id"),
               UUIDs.fromString(rs.getString("value_graph_id"))));

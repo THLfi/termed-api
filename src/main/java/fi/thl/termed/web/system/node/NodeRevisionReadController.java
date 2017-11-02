@@ -9,7 +9,7 @@ import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevision;
-import fi.thl.termed.util.collect.Pair;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRevisionReadController {
 
   @Autowired
-  private Service<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevisionReadService;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadService;
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions")
   public List<RevisionId<NodeId>> getNodeRevisions(
@@ -40,7 +40,7 @@ public class NodeRevisionReadController {
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions/{number}")
-  public Pair<RevisionType, Node> getNodeRevision(
+  public Tuple2<RevisionType, Node> getNodeRevision(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
