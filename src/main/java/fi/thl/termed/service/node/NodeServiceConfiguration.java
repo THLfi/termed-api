@@ -48,7 +48,6 @@ import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.permission.PermitAllPermissionEvaluator;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.DaoNamedSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
@@ -145,12 +144,10 @@ public class NodeServiceConfiguration {
     return new NodeRepository(
         new AuthorizedDao<>(nodeSystemDao(), nodeEvaluator()),
         new AuthorizedDao<>(textAttributeValueSystemDao(), textAttributeValueEvaluator()),
-        new AuthorizedDao<>(referenceAttributeValueSystemDao(),
-            referenceAttributeValueEvaluator()),
-        new AuthorizedDao<>(nodeRevSysDao(), new PermitAllPermissionEvaluator<>()),
-        new AuthorizedDao<>(textAttributeValueRevSysDao(), new PermitAllPermissionEvaluator<>()),
-        new AuthorizedDao<>(referenceAttributeValueRevSysDao(),
-            new PermitAllPermissionEvaluator<>()));
+        new AuthorizedDao<>(referenceAttributeValueSystemDao(), referenceAttributeValueEvaluator()),
+        new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
+        new AuthorizedDao<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()));
   }
 
   private NamedSequenceService<TypeId> nodeSequenceService() {
@@ -171,28 +168,46 @@ public class NodeServiceConfiguration {
         new AuthorizedDao<>(referenceAttributeValueRevSysDao(), appAdminEvaluator()));
   }
 
-  private PermissionEvaluator<NodeId> nodeEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(), (u, o, p) -> typeEvaluator.hasPermission(u, o.getType(), p));
+  private PermissionEvaluator<TypeId> nodeSequenceEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), typeEvaluator);
   }
 
-  private PermissionEvaluator<TypeId> nodeSequenceEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(), typeEvaluator);
+  private PermissionEvaluator<NodeId> nodeEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
+        (u, o, p) -> typeEvaluator.hasPermission(u, o.getType(), p));
   }
 
   private PermissionEvaluator<NodeAttributeValueId> textAttributeValueEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(),
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
         (u, o, p) -> textAttributeEvaluator.hasPermission(
             u, new TextAttributeId(o.getNodeId().getType(), o.getAttributeId()), p));
   }
 
   private PermissionEvaluator<NodeAttributeValueId> referenceAttributeValueEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(),
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
         (u, o, p) -> referenceAttributeEvaluator.hasPermission(
             u, new ReferenceAttributeId(o.getNodeId().getType(), o.getAttributeId()), p));
+  }
+
+  private PermissionEvaluator<RevisionId<NodeId>> nodeRevEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
+        (u, o, p) -> typeEvaluator.hasPermission(u, o.getId().getType(), p));
+  }
+
+  private PermissionEvaluator<RevisionId<NodeAttributeValueId>> textAttributeValueRevEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
+      NodeAttributeValueId id = o.getId();
+      return textAttributeEvaluator.hasPermission(
+          u, new TextAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
+    });
+  }
+
+  private PermissionEvaluator<RevisionId<NodeAttributeValueId>> refAttributeValueRevEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
+      NodeAttributeValueId id = o.getId();
+      return referenceAttributeEvaluator.hasPermission(
+          u, new ReferenceAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
+    });
   }
 
   private SystemDao<TypeId, Long> nodeSequenceSystemDao() {
