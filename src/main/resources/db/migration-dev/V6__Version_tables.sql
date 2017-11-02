@@ -6,8 +6,8 @@ CREATE SEQUENCE revision_seq;
 
 CREATE TABLE revision (
   number bigint PRIMARY KEY,
-  author varchar(255),
-  date timestamp
+  author varchar(255) NOT NULL,
+  date timestamp NOT NULL
 );
 
 CREATE TABLE node_aud (
@@ -25,8 +25,8 @@ CREATE TABLE node_aud (
   revision_type char(6) NOT NULL,
   CONSTRAINT node_aud_pkey
     PRIMARY KEY (graph_id, type_id, id, revision),
---  CONSTRAINT node_aud_revision_fkey
---    FOREIGN KEY (revision) REFERENCES revision(number),
+  CONSTRAINT node_aud_revision_fkey
+    FOREIGN KEY (revision) REFERENCES revision(number),
   CONSTRAINT node_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );
@@ -44,8 +44,8 @@ CREATE TABLE node_text_attribute_value_aud (
   revision_type char(6) NOT NULL,
   CONSTRAINT node_text_attribute_value_aud_pkey
     PRIMARY KEY (node_graph_id, node_type_id, node_id, attribute_id, index, revision),
---  CONSTRAINT node_text_attribute_value_aud_revision_fkey
---    FOREIGN KEY (revision) REFERENCES revision(number),
+  CONSTRAINT node_text_attribute_value_aud_revision_fkey
+    FOREIGN KEY (revision) REFERENCES revision(number),
   CONSTRAINT node_text_attribute_value_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );
@@ -63,8 +63,8 @@ CREATE TABLE node_reference_attribute_value_aud (
   revision_type char(6) NOT NULL,
   CONSTRAINT node_reference_attribute_value_aud_pkey
     PRIMARY KEY (node_graph_id, node_type_id, node_id, attribute_id, index, revision),
---  CONSTRAINT node_reference_attribute_value_aud_revision_fkey
---    FOREIGN KEY (revision) REFERENCES revision(number),
+  CONSTRAINT node_reference_attribute_value_aud_revision_fkey
+    FOREIGN KEY (revision) REFERENCES revision(number),
   CONSTRAINT node_reference_attr_value_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );

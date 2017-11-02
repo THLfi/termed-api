@@ -11,6 +11,7 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
@@ -50,7 +51,6 @@ import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.permission.PermitAllPermissionEvaluator;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.DaoNamedSequenceService;
-import fi.thl.termed.util.service.JdbcSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.QueryProfilingService;
 import fi.thl.termed.util.service.SequenceService;
@@ -85,6 +85,10 @@ public class NodeServiceConfiguration {
   private Service<TypeId, Type> typeService;
   @Autowired
   private Service<GraphId, Graph> graphService;
+  @Autowired
+  private SequenceService revisionSeqService;
+  @Autowired
+  private Service<Long, Revision> revisionService;
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
@@ -100,11 +104,10 @@ public class NodeServiceConfiguration {
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service = nodeRepository();
-    service = new TransactionalService<>(service, transactionManager);
-
     if (enableVersioning) {
-      service = new RevisionInitializingNodeService(service, revisionSequenceService());
+      service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
     }
+    service = new TransactionalService<>(service, transactionManager);
 
     Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
         indexPath, new JsonStringConverter<>(NodeId.class),
@@ -136,10 +139,6 @@ public class NodeServiceConfiguration {
   @Bean
   public Service<RevisionId<NodeId>, Pair<RevisionType, Node>> nodeRevisionReadService() {
     return nodeRevisionReadRepository();
-  }
-
-  private SequenceService revisionSequenceService() {
-    return new JdbcSequenceService(dataSource, "revision_seq");
   }
 
   private AbstractRepository<NodeId, Node> nodeRepository() {
