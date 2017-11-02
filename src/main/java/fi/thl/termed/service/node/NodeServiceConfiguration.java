@@ -32,7 +32,10 @@ import fi.thl.termed.service.node.internal.JdbcNodeTextAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeTextAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeValueDao;
+import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeValueRevisionDao;
+import fi.thl.termed.service.node.internal.JdbcPostgresNodeRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueDao;
+import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.NodeRepository;
 import fi.thl.termed.service.node.internal.NodeRevisionReadRepository;
 import fi.thl.termed.service.node.internal.NodeToDocument;
@@ -232,15 +235,21 @@ public class NodeServiceConfiguration {
   }
 
   private SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevSysDao() {
-    return new JdbcNodeRevisionDao(dataSource);
+    SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao =
+        new JdbcNodeRevisionDao(dataSource);
+    return new JdbcPostgresNodeRevisionDao(nodeRevDao, dataSource);
   }
 
   private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevSysDao() {
-    return new JdbcNodeTextAttributeValueRevisionDao(dataSource);
+    SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> dao =
+        new JdbcNodeTextAttributeValueRevisionDao(dataSource);
+    return new JdbcPostgresNodeTextAttributeValueRevisionDao(dao, dataSource);
   }
 
   private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevSysDao() {
-    return new JdbcNodeReferenceAttributeValueRevisionDao(dataSource);
+    SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> dao =
+        new JdbcNodeReferenceAttributeValueRevisionDao(dataSource);
+    return new JdbcPostgresNodeReferenceAttributeValueRevisionDao(dao, dataSource);
   }
 
   /**

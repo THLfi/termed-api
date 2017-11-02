@@ -1,8 +1,8 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.base.Strings.emptyToNull;
 import static java.util.Optional.ofNullable;
 
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -36,8 +36,8 @@ public class JdbcNodeRevisionDao extends
         nodeId.getTypeId(),
         nodeId.getId(),
         revisionId.getRevision(),
-        emptyToNull(node.map(Node::getCode).orElse(null)),
-        emptyToNull(node.map(Node::getUri).orElse(null)),
+        node.map(Node::getCode).map(Strings::emptyToNull).orElse(null),
+        node.map(Node::getUri).map(Strings::emptyToNull).orElse(null),
         node.map(Node::getNumber).orElse(null),
         node.map(Node::getCreatedBy).orElse(null),
         node.map(Node::getCreatedDate).orElse(null),
