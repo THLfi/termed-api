@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRevisionReadController {
 
   @Autowired
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadService;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
 
   @Autowired
   private Service<Long, Revision> revisionService;
@@ -41,7 +41,7 @@ public class NodeRevisionReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User user) {
-    return toListAndClose(nodeRevisionReadService
+    return toListAndClose(nodeRevisionService
         .getKeyStream(new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId)), user)
         .map(revisionId -> {
           Revision revision = revisionService.get(revisionId.getRevision(), user)
@@ -59,15 +59,15 @@ public class NodeRevisionReadController {
       @AuthenticationPrincipal User user) {
     RevisionId<NodeId> revisionId = RevisionId.of(new NodeId(id, typeId, graphId), number);
 
-    if (nodeRevisionReadService.exists(revisionId, user)) {
+    if (nodeRevisionService.exists(revisionId, user)) {
       Revision revision = revisionService.get(number, user)
           .orElseThrow(IllegalStateException::new);
-      Tuple2<RevisionType, Node> nodeRevision = nodeRevisionReadService.get(revisionId, user)
+      Tuple2<RevisionType, Node> nodeRevision = nodeRevisionService.get(revisionId, user)
           .orElseThrow(IllegalStateException::new);
       return new ObjectRevision<>(revision, nodeRevision._1, nodeRevision._2);
     }
 
-    try (Stream<RevisionId<NodeId>> revisionIds = nodeRevisionReadService
+    try (Stream<RevisionId<NodeId>> revisionIds = nodeRevisionService
         .getKeyStream(new NodeRevisionsLessOrEqualToRevision(revisionId), user)) {
 
       RevisionId<NodeId> maxRevisionLessOrEqualToRequested = revisionIds
@@ -77,7 +77,7 @@ public class NodeRevisionReadController {
       Revision revision = revisionService
           .get(maxRevisionLessOrEqualToRequested.getRevision(), user)
           .orElseThrow(IllegalStateException::new);
-      Tuple2<RevisionType, Node> nodeRevision = nodeRevisionReadService
+      Tuple2<RevisionType, Node> nodeRevision = nodeRevisionService
           .get(maxRevisionLessOrEqualToRequested, user)
           .orElseThrow(IllegalStateException::new);
       return new ObjectRevision<>(revision, nodeRevision._1, nodeRevision._2);

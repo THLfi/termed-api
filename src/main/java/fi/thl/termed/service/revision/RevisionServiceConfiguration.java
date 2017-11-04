@@ -1,12 +1,16 @@
 package fi.thl.termed.service.revision;
 
+import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.THROW;
 
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.service.revision.internal.JdbcRevisionDao;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
+import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.permission.PermitAllPermissionEvaluator;
 import fi.thl.termed.util.service.DaoForwardingRepository;
 import fi.thl.termed.util.service.JdbcSequenceService;
@@ -41,9 +45,18 @@ public class RevisionServiceConfiguration {
 
     Service<Long, Revision> service =
         new DaoForwardingRepository<>(
-            new AuthorizedDao<>(dao, new PermitAllPermissionEvaluator<>(), THROW));
+            new AuthorizedDao<>(dao, revisionEvaluator(), THROW));
 
     return new TransactionalService<>(service, transactionManager);
+  }
+
+  private PermissionEvaluator<Long> revisionEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> p == INSERT);
+  }
+
+  private <T> PermissionEvaluator<T> appAdminEvaluator() {
+    return (user, object, permission) ->
+        user.getAppRole() == AppRole.ADMIN || user.getAppRole() == AppRole.SUPERUSER;
   }
 
 }

@@ -27,7 +27,7 @@ public class JdbcRevisionDao extends AbstractJdbcDao<Long, Revision> {
 
   @Override
   public void delete(Long id) {
-    throw new UnsupportedOperationException();
+    jdbcTemplate.update("delete from revision where number = ?", id);
   }
 
   @Override

@@ -51,7 +51,7 @@ public class NodeRevisionServiceIntegrationTest {
   @Autowired
   private Service<String, User> userService;
   @Autowired
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadService;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 
@@ -103,7 +103,7 @@ public class NodeRevisionServiceIntegrationTest {
     nodeService.delete(nodeId, defaultOpts(), testUser);
 
     List<Tuple2<RevisionType, Node>> revisions =
-        nodeRevisionReadService.getValues(new NodeRevisionsByNodeId(nodeId), testUser);
+        nodeRevisionService.getValues(new NodeRevisionsByNodeId(nodeId), testUser);
     assertEquals(3, revisions.size());
 
     assertEquals(nodeId, revisions.get(0)._2.identifier());
@@ -148,7 +148,7 @@ public class NodeRevisionServiceIntegrationTest {
     nodeService.save(jack, UPDATE, defaultOpts(), testUser);
 
     List<Tuple2<RevisionType, Node>> jackRevisions =
-        nodeRevisionReadService.getValues(new NodeRevisionsByNodeId(jackId), testUser);
+        nodeRevisionService.getValues(new NodeRevisionsByNodeId(jackId), testUser);
     assertEquals(3, jackRevisions.size());
 
     assertEquals(jackId, jackRevisions.get(0)._2.identifier());

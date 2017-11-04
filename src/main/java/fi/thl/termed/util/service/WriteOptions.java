@@ -25,6 +25,10 @@ public class WriteOptions {
     return new WriteOptions(sync, null);
   }
 
+  public static WriteOptions opts(Long revision) {
+    return new WriteOptions(false, revision);
+  }
+
   public static WriteOptions defaultOpts() {
     return new WriteOptions(false, null);
   }

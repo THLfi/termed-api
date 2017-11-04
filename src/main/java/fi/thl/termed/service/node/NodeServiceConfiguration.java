@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node;
 
+import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.util.Converter.newConverter;
 
 import com.google.common.eventbus.EventBus;
@@ -37,7 +38,7 @@ import fi.thl.termed.service.node.internal.JdbcPostgresNodeRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.NodeRepository;
-import fi.thl.termed.service.node.internal.NodeRevisionReadRepository;
+import fi.thl.termed.service.node.internal.NodeRevisionRepository;
 import fi.thl.termed.service.node.internal.NodeToDocument;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
@@ -134,8 +135,17 @@ public class NodeServiceConfiguration {
   }
 
   @Bean
-  public Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadService() {
-    return nodeRevisionReadRepository();
+  public Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService() {
+    Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
+
+    service = new TransactionalService<>(service, transactionManager);
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".NodeRevisionService");
+    service = new QueryProfilingService<>(service,
+        getClass().getPackage().getName() + ".NodeRevisionService",
+        500);
+
+    return service;
   }
 
   private AbstractRepository<NodeId, Node> nodeRepository() {
@@ -159,11 +169,12 @@ public class NodeServiceConfiguration {
     return sequenceService;
   }
 
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionReadRepository() {
-    return new NodeRevisionReadRepository(
-        new AuthorizedDao<>(nodeRevSysDao(), appAdminEvaluator()),
-        new AuthorizedDao<>(textAttributeValueRevSysDao(), appAdminEvaluator()),
-        new AuthorizedDao<>(referenceAttributeValueRevSysDao(), appAdminEvaluator()));
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionRepository() {
+    return new NodeRevisionRepository(
+        new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
+        new AuthorizedDao<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
+        revisionService, revisionSeqService);
   }
 
   private PermissionEvaluator<TypeId> nodeSequenceEvaluator() {
@@ -188,14 +199,14 @@ public class NodeServiceConfiguration {
   }
 
   private PermissionEvaluator<RevisionId<NodeId>> nodeRevEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
-        (u, o, p) -> typeEvaluator.hasPermission(u, o.getId().getType(), p));
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) ->
+        p == INSERT && typeEvaluator.hasPermission(u, o.getId().getType(), p));
   }
 
   private PermissionEvaluator<RevisionId<NodeAttributeValueId>> textAttributeValueRevEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
       NodeAttributeValueId id = o.getId();
-      return textAttributeEvaluator.hasPermission(
+      return p == INSERT && textAttributeEvaluator.hasPermission(
           u, new TextAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
     });
   }
@@ -203,7 +214,7 @@ public class NodeServiceConfiguration {
   private PermissionEvaluator<RevisionId<NodeAttributeValueId>> refAttributeValueRevEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
       NodeAttributeValueId id = o.getId();
-      return referenceAttributeEvaluator.hasPermission(
+      return p == INSERT && referenceAttributeEvaluator.hasPermission(
           u, new ReferenceAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
     });
   }
