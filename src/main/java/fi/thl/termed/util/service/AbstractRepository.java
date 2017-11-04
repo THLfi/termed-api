@@ -3,7 +3,9 @@ package fi.thl.termed.util.service;
 import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
+import static java.util.stream.Collectors.toList;
 
+import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Identifiable;
 import java.io.Serializable;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
@@ -74,5 +77,18 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   protected abstract void insert(K id, V value, SaveMode mode, WriteOptions opts, User user);
 
   protected abstract void update(K id, V value, SaveMode mode, WriteOptions opts, User user);
+
+  @Override
+  public List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+
+    // don't save values that are to be deleted
+    Set<K> skip = ImmutableSet.copyOf(deletes);
+    List<V> filtered = saves.stream().filter(v -> !skip.contains(v.identifier())).collect(toList());
+
+    List<K> ids = save(filtered, mode, opts, user);
+    delete(deletes, opts, user);
+    return ids;
+  }
 
 }
