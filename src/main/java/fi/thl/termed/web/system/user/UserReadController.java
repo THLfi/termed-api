@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,6 +26,13 @@ public class UserReadController {
 
   @GetJsonMapping("/{username}")
   public User get(@PathVariable("username") String username,
+      @AuthenticationPrincipal User currentUser) {
+    return userService.get(username, currentUser).orElseThrow(NotFoundException::new);
+  }
+
+  @GetJsonMapping(params = "username")
+  public User getByRequestParam(
+      @RequestParam("username") String username,
       @AuthenticationPrincipal User currentUser) {
     return userService.get(username, currentUser).orElseThrow(NotFoundException::new);
   }

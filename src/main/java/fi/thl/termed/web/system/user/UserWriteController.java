@@ -65,4 +65,12 @@ public class UserWriteController {
     userService.delete(username, opts(sync), user);
   }
 
+  @DeleteMapping(params = "username")
+  @ResponseStatus(NO_CONTENT)
+  public void deleteByRequestParam(@RequestParam("username") String username,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @AuthenticationPrincipal User user) {
+    userService.delete(username, opts(sync), user);
+  }
+
 }
