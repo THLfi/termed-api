@@ -41,11 +41,10 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   @Override
-  public List<TypeId> deleteAndSave(List<TypeId> deletes, List<Type> saves, SaveMode mode,
+  public List<TypeId> saveAndDelete(List<Type> saves, List<TypeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
-    return super.deleteAndSave(deletes, init(saves), mode, opts, user);
+    return super.saveAndDelete(init(saves), deletes, mode, opts, user);
   }
-
 
   private List<Type> init(List<Type> types) {
     return zipWithIndex(types.stream(), this::init).collect(toList());

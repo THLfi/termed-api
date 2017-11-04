@@ -31,10 +31,10 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
   }
 
   @Override
-  public List<GraphId> deleteAndSave(List<GraphId> deletes, List<Graph> saves, SaveMode mode,
+  public List<GraphId> saveAndDelete(List<Graph> saves, List<GraphId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
     saves.replaceAll(this::initialize);
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   private Graph initialize(Graph graph) {

@@ -59,9 +59,9 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+  public List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
       User user) {
-    return runInTransaction(() -> delegate.deleteAndSave(deletes, saves, mode, opts, user));
+    return runInTransaction(() -> delegate.saveAndDelete(saves, deletes, mode, opts, user));
   }
 
   @Override

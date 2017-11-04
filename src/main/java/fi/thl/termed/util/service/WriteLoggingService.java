@@ -45,11 +45,11 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+  public List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
       User user) {
-    log.info("delete {} values and save {} values (user: {})", deletes.size(), saves.size(),
+    log.info("save {} values and delete {} values (user: {})", saves.size(), deletes.size(),
         user.getUsername());
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
 }

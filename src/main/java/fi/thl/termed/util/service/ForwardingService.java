@@ -41,9 +41,9 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+  public List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
       User user) {
-    return delegate.deleteAndSave(deletes, saves, mode, opts, user);
+    return delegate.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   @Override

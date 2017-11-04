@@ -8,8 +8,6 @@ import static org.apache.jena.ext.com.google.common.collect.Sets.difference;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import com.google.common.collect.ImmutableSet;
-import fi.thl.termed.domain.Graph;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
@@ -35,9 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/graphs/{graphId}/types")
 public class TypeWriteController {
-
-  @Autowired
-  private Service<GraphId, Graph> graphService;
 
   @Autowired
   private Service<TypeId, Type> typeService;
@@ -82,8 +77,8 @@ public class TypeWriteController {
         typeService.getKeys(new TypesByGraphId(graphId), user));
     Set<TypeId> newTypes = types.stream().map(Type::identifier).collect(toSet());
 
-    typeService.deleteAndSave(copyOf(difference(oldTypes, newTypes)),
-        types, saveMode(mode), opts(sync), user);
+    typeService.saveAndDelete(types, copyOf(difference(oldTypes, newTypes)), saveMode(mode),
+        opts(sync), user);
   }
 
   @PutJsonMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

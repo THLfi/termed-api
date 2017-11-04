@@ -52,7 +52,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
+    nodeService.saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "changeset=true", produces = {})
@@ -72,7 +72,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
+    nodeService.saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/nodes", params = "changeset=true", produces = {})
@@ -87,7 +87,7 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    nodeService.deleteAndSave(changeset.getDelete(), saves, saveMode(mode), opts(sync), user);
+    nodeService.saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
   }
 
   private Node merge(Node node, Node patch) {

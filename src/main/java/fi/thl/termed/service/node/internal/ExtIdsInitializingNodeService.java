@@ -57,10 +57,10 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
     addSerialNumbersWithDefaultCodesAndUris(saves, user);
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   private void addSerialNumbersWithDefaultCodesAndUris(List<Node> nodes, User user) {

@@ -30,6 +30,7 @@ import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -134,22 +135,40 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
+  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
+    List<NodeAttributeValueId> allTextAttrValues = new ArrayList<>();
+    List<NodeAttributeValueId> allRefAttrValues = new ArrayList<>();
+    ids.forEach(id -> {
+      allTextAttrValues.addAll(refAttrValueDao.getKeys(
+          new NodeReferenceAttributeValuesByNodeId(id), user));
+      allRefAttrValues.addAll(textAttrValueDao.getKeys(
+          new NodeTextAttributeValuesByNodeId(id), user));
+    });
+
+    refAttrValueDao.delete(allTextAttrValues, user);
+    textAttrValueDao.delete(allRefAttrValues, user);
+    nodeDao.delete(ids, user);
+
+    opts.getRevision().ifPresent(r -> {
+      refAttrValueRevDao.insert(toRevs(allTextAttrValues, r, DELETE), user);
+      textAttrValueRevDao.insert(toRevs(allRefAttrValues, r, DELETE), user);
+      nodeRevDao.insert(toRevs(ids, r, DELETE), user);
+    });
+  }
+
+  @Override
   public void delete(NodeId id, WriteOptions opts, User user) {
     List<NodeAttributeValueId> refAttrValues = refAttrValueDao.getKeys(
         new NodeReferenceAttributeValuesByNodeId(id), user);
-    List<NodeAttributeValueId> backRefAttrValues = refAttrValueDao.getKeys(
-        new NodeReferenceAttributeNodesByValueId(id), user);
     List<NodeAttributeValueId> textAttrValues = textAttrValueDao.getKeys(
         new NodeTextAttributeValuesByNodeId(id), user);
 
     refAttrValueDao.delete(refAttrValues, user);
-    refAttrValueDao.delete(backRefAttrValues, user);
     textAttrValueDao.delete(textAttrValues, user);
     nodeDao.delete(id, user);
 
     opts.getRevision().ifPresent(r -> {
       refAttrValueRevDao.insert(toRevs(refAttrValues, r, DELETE), user);
-      refAttrValueRevDao.insert(toRevs(backRefAttrValues, r, DELETE), user);
       textAttrValueRevDao.insert(toRevs(textAttrValues, r, DELETE), user);
       nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(DELETE, null), user);
     });

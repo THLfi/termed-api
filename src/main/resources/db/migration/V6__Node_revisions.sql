@@ -26,7 +26,7 @@ CREATE TABLE node_aud (
   CONSTRAINT node_aud_pkey
     PRIMARY KEY (graph_id, type_id, id, revision),
   CONSTRAINT node_aud_revision_fkey
-    FOREIGN KEY (revision) REFERENCES revision(number),
+    FOREIGN KEY (revision) REFERENCES revision(number) ON DELETE CASCADE,
   CONSTRAINT node_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );
@@ -45,7 +45,7 @@ CREATE TABLE node_text_attribute_value_aud (
   CONSTRAINT node_text_attribute_value_aud_pkey
     PRIMARY KEY (node_graph_id, node_type_id, node_id, attribute_id, index, revision),
   CONSTRAINT node_text_attribute_value_aud_revision_fkey
-    FOREIGN KEY (revision) REFERENCES revision(number),
+    FOREIGN KEY (revision) REFERENCES revision(number) ON DELETE CASCADE,
   CONSTRAINT node_text_attribute_value_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );
@@ -64,7 +64,7 @@ CREATE TABLE node_reference_attribute_value_aud (
   CONSTRAINT node_reference_attribute_value_aud_pkey
     PRIMARY KEY (node_graph_id, node_type_id, node_id, attribute_id, index, revision),
   CONSTRAINT node_reference_attribute_value_aud_revision_fkey
-    FOREIGN KEY (revision) REFERENCES revision(number),
+    FOREIGN KEY (revision) REFERENCES revision(number) ON DELETE CASCADE,
   CONSTRAINT node_reference_attr_value_aud_revision_type_check
     CHECK (revision_type IN ('INSERT', 'UPDATE', 'DELETE'))
 );

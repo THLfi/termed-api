@@ -66,9 +66,9 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes,
-      List<Node> saves, SaveMode mode, WriteOptions opts, User user) {
-    return delegate.deleteAndSave(deletes, saves, mode, opts, user);
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    return delegate.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   @Override

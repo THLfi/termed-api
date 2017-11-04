@@ -100,15 +100,10 @@ public class NodeServiceConfiguration {
   @Autowired
   private EventBus eventBus;
 
-  @Value("${fi.thl.termed.enableVersioning:false}")
-  private boolean enableVersioning;
-
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service = nodeRepository();
-    if (enableVersioning) {
-      service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
-    }
+    service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
     service = new TransactionalService<>(service, transactionManager);
 
     Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
@@ -133,7 +128,7 @@ public class NodeServiceConfiguration {
     service = new IdInitializingNodeService(service);
 
     service = new QueryProfilingService<>(service,
-        getClass().getPackage().getName() + ".Service", 1000);
+        getClass().getPackage().getName() + ".Service", 500);
 
     return service;
   }

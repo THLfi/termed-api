@@ -75,11 +75,11 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
-    List<NodeId> ids = delegate.deleteAndSave(deletes, saves, mode, opts, user);
-    fireDeleteEvents(deletes, user.getUsername(), opts.isSync());
+    List<NodeId> ids = delegate.saveAndDelete(saves, deletes, mode, opts, user);
     fireSaveEvents(ids, user.getUsername(), opts.isSync());
+    fireDeleteEvents(deletes, user.getUsername(), opts.isSync());
     return ids;
   }
 

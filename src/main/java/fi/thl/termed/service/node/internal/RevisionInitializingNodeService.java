@@ -51,9 +51,9 @@ public class RevisionInitializingNodeService extends ForwardingService<NodeId, N
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
-    return super.deleteAndSave(deletes, saves, mode, opts(opts.isSync(), newRevision(user)), user);
+    return super.saveAndDelete(saves, deletes, mode, opts(opts.isSync(), newRevision(user)), user);
   }
 
   private Long newRevision(User user) {

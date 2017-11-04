@@ -35,10 +35,10 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
     saves.forEach(this::resolveId);
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   private void resolveId(Node node) {

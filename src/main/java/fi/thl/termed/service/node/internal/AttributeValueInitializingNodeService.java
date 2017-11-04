@@ -47,10 +47,10 @@ public class AttributeValueInitializingNodeService
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
     resolveAttributes(saves, user);
-    return super.deleteAndSave(deletes, saves, mode, opts, user);
+    return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   private void resolveAttributes(List<Node> nodes, User user) {

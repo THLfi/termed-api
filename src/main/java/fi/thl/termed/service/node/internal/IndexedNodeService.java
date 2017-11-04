@@ -174,10 +174,15 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> deleteAndSave(List<NodeId> deletes, List<Node> saves, SaveMode mode,
+  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
 
     Set<NodeId> reindexingRequired = new HashSet<>();
+
+    saves.forEach(node -> getFromIndex(node.identifier(), user).ifPresent(n -> {
+      reindexingRequired.addAll(n.getReferences().values());
+      reindexingRequired.addAll(n.getReferrers().values());
+    }));
 
     reindexingRequired.addAll(deletes);
 
@@ -186,12 +191,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       reindexingRequired.addAll(n.getReferrers().values());
     }));
 
-    saves.forEach(node -> getFromIndex(node.identifier(), user).ifPresent(n -> {
-      reindexingRequired.addAll(n.getReferences().values());
-      reindexingRequired.addAll(n.getReferrers().values());
-    }));
-
-    List<NodeId> ids = super.deleteAndSave(deletes, saves, mode, opts, user);
+    List<NodeId> ids = super.saveAndDelete(saves, deletes, mode, opts, user);
 
     log.info("Indexing {} nodes", ids.size());
     ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, ids.size());

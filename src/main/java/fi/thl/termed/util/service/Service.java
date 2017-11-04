@@ -45,12 +45,13 @@ public interface Service<K extends Serializable, V> {
   void delete(K id, WriteOptions opts, User user);
 
   /**
-   * Delete and save values in one transaction. Returns ids of saved objects.
+   * Save then delete values in one transaction. Returns ids of saved objects.
    */
-  default List<K> deleteAndSave(List<K> deletes, List<V> saves, SaveMode mode, WriteOptions opts,
+  default List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
       User user) {
+    List<K> ids = save(saves, mode, opts, user);
     delete(deletes, opts, user);
-    return save(saves, mode, opts, user);
+    return ids;
   }
 
   /**
