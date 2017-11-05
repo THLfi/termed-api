@@ -9,6 +9,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.domain.Node;
@@ -40,9 +41,8 @@ import java.util.stream.Stream;
 
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs. Revision reads are typically done here.
- * Incremental revision updates are automatically made by NodeRepository on each node insert, update
- * and delete. This repository can do full revision saves and deletes which are useful in e.g. admin
- * operations.
+ * Incremental revision updates are automatically made by NodeRepository. This repository can do
+ * full revision saves which are useful in e.g. admin operations.
  */
 public class NodeRevisionRepository implements
     Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
@@ -64,6 +64,41 @@ public class NodeRevisionRepository implements
     this.referenceAttributeValueRevDao = referenceAttributeValueRevDao;
     this.revisionService = revisionService;
     this.revisionSeqService = revisionSeqService;
+  }
+
+  @Override
+  public List<RevisionId<NodeId>> save(List<Tuple2<RevisionType, Node>> typeNodePairs,
+      SaveMode mode, WriteOptions opts, User user) {
+
+    Preconditions.checkArgument(mode == INSERT);
+
+    Long revision = opts.getRevision().orElseGet(() -> newRevision(user));
+
+    Map<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevs = new LinkedHashMap<>();
+    Map<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrRevs = new LinkedHashMap<>();
+    Map<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrRevs = new LinkedHashMap<>();
+
+    typeNodePairs.forEach(typeAndNode -> {
+      RevisionType type = typeAndNode._1;
+
+      Node node = typeAndNode._2;
+      NodeId id = node.identifier();
+
+      Map<NodeAttributeValueId, StrictLangValue> textAttrValues =
+          new NodeTextAttributeValueDtoToModel(id).apply(node.getProperties());
+      Map<NodeAttributeValueId, NodeId> refAttrValues =
+          new ReferenceAttributeValueIdDtoToModel(id).apply(node.getReferences());
+
+      nodeRevs.put(RevisionId.of(id, revision), Tuple.of(type, node));
+      textAttrRevs.putAll(toRevs(textAttrValues, revision, type));
+      refAttrRevs.putAll(toRevs(refAttrValues, revision, type));
+    });
+
+    nodeRevisionDao.insert(nodeRevs, user);
+    textAttributeValueRevDao.insert(textAttrRevs, user);
+    referenceAttributeValueRevDao.insert(refAttrRevs, user);
+
+    return ImmutableList.copyOf(nodeRevs.keySet());
   }
 
   @Override
