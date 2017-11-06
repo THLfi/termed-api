@@ -6,13 +6,10 @@ import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import fi.thl.termed.util.xml.GsonXmlMessageConverter;
-import fi.thl.termed.web.external.node.transform.NodeDtoListRdfMessageConverter;
-import fi.thl.termed.web.external.node.transform.NodeDtoRdfMessageConverter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
@@ -26,9 +23,6 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
 
   @Autowired
   private Gson gson;
-
-  @Value("${fi.thl.termed.baseUri:http://termed.thl.fi/api}")
-  private String baseUri;
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
@@ -51,8 +45,6 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
     gsonHttpMessageConverter.setGson(gson);
     converters.addAll(Arrays.asList(
         new JenaModelMessageConverter(),
-        new NodeDtoRdfMessageConverter(baseUri),
-        new NodeDtoListRdfMessageConverter(baseUri),
         new GsonXmlMessageConverter(gson),
         new GsonCsvMessageConverter(gson),
         gsonHttpMessageConverter));
