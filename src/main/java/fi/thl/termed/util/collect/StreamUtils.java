@@ -25,6 +25,12 @@ public final class StreamUtils {
     }
   }
 
+  public static <T> Optional<T> findFirstAndClose(Stream<T> stream) {
+    try (Stream<T> autoClosed = stream) {
+      return autoClosed.findFirst();
+    }
+  }
+
   public static <T> Stream<T> toStream(Optional<T> optional) {
     return optional.map(Stream::of).orElse(Stream.empty());
   }

@@ -4,6 +4,7 @@ import static fi.thl.termed.service.node.util.UriResolvers.nodeUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.refAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.textAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.typeUriResolver;
+import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.util.stream.Collectors.toList;
@@ -27,6 +28,7 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.Specification;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.GraphBase;
+import org.apache.jena.util.iterator.ClosableIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import org.apache.jena.vocabulary.RDF;
@@ -67,10 +70,11 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
     Function<TypeId, Optional<Type>> getType = id -> typeList.stream()
         .filter(t -> t.identifier().equals(id)).findFirst();
-    Function<NodeId, Optional<Node>> getNode = nodeId -> nodeProvider.apply(and(
-        new NodesByGraphId(nodeId.getTypeGraphId()),
-        new NodesByTypeId(nodeId.getTypeId()),
-        new NodeById(nodeId.getId()))).findFirst();
+    Function<NodeId, Optional<Node>> getNode = nodeId ->
+        findFirstAndClose(nodeProvider.apply(and(
+            new NodesByGraphId(nodeId.getTypeGraphId()),
+            new NodesByTypeId(nodeId.getTypeId()),
+            new NodeById(nodeId.getId()))));
 
     this.toTriples = new NodeToTriples(
         typeUriResolver(getType),
@@ -130,8 +134,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
             byUriOrId(subjectUri)))
         .collect(toList()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
-        .flatMap(n -> toTriples.apply(n).stream()).iterator());
+    return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
   }
 
   private Specification<NodeId, fi.thl.termed.domain.Node> byUriOrId(String nodeUri) {
@@ -153,14 +156,13 @@ public class NodeRdfGraphWrapper extends GraphBase {
         new NodesByGraphId(typeOptional.get().getGraphId()),
         new NodesByTypeId(typeOptional.get().getId()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
-        .flatMap(n -> toTriples.apply(n).stream()).iterator());
+    return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
   }
 
   // predicateUri can be null
   private ExtendedIterator<Triple> findByObject(String predicateUri, String valueUri) {
-    Optional<NodeId> valueOptional = nodeProvider.apply(byUriOrId(valueUri))
-        .findFirst().map(NodeId::new);
+    Optional<NodeId> valueOptional = findFirstAndClose(nodeProvider.apply(byUriOrId(valueUri)))
+        .map(NodeId::new);
 
     if (!valueOptional.isPresent()) {
       return WrappedIterator.emptyIterator();
@@ -175,8 +177,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByReference(refAttr.getId(), valueOptional.get().getId())))
         .collect(toList()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
-        .flatMap(n -> toTriples.apply(n).stream()).iterator());
+    return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
   }
 
   // predicateUri can be null
@@ -190,8 +191,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByProperty(textAttr.getId(), value)))
         .collect(toList()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
-        .flatMap(n -> toTriples.apply(n).stream()).iterator());
+    return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
   }
 
   private ExtendedIterator<Triple> findAll() {
@@ -201,8 +201,41 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesByTypeId(type.getId())))
         .collect(toList()));
 
-    return WrappedIterator.create(nodeProvider.apply(nodeSpec)
-        .flatMap(n -> toTriples.apply(n).stream()).iterator());
+    return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
+  }
+
+  private ExtendedIterator<Triple> nodeStreamToTriples(Stream<Node> stream) {
+    Iterator<Triple> streamIterator = stream.flatMap(n -> toTriples.apply(n).stream()).iterator();
+
+    ClosableIterator<Triple> closableStreamIterator = new ClosableIterator<Triple>() {
+      @Override
+      public boolean hasNext() {
+        try {
+          return streamIterator.hasNext();
+        } catch (RuntimeException | Error e) {
+          close();
+          throw e;
+        }
+      }
+
+      @Override
+      public Triple next() {
+        try {
+          return streamIterator.next();
+        } catch (RuntimeException | Error e) {
+          close();
+          throw e;
+        }
+      }
+
+      @Override
+      public void close() {
+        log.trace("Close node stream");
+        stream.close();
+      }
+    };
+
+    return WrappedIterator.create(closableStreamIterator);
   }
 
 }

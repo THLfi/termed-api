@@ -1,8 +1,6 @@
 package fi.thl.termed.web.node;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.jena.riot.Lang.NTRIPLES;
-import static org.apache.jena.riot.Lang.TURTLE;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -13,6 +11,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.NodeRdfGraphWrapper;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.jena.StreamRDFWriterUtils;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.service.Service;
@@ -24,7 +23,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.jena.riot.system.StreamRDFWriter;
+import org.apache.jena.riot.Lang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,7 +58,9 @@ public class NodeRdfStreamReadController {
       Function<Specification<NodeId, Node>, Stream<Node>> nodes =
           s -> nodeService.getValueStream(s, user);
 
-      StreamRDFWriter.write(out, new NodeRdfGraphWrapper(types, nodes), NTRIPLES);
+      StreamRDFWriterUtils.writeAndCloseIterator(out,
+          new NodeRdfGraphWrapper(types, nodes).find(null, null, null),
+          Lang.NTRIPLES);
     }
   }
 
@@ -77,7 +78,9 @@ public class NodeRdfStreamReadController {
       Function<Specification<NodeId, Node>, Stream<Node>> nodes =
           s -> nodeService.getValueStream(s, user);
 
-      StreamRDFWriter.write(out, new NodeRdfGraphWrapper(types, nodes), TURTLE);
+      StreamRDFWriterUtils.writeAndCloseIterator(out,
+          new NodeRdfGraphWrapper(types, nodes).find(null, null, null),
+          Lang.TURTLE);
     }
   }
 
