@@ -1,6 +1,7 @@
 package fi.thl.termed.util;
 
 
+import fi.thl.termed.util.collect.FunctionUtils;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;

@@ -1,14 +1,23 @@
-package fi.thl.termed.util;
+package fi.thl.termed.util.collect;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
-
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public final class FunctionUtils {
 
   private FunctionUtils() {
+  }
+
+  public static <F, T> Function<F, T> toUnchecked(CheckedFunction<F, T> checked) {
+    return input -> {
+      try {
+        return checked.apply(input);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    };
   }
 
   /**

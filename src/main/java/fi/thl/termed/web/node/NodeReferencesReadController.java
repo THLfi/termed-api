@@ -22,7 +22,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 
-import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
+import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 
 @RestController
 @RequestMapping("/api/graphs/{graphId}/types/{typeId}/nodes/{id}")

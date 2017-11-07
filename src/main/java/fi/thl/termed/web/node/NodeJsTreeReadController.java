@@ -2,7 +2,7 @@ package fi.thl.termed.web.node;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static fi.thl.termed.util.FunctionUtils.partialApplySecond;
+import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 import com.google.common.base.Joiner;

@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -17,6 +21,19 @@ import java.util.stream.Stream;
 public final class StreamUtils {
 
   private StreamUtils() {
+  }
+
+  private static ScheduledExecutorService scheduledExecutorService = Executors
+      .newScheduledThreadPool(10);
+
+  public static <T> Stream<T> toStreamWithTimeout(Stream<T> stream, int delay, TimeUnit timeUnit) {
+    ScheduledFuture<Void> closeOnTimeout = scheduledExecutorService.schedule(() -> {
+      stream.close();
+      return null;
+    }, delay, timeUnit);
+
+    // cancel closeOnTimeout if stream is properly closed on time
+    return stream.onClose(() -> closeOnTimeout.cancel(false));
   }
 
   public static <T> List<T> toListAndClose(Stream<T> stream) {

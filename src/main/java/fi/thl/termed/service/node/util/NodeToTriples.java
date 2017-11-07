@@ -2,7 +2,7 @@ package fi.thl.termed.service.node.util;
 
 import static fi.thl.termed.service.node.util.Urns.urn;
 import static fi.thl.termed.service.node.util.Urns.urnUuid;
-import static fi.thl.termed.util.FunctionUtils.memoize;
+import static fi.thl.termed.util.collect.FunctionUtils.memoize;
 import static org.apache.jena.graph.NodeFactory.createLiteral;
 import static org.apache.jena.graph.NodeFactory.createURI;
 import static org.apache.jena.graph.Triple.create;
