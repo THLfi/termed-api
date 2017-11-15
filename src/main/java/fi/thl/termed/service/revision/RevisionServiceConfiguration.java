@@ -1,6 +1,8 @@
 package fi.thl.termed.service.revision;
 
 import static fi.thl.termed.domain.Permission.INSERT;
+import static fi.thl.termed.domain.Permission.READ;
+import static fi.thl.termed.domain.Permission.UPDATE;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.THROW;
 
 import fi.thl.termed.domain.AppRole;
@@ -11,7 +13,6 @@ import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.permission.PermitAllPermissionEvaluator;
 import fi.thl.termed.util.service.DaoForwardingRepository;
 import fi.thl.termed.util.service.JdbcSequenceService;
 import fi.thl.termed.util.service.SequenceService;
@@ -34,8 +35,7 @@ public class RevisionServiceConfiguration {
 
   @Bean
   public SequenceService revisionSeqService() {
-    return new JdbcSequenceService(dataSource, "revision_seq",
-        new PermitAllPermissionEvaluator<>());
+    return new JdbcSequenceService(dataSource, "revision_seq", revisionSeqEvaluator());
   }
 
   @Bean
@@ -50,8 +50,14 @@ public class RevisionServiceConfiguration {
     return new TransactionalService<>(service, transactionManager);
   }
 
+  private PermissionEvaluator<String> revisionSeqEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
+        (u, o, p) -> (p == READ || p == UPDATE));
+  }
+
   private PermissionEvaluator<Long> revisionEvaluator() {
-    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> p == INSERT);
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
+        (u, o, p) -> p == INSERT);
   }
 
   private <T> PermissionEvaluator<T> appAdminEvaluator() {
