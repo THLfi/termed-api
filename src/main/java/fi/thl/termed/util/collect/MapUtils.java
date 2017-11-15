@@ -1,5 +1,6 @@
 package fi.thl.termed.util.collect;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import java.util.AbstractMap;
@@ -62,6 +63,14 @@ public final class MapUtils {
       Function<? super T, ? extends K> keyMapper,
       Function<? super T, ? extends U> valueMapper) {
     return Collectors.toMap(keyMapper, valueMapper, illegalOperator(), LinkedHashMap::new);
+  }
+
+  public static <K, V> Collector<Map.Entry<K, V>, ?, ImmutableMap<K, V>> toImmutableMap() {
+    return Collector.of(
+        ImmutableMap.Builder::new,
+        ImmutableMap.Builder::put,
+        (l, r) -> l.putAll(r.build()),
+        (Function<ImmutableMap.Builder<K, V>, ImmutableMap<K, V>>) ImmutableMap.Builder::build);
   }
 
 }

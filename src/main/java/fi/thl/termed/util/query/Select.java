@@ -1,6 +1,5 @@
 package fi.thl.termed.util.query;
 
-import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 public class Select {
@@ -34,9 +33,7 @@ public class Select {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("field", field)
-        .toString();
+    return field;
   }
 
 }

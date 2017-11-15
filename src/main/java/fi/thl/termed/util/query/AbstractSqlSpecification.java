@@ -1,8 +1,6 @@
 package fi.thl.termed.util.query;
 
-import com.google.common.base.MoreObjects;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Objects;
 
 public abstract class AbstractSqlSpecification<K extends Serializable, V>
@@ -26,12 +24,19 @@ public abstract class AbstractSqlSpecification<K extends Serializable, V>
     return sql().hashCode();
   }
 
+  /**
+   * This is for debug printing only, not safe to run against db
+   */
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("queryTemplate", sql().getQueryTemplate())
-        .add("queryParameters", Arrays.asList(sql().getQueryParameters()))
-        .toString();
+    String sqlTemplate = sqlQueryTemplate();
+    String result = "";
+
+    for (Object queryParameter : sqlQueryParameters()) {
+      result = sqlTemplate.replace("?", queryParameter.toString());
+    }
+
+    return result;
   }
 
 }

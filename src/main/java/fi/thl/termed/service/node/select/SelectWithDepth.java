@@ -19,4 +19,9 @@ public abstract class SelectWithDepth extends Select {
     return depth;
   }
 
+  @Override
+  public String toString() {
+    return super.toString() + ":" + depth;
+  }
+
 }

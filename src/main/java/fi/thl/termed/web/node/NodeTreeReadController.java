@@ -5,6 +5,7 @@ import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.OrSpecification.or;
+import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -61,10 +62,10 @@ public class NodeTreeReadController {
 
   @GetJsonMapping("/node-trees")
   public void get(
-      @RequestParam(value = "select", defaultValue = "") List<String> select,
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
-      @RequestParam(value = "sort", defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
+      @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -87,10 +88,10 @@ public class NodeTreeReadController {
   @GetJsonMapping("/graphs/{graphId}/node-trees")
   public void get(
       @PathVariable("graphId") UUID graphId,
-      @RequestParam(value = "select", defaultValue = "") List<String> select,
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
-      @RequestParam(value = "sort", defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
+      @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -117,10 +118,10 @@ public class NodeTreeReadController {
   public void get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
-      @RequestParam(value = "select", defaultValue = "") List<String> select,
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
-      @RequestParam(value = "sort", defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") Integer max,
+      @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -146,7 +147,7 @@ public class NodeTreeReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
-      @RequestParam(value = "select", defaultValue = "") List<String> select,
+      @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
       @AuthenticationPrincipal User user) {
 
     Node node = nodeService.get(new NodeId(id, typeId, graphId), user)

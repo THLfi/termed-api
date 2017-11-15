@@ -3,6 +3,7 @@ package fi.thl.termed.web.node;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.OrSpecification.or;
+import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.join;
 
 import fi.thl.termed.domain.Graph;
@@ -41,7 +42,7 @@ public class NodeCountController {
 
   @GetJsonMapping("/node-count")
   public long get(
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @AuthenticationPrincipal User user) {
 
     List<Graph> graphs = graphService.getValues(user);
@@ -56,7 +57,7 @@ public class NodeCountController {
   @GetJsonMapping("/graphs/{graphId}/node-count")
   public long get(
       @PathVariable("graphId") UUID graphId,
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -76,7 +77,7 @@ public class NodeCountController {
   public long get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
-      @RequestParam(value = "where", defaultValue = "") List<String> where,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @AuthenticationPrincipal User user) {
 
     List<Graph> graphs = graphService.getValues(user);

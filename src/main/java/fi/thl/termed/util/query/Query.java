@@ -1,7 +1,9 @@
 package fi.thl.termed.util.query;
 
+import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
@@ -77,6 +79,14 @@ public class Query<K extends Serializable, V> {
   @Override
   public int hashCode() {
     return Objects.hash(select, where, sort, max);
+  }
+
+  @Override
+  public String toString() {
+    return "SELECT " + join(", ", select.stream().map(Select::toString).collect(toList()))
+        + " WHERE " + where
+        + (!sort.isEmpty() ? " SORT " + join(", ", sort) : "")
+        + " MAX " + max;
   }
 
 }

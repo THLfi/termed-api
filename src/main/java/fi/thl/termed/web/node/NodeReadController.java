@@ -3,6 +3,7 @@ package fi.thl.termed.web.node;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByAnyPropertyPrefix;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.OrSpecification.or;
+import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -48,9 +49,9 @@ public class NodeReadController {
 
   @GetJsonMapping("/nodes")
   public void get(
-      @RequestParam(value = "query", required = false, defaultValue = "") String query,
-      @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") int max,
+      @RequestParam(value = "query", defaultValue = "") String query,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") int max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -68,9 +69,9 @@ public class NodeReadController {
   @GetJsonMapping("/graphs/{graphId}/nodes")
   public void get(
       @PathVariable("graphId") UUID graphId,
-      @RequestParam(value = "query", required = false, defaultValue = "") String query,
-      @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") int max,
+      @RequestParam(value = "query", defaultValue = "") String query,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") int max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -91,9 +92,9 @@ public class NodeReadController {
   public void get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
-      @RequestParam(value = "query", required = false, defaultValue = "") String query,
-      @RequestParam(value = "sort", required = false, defaultValue = "") List<String> sort,
-      @RequestParam(value = "max", required = false, defaultValue = "50") int max,
+      @RequestParam(value = "query", defaultValue = "") String query,
+      @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
+      @RequestParam(value = "max", defaultValue = "50") int max,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
