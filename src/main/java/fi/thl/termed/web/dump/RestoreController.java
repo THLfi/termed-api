@@ -41,7 +41,7 @@ public class RestoreController {
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)
   public void restore(@RequestBody Dump dump,
-      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "mode", defaultValue = "insert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
     TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
