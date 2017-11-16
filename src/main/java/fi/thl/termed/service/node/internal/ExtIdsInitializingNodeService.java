@@ -6,6 +6,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -24,7 +25,9 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
@@ -65,6 +68,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
 
   private void addSerialNumbersWithDefaultCodesAndUris(List<Node> nodes, User user) {
     nodes.stream().collect(groupingBy(Node::getType)).forEach((type, instances) -> {
+
       List<Node> newNodes = new ArrayList<>();
 
       for (Node node : instances) {
@@ -82,34 +86,47 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       }
 
       if (!newNodes.isEmpty()) {
+        Set<String> usedCodes = nodes.stream()
+            .map(Node::getCode).filter(Objects::nonNull).collect(toSet());
+        Set<String> usedUris = nodes.stream()
+            .map(Node::getUri).filter(Objects::nonNull).collect(toSet());
+
         long number = nodeSequenceService.getAndAdvance(type, (long) (newNodes.size()), user);
+
         for (Node node : newNodes) {
           node.setNumber(number++);
-          addDefaultCodeIfMissing(node, user);
-          addDefaultUriIfMissing(node, user);
+          addDefaultCodeIfMissing(node, usedCodes, user);
+          addDefaultUriIfMissing(node, usedUris, user);
         }
       }
     });
   }
 
-  private void addDefaultCodeIfMissing(Node node, User user) {
+  private void addDefaultCodeIfMissing(Node node, Set<String> usedCodes, User user) {
     if (isNullOrEmpty(node.getCode())) {
       Type type = typeSource.apply(node.getType(), user)
           .orElseThrow(IllegalStateException::new);
 
-      node.setCode(type.getNodeCodePrefix()
+      String code = type.getNodeCodePrefix()
           .map(prefix -> prefix + node.getNumber())
-          .orElseGet(
-              () -> UPPER_CAMEL.to(LOWER_HYPHEN, node.getTypeId()) + "-" + node.getNumber()));
+          .orElseGet(() -> UPPER_CAMEL.to(LOWER_HYPHEN, node.getTypeId()) + "-" + node.getNumber());
+
+      if (!usedCodes.contains(code)) {
+        node.setCode(code);
+      }
     }
   }
 
-  private void addDefaultUriIfMissing(Node node, User user) {
+  private void addDefaultUriIfMissing(Node node, Set<String> usedUris, User user) {
     if (isNullOrEmpty(node.getUri())) {
       Graph graph = graphSource.apply(node.getTypeGraph(), user)
           .orElseThrow(IllegalStateException::new);
 
-      graph.getUri().ifPresent(ns -> node.setUri(ns + node.getCode()));
+      graph.getUri().map(ns -> ns + node.getCode()).ifPresent(uri -> {
+        if (!usedUris.contains(uri)) {
+          node.setUri(uri);
+        }
+      });
     }
   }
 
