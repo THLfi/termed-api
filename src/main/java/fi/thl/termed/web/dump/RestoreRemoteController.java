@@ -70,19 +70,17 @@ public class RestoreRemoteController {
     if (user.getAppRole() == AppRole.ADMIN || user.getAppRole() == AppRole.SUPERUSER) {
       HttpGet request = new HttpGet(remote.getUrl());
       request.addHeader(ACCEPT, APPLICATION_JSON_UTF8_VALUE);
-      request.addHeader(AUTHORIZATION,
-          "Basic " + encodeBase64(remote.getUsername() + ":" + remote.getPassword()));
-
-      HttpResponse response = httpClient.execute(request);
+      request.addHeader(AUTHORIZATION, basicAuth(remote.getUsername(), remote.getPassword()));
 
       log.info("Downloading {} as {}", remote.getUrl(), remote.getUsername());
 
+      HttpResponse response = httpClient.execute(request);
       Dump dump = gson.fromJson(
           new InputStreamReader(response.getEntity().getContent(), UTF_8), Dump.class);
 
-      TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
-
       log.info("Restoring");
+
+      TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
 
       try {
         graphService.save(dump.getGraphs(), saveMode(mode), opts(sync), user);
@@ -94,9 +92,13 @@ public class RestoreRemoteController {
       }
 
       manager.commit(tx);
-    }
 
-    log.info("Done");
+      log.info("Done");
+    }
+  }
+
+  private String basicAuth(String username, String password) {
+    return "Basic " + encodeBase64(username + ":" + password);
   }
 
   private String encodeBase64(String str) {
