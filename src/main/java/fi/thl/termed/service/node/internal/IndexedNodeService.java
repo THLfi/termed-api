@@ -2,6 +2,7 @@ package fi.thl.termed.service.node.internal;
 
 import static fi.thl.termed.util.query.AndSpecification.and;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
@@ -68,7 +69,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Subscribe
   public void reindexOn(ReindexEvent e) {
-    index.index(super.getKeys(indexer), key -> super.get(key, indexer));
+    reindex(ImmutableSet.copyOf(super.getKeys(indexer)));
   }
 
   private Optional<Node> getFromIndex(NodeId nodeId, User user) {
