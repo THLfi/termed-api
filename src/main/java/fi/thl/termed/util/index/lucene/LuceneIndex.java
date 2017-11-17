@@ -225,7 +225,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     return toStreamWithTimeout(Arrays.stream(docs.scoreDocs)
         .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc)))
         .map(documentDeserializer)
-        .onClose(() -> tryRelease(searcher)), 1, TimeUnit.HOURS);
+        .onClose(() -> tryRelease(searcher)), scheduledExecutorService, 1, TimeUnit.HOURS);
   }
 
   private IndexSearcher tryAcquire() {
