@@ -1,19 +1,16 @@
 package fi.thl.termed.domain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
-
 import fi.thl.termed.util.collect.Identifiable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
+import fi.thl.termed.util.collect.ListUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import fi.thl.termed.util.collect.ListUtils;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class User implements UserDetails, Identifiable<String> {
 
@@ -50,7 +47,7 @@ public class User implements UserDetails, Identifiable<String> {
 
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
-    return Collections.<GrantedAuthority>singleton(new SimpleGrantedAuthority(appRole.toString()));
+    return Collections.singleton(new SimpleGrantedAuthority(appRole.toString()));
   }
 
   @Override
@@ -99,6 +96,8 @@ public class User implements UserDetails, Identifiable<String> {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("username", username)
+        .add("appRole", appRole)
+        .add("graphRoles", graphRoles)
         .toString();
   }
 

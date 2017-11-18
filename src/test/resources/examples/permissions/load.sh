@@ -21,6 +21,6 @@ curl -X POST \
 curl \
     -X POST \
     -H "Content-Type: application/json" \
-    -u superuser:superuser \
+    -u admin:admin \
     -d @animals-users.json \
     http://localhost:8080/api/users?batch=true

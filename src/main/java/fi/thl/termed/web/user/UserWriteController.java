@@ -49,12 +49,20 @@ public class UserWriteController {
   public void save(@RequestBody User userData,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "updatePassword", defaultValue = "true") boolean updatePassword,
       @AuthenticationPrincipal User currentUser) {
-    userService.save(new User(userData.getUsername(),
-            passwordEncoder.encode(userData.getPassword()),
-            userData.getAppRole(),
-            userData.getGraphRoles()),
-        saveMode(mode), opts(sync), currentUser);
+
+    boolean useOldPassword =
+        userService.exists(userData.getUsername(), currentUser) && !updatePassword;
+
+    User user = new User(userData.getUsername(),
+        useOldPassword ? userService.get(userData.getUsername(), currentUser)
+            .orElseThrow(IllegalStateException::new)
+            .getPassword() : passwordEncoder.encode(userData.getPassword()),
+        userData.getAppRole(),
+        userData.getGraphRoles());
+
+    userService.save(user, saveMode(mode), opts(sync), currentUser);
   }
 
   @DeleteMapping("/{username}")

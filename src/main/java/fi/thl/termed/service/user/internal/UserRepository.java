@@ -49,7 +49,7 @@ public class UserRepository extends AbstractRepository<String, User> {
     Set<GraphRole> oldRoles = userGraphRoleDao.getKeys(
         new UserGraphRolesByUsername(username), auth).stream()
         .filter(userGraphRole -> userGraphRole.getUsername().equals(username))
-        .map(userGraphRole -> new GraphRole(userGraphRole.getGraph(), userGraphRole.getUsername()))
+        .map(userGraphRole -> new GraphRole(userGraphRole.getGraph(), userGraphRole.getRole()))
         .collect(Collectors.toSet());
 
     for (GraphRole removedRole : Sets.difference(oldRoles, newRoles)) {
