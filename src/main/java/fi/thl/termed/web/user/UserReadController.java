@@ -1,5 +1,7 @@
 package fi.thl.termed.web.user;
 
+import static java.util.stream.Collectors.toList;
+
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
@@ -21,20 +23,24 @@ public class UserReadController {
 
   @GetJsonMapping
   public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.getValues(currentUser);
+    return userService.getValues(currentUser).stream()
+        .map(user -> new User(user.getUsername(), "", user.getAppRole(), user.getGraphRoles()))
+        .collect(toList());
   }
 
   @GetJsonMapping("/{username}")
   public User get(@PathVariable("username") String username,
       @AuthenticationPrincipal User currentUser) {
-    return userService.get(username, currentUser).orElseThrow(NotFoundException::new);
+    User user = userService.get(username, currentUser).orElseThrow(NotFoundException::new);
+    return new User(user.getUsername(), "", user.getAppRole(), user.getGraphRoles());
   }
 
   @GetJsonMapping(params = "username")
   public User getByRequestParam(
       @RequestParam("username") String username,
       @AuthenticationPrincipal User currentUser) {
-    return userService.get(username, currentUser).orElseThrow(NotFoundException::new);
+    User user = userService.get(username, currentUser).orElseThrow(NotFoundException::new);
+    return new User(user.getUsername(), "", user.getAppRole(), user.getGraphRoles());
   }
 
 }
