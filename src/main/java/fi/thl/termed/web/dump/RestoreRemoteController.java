@@ -63,7 +63,7 @@ public class RestoreRemoteController {
   @PostJsonMapping(produces = {}, params = "remote=true")
   @ResponseStatus(NO_CONTENT)
   public void restoreRemote(@RequestBody UrlWithCredentials remote,
-      @RequestParam(name = "mode", defaultValue = "insert") String mode,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) throws IOException {
 
