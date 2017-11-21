@@ -38,7 +38,7 @@ public class DocumentToNode implements Function<Document, Node> {
     Node cachedNode = loadCachedJsonField(document, CACHED_RESULT_FIELD, Node.class);
 
     if (loadReferrers) {
-      cachedNode.setReferrers(loadCachedJsonField(document, "_cached_referrers", referrersType));
+      cachedNode.setReferrers(loadCachedJsonField(document, LuceneConstants.CACHED_REFERRERS_FIELD, referrersType));
     }
 
     return cachedNode;

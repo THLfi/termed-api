@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static java.lang.Integer.min;
 import static org.apache.lucene.document.CompressionTools.compressString;
@@ -20,6 +21,7 @@ import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
@@ -43,7 +45,7 @@ public class NodeToDocument implements Function<Node, Document> {
     Node cachedNode = new Node(n);
     cachedNode.setReferrers(null);
     doc.add(new StoredField(CACHED_RESULT_FIELD, compressString(gson.toJson(cachedNode))));
-    doc.add(new StoredField("_cached_referrers", compressString(gson.toJson(n.getReferrers()))));
+    doc.add(new StoredField(CACHED_REFERRERS_FIELD, compressString(gson.toJson(n.getReferrers()))));
 
     doc.add(stringField("type.graph.id", n.getTypeGraphId()));
     doc.add(stringField("type.id", n.getTypeId()));
@@ -117,24 +119,23 @@ public class NodeToDocument implements Function<Node, Document> {
   }
 
   private Field textField(String name, String value) {
-    return new TextField(name, Strings.nullToEmpty(value), Field.Store.NO);
+    return new TextField(name, Strings.nullToEmpty(value), Store.NO);
   }
 
   private Field stringField(String name, String value) {
-    return new StringField(name, Strings.nullToEmpty(value), Field.Store.NO);
+    return new StringField(name, Strings.nullToEmpty(value), Store.NO);
   }
 
   private Field stringField(String name, UUID value) {
-    return new StringField(name, value != null ? value.toString() : "", Field.Store.NO);
+    return new StringField(name, value != null ? value.toString() : "", Store.NO);
   }
 
   private Field stringField(String name, Date value) {
-    return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND),
-        Field.Store.NO);
+    return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND), Store.NO);
   }
 
   private Field stringField(String name, Long value) {
-    return new StringField(name, String.valueOf(value), Field.Store.NO);
+    return new StringField(name, String.valueOf(value), Store.NO);
   }
 
   private Field sortableField(String name, String value) {

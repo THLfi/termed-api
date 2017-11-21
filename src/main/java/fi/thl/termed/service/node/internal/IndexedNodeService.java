@@ -1,5 +1,8 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.collect.ImmutableSet.of;
+import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
+import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static fi.thl.termed.util.query.AndSpecification.and;
 
 import com.google.common.collect.ImmutableSet;
@@ -257,6 +260,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         query.getWhere(),
         query.getSort(),
         query.getMax(),
+        loadReferrers ? of(CACHED_RESULT_FIELD, CACHED_REFERRERS_FIELD) : of(CACHED_RESULT_FIELD),
         new DocumentToNode(gson, loadReferrers));
   }
 

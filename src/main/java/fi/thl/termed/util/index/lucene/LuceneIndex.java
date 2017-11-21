@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,19 +129,19 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   @Override
   public Stream<V> get(Specification<K, V> specification, List<String> sort, int max) {
-    return get(specification, sort, max, documentConverter.inverse());
+    return get(specification, sort, max, null, documentConverter.inverse());
   }
 
   /**
    * Expert method for searching and loading results with custom Lucene Document deserializer.
    */
   public Stream<V> get(Specification<K, V> specification, List<String> sort, int max,
-      Function<Document, V> documentDeserializer) {
+      Set<String> fieldsToLoad, Function<Document, V> documentDeserializer) {
     IndexSearcher searcher = null;
     try {
       searcher = tryAcquire();
       Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
-      return query(searcher, query, max, sort, documentDeserializer);
+      return query(searcher, query, max, sort, fieldsToLoad, documentDeserializer);
     } catch (IOException e) {
       tryRelease(searcher);
       throw new LuceneException(e);
@@ -220,10 +221,16 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
       Function<Document, E> documentDeserializer) throws IOException {
+    return query(searcher, query, max, orderBy, null, documentDeserializer);
+  }
+
+  // null in fieldsToLoad means load all
+  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
+      Set<String> fieldsToLoad, Function<Document, E> documentDeserializer) throws IOException {
     log.trace("{}", query);
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
     return toStreamWithTimeout(Arrays.stream(docs.scoreDocs)
-        .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc)))
+        .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
         .map(documentDeserializer)
         .onClose(() -> tryRelease(searcher)), scheduledExecutorService, 1, TimeUnit.HOURS);
   }
