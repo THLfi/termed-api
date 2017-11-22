@@ -27,7 +27,7 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   private ReportLevel reportLevel;
 
   public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator) {
-    this(delegate, evaluator, ReportLevel.LOG);
+    this(delegate, evaluator, ReportLevel.DEFAULT);
   }
 
   public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator,
@@ -148,11 +148,17 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
   private void reportFailedAuthorization(User user, K key, Permission permission) {
     if (reportLevel == ReportLevel.SILENT) {
       log.trace(formatErrorMessage(user, key, permission));
-    } else if (reportLevel == ReportLevel.LOG) {
+    } else if (reportLevel == ReportLevel.DEFAULT) {
       log.warn(formatErrorMessage(user, key, permission));
+      // if user tries to modify something that is read-only, return exception
+      if (isWritePermission(permission) && evaluator.hasPermission(user, key, READ)) {
+        throw new AccessDeniedException("Access is denied");
+      }
     } else if (reportLevel == ReportLevel.THROW) {
       log.error(formatErrorMessage(user, key, permission));
       throw new AccessDeniedException("Access is denied");
+    } else {
+      throw new IllegalStateException();
     }
   }
 
@@ -161,8 +167,12 @@ public class AuthorizedDao<K extends Serializable, V> extends AbstractDao<K, V> 
         user.getUsername(), permission, key);
   }
 
+  private boolean isWritePermission(Permission permission) {
+    return permission == INSERT || permission == UPDATE || permission == DELETE;
+  }
+
   public enum ReportLevel {
-    SILENT, LOG, THROW
+    SILENT, DEFAULT, THROW
   }
 
 }
