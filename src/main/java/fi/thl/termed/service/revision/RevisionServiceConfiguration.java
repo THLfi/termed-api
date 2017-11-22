@@ -57,7 +57,7 @@ public class RevisionServiceConfiguration {
 
   private PermissionEvaluator<Long> revisionEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
-        (u, o, p) -> p == INSERT);
+        (u, o, p) -> (p == READ || p == INSERT));
   }
 
   private <T> PermissionEvaluator<T> appAdminEvaluator() {

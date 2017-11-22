@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node;
 
 import static fi.thl.termed.domain.Permission.INSERT;
+import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.util.Converter.newConverter;
 
 import com.google.common.eventbus.EventBus;
@@ -46,6 +47,7 @@ import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.AuthorizedDao.ReportLevel;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
@@ -150,7 +152,7 @@ public class NodeServiceConfiguration {
 
   private AbstractRepository<NodeId, Node> nodeRepository() {
     return new NodeRepository(
-        new AuthorizedDao<>(nodeSystemDao(), nodeEvaluator()),
+        new AuthorizedDao<>(nodeSystemDao(), nodeEvaluator(), ReportLevel.THROW),
         new AuthorizedDao<>(textAttributeValueSystemDao(), textAttributeValueEvaluator()),
         new AuthorizedDao<>(referenceAttributeValueSystemDao(), referenceAttributeValueEvaluator()),
         new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
@@ -200,22 +202,23 @@ public class NodeServiceConfiguration {
 
   private PermissionEvaluator<RevisionId<NodeId>> nodeRevEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) ->
-        p == INSERT && typeEvaluator.hasPermission(u, o.getId().getType(), p));
+        p == INSERT || (p == READ && typeEvaluator.hasPermission(u, o.getId().getType(), p)));
   }
 
   private PermissionEvaluator<RevisionId<NodeAttributeValueId>> textAttributeValueRevEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
       NodeAttributeValueId id = o.getId();
-      return p == INSERT && textAttributeEvaluator.hasPermission(
-          u, new TextAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
+      TextAttributeId attrId = new TextAttributeId(id.getNodeId().getType(), id.getAttributeId());
+      return p == INSERT || (p == READ && textAttributeEvaluator.hasPermission(u, attrId, p));
     });
   }
 
   private PermissionEvaluator<RevisionId<NodeAttributeValueId>> refAttributeValueRevEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), (u, o, p) -> {
       NodeAttributeValueId id = o.getId();
-      return p == INSERT && referenceAttributeEvaluator.hasPermission(
-          u, new ReferenceAttributeId(id.getNodeId().getType(), id.getAttributeId()), p);
+      ReferenceAttributeId attrId = new ReferenceAttributeId(id.getNodeId().getType(),
+          id.getAttributeId());
+      return p == INSERT || (p == READ && referenceAttributeEvaluator.hasPermission(u, attrId, p));
     });
   }
 
