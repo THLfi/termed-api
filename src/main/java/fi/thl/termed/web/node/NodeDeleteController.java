@@ -40,8 +40,16 @@ public class NodeDeleteController {
   public void deleteAllOfGraph(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "disconnect", defaultValue = "false") boolean disconnect,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeService.getKeys(new NodesByGraphId(graphId), user), opts(sync), user);
+    List<NodeId> deleteIds = nodeService.getKeys(new NodesByGraphId(graphId), user);
+
+    if (disconnect) {
+      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
+          deleteIds, SaveMode.UPDATE, opts(sync), user);
+    } else {
+      nodeService.delete(deleteIds, opts(sync), user);
+    }
   }
 
   @DeleteMapping(path = "/graphs/{graphId}/nodes", params = "batch=true")
@@ -49,11 +57,19 @@ public class NodeDeleteController {
   public void deleteByIdsOfGraph(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "disconnect", defaultValue = "false") boolean disconnect,
       @RequestBody List<NodeId> nodeIds,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeIds.stream()
+    List<NodeId> deleteIds = nodeIds.stream()
         .map(id -> new NodeId(id.getId(), id.getTypeId(), graphId))
-        .collect(toList()), opts(sync), user);
+        .collect(toList());
+
+    if (disconnect) {
+      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
+          deleteIds, SaveMode.UPDATE, opts(sync), user);
+    } else {
+      nodeService.delete(deleteIds, opts(sync), user);
+    }
   }
 
   @DeleteMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -62,10 +78,18 @@ public class NodeDeleteController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "disconnect", defaultValue = "false") boolean disconnect,
       @AuthenticationPrincipal User user) {
-    nodeService.delete(nodeService.getKeys(and(
+    List<NodeId> deleteIds = nodeService.getKeys(and(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), user), opts(sync), user);
+        new NodesByTypeId(typeId)), user);
+
+    if (disconnect) {
+      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
+          deleteIds, SaveMode.UPDATE, opts(sync), user);
+    } else {
+      nodeService.delete(deleteIds, opts(sync), user);
+    }
   }
 
   @DeleteMapping(path = "/nodes", params = "batch=true")
