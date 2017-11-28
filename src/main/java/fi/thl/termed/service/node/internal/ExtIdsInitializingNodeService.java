@@ -118,7 +118,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
   }
 
   private void addDefaultUriIfMissing(Node node, Set<String> usedUris, User user) {
-    if (isNullOrEmpty(node.getUri())) {
+    if (isNullOrEmpty(node.getUri()) && !isNullOrEmpty(node.getCode())) {
       Graph graph = graphSource.apply(node.getTypeGraph(), user)
           .orElseThrow(IllegalStateException::new);
 
