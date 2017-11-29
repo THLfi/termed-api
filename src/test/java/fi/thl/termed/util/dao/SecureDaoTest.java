@@ -1,23 +1,19 @@
 package fi.thl.termed.util.dao;
 
-import com.google.common.collect.Maps;
-
-import org.junit.Test;
-
-import java.util.Map;
-import java.util.Optional;
-
-import fi.thl.termed.domain.AppRole;
-import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.Dao;
-import fi.thl.termed.util.dao.MemoryBasedSystemDao;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import com.google.common.collect.Maps;
+import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Permission;
+import fi.thl.termed.domain.User;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.Test;
+import org.springframework.security.access.AccessDeniedException;
 
 public class SecureDaoTest {
 
@@ -61,26 +57,30 @@ public class SecureDaoTest {
     assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
 
     secureDao.update("greeting", "Hello updated", dummyUser);
-    secureDao.update("locked_greeting", "Good day updated", dummyUser);
-
     assertEquals("Hello updated", secureDao.get("greeting", dummyUser).get());
-    assertNotEquals("Good day updated", secureDao.get("locked_greeting", dummyUser));
-    assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
+
+    try {
+      secureDao.update("locked_greeting", "Good day updated", dummyUser);
+      fail("Expected AccessDeniedException");
+    } catch (AccessDeniedException e) {
+      assertNotEquals("Good day updated", secureDao.get("locked_greeting", dummyUser));
+      assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
 
     secureDao.delete("greeting", dummyUser);
-    secureDao.delete("locked_greeting", dummyUser);
-
     assertFalse(secureDao.exists("greeting", dummyUser));
-    assertTrue(secureDao.exists("locked_greeting", dummyUser));
-    assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
 
-    assertFalse(secureDao.exists("locked_greeting_2", dummyUser));
-    secureDao.insert("locked_greeting_2", "Good night", dummyUser);
-    assertFalse(secureDao.exists("locked_greeting_2", dummyUser));
-
-    assertFalse(secureDao.exists("greeting_2", dummyUser));
-    secureDao.insert("greeting_2", "Good night", dummyUser);
-    assertEquals("Good night", secureDao.get("greeting_2", dummyUser).get());
+    try {
+      secureDao.delete("locked_greeting", dummyUser);
+      fail("Expected AccessDeniedException");
+    } catch (AccessDeniedException e) {
+      assertTrue(secureDao.exists("locked_greeting", dummyUser));
+      assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
   }
 
 }
