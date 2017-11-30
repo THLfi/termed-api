@@ -1,7 +1,6 @@
 package fi.thl.termed.service.node.util;
 
-import static fi.thl.termed.service.node.util.Urns.urn;
-import static fi.thl.termed.service.node.util.Urns.urnUuid;
+import static fi.thl.termed.domain.DefaultUris.uri;
 import static fi.thl.termed.util.collect.FunctionUtils.memoize;
 import static org.apache.jena.graph.NodeFactory.createLiteral;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -19,23 +18,23 @@ import java.util.function.Function;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.RDF;
 
-class NodeToTriples implements Function<Node, List<Triple>> {
+public class NodeToTriples implements Function<Node, List<Triple>> {
 
   private Function<TypeId, String> typeResolver;
   private Function<TextAttributeId, String> textAttrResolver;
   private Function<ReferenceAttributeId, String> refAttrResolver;
   private Function<NodeId, String> nodeResolver;
 
-  NodeToTriples(
+  public NodeToTriples(
       Function<TypeId, Optional<String>> typeUris,
       Function<TextAttributeId, Optional<String>> textAttrUris,
       Function<ReferenceAttributeId, Optional<String>> refAttrUris,
       Function<NodeId, Optional<String>> nodeUris) {
     // cache and add urn fallback to uri resolving functions
-    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(urn(id)), 1000);
-    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(urn(id)), 1000);
-    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(urn(id)), 1000);
-    this.nodeResolver = memoize(id -> nodeUris.apply(id).orElse(urnUuid(id.getId())), 100_000);
+    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(uri(id)), 1000);
+    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(uri(id)), 1000);
+    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(uri(id)), 1000);
+    this.nodeResolver = memoize(id -> nodeUris.apply(id).orElse(uri(id)), 100_000);
   }
 
   @Override

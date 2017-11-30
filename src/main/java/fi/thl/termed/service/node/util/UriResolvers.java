@@ -13,17 +13,17 @@ import java.util.function.Function;
 /**
  * Functions to convert IDs to URIs using given data sources
  */
-final class UriResolvers {
+public final class UriResolvers {
 
   private UriResolvers() {
   }
 
-  static Function<TypeId, Optional<String>> typeUriResolver(
+  public static Function<TypeId, Optional<String>> typeUriResolver(
       Function<TypeId, Optional<Type>> typeProvider) {
     return id -> typeProvider.apply(id).flatMap(Type::getUri);
   }
 
-  static Function<TextAttributeId, Optional<String>> textAttrUriResolver(
+  public static Function<TextAttributeId, Optional<String>> textAttrUriResolver(
       Function<TypeId, Optional<Type>> typeProvider) {
     return textAttributeId -> typeProvider.apply(textAttributeId.getDomainId())
         .flatMap(type -> type.getTextAttributes().stream()
@@ -32,7 +32,7 @@ final class UriResolvers {
             .flatMap(Attribute::getUri));
   }
 
-  static Function<ReferenceAttributeId, Optional<String>> refAttrUriResolver(
+  public static Function<ReferenceAttributeId, Optional<String>> refAttrUriResolver(
       Function<TypeId, Optional<Type>> typeProvider) {
     return referenceAttributeId -> typeProvider.apply(referenceAttributeId.getDomainId())
         .flatMap(type -> type.getReferenceAttributes().stream()
@@ -41,7 +41,7 @@ final class UriResolvers {
             .flatMap(Attribute::getUri));
   }
 
-  static Function<NodeId, Optional<String>> nodeUriResolver(
+  public static Function<NodeId, Optional<String>> nodeUriResolver(
       Function<NodeId, Optional<Node>> nodeProvider) {
     return id -> nodeProvider.apply(id).map(Node::getUri);
   }

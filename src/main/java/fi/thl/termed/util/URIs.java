@@ -14,7 +14,7 @@ public final class URIs {
     return uri.substring(i + 1);
   }
 
-  public static String uuidUrn(UUID uuid) {
+  public static String urnUuid(UUID uuid) {
     return String.format("urn:uuid:%s", uuid);
   }
 
