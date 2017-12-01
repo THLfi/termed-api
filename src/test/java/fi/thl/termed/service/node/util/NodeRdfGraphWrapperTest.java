@@ -83,7 +83,7 @@ public class NodeRdfGraphWrapperTest {
         createStatement(createResource("http://example.org/Concept_2"), SKOS.broader,
             createResource("http://example.org/Concept_1")));
 
-    assertEquals(expected, model.listStatements().toSet());
+    assertTrue(model.listStatements().toSet().containsAll(expected));
   }
 
   @Test
