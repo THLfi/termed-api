@@ -25,7 +25,7 @@ public class SelectParser implements Parser<List<Select>> {
     ParserCombinator<Select> selectUriParser =
         regex("uri").map(m -> new SelectUri());
     ParserCombinator<Select> selectNumberParser =
-        regex("(n|number)").map(m -> new SelectNumber());
+        regex("(number|n)").map(m -> new SelectNumber());
     ParserCombinator<Select> selectCreatedByParser =
         regex("createdBy").map(m -> new SelectCreatedBy());
     ParserCombinator<Select> selectCreatedDateParser =

@@ -1,7 +1,9 @@
 package fi.thl.termed.service.node.util;
 
+import static fi.thl.termed.domain.DefaultUris.propertyUri;
 import static fi.thl.termed.domain.DefaultUris.uri;
 import static fi.thl.termed.util.collect.FunctionUtils.memoize;
+import static java.util.Optional.ofNullable;
 import static org.apache.jena.graph.NodeFactory.createLiteral;
 import static org.apache.jena.graph.NodeFactory.createURI;
 import static org.apache.jena.graph.Triple.create;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.RDF;
+import org.joda.time.DateTime;
 
 public class NodeToTriples implements Function<Node, List<Triple>> {
 
@@ -45,6 +48,24 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
 
     triples.add(create(subject, RDF.type.asNode(), createURI(typeResolver.apply(node.getType()))));
 
+    triples.add(createTermedLiteral(subject, "id", node.getId().toString()));
+    triples.add(createTermedLiteral(subject, "type", node.getTypeId()));
+    triples.add(createTermedLiteral(subject, "graph", node.getTypeGraphId().toString()));
+    ofNullable(node.getNumber()).ifPresent(l ->
+        triples.add(createTermedLiteral(subject, "number", l.toString())));
+    ofNullable(node.getUri()).ifPresent(s ->
+        triples.add(createTermedLiteral(subject, "uri", s)));
+    ofNullable(node.getCode()).ifPresent(s ->
+        triples.add(createTermedLiteral(subject, "code", s)));
+    ofNullable(node.getCreatedBy()).ifPresent(s ->
+        triples.add(createTermedLiteral(subject, "createdBy", s)));
+    ofNullable(node.getCreatedDate()).ifPresent(d ->
+        triples.add(createTermedLiteral(subject, "createdDate", new DateTime(d).toString())));
+    ofNullable(node.getLastModifiedBy()).ifPresent(s ->
+        triples.add(createTermedLiteral(subject, "lastModifiedBy", s)));
+    ofNullable(node.getLastModifiedDate()).ifPresent(d ->
+        triples.add(createTermedLiteral(subject, "lastModifiedDate", new DateTime(d).toString())));
+
     node.getProperties().forEach((k, v) ->
         triples.add(create(
             subject,
@@ -58,6 +79,11 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
             createURI(nodeResolver.apply(v)))));
 
     return triples;
+  }
+
+  private Triple createTermedLiteral(org.apache.jena.graph.Node subject, String propertyUri,
+      String literal) {
+    return create(subject, createURI(propertyUri(propertyUri)), createLiteral(literal));
   }
 
 }
