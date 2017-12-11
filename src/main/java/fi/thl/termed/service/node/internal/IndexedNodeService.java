@@ -291,7 +291,8 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private void resolve(Specification<NodeId, Node> spec, User user) {
     if (spec instanceof DependentSpecification) {
-      ((DependentSpecification<NodeId, Node>) spec).resolve(s -> getKeys(s, user));
+      ((DependentSpecification<NodeId, Node>) spec)
+          .resolve(s -> getKeyStream(new Query<>(s), user));
     }
     if (spec instanceof NotSpecification) {
       resolve(((NotSpecification<NodeId, Node>) spec).getSpecification(), user);
