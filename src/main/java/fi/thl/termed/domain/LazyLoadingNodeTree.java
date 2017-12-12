@@ -1,7 +1,5 @@
 package fi.thl.termed.domain;
 
-import static fi.thl.termed.util.collect.FunctionUtils.partialApply;
-
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.LazyLoadingMultimap;
 import java.util.Date;
@@ -78,7 +76,7 @@ public class LazyLoadingNodeTree implements NodeTree {
   @Override
   public Multimap<String, NodeTree> getReferences() {
     return new LazyLoadingMultimap<>(source.getReferences().keySet(),
-        attrId -> partialApply(referenceProvider, source).apply(attrId).stream()
+        attrId -> referenceProvider.apply(source, attrId).stream()
             .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
             .collect(Collectors.toList()));
   }
@@ -86,7 +84,7 @@ public class LazyLoadingNodeTree implements NodeTree {
   @Override
   public Multimap<String, NodeTree> getReferrers() {
     return new LazyLoadingMultimap<>(source.getReferrers().keySet(),
-        attrId -> partialApply(referrerProvider, source).apply(attrId).stream()
+        attrId -> referrerProvider.apply(source, attrId).stream()
             .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
             .collect(Collectors.toList()));
   }
