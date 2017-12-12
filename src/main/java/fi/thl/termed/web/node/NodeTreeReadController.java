@@ -10,7 +10,7 @@ import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
-import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import fi.thl.termed.domain.DepthLimitedNodeTree;
 import fi.thl.termed.domain.FilteredNodeTree;
 import fi.thl.termed.domain.Graph;
@@ -19,15 +19,14 @@ import fi.thl.termed.domain.LazyLoadingNodeTree;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.NodeTree;
-import fi.thl.termed.domain.SimpleNodeTree;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.select.Selects;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
+import fi.thl.termed.service.node.util.NodeTreeToJsonStream;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
-import fi.thl.termed.util.json.JsonStream;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
@@ -35,6 +34,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -57,8 +57,6 @@ public class NodeTreeReadController {
   private Service<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
-  @Autowired
-  private Gson gson;
 
   @GetJsonMapping("/node-trees")
   public void get(
@@ -78,10 +76,15 @@ public class NodeTreeReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      Stream<NodeTree> trees = toTrees(nodes, selects, user);
+
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
-      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+      try (JsonWriter writer = new JsonWriter(
+          new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
+        writer.setIndent("  ");
+        NodeTreeToJsonStream.toJson(trees.iterator(), writer);
+      }
     }
   }
 
@@ -107,10 +110,15 @@ public class NodeTreeReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      Stream<NodeTree> trees = toTrees(nodes, selects, user);
+
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
-      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+      try (JsonWriter writer = new JsonWriter(
+          new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
+        writer.setIndent("  ");
+        NodeTreeToJsonStream.toJson(trees.iterator(), writer);
+      }
     }
   }
 
@@ -135,38 +143,49 @@ public class NodeTreeReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
+      Stream<NodeTree> trees = toTrees(nodes, selects, user);
+
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
-      JsonStream.write(response.getOutputStream(), gson, trees, SimpleNodeTree.class);
+      try (JsonWriter writer = new JsonWriter(
+          new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
+        writer.setIndent("  ");
+        NodeTreeToJsonStream.toJson(trees.iterator(), writer);
+      }
     }
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/node-trees/{id}")
-  public SimpleNodeTree get(
+  public void get(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
     Node node = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    return toTree(node, Selects.parse(join(",", select)), user);
+    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    response.setCharacterEncoding(UTF_8.toString());
+    try (JsonWriter writer = new JsonWriter(
+        new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
+      writer.setIndent("  ");
+      NodeTreeToJsonStream.toJson(toTree(node, Selects.parse(join(",", select)), user), writer);
+    }
   }
 
-  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {
+  private Stream<NodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {
     return nodes.map(node -> toTree(node, selects, user));
   }
 
-  private SimpleNodeTree toTree(Node node, Set<Select> selects, User user) {
+  private NodeTree toTree(Node node, Set<Select> selects, User user) {
     NodeTree tree = new LazyLoadingNodeTree(node,
         new IndexedReferenceLoader(nodeService, user, selects),
         new IndexedReferrerLoader(nodeService, user, selects));
     tree = new DepthLimitedNodeTree(tree, selectReferences(selects), selectReferrers(selects));
-    tree = new FilteredNodeTree(tree, selects);
-    return new SimpleNodeTree(tree);
+    return new FilteredNodeTree(tree, selects);
   }
 
 }
