@@ -1,14 +1,14 @@
 package fi.thl.termed.domain;
 
-import static com.google.common.collect.Multimaps.transformEntries;
+import static fi.thl.termed.util.collect.FunctionUtils.partialApply;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
+import fi.thl.termed.util.collect.LazyLoadingMultimap;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 public class LazyLoadingNodeTree implements NodeTree {
 
@@ -16,9 +16,6 @@ public class LazyLoadingNodeTree implements NodeTree {
 
   private BiFunction<Node, String, List<Node>> referenceProvider;
   private BiFunction<Node, String, List<Node>> referrerProvider;
-
-  private Table<String, NodeId, NodeTree> referenceCache = HashBasedTable.create();
-  private Table<String, NodeId, NodeTree> referrerCache = HashBasedTable.create();
 
   public LazyLoadingNodeTree(Node source,
       BiFunction<Node, String, List<Node>> referenceProvider,
@@ -80,30 +77,18 @@ public class LazyLoadingNodeTree implements NodeTree {
 
   @Override
   public Multimap<String, NodeTree> getReferences() {
-    return transformEntries(source.getReferences(), this::loadReference);
-  }
-
-  private NodeTree loadReference(String attributeId, NodeId valueId) {
-    if (!referenceCache.contains(attributeId, valueId)) {
-      referenceProvider.apply(source, attributeId)
-          .forEach(value -> referenceCache.put(attributeId, value.identifier(),
-              new LazyLoadingNodeTree(value, referenceProvider, referrerProvider)));
-    }
-    return referenceCache.get(attributeId, valueId);
+    return new LazyLoadingMultimap<>(source.getReferences().keySet(),
+        attrId -> partialApply(referenceProvider, source).apply(attrId).stream()
+            .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
+            .collect(Collectors.toList()));
   }
 
   @Override
   public Multimap<String, NodeTree> getReferrers() {
-    return transformEntries(source.getReferrers(), this::loadReferrer);
-  }
-
-  private NodeTree loadReferrer(String attributeId, NodeId valueId) {
-    if (!referrerCache.contains(attributeId, valueId)) {
-      referrerProvider.apply(source, attributeId)
-          .forEach(value -> referrerCache.put(attributeId, value.identifier(),
-              new LazyLoadingNodeTree(value, referenceProvider, referrerProvider)));
-    }
-    return referrerCache.get(attributeId, valueId);
+    return new LazyLoadingMultimap<>(source.getReferrers().keySet(),
+        attrId -> partialApply(referrerProvider, source).apply(attrId).stream()
+            .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
+            .collect(Collectors.toList()));
   }
 
 }
