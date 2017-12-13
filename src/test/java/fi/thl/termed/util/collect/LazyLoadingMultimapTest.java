@@ -59,6 +59,7 @@ public class LazyLoadingMultimapTest {
     assertFalse(map.containsEntry("a", 3));
     assertFalse(map.containsEntry("a", of(1)));
     assertFalse(map.containsEntry("b", 1));
+    assertFalse(map.containsEntry(true, 1));
   }
 
   @Test

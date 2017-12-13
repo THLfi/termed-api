@@ -62,7 +62,7 @@ public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
 
   @Override
   public boolean containsEntry(Object key, Object value) {
-    return entries().contains(new SimpleEntry<>(key, value));
+    return get((K) key).contains(value);
   }
 
   @Override
