@@ -34,6 +34,11 @@ public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
   }
 
   @Override
+  public boolean containsEntry(Object key, Object value) {
+    return get((K) key).contains(value);
+  }
+
+  @Override
   public List<V> get(K key) {
     return keys.contains(key) ? valueLoader.apply(key) : emptyList();
   }
@@ -58,11 +63,6 @@ public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
   @Override
   public boolean containsValue(Object value) {
     return entries().stream().anyMatch(e -> Objects.equals(value, e.getValue()));
-  }
-
-  @Override
-  public boolean containsEntry(Object key, Object value) {
-    return get((K) key).contains(value);
   }
 
   @Override
