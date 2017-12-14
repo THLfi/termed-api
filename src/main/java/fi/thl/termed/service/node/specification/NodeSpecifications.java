@@ -10,6 +10,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.query.SpecificationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,8 +40,8 @@ public final class NodeSpecifications {
           new NodeGraphAndTypeSpecificationResolver(graphs, types)
               .apply(queryParser.apply(query))));
     }
-
-    return AndSpecification.and(clauses);
+    
+    return SpecificationUtils.simplify(AndSpecification.and(clauses));
   }
 
   public static Specification<NodeId, Node> specifyByAnyPropertyPrefix(Type type, String query) {
@@ -64,7 +65,7 @@ public final class NodeSpecifications {
       clauses.add(OrSpecification.or(orClauses));
     }
 
-    return AndSpecification.and(clauses);
+    return SpecificationUtils.simplify(AndSpecification.and(clauses));
   }
 
 }

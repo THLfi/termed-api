@@ -1,6 +1,5 @@
 package fi.thl.termed.util.query;
 
-import com.google.common.base.MoreObjects;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -46,10 +45,7 @@ public class ParametrizedSqlQuery {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("queryTemplate", queryTemplate)
-        .add("queryParameters", Arrays.asList(queryParameters))
-        .toString();
+    return queryTemplate + " " + Arrays.asList(queryParameters);
   }
 
 }

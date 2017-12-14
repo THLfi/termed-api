@@ -1,6 +1,10 @@
 package fi.thl.termed.util.query;
 
+import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -11,20 +15,77 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class SpecificationUtilsTest {
 
   @Test
-  public void shouldConvertToDnf() {
-    Assert.assertEquals("((A ∧ X) ∨ (A ∧ Y) ∨ (B ∧ X) ∨ (B ∧ Y))",
-        prettyPrint(SpecificationUtils.toDnf(
-            AndSpecification.and(
-                OrSpecification.or(new SimpleSpec("A"), new SimpleSpec("B")),
-                OrSpecification.or(new SimpleSpec("X"), new SimpleSpec("Y"))))));
+  public void shouldRemoveDuplicates() {
+    assertEquals("(A ∧ B)",
+        prettyPrint(SpecificationUtils.simplify(
+            and(SimpleSpec.of("A"), SimpleSpec.of("A"), SimpleSpec.of("B")))));
 
-    Assert.assertEquals("((A ∧ X ∧ I) ∨ (A ∧ X ∧ J) ∨ (A ∧ X ∧ K) ∨ "
+    assertEquals("(A ∨ B)",
+        prettyPrint(SpecificationUtils.simplify(
+            or(SimpleSpec.of("A"), SimpleSpec.of("A"), SimpleSpec.of("B")))));
+  }
+
+  @Test
+  public void shouldFlattenSingletonCompositeSpecs() {
+    assertEquals("A",
+        prettyPrint(SpecificationUtils.simplify(
+            and(and(and(SimpleSpec.of("A")))))));
+
+    assertEquals("A",
+        prettyPrint(SpecificationUtils.simplify(
+            or(or(or(SimpleSpec.of("A")))))));
+
+    assertEquals("A",
+        prettyPrint(SpecificationUtils.simplify(
+            and(or(and(SimpleSpec.of("A")))))));
+  }
+
+  @Test
+  public void shouldSimplifyConjunctiveSpecContainingMatchNodeToMatchNone() {
+    assertEquals(new MatchNone<>(),
+        SpecificationUtils.simplify(
+            and(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
+
+    assertEquals(new MatchNone<>(),
+        SpecificationUtils.simplify(
+            and(new MatchNone<>(), new MatchNone<>())));
+
+    assertEquals(new MatchNone<>(),
+        SpecificationUtils.simplify(
+            and(new MatchNone<>(), SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
+
+    assertEquals(new MatchNone<>(),
+        SpecificationUtils.simplify(
+            and(SimpleSpec.of("A"),
+                and(new MatchNone<>(), SimpleSpec.of("X")),
+                SimpleSpec.of("B"))));
+  }
+
+  @Test
+  public void shouldNotSimplifyDisjunctiveSpecContainingMatchNoneToMatchNone() {
+    assertNotEquals(new MatchNone<>(), SpecificationUtils.simplify(
+        or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
+  }
+
+  @Test
+  public void shouldRemoveRedundantMatchNoneFromDisjunction() {
+    assertEquals(or(SimpleSpec.of("A"), SimpleSpec.of("B")),
+        SpecificationUtils.simplify(or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
+  }
+
+  @Test
+  public void shouldConvertToDnf() {
+    assertEquals("((A ∧ X) ∨ (A ∧ Y) ∨ (B ∧ X) ∨ (B ∧ Y))",
+        prettyPrint(SpecificationUtils.toDnf(
+            and(or(SimpleSpec.of("A"), SimpleSpec.of("B")),
+                or(SimpleSpec.of("X"), SimpleSpec.of("Y"))))));
+
+    assertEquals("((A ∧ X ∧ I) ∨ (A ∧ X ∧ J) ∨ (A ∧ X ∧ K) ∨ "
             + "(A ∧ Y ∧ I) ∨ (A ∧ Y ∧ J) ∨ (A ∧ Y ∧ K) ∨ "
             + "(A ∧ Z ∧ I) ∨ (A ∧ Z ∧ J) ∨ (A ∧ Z ∧ K) ∨ "
             + "(B ∧ X ∧ I) ∨ (B ∧ X ∧ J) ∨ (B ∧ X ∧ K) ∨ "
@@ -33,11 +94,18 @@ public class SpecificationUtilsTest {
             + "(C ∧ X ∧ I) ∨ (C ∧ X ∧ J) ∨ (C ∧ X ∧ K) ∨ "
             + "(C ∧ Y ∧ I) ∨ (C ∧ Y ∧ J) ∨ (C ∧ Y ∧ K) ∨ "
             + "(C ∧ Z ∧ I) ∨ (C ∧ Z ∧ J) ∨ (C ∧ Z ∧ K))",
-        prettyPrint(SpecificationUtils.toDnf(AndSpecification.and(
-            OrSpecification.or(new SimpleSpec("A"), new SimpleSpec("B"), new SimpleSpec("C")),
-            OrSpecification.or(new SimpleSpec("X"), new SimpleSpec("Y"), new SimpleSpec("Z")),
-            OrSpecification.or(new SimpleSpec("I"), new SimpleSpec("J"),
-                new SimpleSpec("K"))))));
+        prettyPrint(SpecificationUtils.toDnf(and(
+            or(SimpleSpec.of("A"), SimpleSpec.of("B"), SimpleSpec.of("C")),
+            or(SimpleSpec.of("X"), SimpleSpec.of("Y"), SimpleSpec.of("Z")),
+            or(SimpleSpec.of("I"), SimpleSpec.of("J"), SimpleSpec.of("K"))))));
+  }
+
+  @Test
+  public void shouldConvertToCnf() {
+    assertEquals("((A ∨ X) ∧ (A ∨ Y) ∧ (B ∨ X) ∧ (B ∨ Y))",
+        prettyPrint(SpecificationUtils.toCnf(
+            or(and(SimpleSpec.of("A"), SimpleSpec.of("B")),
+                and(SimpleSpec.of("X"), SimpleSpec.of("Y"))))));
   }
 
   @Test
@@ -46,37 +114,23 @@ public class SpecificationUtilsTest {
     String typeId = "Concept";
     String query = "cat";
 
-    Specification<NodeId, Node> expected = OrSpecification.or(
-        AndSpecification.and(
-            new NodesByGraphId(graphId),
+    Specification<NodeId, Node> expected = or(
+        and(new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("prefLabel", query)),
-        AndSpecification.and(
-            new NodesByGraphId(graphId),
+        and(new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("altLabel", query)),
-        AndSpecification.and(
-            new NodesByGraphId(graphId),
+        and(new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
             new NodesByProperty("description", query)));
 
-    Assert.assertEquals(expected, SpecificationUtils.toDnf(
-        AndSpecification.and(
-            new NodesByGraphId(graphId),
+    assertEquals(expected, SpecificationUtils.toDnf(
+        and(new NodesByGraphId(graphId),
             new NodesByTypeId(typeId),
-            OrSpecification.or(
-                new NodesByProperty("prefLabel", query),
+            or(new NodesByProperty("prefLabel", query),
                 new NodesByProperty("altLabel", query),
                 new NodesByProperty("description", query)))));
-  }
-
-  @Test
-  public void shouldConvertToCnf() {
-    Assert.assertEquals("((A ∨ X) ∧ (A ∨ Y) ∧ (B ∨ X) ∧ (B ∨ Y))",
-        prettyPrint(SpecificationUtils.toCnf(
-            OrSpecification.or(
-                AndSpecification.and(new SimpleSpec("A"), new SimpleSpec("B")),
-                AndSpecification.and(new SimpleSpec("X"), new SimpleSpec("Y"))))));
   }
 
   private <K extends Serializable, V> String prettyPrint(Specification<K, V> spec) {
@@ -100,8 +154,12 @@ public class SpecificationUtilsTest {
 
     private String symbol;
 
-    public SimpleSpec(String symbol) {
+    SimpleSpec(String symbol) {
       this.symbol = symbol;
+    }
+
+    static SimpleSpec of(String symbol) {
+      return new SimpleSpec(symbol);
     }
 
     @Override
@@ -110,9 +168,27 @@ public class SpecificationUtilsTest {
     }
 
     @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      SimpleSpec that = (SimpleSpec) o;
+      return Objects.equals(symbol, that.symbol);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(symbol);
+    }
+
+    @Override
     public String toString() {
       return symbol;
     }
+
   }
 
 }

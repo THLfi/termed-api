@@ -22,4 +22,14 @@ public class MatchNone<K extends Serializable, V>
     return ParametrizedSqlQuery.of("1 = 0");
   }
 
+  @Override
+  public int hashCode() {
+    return MatchNone.class.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return this == that || that instanceof MatchNone;
+  }
+
 }

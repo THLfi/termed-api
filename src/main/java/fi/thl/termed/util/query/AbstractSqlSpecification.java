@@ -24,19 +24,9 @@ public abstract class AbstractSqlSpecification<K extends Serializable, V>
     return sql().hashCode();
   }
 
-  /**
-   * This is for debug printing only, not safe to run against db
-   */
   @Override
   public String toString() {
-    String sqlTemplate = sqlQueryTemplate();
-    String result = "";
-
-    for (Object queryParameter : sqlQueryParameters()) {
-      result = sqlTemplate.replace("?", queryParameter.toString());
-    }
-
-    return result;
+    return sql().toString();
   }
 
 }

@@ -14,6 +14,74 @@ public final class SpecificationUtils {
   }
 
   /**
+   * Simplify given specification by eliminating impossible branches, removing duplicate
+   * specifications and flattening single clause composite specifications.
+   */
+  public static <K extends Serializable, V> Specification<K, V> simplify(Specification<K, V> spec) {
+    if (spec instanceof AndSpecification) {
+      return simplify((AndSpecification<K, V>) spec);
+    }
+    if (spec instanceof OrSpecification) {
+      return simplify((OrSpecification<K, V>) spec);
+    }
+    return spec;
+  }
+
+  private static <K extends Serializable, V> Specification<K, V> simplify(
+      AndSpecification<K, V> specs) {
+
+    List<Specification<K, V>> clauses = specs.specifications.stream()
+        .map(SpecificationUtils::simplify)
+        .distinct()
+        .collect(toList());
+
+    if (clauses.isEmpty()) {
+      return new MatchNone<>();
+    }
+    if (clauses.stream().anyMatch(s -> s instanceof MatchNone)) {
+      return new MatchNone<>();
+    }
+    if (clauses.stream().allMatch(s -> s instanceof MatchAll)) {
+      return new MatchAll<>();
+    }
+
+    // clauses list is non-empty and contains specifications that are not MatchAll,
+    // in this conjunction MatchAll will always be least restrictive and can be removed
+    clauses = clauses.stream()
+        .filter(s -> !(s instanceof MatchAll))
+        .collect(toList());
+
+    return clauses.size() == 1 ? clauses.iterator().next() : AndSpecification.and(clauses);
+  }
+
+  private static <K extends Serializable, V> Specification<K, V> simplify(
+      OrSpecification<K, V> specs) {
+
+    List<Specification<K, V>> clauses = specs.specifications.stream()
+        .map(SpecificationUtils::simplify)
+        .distinct()
+        .collect(toList());
+
+    if (clauses.isEmpty()) {
+      return new MatchNone<>();
+    }
+    if (clauses.stream().anyMatch(s -> s instanceof MatchAll)) {
+      return new MatchAll<>();
+    }
+    if (clauses.stream().allMatch(s -> s instanceof MatchNone)) {
+      return new MatchNone<>();
+    }
+
+    // clauses list is non-empty and contains specifications that are not MatchNone,
+    // in this disjunction MatchNone will always be least restrictive and can be removed
+    clauses = clauses.stream()
+        .filter(s -> !(s instanceof MatchNone))
+        .collect(toList());
+
+    return clauses.size() == 1 ? clauses.iterator().next() : OrSpecification.or(clauses);
+  }
+
+  /**
    * Transforms specification to conjunctive normal form. Can be used for example to debug and test
    * specifications. Transformation may produce results of exponential in size and therefore
    * transformation may take exponential time.

@@ -16,4 +16,14 @@ public class MatchAll<K extends Serializable, V> implements SqlSpecification<K, 
     return ParametrizedSqlQuery.of("1 = 1");
   }
 
+  @Override
+  public int hashCode() {
+    return MatchAll.class.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return this == that || that instanceof MatchAll;
+  }
+
 }

@@ -114,6 +114,8 @@ public class QueryProfilingService<K extends Serializable, V> extends Forwarding
   private void logDuration(long durationInNanos, String msgFormat, Object[] args) {
     if (durationInNanos >= limitInNanos) {
       log.info("{} in {}", String.format(msgFormat, args), prettyPrint(durationInNanos));
+    } else if (log.isTraceEnabled()) {
+      log.trace("{} in {}", String.format(msgFormat, args), prettyPrint(durationInNanos));
     }
   }
 
