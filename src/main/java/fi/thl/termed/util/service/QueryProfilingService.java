@@ -32,71 +32,74 @@ public class QueryProfilingService<K extends Serializable, V> extends Forwarding
 
   @Override
   public List<V> getValues(User user) {
-    return profile(() -> super.getValues(user), "getValues (%s)", user.getUsername());
+    return profile(() -> super.getValues(user),
+        "getValues (%s)", user.getUsername());
   }
 
   @Override
   public List<V> getValues(Specification<K, V> spec, User user) {
-    return profile(() -> super.getValues(spec, user), "getValues %s (%s)", spec,
-        user.getUsername());
+    return profile(() -> super.getValues(spec, user),
+        "getValues %s (%s)", spec, user.getUsername());
   }
 
   @Override
   public List<V> getValues(Query<K, V> query, User user) {
-    return profile(() -> super.getValues(query, user), "getValues %s (%s)", query,
-        user.getUsername());
+    return profile(() -> super.getValues(query, user),
+        "getValues %s (%s)", query, user.getUsername());
   }
 
   @Override
   public Stream<V> getValueStream(User user) {
-    return profileStream(() -> super.getValueStream(user), "getValueStream (%s)",
-        user.getUsername());
+    return profileStream(() -> super.getValueStream(user),
+        "getValueStream (%s)", user.getUsername());
   }
 
   @Override
   public Stream<V> getValueStream(Specification<K, V> spec, User user) {
-    return profileStream(() -> super.getValueStream(spec, user), "getValueStream %s (%s)", spec,
-        user.getUsername());
+    return profileStream(() -> super.getValueStream(spec, user),
+        "getValueStream %s (%s)", spec, user.getUsername());
   }
 
   @Override
   public Stream<V> getValueStream(Query<K, V> query, User user) {
-    return profileStream(() -> super.getValueStream(query, user), "getValueStream %s (%s)", query,
-        user.getUsername());
+    return profileStream(() -> super.getValueStream(query, user),
+        "getValueStream %s (%s)", query, user.getUsername());
   }
 
   @Override
   public List<K> getKeys(User user) {
-    return profile(() -> super.getKeys(user), "getKeys (%s)", user.getUsername());
+    return profile(() -> super.getKeys(user),
+        "getKeys (%s)", user.getUsername());
   }
 
   @Override
   public List<K> getKeys(Specification<K, V> spec, User user) {
-    return profile(() -> super.getKeys(spec, user), "getKeys %s (%s)" + spec,
-        user.getUsername());
+    return profile(() -> super.getKeys(spec, user),
+        "getKeys %s (%s)", spec, user.getUsername());
   }
 
   @Override
   public List<K> getKeys(Query<K, V> query, User user) {
-    return profile(() -> super.getKeys(query, user), "getKeys %s (%s)", query,
-        user.getUsername());
+    return profile(() -> super.getKeys(query, user),
+        "getKeys %s (%s)", query, user.getUsername());
   }
 
   @Override
   public Stream<K> getKeyStream(User user) {
-    return profileStream(() -> super.getKeyStream(user), "getKeyStream (%s)", user.getUsername());
+    return profileStream(() -> super.getKeyStream(user),
+        "getKeyStream (%s)", user.getUsername());
   }
 
   @Override
   public Stream<K> getKeyStream(Specification<K, V> spec, User user) {
-    return profileStream(() -> super.getKeyStream(spec, user), "getKeyStream %s (%s)" + spec,
-        user.getUsername());
+    return profileStream(() -> super.getKeyStream(spec, user),
+        "getKeyStream %s (%s)", spec, user.getUsername());
   }
 
   @Override
   public Stream<K> getKeyStream(Query<K, V> query, User user) {
-    return profileStream(() -> super.getKeyStream(query, user), "getKeyStream %s (%s)", query,
-        user.getUsername());
+    return profileStream(() -> super.getKeyStream(query, user),
+        "getKeyStream %s (%s)", query, user.getUsername());
   }
 
   private <E> E profile(Supplier<E> supplier, String format, Object... args) {
