@@ -7,6 +7,7 @@ import fi.thl.termed.util.collect.ListUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class SpecificationUtils {
 
@@ -15,9 +16,12 @@ public final class SpecificationUtils {
 
   /**
    * Simplify given specification by eliminating impossible branches, removing duplicate
-   * specifications and flattening single clause composite specifications.
+   * specifications and flattening single clause AND/OR specifications.
    */
   public static <K extends Serializable, V> Specification<K, V> simplify(Specification<K, V> spec) {
+    if (spec instanceof NotSpecification) {
+      return simplify((NotSpecification<K, V>) spec);
+    }
     if (spec instanceof AndSpecification) {
       return simplify((AndSpecification<K, V>) spec);
     }
@@ -28,10 +32,41 @@ public final class SpecificationUtils {
   }
 
   private static <K extends Serializable, V> Specification<K, V> simplify(
+      NotSpecification<K, V> spec) {
+
+    Specification<K, V> innerSpec = spec.getSpecification();
+
+    // eliminate double negation
+    if (innerSpec instanceof NotSpecification) {
+      return simplify(((NotSpecification<K, V>) innerSpec).getSpecification());
+    }
+    // apply de morgan's law
+    if (innerSpec instanceof AndSpecification) {
+      List<Specification<K, V>> inverted = ((AndSpecification<K, V>) innerSpec)
+          .getSpecifications().stream()
+          .map(NotSpecification::not)
+          .collect(toList());
+      return simplify(OrSpecification.or(inverted));
+    }
+    // apply de morgan's law
+    if (innerSpec instanceof OrSpecification) {
+      List<Specification<K, V>> inverted = ((OrSpecification<K, V>) innerSpec)
+          .getSpecifications().stream()
+          .map(NotSpecification::not)
+          .collect(toList());
+      return simplify(AndSpecification.and(inverted));
+    }
+
+    return NotSpecification.not(simplify(innerSpec));
+  }
+
+  private static <K extends Serializable, V> Specification<K, V> simplify(
       AndSpecification<K, V> specs) {
 
     List<Specification<K, V>> clauses = specs.specifications.stream()
         .map(SpecificationUtils::simplify)
+        .flatMap(s -> s instanceof AndSpecification ?
+            ((AndSpecification<K, V>) s).specifications.stream() : Stream.of(s))
         .distinct()
         .collect(toList());
 
@@ -59,6 +94,8 @@ public final class SpecificationUtils {
 
     List<Specification<K, V>> clauses = specs.specifications.stream()
         .map(SpecificationUtils::simplify)
+        .flatMap(s -> s instanceof OrSpecification ?
+            ((OrSpecification<K, V>) s).specifications.stream() : Stream.of(s))
         .distinct()
         .collect(toList());
 

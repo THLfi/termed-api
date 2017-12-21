@@ -1,7 +1,9 @@
 package fi.thl.termed.util.query;
 
 import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.NotSpecification.not;
 import static fi.thl.termed.util.query.OrSpecification.or;
+import static fi.thl.termed.util.query.SpecificationUtils.simplify;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -22,60 +24,118 @@ public class SpecificationUtilsTest {
   @Test
   public void shouldRemoveDuplicates() {
     assertEquals("(A ∧ B)",
-        prettyPrint(SpecificationUtils.simplify(
+        prettyPrint(simplify(
             and(SimpleSpec.of("A"), SimpleSpec.of("A"), SimpleSpec.of("B")))));
 
     assertEquals("(A ∨ B)",
-        prettyPrint(SpecificationUtils.simplify(
+        prettyPrint(simplify(
             or(SimpleSpec.of("A"), SimpleSpec.of("A"), SimpleSpec.of("B")))));
   }
 
   @Test
   public void shouldFlattenSingletonCompositeSpecs() {
     assertEquals("A",
-        prettyPrint(SpecificationUtils.simplify(
+        prettyPrint(simplify(
             and(and(and(SimpleSpec.of("A")))))));
 
     assertEquals("A",
-        prettyPrint(SpecificationUtils.simplify(
+        prettyPrint(simplify(
             or(or(or(SimpleSpec.of("A")))))));
 
     assertEquals("A",
-        prettyPrint(SpecificationUtils.simplify(
+        prettyPrint(simplify(
             and(or(and(SimpleSpec.of("A")))))));
   }
 
   @Test
   public void shouldSimplifyConjunctiveSpecContainingMatchNodeToMatchNone() {
     assertEquals(new MatchNone<>(),
-        SpecificationUtils.simplify(
+        simplify(
             and(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
 
     assertEquals(new MatchNone<>(),
-        SpecificationUtils.simplify(
+        simplify(
             and(new MatchNone<>(), new MatchNone<>())));
 
     assertEquals(new MatchNone<>(),
-        SpecificationUtils.simplify(
+        simplify(
             and(new MatchNone<>(), SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
 
     assertEquals(new MatchNone<>(),
-        SpecificationUtils.simplify(
+        simplify(
             and(SimpleSpec.of("A"),
                 and(new MatchNone<>(), SimpleSpec.of("X")),
                 SimpleSpec.of("B"))));
   }
 
   @Test
+  public void shouldSimplifyDoubleNegation() {
+    assertEquals(SimpleSpec.of("A"),
+        simplify(not(not(SimpleSpec.of("A")))));
+
+    assertEquals(not(SimpleSpec.of("A")),
+        simplify(not(not(not(SimpleSpec.of("A"))))));
+
+    assertEquals(not(SimpleSpec.of("A")),
+        simplify(not(SimpleSpec.of("A"))));
+  }
+
+  @Test
+  public void shouldSimplifyNestedNotSpecifications() {
+    assertEquals(
+        or(not(SimpleSpec.of("B")), SimpleSpec.of("A")),
+        simplify(not(and(SimpleSpec.of("B"), not(SimpleSpec.of("A"))))));
+
+    assertEquals(
+        and(not(SimpleSpec.of("B")), SimpleSpec.of("A")),
+        simplify(not(or(SimpleSpec.of("B"), not(SimpleSpec.of("A"))))));
+  }
+
+  @Test
+  public void shouldSimplifyNestedSpecifications() {
+    assertEquals(
+        or(SimpleSpec.of("A"), SimpleSpec.of("B"), SimpleSpec.of("C")),
+        simplify(or(SimpleSpec.of("A"), or(SimpleSpec.of("B"), SimpleSpec.of("C")))));
+
+    assertEquals(
+        or(SimpleSpec.of("A"), SimpleSpec.of("B"), SimpleSpec.of("C"), SimpleSpec.of("D")),
+        simplify(or(
+            or(SimpleSpec.of("A"), SimpleSpec.of("B")),
+            or(SimpleSpec.of("C"), SimpleSpec.of("D")))));
+
+    assertEquals(
+        or(SimpleSpec.of("A"), SimpleSpec.of("B"), and(SimpleSpec.of("C"), SimpleSpec.of("D"))),
+        simplify(or(
+            or(SimpleSpec.of("A"), SimpleSpec.of("B")),
+            and(SimpleSpec.of("C"), SimpleSpec.of("D")))));
+  }
+
+  @Test
+  public void shouldSimplifyNestedSpecificationsWithNot() {
+    assertEquals(or(
+        SimpleSpec.of("A"),
+        SimpleSpec.of("B"),
+        SimpleSpec.of("C"),
+        SimpleSpec.of("D")),
+        simplify(or(
+            SimpleSpec.of("A"),
+            SimpleSpec.of("B"),
+            not(and(
+                not(SimpleSpec.of("C")),
+                not(SimpleSpec.of("D")),
+                not(SimpleSpec.of("D")))))));
+  }
+
+  @Test
   public void shouldNotSimplifyDisjunctiveSpecContainingMatchNoneToMatchNone() {
-    assertNotEquals(new MatchNone<>(), SpecificationUtils.simplify(
+    assertNotEquals(new MatchNone<>(), simplify(
         or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
   }
 
   @Test
   public void shouldRemoveRedundantMatchNoneFromDisjunction() {
     assertEquals(or(SimpleSpec.of("A"), SimpleSpec.of("B")),
-        SpecificationUtils.simplify(or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
+        simplify(or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
   }
 
   @Test
