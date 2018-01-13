@@ -12,7 +12,6 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.LuceneSpecification;
 import java.util.Objects;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 
@@ -21,27 +20,17 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
   private final String attributeId;
   private final String lang;
   private final String value;
-  private final float boost;
 
   public NodesByPropertyPrefix(String attributeId, String value) {
-    this(attributeId, "", value, 1);
-  }
-
-  public NodesByPropertyPrefix(String attributeId, String value, float boost) {
-    this(attributeId, "", value, boost);
+    this(attributeId, "", value);
   }
 
   public NodesByPropertyPrefix(String attributeId, String lang, String value) {
-    this(attributeId, lang, value, 1);
-  }
-
-  public NodesByPropertyPrefix(String attributeId, String lang, String value, float boost) {
     Preconditions.checkArgument(attributeId.matches(CODE));
     Preconditions.checkArgument(isNullOrEmpty(lang) || lang.matches(IETF_LANGUAGE_TAG));
     this.attributeId = attributeId;
     this.lang = nullToEmpty(lang);
     this.value = value;
-    this.boost = boost;
   }
 
   public String getAttributeId() {
@@ -58,8 +47,7 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
   @Override
   public Query luceneQuery() {
     String fieldName = "properties." + attributeId + (lang.isEmpty() ? "" : "." + lang);
-    return new BoostQuery(new PrefixQuery(
-        new Term(fieldName, nullToEmpty(value).toLowerCase())), boost);
+    return new PrefixQuery(new Term(fieldName, nullToEmpty(value).toLowerCase()));
   }
 
   @Override
@@ -71,15 +59,14 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
       return false;
     }
     NodesByPropertyPrefix that = (NodesByPropertyPrefix) o;
-    return Float.compare(that.boost, boost) == 0 &&
-        Objects.equals(attributeId, that.attributeId) &&
+    return Objects.equals(attributeId, that.attributeId) &&
         Objects.equals(lang, that.lang) &&
         Objects.equals(value, that.value);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(attributeId, lang, value, boost);
+    return Objects.hash(attributeId, lang, value);
   }
 
   @Override
@@ -88,7 +75,6 @@ public class NodesByPropertyPrefix implements LuceneSpecification<NodeId, Node> 
         .add("attributeId", attributeId)
         .add("lang", lang)
         .add("value", value)
-        .add("boost", boost)
         .toString();
   }
 

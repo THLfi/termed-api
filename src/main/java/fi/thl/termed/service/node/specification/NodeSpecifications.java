@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.specification;
 
 import static fi.thl.termed.util.collect.StreamUtils.zip;
+import static fi.thl.termed.util.query.BoostSpecification.boost;
 import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
@@ -40,7 +41,7 @@ public final class NodeSpecifications {
           new NodeGraphAndTypeSpecificationResolver(graphs, types)
               .apply(queryParser.apply(query))));
     }
-    
+
     return SpecificationUtils.simplify(AndSpecification.and(clauses));
   }
 
@@ -58,7 +59,7 @@ public final class NodeSpecifications {
 
       List<Specification<NodeId, Node>> orClauses = zip(type.getTextAttributes().stream(), boosts)
           .flatMap(attrAndBoost -> prefixes.stream()
-              .map(prefix -> new NodesByPropertyPrefix(attrAndBoost.getKey().getId(), prefix,
+              .map(prefix -> boost(new NodesByPropertyPrefix(attrAndBoost.getKey().getId(), prefix),
                   attrAndBoost.getValue())))
           .collect(toList());
 

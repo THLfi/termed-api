@@ -3,6 +3,9 @@ package fi.thl.termed.service.node.specification;
 import static fi.thl.termed.util.RegularExpressions.CODE;
 import static fi.thl.termed.util.RegularExpressions.ISO_8601_DATE;
 import static fi.thl.termed.util.RegularExpressions.UUID;
+import static fi.thl.termed.util.query.BoostSpecification.boost;
+import static fi.thl.termed.util.query.NotSpecification.not;
+import static java.lang.Float.parseFloat;
 import static org.jparsercombinator.ParserCombinators.newRef;
 import static org.jparsercombinator.ParserCombinators.regex;
 import static org.jparsercombinator.ParserCombinators.regexMatchResult;
@@ -13,7 +16,6 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.AndSpecification;
-import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
 import java.util.Date;
@@ -77,7 +79,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s]*)\\*")
             .map(m -> new NodesByPropertyPrefix(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> propertyParser =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s\\)\\*]*)")
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s\\)\\*\\^]*)")
             .map(m -> new NodesByProperty(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> referenceParser =
         regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.id:(" + UUID + ")")
@@ -113,7 +115,9 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     termParser.setCombinator(factorParser.many(string(" AND ")).map(AndSpecification::and));
     factorParser.setCombinator(string("NOT ").optional()
         .next(attributeValueParser.or(skip(string("(")).next(queryParser).skip(string(")"))))
-        .map(r -> r.first.isPresent() ? NotSpecification.not(r.second) : r.second));
+        .map(r -> r.first.isPresent() ? not(r.second) : r.second)
+        .next(regexMatchResult("\\^([0-9]+)").map(m -> parseFloat(m.group(1))).optional())
+        .map(p -> p.second.isPresent() ? boost(p.first, p.second.get()) : p.first));
 
     parser = queryParser.end();
   }

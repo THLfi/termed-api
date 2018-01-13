@@ -10,6 +10,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.query.AndSpecification;
+import fi.thl.termed.util.query.BoostSpecification;
 import fi.thl.termed.util.query.MatchNone;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
@@ -80,6 +81,9 @@ public class TypeBasedNodeSpecificationFilter implements
     if (specification instanceof NotSpecification) {
       return filterNotSpecification(domain, (NotSpecification<NodeId, Node>) specification);
     }
+    if (specification instanceof BoostSpecification) {
+      return filterBoostSpecification(domain, (BoostSpecification<NodeId, Node>) specification);
+    }
 
     return new MatchNone<>();
   }
@@ -136,6 +140,12 @@ public class TypeBasedNodeSpecificationFilter implements
     Specification<NodeId, Node> filteredInnerSpec = apply(domain, s.getSpecification());
     return filteredInnerSpec instanceof MatchNone ? new MatchNone<>()
         : NotSpecification.not(filteredInnerSpec);
+  }
+
+  private Specification<NodeId, Node> filterBoostSpecification(Type domain,
+      BoostSpecification<NodeId, Node> s) {
+    Specification<NodeId, Node> filteredInnerSpec = apply(domain, s.getSpecification());
+    return BoostSpecification.boost(filteredInnerSpec, s.getBoost());
   }
 
 }
