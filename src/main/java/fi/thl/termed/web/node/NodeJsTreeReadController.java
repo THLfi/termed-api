@@ -125,7 +125,7 @@ public class NodeJsTreeReadController {
               .collect(Collectors.toList()))));
       jsTree.setIcon(false);
       jsTree.setText(htmlEscape(getLocalizedLabel(node)) +
-          smallMuted(htmlEscape(getCode(node))));
+          smallMuted(htmlEscape(getCode(node)), htmlEscape(node.getUri())));
 
       jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.test(nodeId),
           "selected", selectedPredicate.test(nodeId)));
@@ -172,8 +172,8 @@ public class NodeJsTreeReadController {
       return "-";
     }
 
-    private String smallMuted(String text) {
-      return " <small class='text-muted'>" + text + "</small>";
+    private String smallMuted(String text, String title) {
+      return " <small class='text-muted' title=" + title + ">" + text + "</small>";
     }
 
     private String getCode(Node node) {
