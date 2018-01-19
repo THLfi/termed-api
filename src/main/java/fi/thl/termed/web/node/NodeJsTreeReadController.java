@@ -124,9 +124,8 @@ public class NodeJsTreeReadController {
           Joiner.on('.').join(nodeTree.getPath().stream().map(Node::getId)
               .collect(Collectors.toList()))));
       jsTree.setIcon(false);
-      jsTree.setText(spanWithTitle(
-          htmlEscape(getLocalizedLabel(node)) + " " + smallTextMuted(htmlEscape(getCode(node))),
-          node.getUri()));
+      jsTree.setText(htmlEscape(getLocalizedLabel(node)) +
+          smallMuted(htmlEscape(getCode(node)), htmlEscape(node.getUri())));
 
       jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.test(nodeId),
           "selected", selectedPredicate.test(nodeId)));
@@ -173,12 +172,8 @@ public class NodeJsTreeReadController {
       return "-";
     }
 
-    private String smallTextMuted(String innerHtml) {
-      return "<small class='text-muted'>" + innerHtml + "</small>";
-    }
-
-    private String spanWithTitle(String innerHtml, String title) {
-      return "<span title='" + htmlEscape(title) + "'>" + innerHtml + "</span>";
+    private String smallMuted(String text, String title) {
+      return " <small class='text-muted' title=" + title + ">" + text + "</small>";
     }
 
     private String getCode(Node node) {
