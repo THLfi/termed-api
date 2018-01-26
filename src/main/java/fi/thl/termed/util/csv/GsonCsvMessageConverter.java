@@ -1,21 +1,16 @@
 package fi.thl.termed.util.csv;
 
+import static com.google.common.base.Charsets.UTF_8;
+
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
-
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import fi.thl.termed.util.TableUtils;
+import fi.thl.termed.util.json.JsonUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -23,11 +18,12 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-
-import fi.thl.termed.util.TableUtils;
-import fi.thl.termed.util.json.JsonUtils;
-
-import static com.google.common.base.Charsets.UTF_8;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 
 /**
  * Converts lists of objects to CSV-table by first converting them to JSON Array (using provided

@@ -1,6 +1,6 @@
 package fi.thl.termed.util.postgresql;
 
-import au.com.bytecode.opencsv.CSVWriter;
+import com.opencsv.CSVWriter;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;

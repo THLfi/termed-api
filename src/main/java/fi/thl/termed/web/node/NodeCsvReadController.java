@@ -1,6 +1,5 @@
 package fi.thl.termed.web.node;
 
-import static au.com.bytecode.opencsv.CSVWriter.NO_QUOTE_CHARACTER;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
@@ -13,9 +12,9 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
+import com.opencsv.CSVWriter;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -178,11 +177,11 @@ public class NodeCsvReadController {
 
       try (OutputStream out = response.getOutputStream()) {
         Writer writer = new OutputStreamWriter(out, Charsets.UTF_8);
-        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\\');
+        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\"', "\n");
 
         List<Map<String, String>> rows = new ArrayList<>();
         nodes.forEach(n -> rows.add(nodeToMap(n, selects)));
-        csvWriter.writeAll(TableUtils.toTable(rows));
+        csvWriter.writeAll(TableUtils.toTable(rows), false);
         csvWriter.close();
       }
     }
@@ -248,8 +247,8 @@ public class NodeCsvReadController {
 
   private String toInlineCsv(List<String> row) {
     StringWriter writer = new StringWriter();
-    CSVWriter csvWriter = new CSVWriter(writer, '|', NO_QUOTE_CHARACTER, '\\', "");
-    csvWriter.writeNext(row.toArray(new String[row.size()]));
+    CSVWriter csvWriter = new CSVWriter(writer, '|', '\'', '\'', "");
+    csvWriter.writeNext(row.toArray(new String[row.size()]), false);
     return writer.toString();
   }
 
