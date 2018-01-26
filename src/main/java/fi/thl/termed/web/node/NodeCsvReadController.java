@@ -102,11 +102,11 @@ public class NodeCsvReadController {
 
       try (OutputStream out = response.getOutputStream()) {
         Writer writer = new OutputStreamWriter(out, Charsets.UTF_8);
-        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\\');
+        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\"', "\n");
 
         List<Map<String, String>> rows = new ArrayList<>();
         nodes.forEach(n -> rows.add(nodeToMap(n, selects)));
-        csvWriter.writeAll(TableUtils.toTable(rows));
+        csvWriter.writeAll(TableUtils.toTable(rows), false);
         csvWriter.close();
       }
     }
@@ -140,11 +140,11 @@ public class NodeCsvReadController {
 
       try (OutputStream out = response.getOutputStream()) {
         Writer writer = new OutputStreamWriter(out, Charsets.UTF_8);
-        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\\');
+        CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\"', "\n");
 
         List<Map<String, String>> rows = new ArrayList<>();
         nodes.forEach(n -> rows.add(nodeToMap(n, selects)));
-        csvWriter.writeAll(TableUtils.toTable(rows));
+        csvWriter.writeAll(TableUtils.toTable(rows), false);
         csvWriter.close();
       }
     }
