@@ -2,7 +2,6 @@ package fi.thl.termed.web.node;
 
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Graph;
@@ -12,6 +11,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.util.RdfModelToNodes;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.service.Service;
@@ -56,18 +56,21 @@ public class NodeRdfWriteController {
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Model model,
-      @AuthenticationPrincipal User currentUser) {
+      @AuthenticationPrincipal User user) {
 
-    log.info("Importing RDF-model {} (user: {})", graphId, currentUser.getUsername());
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
-    Function<NodeId, Optional<Node>> nodeProvider = id -> nodeService.get(id, currentUser);
+    log.info("Importing RDF-model {} (user: {})", graphId, user.getUsername());
 
-    graphService.get(new GraphId(graphId), currentUser).orElseThrow(NotFoundException::new);
-    List<Type> types = typeService.getValueStream(new TypesByGraphId(graphId), currentUser).collect(toList());
+    Function<NodeId, Optional<Node>> nodeProvider = id -> nodeService.get(id, user);
+
+    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
     List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
         .apply(new JenaRdfModel(model));
 
-    nodeService.save(nodes, saveMode(mode), opts(sync), currentUser);
+    nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
 }

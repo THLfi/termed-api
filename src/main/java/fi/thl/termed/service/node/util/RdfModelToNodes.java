@@ -1,4 +1,4 @@
-package fi.thl.termed.web.node;
+package fi.thl.termed.service.node.util;
 
 import static fi.thl.termed.util.RegularExpressions.URN_UUID;
 import static fi.thl.termed.util.UUIDs.fromString;

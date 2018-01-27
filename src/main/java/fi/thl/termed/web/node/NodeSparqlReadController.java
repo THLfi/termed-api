@@ -64,7 +64,10 @@ public class NodeSparqlReadController {
   private Service<TypeId, Type> typeService;
 
   private Model buildModelWrapper(UUID graphId, User user) {
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
+
     List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
     Function<Specification<NodeId, Node>, Stream<Node>> nodes =
         s -> nodeService.getValueStream(s, user);

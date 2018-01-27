@@ -2,6 +2,7 @@ package fi.thl.termed.service.node.specification;
 
 import static fi.thl.termed.util.collect.StreamUtils.zip;
 import static fi.thl.termed.util.query.BoostSpecification.boost;
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
@@ -26,6 +27,22 @@ public final class NodeSpecifications {
   private static NodeSpecificationParser queryParser = new NodeSpecificationParser();
 
   private NodeSpecifications() {
+  }
+
+  public static Specification<NodeId, Node> specifyByQuery(
+      List<Graph> graphs, List<Type> types, List<Type> anyDomain, List<String> allQueries) {
+    return specifyByQuery(graphs, types, anyDomain, join(" AND ", allQueries));
+  }
+
+  public static Specification<NodeId, Node> specifyByQuery(
+      List<Graph> graphs, List<Type> types, List<Type> anyDomain, String query) {
+    return SpecificationUtils.simplify(OrSpecification.or(
+        anyDomain.stream().map(d -> specifyByQuery(graphs, types, d, query)).collect(toList())));
+  }
+
+  public static Specification<NodeId, Node> specifyByQuery(
+      List<Graph> graphs, List<Type> types, Type domain, List<String> allQueries) {
+    return specifyByQuery(graphs, types, domain, join(" AND ", allQueries));
   }
 
   public static Specification<NodeId, Node> specifyByQuery(

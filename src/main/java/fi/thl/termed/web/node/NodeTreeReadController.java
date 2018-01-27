@@ -3,9 +3,6 @@ package fi.thl.termed.web.node;
 import static fi.thl.termed.service.node.select.Selects.selectReferences;
 import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
-import static fi.thl.termed.util.query.OrSpecification.or;
-import static fi.thl.termed.util.query.SpecificationUtils.simplify;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -71,8 +68,7 @@ public class NodeTreeReadController {
     List<Graph> graphs = graphService.getValues(user);
     List<Type> types = typeService.getValues(user);
 
-    Specification<NodeId, Node> spec = simplify(or(toListAndClose(types.stream()
-        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where))))));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
     try (Stream<Node> nodes = nodeService
@@ -99,14 +95,15 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
     List<Graph> graphs = graphService.getValues(user);
     List<Type> types = typeService.getValues(user);
+    List<Type> anyDomain = typeService.getValues(new TypesByGraphId(graphId), user);
 
-    Specification<NodeId, Node> spec = simplify(or(toListAndClose(
-        typeService.getValueStream(new TypesByGraphId(graphId), user)
-            .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where))))));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
     try (Stream<Node> nodes = nodeService
@@ -139,7 +136,7 @@ public class NodeTreeReadController {
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, join(" AND ", where));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
     try (Stream<Node> nodes = nodeService

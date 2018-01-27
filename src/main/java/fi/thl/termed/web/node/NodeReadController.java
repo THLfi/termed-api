@@ -75,7 +75,9 @@ public class NodeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
     Specification<NodeId, Node> spec = or(toListAndClose(
         typeService.getValueStream(new TypesByGraphId(graphId), user)

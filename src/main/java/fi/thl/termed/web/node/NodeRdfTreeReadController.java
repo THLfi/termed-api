@@ -10,8 +10,6 @@ import static fi.thl.termed.service.node.util.UriResolvers.refAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.textAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.typeUriResolver;
 import static fi.thl.termed.util.GraphUtils.collectNodes;
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
-import static fi.thl.termed.util.query.OrSpecification.or;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.join;
 
@@ -78,8 +76,7 @@ public class NodeRdfTreeReadController {
     List<Graph> graphs = graphService.getValues(user);
     List<Type> types = typeService.getValues(user);
 
-    Specification<NodeId, Node> spec = or(toListAndClose(types.stream()
-        .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
     Set<Select> selects = new LinkedHashSet<>();
     selects.add(new SelectId());
     selects.add(new SelectType());
@@ -109,14 +106,15 @@ public class NodeRdfTreeReadController {
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user) {
 
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
     List<Graph> graphs = graphService.getValues(user);
     List<Type> types = typeService.getValues(user);
+    List<Type> anyDomain = typeService.getValues(new TypesByGraphId(graphId), user);
 
-    Specification<NodeId, Node> spec = or(toListAndClose(
-        typeService.getValueStream(new TypesByGraphId(graphId), user)
-            .map(domain -> specifyByQuery(graphs, types, domain, join(" AND ", where)))));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
     Set<Select> selects = new LinkedHashSet<>();
     selects.add(new SelectId());
     selects.add(new SelectType());
@@ -152,7 +150,7 @@ public class NodeRdfTreeReadController {
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, join(" AND ", where));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
     Set<Select> selects = new LinkedHashSet<>();
     selects.add(new SelectId());
     selects.add(new SelectType());

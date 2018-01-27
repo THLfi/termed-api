@@ -48,7 +48,9 @@ public class NodeRdfStreamReadController {
   public void streamNTriples(@PathVariable(name = "graphId") UUID graphId,
       @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
 
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
     response.setContentType(RdfMediaTypes.N_TRIPLES_VALUE);
     response.setCharacterEncoding(UTF_8.toString());
@@ -68,7 +70,9 @@ public class NodeRdfStreamReadController {
   public void streamTurtle(@PathVariable(name = "graphId") UUID graphId,
       @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
 
-    graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+    if (!graphService.exists(new GraphId(graphId), user)) {
+      throw new NotFoundException();
+    }
 
     response.setContentType(RdfMediaTypes.TURTLE_VALUE);
     response.setCharacterEncoding(UTF_8.toString());

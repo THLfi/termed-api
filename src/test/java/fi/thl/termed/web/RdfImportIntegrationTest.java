@@ -23,13 +23,12 @@ import static com.jayway.restassured.config.EncoderConfig.encoderConfig;
 import static org.apache.jena.rdf.model.ResourceFactory.createPlainLiteral;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 import static org.apache.jena.rdf.model.ResourceFactory.createStatement;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldSaveRdfVocabulary() throws IOException {
+  public void shouldSaveRdfVocabulary() {
     String graphId = UUID.randomUUID().toString();
 
     // save graph
