@@ -86,9 +86,10 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       }
 
       if (!newNodes.isEmpty()) {
-        Set<String> usedCodes = nodes.stream()
+        Set<String> usedCodes = instances.stream()
             .map(Node::getCode).filter(Objects::nonNull).collect(toSet());
         Set<String> usedUris = nodes.stream()
+            .filter(node -> Objects.equals(node.getTypeGraphId(), type.getGraphId()))
             .map(Node::getUri).filter(Objects::nonNull).collect(toSet());
 
         long number = nodeSequenceService.getAndAdvance(type, (long) (newNodes.size()), user);
