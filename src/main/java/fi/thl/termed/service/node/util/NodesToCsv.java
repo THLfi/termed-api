@@ -27,6 +27,7 @@ import fi.thl.termed.service.node.select.SelectUri;
 import fi.thl.termed.util.TableUtils;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
@@ -48,14 +49,17 @@ public final class NodesToCsv {
   private NodesToCsv() {
   }
 
-  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, OutputStream out) {
+  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, OutputStream out)
+      throws IOException {
     writeAsCsv(nodes, selects, new OutputStreamWriter(out, Charsets.UTF_8));
   }
 
-  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, Writer writer) {
+  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, Writer writer)
+      throws IOException {
     CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\"', "\n");
     List<Map<String, String>> rows = nodes.map(n -> nodeToMap(n, selects)).collect(toList());
     csvWriter.writeAll(TableUtils.toTable(rows), false);
+    csvWriter.close();
   }
 
   private static Map<String, String> nodeToMap(Node node, Set<Select> s) {

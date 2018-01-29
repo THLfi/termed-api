@@ -21,6 +21,7 @@ import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetCsvMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.util.spring.http.MediaTypes;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -63,7 +64,7 @@ public class NodeCsvReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType("text/csv;charset=UTF-8");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
 
       try (OutputStream out = response.getOutputStream()) {
@@ -95,7 +96,7 @@ public class NodeCsvReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType("text/csv;charset=UTF-8");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
 
       try (OutputStream out = response.getOutputStream()) {
@@ -125,7 +126,7 @@ public class NodeCsvReadController {
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType("text/csv;charset=UTF-8");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
       response.setCharacterEncoding(UTF_8.toString());
 
       try (OutputStream out = response.getOutputStream()) {

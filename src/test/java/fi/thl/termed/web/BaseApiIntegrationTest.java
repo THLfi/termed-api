@@ -11,9 +11,9 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
-import javax.annotation.Resource;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,15 +23,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
-  protected String testUsername = "test";
-  protected String testPassword = UUIDs.randomUUIDString();
+  String testUsername = "test";
+  String testPassword = UUIDs.randomUUIDString();
+
+  @Autowired
+  Service<String, User> userRepository;
+
+  @Autowired
+  PasswordEncoder passwordEncoder;
 
   @Value("${local.server.port}")
-  protected int serverPort;
-  @Resource
-  protected Service<String, User> userRepository;
-  @Resource
-  protected PasswordEncoder passwordEncoder;
+  private int serverPort;
 
   @Before
   public void setUp() {
