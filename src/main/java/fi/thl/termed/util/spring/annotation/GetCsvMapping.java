@@ -1,5 +1,6 @@
 package fi.thl.termed.util.spring.annotation;
 
+import fi.thl.termed.util.spring.http.MediaTypes;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@RequestMapping(method = RequestMethod.GET, produces = "text/csv;charset=UTF-8")
+@RequestMapping(method = RequestMethod.GET, produces = MediaTypes.TEXT_CSV_VALUE)
 public @interface GetCsvMapping {
 
   @AliasFor(annotation = RequestMapping.class) String name() default "";
