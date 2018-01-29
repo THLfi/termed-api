@@ -1,5 +1,7 @@
 package fi.thl.termed.util.service;
 
+import static com.google.common.base.Ascii.truncate;
+
 import fi.thl.termed.domain.User;
 import java.io.Serializable;
 import java.util.List;
@@ -22,33 +24,51 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
 
   @Override
   public List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user) {
-    log.info("save {} values (user: {})", values.size(), user.getUsername());
+    if (log.isTraceEnabled()) {
+      log.trace("save {} (user: {})", values, user.getUsername());
+    } else if (log.isInfoEnabled()) {
+      log.info("save {} values (user: {})", values.size(), user.getUsername());
+    }
     return super.save(values, mode, opts, user);
   }
 
   @Override
   public K save(V value, SaveMode mode, WriteOptions opts, User user) {
-    log.info("save {} (user: {})", value, user.getUsername());
+    if (log.isTraceEnabled()) {
+      log.trace("save {} (user: {})", value, user.getUsername());
+    } else if (log.isInfoEnabled()) {
+      log.info("save {} (user: {})", truncate(value.toString(), 150, "..."), user.getUsername());
+    }
     return super.save(value, mode, opts, user);
   }
 
   @Override
   public void delete(List<K> ids, WriteOptions opts, User user) {
-    log.info("delete {} values (user: {})", ids.size(), user.getUsername());
+    if (log.isTraceEnabled()) {
+      log.trace("delete {} (user: {})", ids, user.getUsername());
+    } else if (log.isInfoEnabled()) {
+      log.info("delete {} values (user: {})", ids.size(), user.getUsername());
+    }
     super.delete(ids, opts, user);
   }
 
   @Override
   public void delete(K id, WriteOptions opts, User user) {
-    log.info("delete {} (user: {})", id, user.getUsername());
+    if (log.isInfoEnabled()) {
+      log.info("delete {} (user: {})", id, user.getUsername());
+    }
     super.delete(id, opts, user);
   }
 
   @Override
   public List<K> saveAndDelete(List<V> saves, List<K> deletes, SaveMode mode, WriteOptions opts,
       User user) {
-    log.info("save {} values and delete {} values (user: {})", saves.size(), deletes.size(),
-        user.getUsername());
+    if (log.isTraceEnabled()) {
+      log.trace("save {} and delete {} (user: {})", saves, deletes, user.getUsername());
+    } else if (log.isInfoEnabled()) {
+      log.info("save {} values and delete {} values (user: {})",
+          saves.size(), deletes.size(), user.getUsername());
+    }
     return super.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
