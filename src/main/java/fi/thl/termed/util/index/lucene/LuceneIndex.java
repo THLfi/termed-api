@@ -2,6 +2,7 @@ package fi.thl.termed.util.index.lucene;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static fi.thl.termed.util.collect.FunctionUtils.toUnchecked;
 import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
@@ -110,7 +111,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   public void index(List<K> keys, Function<K, Optional<V>> valueProvider) {
     IndexingTask indexingTask = new IndexingTask(keys, valueProvider);
     addCallback(listeningDecorator(indexingExecutor).submit(indexingTask),
-        FutureUtils.errorHandler(t -> log.error("", t)));
+        FutureUtils.errorHandler(t -> log.error("", t)), directExecutor());
   }
 
   @Override
