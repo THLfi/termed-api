@@ -63,14 +63,16 @@ public class AttributeValueInitializingNodeService
       Map<TextAttributeId, TextAttribute> textAttributeCache,
       Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache) {
 
-    Type type = typeSource.apply(node.getType(), user).orElseThrow(BadRequestException::new);
+    Type type = typeSource.apply(node.getType(), user).orElseThrow(
+        () -> new BadRequestException("Type '" + node.getType().getId() + "' not found"));
 
     node.getProperties().forEach((attributeId, value) -> {
       TextAttribute textAttribute = textAttributeCache.computeIfAbsent(
           new TextAttributeId(node.getType(), attributeId),
           textAttributeId -> type.getTextAttributes().stream()
               .filter(typeAttr -> Objects.equals(typeAttr.getId(), textAttributeId.getId()))
-              .findAny().orElseThrow(BadRequestException::new));
+              .findAny().orElseThrow(() -> new BadRequestException(
+                  "Unknown text attribute '" + attributeId + "' for " + type.getId())));
 
       value.setRegex(textAttribute.getRegex());
     });
@@ -80,7 +82,8 @@ public class AttributeValueInitializingNodeService
           new ReferenceAttributeId(node.getType(), attributeId),
           refAttributeId -> type.getReferenceAttributes().stream()
               .filter(typeAttr -> Objects.equals(typeAttr.getId(), refAttributeId.getId()))
-              .findAny().orElseThrow(BadRequestException::new));
+              .findAny().orElseThrow(() -> new BadRequestException(
+                  "Unknown reference attribute '" + attributeId + "' for " + type.getId())));
 
       value.setType(refAttribute.getRange());
     });
