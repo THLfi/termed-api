@@ -1,36 +1,36 @@
 package fi.thl.termed.domain;
 
+import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
+import static fi.thl.termed.util.collect.ListUtils.nullableImmutableCopyOf;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class Changeset<K extends Serializable, V> {
 
-  private List<K> delete = new ArrayList<>();
-  private List<V> save = new ArrayList<>();
-  private List<V> patch = new ArrayList<>();
-
-  public Changeset() {
-  }
+  private final ImmutableList<K> delete;
+  private final ImmutableList<V> save;
+  private final ImmutableList<V> patch;
 
   public Changeset(List<K> delete, List<V> save, List<V> patch) {
-    this.delete = delete;
-    this.save = save;
-    this.patch = patch;
+    this.delete = nullableImmutableCopyOf(delete);
+    this.save = nullableImmutableCopyOf(save);
+    this.patch = nullableImmutableCopyOf(patch);
   }
 
-  public List<K> getDelete() {
-    return delete;
+  public ImmutableList<K> getDelete() {
+    return nullToEmpty(delete);
   }
 
-  public List<V> getSave() {
-    return save;
+  public ImmutableList<V> getSave() {
+    return nullToEmpty(save);
   }
 
-  public List<V> getPatch() {
-    return patch;
+  public ImmutableList<V> getPatch() {
+    return nullToEmpty(patch);
   }
 
   @Override
