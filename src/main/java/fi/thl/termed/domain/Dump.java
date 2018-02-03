@@ -1,35 +1,32 @@
 package fi.thl.termed.domain;
 
-import java.util.List;
+import com.google.common.collect.ImmutableList;
 
 public class Dump {
 
-  private List<Graph> graphs;
-  private List<Type> types;
-  private List<Node> nodes;
+  private final ImmutableList<Graph> graphs;
+  private final ImmutableList<Type> types;
+  private final ImmutableList<Node> nodes;
 
-  public List<Graph> getGraphs() {
+  public Dump(
+      ImmutableList<Graph> graphs,
+      ImmutableList<Type> types,
+      ImmutableList<Node> nodes) {
+    this.graphs = graphs;
+    this.types = types;
+    this.nodes = nodes;
+  }
+
+  public ImmutableList<Graph> getGraphs() {
     return graphs;
   }
 
-  public void setGraphs(List<Graph> graphs) {
-    this.graphs = graphs;
-  }
-
-  public List<Type> getTypes() {
+  public ImmutableList<Type> getTypes() {
     return types;
   }
 
-  public void setTypes(List<Type> types) {
-    this.types = types;
-  }
-
-  public List<Node> getNodes() {
+  public ImmutableList<Node> getNodes() {
     return nodes;
-  }
-
-  public void setNodes(List<Node> nodes) {
-    this.nodes = nodes;
   }
 
 }

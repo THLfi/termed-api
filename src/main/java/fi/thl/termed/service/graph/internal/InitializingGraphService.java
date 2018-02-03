@@ -1,6 +1,7 @@
 package fi.thl.termed.service.graph.internal;
 
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -21,8 +22,7 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
 
   @Override
   public List<GraphId> save(List<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
-    graphs.replaceAll(this::initialize);
-    return super.save(graphs, mode, opts, user);
+    return super.save(graphs.stream().map(this::initialize).collect(toList()), mode, opts, user);
   }
 
   @Override
@@ -33,8 +33,8 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
   @Override
   public List<GraphId> saveAndDelete(List<Graph> saves, List<GraphId> deletes, SaveMode mode,
       WriteOptions opts, User user) {
-    saves.replaceAll(this::initialize);
-    return super.saveAndDelete(saves, deletes, mode, opts, user);
+    return super.saveAndDelete(
+        saves.stream().map(this::initialize).collect(toList()), deletes, mode, opts, user);
   }
 
   private Graph initialize(Graph graph) {
