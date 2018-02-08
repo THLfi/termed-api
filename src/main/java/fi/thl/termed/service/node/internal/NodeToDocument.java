@@ -3,7 +3,6 @@ package fi.thl.termed.service.node.internal;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static java.lang.Integer.min;
-import static org.apache.lucene.document.CompressionTools.compressString;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
@@ -44,8 +43,8 @@ public class NodeToDocument implements Function<Node, Document> {
 
     Node cachedNode = new Node(n);
     cachedNode.setReferrers(null);
-    doc.add(new StoredField(CACHED_RESULT_FIELD, compressString(gson.toJson(cachedNode))));
-    doc.add(new StoredField(CACHED_REFERRERS_FIELD, compressString(gson.toJson(n.getReferrers()))));
+    doc.add(new StoredField(CACHED_RESULT_FIELD, gson.toJson(cachedNode)));
+    doc.add(new StoredField(CACHED_REFERRERS_FIELD, gson.toJson(n.getReferrers())));
 
     doc.add(stringField("type.graph.id", n.getTypeGraphId()));
     doc.add(stringField("type.id", n.getTypeId()));

@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -257,15 +256,13 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       return new Sort(SortField.FIELD_SCORE);
     }
 
-    List<SortField> sortFields = orderBy.stream()
+    return new Sort(orderBy.stream()
         .map(field -> {
           Matcher m = descendingSortPattern.matcher(field);
           return m.matches() ?
               new SortField(m.group(1), SortField.Type.STRING, true) :
               new SortField(field, SortField.Type.STRING);
-        })
-        .collect(Collectors.toList());
-    return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        }).toArray(SortField[]::new));
   }
 
   @Override
