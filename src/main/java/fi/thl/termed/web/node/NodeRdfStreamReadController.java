@@ -18,6 +18,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -29,6 +30,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -45,11 +47,18 @@ public class NodeRdfStreamReadController {
   private Service<TypeId, Type> typeService;
 
   @GetMapping(produces = RdfMediaTypes.N_TRIPLES_VALUE)
-  public void streamNTriples(@PathVariable(name = "graphId") UUID graphId,
-      @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+  public void streamNTriples(
+      @PathVariable(name = "graphId") UUID graphId,
+      @RequestParam(name = "download", defaultValue = "false") boolean download,
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
-    if (!graphService.exists(new GraphId(graphId), user)) {
-      throw new NotFoundException();
+    Graph graph = graphService.get(GraphId.of(graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    if (download) {
+      String filename = LocalDate.now().toString() + "-" + graph.getCode().orElse("nodes") + ".nt";
+      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
     }
 
     response.setContentType(RdfMediaTypes.N_TRIPLES_VALUE);
@@ -67,11 +76,18 @@ public class NodeRdfStreamReadController {
   }
 
   @GetMapping(produces = RdfMediaTypes.TURTLE_VALUE)
-  public void streamTurtle(@PathVariable(name = "graphId") UUID graphId,
-      @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+  public void streamTurtle(
+      @PathVariable(name = "graphId") UUID graphId,
+      @RequestParam(name = "download", defaultValue = "false") boolean download,
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
 
-    if (!graphService.exists(new GraphId(graphId), user)) {
-      throw new NotFoundException();
+    Graph graph = graphService.get(GraphId.of(graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    if (download) {
+      String filename = LocalDate.now().toString() + "-" + graph.getCode().orElse("nodes") + ".ttl";
+      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
     }
 
     response.setContentType(RdfMediaTypes.TURTLE_VALUE);
