@@ -1,11 +1,12 @@
 package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.Multimaps.filterKeys;
+import static fi.thl.termed.util.TableUtils.toTable;
+import static fi.thl.termed.util.csv.CsvUtils.writeCsv;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.opencsv.CSVWriter;
 import fi.thl.termed.domain.Node;
@@ -24,14 +25,11 @@ import fi.thl.termed.service.node.select.SelectProperty;
 import fi.thl.termed.service.node.select.SelectReference;
 import fi.thl.termed.service.node.select.SelectType;
 import fi.thl.termed.service.node.select.SelectUri;
-import fi.thl.termed.util.TableUtils;
+import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +47,9 @@ public final class NodesToCsv {
   private NodesToCsv() {
   }
 
-  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, OutputStream out)
-      throws IOException {
-    writeAsCsv(nodes, selects, new OutputStreamWriter(out, Charsets.UTF_8));
-  }
-
-  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, Writer writer)
-      throws IOException {
-    CSVWriter csvWriter = new CSVWriter(writer, ',', '\"', '\"', "\n");
-    List<Map<String, String>> rows = nodes.map(n -> nodeToMap(n, selects)).collect(toList());
-    csvWriter.writeAll(TableUtils.toTable(rows), false);
-    csvWriter.close();
+  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, CsvOptions csvOpts,
+      OutputStream out) {
+    writeCsv(out, csvOpts, toTable(nodes.map(n -> nodeToMap(n, selects)).collect(toList())));
   }
 
   private static Map<String, String> nodeToMap(Node node, Set<Select> s) {

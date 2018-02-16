@@ -1,6 +1,7 @@
 package fi.thl.termed.web.node;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -58,7 +59,7 @@ public class NodeRdfStreamReadController {
 
     if (download) {
       String filename = LocalDate.now().toString() + "-" + graph.getCode().orElse("nodes") + ".nt";
-      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+      response.setHeader(CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
 
     response.setContentType(RdfMediaTypes.N_TRIPLES_VALUE);
@@ -87,7 +88,7 @@ public class NodeRdfStreamReadController {
 
     if (download) {
       String filename = LocalDate.now().toString() + "-" + graph.getCode().orElse("nodes") + ".ttl";
-      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+      response.setHeader(CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
 
     response.setContentType(RdfMediaTypes.TURTLE_VALUE);

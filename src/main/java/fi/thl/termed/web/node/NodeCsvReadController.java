@@ -2,8 +2,11 @@ package fi.thl.termed.web.node;
 
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
+import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.LocalDate.now;
+import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -15,6 +18,10 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.select.Selects;
 import fi.thl.termed.service.node.util.NodesToCsv;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.csv.CsvDelimiter;
+import fi.thl.termed.util.csv.CsvLineBreak;
+import fi.thl.termed.util.csv.CsvOptions;
+import fi.thl.termed.util.csv.CsvQuoteChar;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
@@ -24,12 +31,14 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,22 +62,43 @@ public class NodeCsvReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "-1") Integer max,
+      @RequestParam(value = "delimiter", defaultValue = "COMMA") CsvDelimiter delimiter,
+      @RequestParam(value = "quoteChar", defaultValue = "DOUBLE_QUOTE") CsvQuoteChar quoteChar,
+      @RequestParam(value = "lineBreak", defaultValue = "LF") CsvLineBreak lineBreak,
+      @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
+      @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
+      @RequestParam(name = "download", defaultValue = "true") boolean download,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
+    if (download) {
+      String filename = now() + "-nodes.csv";
+      response.setHeader(CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
+    } else {
+      response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+    }
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
+    response.setCharacterEncoding(UTF_8.toString());
+
     Set<Select> selects = Selects.parse(join(",", select));
+    List<Type> types = typeService.getValues(user);
+    Specification<NodeId, Node> spec = specifyByQuery(
+        graphService.getValues(user), types, types, where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
-      response.setCharacterEncoding(UTF_8.toString());
 
       try (OutputStream out = response.getOutputStream()) {
-        NodesToCsv.writeAsCsv(nodes, selects, out);
+        CsvOptions csvOptions = CsvOptions.builder()
+            .delimiter(delimiter)
+            .quoteChar(quoteChar)
+            .escapeChar(quoteChar.value())
+            .recordSeparator(lineBreak)
+            .quoteAll(quoteAll)
+            .charset(charset).build();
+
+        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
       }
     }
   }
@@ -80,27 +110,47 @@ public class NodeCsvReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "-1") Integer max,
+      @RequestParam(value = "delimiter", defaultValue = "COMMA") CsvDelimiter delimiter,
+      @RequestParam(value = "quoteChar", defaultValue = "DOUBLE_QUOTE") CsvQuoteChar quoteChar,
+      @RequestParam(value = "lineBreak", defaultValue = "LF") CsvLineBreak lineBreak,
+      @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
+      @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
+      @RequestParam(name = "download", defaultValue = "true") boolean download,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    if (!graphService.exists(new GraphId(graphId), user)) {
-      throw new NotFoundException();
+    Graph graph = graphService.get(GraphId.of(graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    if (download) {
+      String filename = format("%s-%s.csv", now(),
+          graph.getCode().orElse(graph.getId().toString()));
+      response.setHeader(CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
+    } else {
+      response.setContentType(MediaType.TEXT_PLAIN_VALUE);
     }
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
-    List<Type> anyDomain = typeService.getValues(new TypesByGraphId(graphId), user);
+    response.setCharacterEncoding(UTF_8.toString());
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
     Set<Select> selects = Selects.parse(join(",", select));
+    Specification<NodeId, Node> spec = specifyByQuery(
+        graphService.getValues(user), typeService.getValues(user),
+        typeService.getValues(new TypesByGraphId(graphId), user), where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
-      response.setCharacterEncoding(UTF_8.toString());
 
       try (OutputStream out = response.getOutputStream()) {
-        NodesToCsv.writeAsCsv(nodes, selects, out);
+        CsvOptions csvOptions = CsvOptions.builder()
+            .delimiter(delimiter)
+            .quoteChar(quoteChar)
+            .escapeChar(quoteChar.value())
+            .recordSeparator(lineBreak)
+            .quoteAll(quoteAll)
+            .charset(charset).build();
+
+        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
       }
     }
   }
@@ -113,24 +163,47 @@ public class NodeCsvReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "-1") Integer max,
+      @RequestParam(value = "delimiter", defaultValue = "COMMA") CsvDelimiter delimiter,
+      @RequestParam(value = "quoteChar", defaultValue = "DOUBLE_QUOTE") CsvQuoteChar quoteChar,
+      @RequestParam(value = "lineBreak", defaultValue = "LF") CsvLineBreak lineBreak,
+      @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
+      @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
+      @RequestParam(name = "download", defaultValue = "true") boolean download,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
+    Graph graph = graphService.get(GraphId.of(graphId), user)
+        .orElseThrow(NotFoundException::new);
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
+    if (download) {
+      String filename = format("%s-%s-%s.csv", now(),
+          graph.getCode().orElse(graph.getId().toString()), domain.getId());
+      response.setHeader(CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
+    } else {
+      response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+    }
+
+    response.setCharacterEncoding(UTF_8.toString());
+
     Set<Select> selects = Selects.parse(join(",", select));
+    Specification<NodeId, Node> spec = specifyByQuery(
+        graphService.getValues(user), typeService.getValues(user), domain, where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
-      response.setContentType(MediaTypes.TEXT_CSV_VALUE);
-      response.setCharacterEncoding(UTF_8.toString());
-
       try (OutputStream out = response.getOutputStream()) {
-        NodesToCsv.writeAsCsv(nodes, selects, out);
+        CsvOptions csvOptions = CsvOptions.builder()
+            .delimiter(delimiter)
+            .quoteChar(quoteChar)
+            .escapeChar(quoteChar.value())
+            .recordSeparator(lineBreak)
+            .quoteAll(quoteAll)
+            .charset(charset).build();
+
+        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
       }
     }
   }
