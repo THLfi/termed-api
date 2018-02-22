@@ -141,8 +141,6 @@ public class NodeServiceConfiguration {
     Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
 
     service = new TransactionalService<>(service, transactionManager);
-    service = new WriteLoggingService<>(service,
-        getClass().getPackage().getName() + ".NodeRevisionService");
     service = new QueryProfilingService<>(service,
         getClass().getPackage().getName() + ".NodeRevisionService",
         500);

@@ -72,7 +72,9 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Subscribe
   public void reindexOn(ReindexEvent e) {
+    log.info("Indexing");
     reindex(ImmutableSet.copyOf(super.getKeys(indexer)));
+    log.info("Done");
   }
 
   private Optional<Node> getFromIndex(NodeId nodeId, User user) {
