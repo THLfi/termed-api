@@ -48,8 +48,8 @@ public class CopyController {
 
   @PostJsonMapping(params = "copy=true", produces = MediaType.TEXT_PLAIN_VALUE)
   public String copy(
-      @RequestParam("graphId") UUID sourceGraphId,
-      @RequestParam(value = "targetGraphId", required = false, defaultValue = RANDOM_UUID) UUID targetGraphId,
+      @RequestParam("sourceGraphId") UUID sourceGraphId,
+      @RequestParam(name = "targetGraphId", defaultValue = RANDOM_UUID) UUID targetGraphId,
       @RequestParam(name = "mode", defaultValue = "insert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
