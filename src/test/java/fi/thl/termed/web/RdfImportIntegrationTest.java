@@ -1,8 +1,19 @@
 package fi.thl.termed.web;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import static io.restassured.RestAssured.given;
+import static io.restassured.config.EncoderConfig.encoderConfig;
+import static org.apache.jena.rdf.model.ResourceFactory.createPlainLiteral;
+import static org.apache.jena.rdf.model.ResourceFactory.createResource;
+import static org.apache.jena.rdf.model.ResourceFactory.createStatement;
+import static org.hamcrest.core.IsEqual.equalTo;
 
+import fi.thl.termed.util.io.ResourceUtils;
+import fi.thl.termed.util.json.JsonUtils;
+import fi.thl.termed.util.rdf.JenaUtils;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import java.io.IOException;
+import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -10,20 +21,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.SKOS;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.UUID;
-
-import fi.thl.termed.util.io.ResourceUtils;
-import fi.thl.termed.util.json.JsonUtils;
-import fi.thl.termed.util.rdf.JenaUtils;
-
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.config.EncoderConfig.encoderConfig;
-import static org.apache.jena.rdf.model.ResourceFactory.createPlainLiteral;
-import static org.apache.jena.rdf.model.ResourceFactory.createResource;
-import static org.apache.jena.rdf.model.ResourceFactory.createStatement;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 

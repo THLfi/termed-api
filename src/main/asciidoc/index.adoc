@@ -1,0 +1,47 @@
+= Termed API Documentation
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+:operation-curl-request-title: Example request
+:operation-response-body-title: Example response
+
+:operation-request-parameters-title: Query parameters
+:operation-request-fields-title: Request body
+:operation-response-fields-title: Response body
+
+[[overview]]
+= Overview
+
+[[resources-graphs]]
+== Graphs
+
+=== Get a Graph
+
+include::{snippets}/get-a-graph/operation-intro.adoc[]
+
+operation::get-a-graph[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get all Graphs
+
+include::{snippets}/get-all-graphs/operation-intro.adoc[]
+
+operation::get-all-graphs[snippets='curl-request,response-body']
+
+=== Save a Graph
+
+include::{snippets}/save-a-graph/operation-intro.adoc[]
+
+operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
+
+==== Saving using PUT
+
+include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
+
+=== Delete a Graph
+
+include::{snippets}/delete-a-graph/operation-intro.adoc[]
+
+operation::delete-a-graph[snippets='path-parameters,curl-request']

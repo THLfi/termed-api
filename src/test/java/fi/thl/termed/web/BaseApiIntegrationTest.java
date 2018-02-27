@@ -1,26 +1,28 @@
 package fi.thl.termed.web;
 
+import static fi.thl.termed.domain.AppRole.ADMIN;
+import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+import static io.restassured.config.RestAssuredConfig.config;
+import static io.restassured.mapper.ObjectMapperType.GSON;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.ObjectMapperConfig;
-import com.jayway.restassured.config.RestAssuredConfig;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
+import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
   String testUsername = "test";
@@ -32,18 +34,17 @@ public abstract class BaseApiIntegrationTest {
   @Autowired
   PasswordEncoder passwordEncoder;
 
-  @Value("${local.server.port}")
+  @LocalServerPort
   private int serverPort;
 
   @Before
   public void setUp() {
     RestAssured.port = serverPort;
-    RestAssured.config = RestAssuredConfig.config().objectMapperConfig(
-        new ObjectMapperConfig(ObjectMapperType.GSON));
+    RestAssured.config = config().objectMapperConfig(new ObjectMapperConfig(GSON));
 
     userRepository.save(
-        new User(testUsername, passwordEncoder.encode(testPassword), AppRole.ADMIN),
-        UPSERT, defaultOpts(), new User("initializer", "", AppRole.SUPERUSER));
+        new User(testUsername, passwordEncoder.encode(testPassword), ADMIN),
+        UPSERT, defaultOpts(), new User("initializer", "", SUPERUSER));
   }
 
 }

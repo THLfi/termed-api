@@ -1,9 +1,9 @@
 package fi.thl.termed.web;
 
-import static com.jayway.restassured.RestAssured.given;
 import static fi.thl.termed.util.json.JsonElementFactory.array;
 import static fi.thl.termed.util.json.JsonElementFactory.object;
 import static fi.thl.termed.util.json.JsonElementFactory.primitive;
+import static io.restassured.RestAssured.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 

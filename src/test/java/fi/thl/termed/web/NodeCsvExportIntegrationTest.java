@@ -1,6 +1,6 @@
 package fi.thl.termed.web;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 import fi.thl.termed.util.spring.http.MediaTypes;
