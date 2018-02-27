@@ -239,7 +239,8 @@ public class GraphApiDocs {
                         + "Only application admins can update graph permissions."),
                 subsectionWithPath("properties")
                     .description("Optional map of graph properties. Keys are property ids "
-                        + "(e.g. `prefLabel`). Values are lists of lang value objects (e.g. "
+                        + "(e.g. `prefLabel`, list of properties is available at "
+                        + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
                         + "`{ \"lang\": \"en\", \"value\": \"Example Graph\" }`)"))))
         .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
         .header("Content-Type", "application/json")
