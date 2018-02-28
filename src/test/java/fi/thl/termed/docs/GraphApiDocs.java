@@ -1,6 +1,7 @@
 package fi.thl.termed.docs;
 
 import static com.google.common.base.Charsets.UTF_8;
+import static fi.thl.termed.docs.OperationIntroSnippet.operationIntro;
 import static fi.thl.termed.domain.AppRole.ADMIN;
 import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.domain.AppRole.USER;
@@ -157,7 +158,7 @@ public class GraphApiDocs {
   public void documentGetGraphById() {
     given(this.spec)
         .filter(document("get-a-graph",
-            new OperationIntroSnippet(),
+            operationIntro(),
             pathParameters(
                 parameterWithName("id")
                     .description("Graph identifier (UUID)")),
@@ -190,7 +191,7 @@ public class GraphApiDocs {
   @Test
   public void documentGetAllGraphs() {
     given(this.spec)
-        .filter(document("get-all-graphs", new OperationIntroSnippet(
+        .filter(document("get-all-graphs", operationIntro(
             "Returns an array containing all graphs visible to the user. Roles and permissions "
                 + "are visible for admin users only.")))
         .header("Authorization", basic(exampleUserUsername, exampleUserPassword))
@@ -205,7 +206,7 @@ public class GraphApiDocs {
   public void documentSaveGraph() {
     given(this.spec)
         .filter(document("save-a-graph",
-            new OperationIntroSnippet("If posted object contains an id, a graph is either updated "
+            operationIntro("If posted object contains an id, a graph is either updated "
                 + "or inserted with the given id. If id is not present, graph is saved with "
                 + "new random id.\n\nOn success, operation returns the saved graph."),
             requestHeaders(
@@ -254,9 +255,9 @@ public class GraphApiDocs {
   @Test
   public void documentSaveGraphUsingPut() {
     given(this.spec)
-        .filter(document("save-a-graph-using-put", new OperationIntroSnippet(
-                "Saving using `PUT` is also supported. Graph id is given as a path parameter.\n"
-                    + "On success, operation will return the saved graph."),
+        .filter(document("save-a-graph-using-put", operationIntro(
+            "Saving using `PUT` is also supported. Graph id is given as a path parameter.\n"
+                + "On success, operation will return the saved graph."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))
         .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
         .header("Content-Type", "application/json")
@@ -270,9 +271,9 @@ public class GraphApiDocs {
   @Test
   public void documentDeleteGraph() {
     given(this.spec)
-        .filter(document("delete-a-graph", new OperationIntroSnippet(
-                "On success, operation will return `204` with an empty body.\n\n"
-                    + "A graph can't be deleted if it contains any data (types or nodes)."),
+        .filter(document("delete-a-graph", operationIntro(
+            "On success, operation will return `204` with an empty body.\n\n"
+                + "A graph can't be deleted if it contains any data (types or nodes)."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))
         .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
         .when()

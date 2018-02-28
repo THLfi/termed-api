@@ -9,12 +9,16 @@ import org.springframework.restdocs.snippet.TemplatedSnippet;
 
 public class OperationIntroSnippet extends TemplatedSnippet {
 
-  public OperationIntroSnippet() {
-    this("");
+  private OperationIntroSnippet(String description) {
+    super("operation-intro", ImmutableMap.of("description", description));
   }
 
-  public OperationIntroSnippet(String description) {
-    super("operation-intro", ImmutableMap.of("description", description));
+  public static OperationIntroSnippet operationIntro() {
+    return new OperationIntroSnippet("");
+  }
+
+  public static OperationIntroSnippet operationIntro(String description) {
+    return new OperationIntroSnippet(description);
   }
 
   @Override
