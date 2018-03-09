@@ -31,5 +31,5 @@ fi.thl.termed.index=/var/lib/termed/index
 
 and run:
 ```
-mvn spring-boot:run -Dspring.profiles.active=dev
+mvn spring-boot:run -Drun.profiles=dev
 ```
