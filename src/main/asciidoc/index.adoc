@@ -53,7 +53,17 @@ operation::delete-a-graph[snippets='path-parameters,curl-request']
 
 include::{snippets}/get-a-type/operation-intro.adoc[]
 
-operation::get-a-type[snippets='path-parameters,response-fields,curl-request,response-body']
+operation::get-a-type[snippets='path-parameters,response-fields']
+
+where each value in `textAttributes` contains
+
+include::{snippets}/get-a-type-text-attribute/response-fields.adoc[]
+
+and each value in `referenceAttributes` contains
+
+include::{snippets}/get-a-type-reference-attribute/response-fields.adoc[]
+
+operation::get-a-type[snippets='curl-request,response-body']
 
 === Get Types in Graph
 

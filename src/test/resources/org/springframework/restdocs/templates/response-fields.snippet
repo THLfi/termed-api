@@ -3,7 +3,7 @@
 |Field|Type|Description
 
 {{#fields}}
-|{{#tableCellContent}}`{{path}}`{{/tableCellContent}}
+|{{#tableCellContent}}`{{#displayName}}{{displayName}}{{/displayName}}{{^displayName}}{{path}}{{/displayName}}`{{/tableCellContent}}
 |{{#tableCellContent}}`{{type}}`{{/tableCellContent}}
 |{{#tableCellContent}}{{description}}{{/tableCellContent}}
 

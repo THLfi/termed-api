@@ -23,6 +23,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.relaxedRequestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.relaxedResponseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
@@ -117,6 +118,7 @@ public class TypeApiDocs {
   private Type personType = Type.builder()
       .id(personTypeId)
       .uri(FOAF.Person.getURI())
+      .nodeCodePrefix("PERSON-")
       .permissions(examplePermissions)
       .properties("prefLabel", LangValue.of("en", "Person"))
       .textAttributes(
@@ -147,6 +149,7 @@ public class TypeApiDocs {
   private TypeId groupTypeId = TypeId.of("Group", exampleGraphId);
   private Type groupType = Type.builder()
       .id(groupTypeId)
+      .nodeCodePrefix("GROUP-")
       .permissions(examplePermissions)
       .properties("prefLabel", LangValue.of("en", "Group"))
       .textAttributes(
@@ -225,6 +228,8 @@ public class TypeApiDocs {
                     .description("Optional identifying URI for the type."),
                 fieldWithPath("index")
                     .description("Ordinal number for the type."),
+                fieldWithPath("nodeCodePrefix")
+                    .description("Optional prefix for node codes of this type."),
                 subsectionWithPath("permissions")
                     .description("Optional map of type permissions where keys are graph roles and "
                         + "values are lists of permissions. Permissions are returned only for "
@@ -236,6 +241,54 @@ public class TypeApiDocs {
                     .description("Optional array of text attributes defined for the type."),
                 subsectionWithPath("referenceAttributes")
                     .description("Optional array of reference attributes defined for the type."))))
+        .filter(document("get-a-type-text-attribute",
+            relaxedResponseFields(
+                fieldWithPath("textAttributes[].id")
+                    .attributes(key("displayName").value("id"))
+                    .description("Text attribute identifier (matches `" + CODE + "`)."),
+                fieldWithPath("textAttributes[].regex")
+                    .attributes(key("displayName").value("regex"))
+                    .description("Regular expression defining value range for the text attribute."),
+                fieldWithPath("textAttributes[].uri")
+                    .attributes(key("displayName").value("uri"))
+                    .description("Optional identifying URI for the text attribute."),
+                subsectionWithPath("textAttributes[].permissions")
+                    .attributes(key("displayName").value("permissions"))
+                    .description("Optional map of attribute permissions. Keys are a graph roles. "
+                        + "Values are lists of permissions where a permission is one of "
+                        + "`INSERT`, `READ`, `UPDATE`, `DELETE`. Only application admins can "
+                        + "update permissions."),
+                subsectionWithPath("textAttributes[].properties")
+                    .attributes(key("displayName").value("properties"))
+                    .description("Optional map of attribute properties. Keys are property ids "
+                        + "(e.g. `prefLabel`, list of properties is available at "
+                        + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
+                        + "`{ \"lang\": \"en\", \"value\": \"Example Text Attribute\" }`)"))))
+        .filter(document("get-a-type-reference-attribute",
+            relaxedResponseFields(
+                fieldWithPath("referenceAttributes[].id")
+                    .attributes(key("displayName").value("id"))
+                    .description(
+                        "Reference attribute identifier (matches `" + CODE + "`)."),
+                fieldWithPath("referenceAttributes[].range")
+                    .attributes(key("displayName").value("range"))
+                    .description("Type identifier defining the value range for the reference "
+                        + "attribute."),
+                fieldWithPath("referenceAttributes[].uri")
+                    .attributes(key("displayName").value("uri"))
+                    .description("Optional identifying URI for the reference attribute."),
+                subsectionWithPath("referenceAttributes[].permissions")
+                    .attributes(key("displayName").value("permissions"))
+                    .description("Optional map of attribute permissions. Keys are a graph roles. "
+                        + "Values are lists of permissions where a permission is one of "
+                        + "`INSERT`, `READ`, `UPDATE`, `DELETE`. Only application admins can "
+                        + "update permissions."),
+                subsectionWithPath("referenceAttributes[].properties")
+                    .attributes(key("displayName").value("properties"))
+                    .description("Optional map of attribute properties. Keys are property ids "
+                        + "(e.g. `prefLabel`, list of properties is available at "
+                        + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
+                        + "`{ \"lang\": \"en\", \"value\": \"Example Reference Attribute\" }`)"))))
         .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
         .header("Accept", "application/json")
         .when()
@@ -308,6 +361,11 @@ public class TypeApiDocs {
                 subsectionWithPath("graph")
                     .optional()
                     .ignored(),
+                fieldWithPath("nodeCodePrefix")
+                    .description("Optional prefix for node codes of this type. For example prefix "
+                        + "`P-` would produce nodes with codes `P-123`. If none is specified, "
+                        + "by default nodes codes are prefixed with type id converted to lower "
+                        + "snake-case."),
                 fieldWithPath("uri")
                     .description("Optional identifying URI for the type. URI must be unique within "
                         + "the graph."),
@@ -350,8 +408,7 @@ public class TypeApiDocs {
                     .description("Optional map of attribute properties. Keys are property ids "
                         + "(e.g. `prefLabel`, list of properties is available at "
                         + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
-                        + "`{ \"lang\": \"en\", \"value\": \"Example Text Attribute\" }`)"))
-        ))
+                        + "`{ \"lang\": \"en\", \"value\": \"Example Text Attribute\" }`)"))))
         .filter(document("save-a-type-reference-attribute",
             relaxedRequestFields(
                 fieldWithPath("referenceAttributes[].id")
