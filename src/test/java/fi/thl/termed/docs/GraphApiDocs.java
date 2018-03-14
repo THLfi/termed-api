@@ -217,9 +217,9 @@ public class GraphApiDocs {
                     .description("Optional save mode. Supported modes are `insert`, `update`, "
                         + "`upsert`. If mode is not specified, `upsert` is used."),
                 parameterWithName("batch").optional()
-                    .description("Optional boolean flag for batch mode. If `?batch=true`, an "
+                    .description("Optional boolean flag for batch mode. If batch is `true`, an "
                         + "array of graph objects is expected. Multiple graphs are saved in one "
-                        + "transaction and on success `204` is returned with an empty body. "
+                        + "transaction. On success `204` is returned with an empty body. "
                         + "If parameter is not specified, `false` is assumed.")),
             requestFields(
                 fieldWithPath("id")

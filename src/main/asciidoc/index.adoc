@@ -45,3 +45,50 @@ include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
 include::{snippets}/delete-a-graph/operation-intro.adoc[]
 
 operation::delete-a-graph[snippets='path-parameters,curl-request']
+
+[[resources-types]]
+== Types
+
+=== Get a Type
+
+include::{snippets}/get-a-type/operation-intro.adoc[]
+
+operation::get-a-type[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get Types in Graph
+
+include::{snippets}/get-graph-types/operation-intro.adoc[]
+
+operation::get-all-types[snippets='curl-request']
+
+=== Get all Types
+
+include::{snippets}/get-all-types/operation-intro.adoc[]
+
+operation::get-all-types[snippets='curl-request']
+
+=== Save a Type
+
+include::{snippets}/save-a-type/operation-intro.adoc[]
+
+operation::save-a-type[snippets='path-parameters,request-parameters,request-fields']
+
+where each value in `textAttributes` contains
+
+include::{snippets}/save-a-type-text-attribute/request-fields.adoc[]
+
+and each value in `referenceAttributes` contains
+
+include::{snippets}/save-a-type-reference-attribute/request-fields.adoc[]
+
+operation::save-a-type[snippets='curl-request']
+
+==== Saving using PUT
+
+include::{snippets}/save-a-type-using-put/operation-intro.adoc[]
+
+=== Delete a Type
+
+include::{snippets}/delete-a-type/operation-intro.adoc[]
+
+operation::delete-a-type[snippets='path-parameters,curl-request']
