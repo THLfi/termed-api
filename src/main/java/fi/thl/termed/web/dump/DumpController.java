@@ -2,6 +2,7 @@ package fi.thl.termed.web.dump;
 
 import static fi.thl.termed.util.collect.StreamUtils.toStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singleton;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 import com.google.gson.Gson;
@@ -17,6 +18,7 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -27,12 +29,13 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/dump")
+@RequestMapping("/api")
 public class DumpController {
 
   @Autowired
@@ -44,7 +47,7 @@ public class DumpController {
   @Autowired
   private Gson gson;
 
-  @GetJsonMapping
+  @GetJsonMapping("/dump")
   public void dump(@AuthenticationPrincipal User user, HttpServletResponse response)
       throws IOException {
 
@@ -64,9 +67,9 @@ public class DumpController {
     }
   }
 
-  @GetJsonMapping(params = "graphId")
-  public void dump(@RequestParam("graphId") List<UUID> ids,
-      @AuthenticationPrincipal User usr,
+  @GetJsonMapping(path = "/dump", params = "graphId")
+  public void dumpByGraphIds(@RequestParam("graphId") List<UUID> ids,
+      @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
     response.setContentType(APPLICATION_JSON_UTF8_VALUE);
@@ -75,11 +78,30 @@ public class DumpController {
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
       writeJson(
           ids.stream().flatMap(
-              id -> toStream(graphService.get(new GraphId(id), usr))).iterator(),
+              id -> toStream(graphService.get(new GraphId(id), user))).iterator(),
           ids.stream().flatMap(
-              id -> typeService.getValueStream(new TypesByGraphId(id), usr)).iterator(),
+              id -> typeService.getValueStream(new TypesByGraphId(id), user)).iterator(),
           ids.stream().flatMap(
-              id -> nodeService.getValueStream(new NodesByGraphId(id), usr)).iterator(),
+              id -> nodeService.getValueStream(new NodesByGraphId(id), user)).iterator(),
+          writer);
+    }
+  }
+
+  @GetJsonMapping(path = "/graphs/{graphId}/dump")
+  public void dumpByGraphId(@PathVariable("graphId") UUID graphId,
+      @AuthenticationPrincipal User user,
+      HttpServletResponse response) throws IOException {
+
+    Graph graph = graphService.get(new GraphId(graphId), user).orElseThrow(NotFoundException::new);
+
+    response.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    response.setCharacterEncoding(UTF_8.toString());
+
+    try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
+      writeJson(
+          singleton(graph).iterator(),
+          typeService.getValueStream(new TypesByGraphId(graphId), user).iterator(),
+          nodeService.getValueStream(new NodesByGraphId(graphId), user).iterator(),
           writer);
     }
   }
