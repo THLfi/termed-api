@@ -93,6 +93,7 @@ public class GraphApiDocs {
   private Graph exampleGraph = Graph.builder()
       .id(exampleGraphId)
       .code("example-graph")
+      .uri("http://example.org/termed/example-graph/")
       .roles(asList("guest", "admin"))
       .permissions(ImmutableMultimap.<String, Permission>builder()
           .putAll("guest", READ)
@@ -170,8 +171,10 @@ public class GraphApiDocs {
                     .description("Graph identifier (UUID)."),
                 fieldWithPath("code")
                     .description("Optional identifying code for the graph."),
+                fieldWithPath("uri")
+                    .description("Optional identifying URI for the type."),
                 fieldWithPath("roles")
-                    .description("Optional list of roles defined for this graph. "
+                    .description("Optional list of roles defined for the graph. "
                         + "Roles are returned only for admin users."),
                 subsectionWithPath("permissions")
                     .description("Optional map of graph permissions where keys are graph roles and "
@@ -227,10 +230,12 @@ public class GraphApiDocs {
                         + "updated or a new one is created with given id. If id is not given, a new "
                         + "graph is created with random id."),
                 fieldWithPath("code")
-                    .description("Optional identifying code for graph. Code must be "
+                    .description("Optional identifying code for the graph. Code must be "
                         + "unique and match pattern `" + CODE + "`"),
+                fieldWithPath("uri")
+                    .description("Optional identifying uri for the graph. URI must be unique."),
                 fieldWithPath("roles")
-                    .description("Optional list of roles defined for this graph. "
+                    .description("Optional list of roles defined for the graph. "
                         + "A role must match pattern `" + CODE + "`. "
                         + "Only application admins can update graph roles."),
                 subsectionWithPath("permissions")
