@@ -8,6 +8,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Dump;
@@ -19,14 +20,15 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.UrlWithCredentials;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Base64;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,16 +51,23 @@ public class RestoreRemoteController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
+
   @Autowired
   private Service<TypeId, Type> typeService;
+
   @Autowired
   private Service<NodeId, Node> nodeService;
+
   @Autowired
   private PlatformTransactionManager manager;
+
   @Autowired
   private Gson gson;
 
-  private HttpClient httpClient = HttpClientBuilder.create().build();
+  @Autowired
+  private EventBus eventBus;
+
+  private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
   @PostJsonMapping(produces = {}, params = "remote=true")
   @ResponseStatus(NO_CONTENT)
@@ -74,24 +83,26 @@ public class RestoreRemoteController {
 
       log.info("Downloading {} as {}", remote.getUrl(), remote.getUsername());
 
-      HttpResponse response = httpClient.execute(request);
-      Dump dump = gson.fromJson(
-          new InputStreamReader(response.getEntity().getContent(), UTF_8), Dump.class);
+      try (CloseableHttpResponse response = httpClient.execute(request)) {
+        Dump dump = gson.fromJson(
+            new InputStreamReader(response.getEntity().getContent(), UTF_8), Dump.class);
 
-      log.info("Restoring");
+        log.info("Restoring");
 
-      TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
+        TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
 
-      try {
-        graphService.save(dump.getGraphs(), saveMode(mode), opts(sync), user);
-        typeService.save(dump.getTypes(), saveMode(mode), opts(sync), user);
-        nodeService.save(dump.getNodes(), saveMode(mode), opts(sync), user);
-      } catch (RuntimeException | Error e) {
-        manager.rollback(tx);
-        throw e;
+        try {
+          graphService.save(dump.getGraphs(), saveMode(mode), opts(sync), user);
+          typeService.save(dump.getTypes(), saveMode(mode), opts(sync), user);
+          nodeService.save(dump.getNodes(), saveMode(mode), opts(sync), user);
+        } catch (RuntimeException | Error e) {
+          manager.rollback(tx);
+          eventBus.post(new InvalidateCachesEvent());
+          throw e;
+        }
+
+        manager.commit(tx);
       }
-
-      manager.commit(tx);
 
       log.info("Done");
     }

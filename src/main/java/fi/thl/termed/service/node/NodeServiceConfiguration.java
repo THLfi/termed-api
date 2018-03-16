@@ -3,6 +3,7 @@ package fi.thl.termed.service.node;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.util.Converter.newConverter;
+import static fi.thl.termed.util.EventBusUtils.register;
 
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
@@ -45,6 +46,7 @@ import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
+import fi.thl.termed.util.EventBusUtils;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.AuthorizedDao.ReportLevel;
@@ -112,9 +114,7 @@ public class NodeServiceConfiguration {
     Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
         indexPath, new JsonStringConverter<>(NodeId.class),
         newConverter(new NodeToDocument(gson), new DocumentToNode(gson)));
-    service = new IndexedNodeService(service, nodeIndex, gson);
-
-    eventBus.register(service);
+    service = register(eventBus, new IndexedNodeService(service, nodeIndex, gson));
 
     // Although database backed repository is secured, lucene backed indexed service is not.
     // That's why we again filter any read requests.

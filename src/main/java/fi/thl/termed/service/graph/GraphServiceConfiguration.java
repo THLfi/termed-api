@@ -1,7 +1,10 @@
 package fi.thl.termed.service.graph;
 
+import static fi.thl.termed.util.EventBusUtils.register;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.SILENT;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
+import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GrantedPermission;
@@ -18,7 +21,6 @@ import fi.thl.termed.service.graph.internal.JdbcGraphPermissionsDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphPropertyDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphRoleDao;
 import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.DaoPermissionEvaluator;
@@ -41,6 +43,9 @@ public class GraphServiceConfiguration {
 
   @Autowired
   private PlatformTransactionManager transactionManager;
+
+  @Autowired
+  private EventBus eventBus;
 
   private SystemDao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao;
 
@@ -88,23 +93,23 @@ public class GraphServiceConfiguration {
   }
 
   private SystemDao<GraphId, Graph> graphSystemDao() {
-    return new CachedSystemDao<>(new JdbcGraphDao(dataSource));
+    return register(eventBus, cache(new JdbcGraphDao(dataSource)));
   }
 
   private SystemDao<GraphRole, Empty> graphRoleSystemDao() {
-    return new CachedSystemDao<>(new JdbcGraphRoleDao(dataSource));
+    return register(eventBus, cache(new JdbcGraphRoleDao(dataSource)));
   }
 
   // this instance is shared internally between other DAOs and evaluators
   private SystemDao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao() {
     if (graphPermissionSystemDao == null) {
-      graphPermissionSystemDao = new CachedSystemDao<>(new JdbcGraphPermissionsDao(dataSource));
+      graphPermissionSystemDao = register(eventBus, cache(new JdbcGraphPermissionsDao(dataSource)));
     }
     return graphPermissionSystemDao;
   }
 
   private SystemDao<PropertyValueId<GraphId>, LangValue> graphPropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcGraphPropertyDao(dataSource));
+    return register(eventBus, cache(new JdbcGraphPropertyDao(dataSource)));
   }
 
   /**

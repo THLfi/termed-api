@@ -3,13 +3,15 @@ package fi.thl.termed.service.revision;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
+import static fi.thl.termed.util.EventBusUtils.register;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.THROW;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
+import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.service.revision.internal.JdbcRevisionDao;
 import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
@@ -33,6 +35,9 @@ public class RevisionServiceConfiguration {
   @Autowired
   private PlatformTransactionManager transactionManager;
 
+  @Autowired
+  private EventBus eventBus;
+
   @Bean
   public SequenceService revisionSeqService() {
     return new JdbcSequenceService(dataSource, "revision_seq", revisionSeqEvaluator());
@@ -40,8 +45,7 @@ public class RevisionServiceConfiguration {
 
   @Bean
   public Service<Long, Revision> revisionService() {
-    SystemDao<Long, Revision> dao =
-        new CachedSystemDao<>(new JdbcRevisionDao(dataSource));
+    SystemDao<Long, Revision> dao = register(eventBus, cache(new JdbcRevisionDao(dataSource)));
 
     Service<Long, Revision> service =
         new DaoForwardingRepository<>(

@@ -1,7 +1,10 @@
 package fi.thl.termed.service.type;
 
+import static fi.thl.termed.util.EventBusUtils.register;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.SILENT;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
+import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.GrantedPermission;
 import fi.thl.termed.domain.LangValue;
@@ -27,7 +30,6 @@ import fi.thl.termed.service.type.internal.ReferenceAttributeRepository;
 import fi.thl.termed.service.type.internal.TextAttributeRepository;
 import fi.thl.termed.service.type.internal.TypeRepository;
 import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.DaoPermissionEvaluator;
@@ -50,6 +52,9 @@ public class TypeServiceConfiguration {
 
   @Autowired
   private PlatformTransactionManager transactionManager;
+
+  @Autowired
+  private EventBus eventBus;
 
   // permission system DAO instances are shared internally
   private SystemDao<ObjectRolePermission<TypeId>, GrantedPermission>
@@ -114,18 +119,18 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<TypeId, Type> typeSystemDao() {
-    return new CachedSystemDao<>(new JdbcTypeDao(dataSource));
+    return register(eventBus, cache(new JdbcTypeDao(dataSource)));
   }
 
   private SystemDao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionSystemDao() {
     if (typePermissionSystemDao == null) {
-      typePermissionSystemDao = new CachedSystemDao<>(new JdbcTypePermissionsDao(dataSource));
+      typePermissionSystemDao = register(eventBus, cache(new JdbcTypePermissionsDao(dataSource)));
     }
     return typePermissionSystemDao;
   }
 
   private SystemDao<PropertyValueId<TypeId>, LangValue> typePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcTypePropertyDao(dataSource));
+    return register(eventBus, cache(new JdbcTypePropertyDao(dataSource)));
   }
 
   // text attributes
@@ -155,19 +160,19 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<TextAttributeId, TextAttribute> textAttributeSystemDao() {
-    return new CachedSystemDao<>(new JdbcTextAttributeDao(dataSource));
+    return register(eventBus, register(eventBus, cache(new JdbcTextAttributeDao(dataSource))));
   }
 
   private SystemDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> textAttributePermissionSystemDao() {
     if (textAttributePermissionSystemDao == null) {
-      textAttributePermissionSystemDao =
-          new CachedSystemDao<>(new JdbcTextAttributePermissionsDao(dataSource));
+      textAttributePermissionSystemDao = register(eventBus, cache(
+          new JdbcTextAttributePermissionsDao(dataSource)));
     }
     return textAttributePermissionSystemDao;
   }
 
   private SystemDao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcTextAttributePropertyDao(dataSource));
+    return register(eventBus, cache(new JdbcTextAttributePropertyDao(dataSource)));
   }
 
   // reference attributes
@@ -199,19 +204,19 @@ public class TypeServiceConfiguration {
   }
 
   private SystemDao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeSystemDao() {
-    return new CachedSystemDao<>(new JdbcReferenceAttributeDao(dataSource));
+    return register(eventBus, cache(new JdbcReferenceAttributeDao(dataSource)));
   }
 
   private SystemDao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> referenceAttributePermissionSystemDao() {
     if (referenceAttributePermissionSystemDao == null) {
-      referenceAttributePermissionSystemDao =
-          new CachedSystemDao<>(new JdbcReferenceAttributePermissionsDao(dataSource));
+      referenceAttributePermissionSystemDao = register(eventBus, cache(
+          new JdbcReferenceAttributePermissionsDao(dataSource)));
     }
     return referenceAttributePermissionSystemDao;
   }
 
   private SystemDao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertySystemDao() {
-    return new CachedSystemDao<>(new JdbcReferenceAttributePropertyDao(dataSource));
+    return register(eventBus, cache(new JdbcReferenceAttributePropertyDao(dataSource)));
   }
 
   /**

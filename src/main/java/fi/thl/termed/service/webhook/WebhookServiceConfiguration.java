@@ -1,6 +1,8 @@
 package fi.thl.termed.service.webhook;
 
+import static fi.thl.termed.util.EventBusUtils.register;
 import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.THROW;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
@@ -9,7 +11,6 @@ import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.internal.JdbcWebhookDao;
 import fi.thl.termed.service.webhook.internal.NodeEventPostingService;
 import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.CachedSystemDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.DaoForwardingRepository;
@@ -27,17 +28,19 @@ public class WebhookServiceConfiguration {
 
   @Autowired
   private DataSource dataSource;
+
   @Autowired
   private PlatformTransactionManager transactionManager;
+
   @Autowired
   private Gson gson;
+
   @Autowired
   private EventBus eventBus;
 
   @Bean
   public Service<UUID, Webhook> webhookService() {
-    SystemDao<UUID, Webhook> dao =
-        new CachedSystemDao<>(new JdbcWebhookDao(dataSource));
+    SystemDao<UUID, Webhook> dao = register(eventBus, cache(new JdbcWebhookDao(dataSource)));
 
     PermissionEvaluator<UUID> permissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.ADMIN || u.getAppRole() == AppRole.SUPERUSER;

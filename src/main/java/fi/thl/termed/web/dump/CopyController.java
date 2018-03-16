@@ -6,6 +6,8 @@ import static fi.thl.termed.util.spring.SpEL.RANDOM_UUID;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Multimaps;
+import com.google.common.eventbus.EventBus;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
@@ -16,6 +18,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
@@ -25,6 +28,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -39,12 +43,18 @@ public class CopyController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
+
   @Autowired
   private Service<TypeId, Type> typeService;
+
   @Autowired
   private Service<NodeId, Node> nodeService;
+
   @Autowired
   private PlatformTransactionManager manager;
+
+  @Autowired
+  private EventBus eventBus;
 
   @PostJsonMapping(params = "copy=true", produces = MediaType.TEXT_PLAIN_VALUE)
   public String copy(
@@ -54,36 +64,41 @@ public class CopyController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
 
-    TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
+    if (user.getAppRole() == AppRole.ADMIN || user.getAppRole() == AppRole.SUPERUSER) {
+      TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
 
-    try {
-      Graph sourceGraph = graphService.get(GraphId.of(sourceGraphId), user)
-          .orElseThrow(NotFoundException::new);
+      try {
+        Graph sourceGraph = graphService.get(GraphId.of(sourceGraphId), user)
+            .orElseThrow(NotFoundException::new);
 
-      graphService.save(mapGraphToGraph(sourceGraph, targetGraphId),
-          saveMode(mode), opts(sync), user);
-
-      typeService.save(
-          typeService.getValues(new TypesByGraphId(sourceGraphId), user).stream()
-              .map(t -> mapTypeToGraph(t, targetGraphId))
-              .collect(toList()),
-          saveMode(mode), opts(sync), user);
-
-      try (Stream<Node> nodes = nodeService
-          .getValueStream(new NodesByGraphId(sourceGraphId), user)) {
-        nodeService.save(
-            mapNodesToGraph(nodes, targetGraphId).collect(toList()),
+        graphService.save(mapGraphToGraph(sourceGraph, targetGraphId),
             saveMode(mode), opts(sync), user);
+
+        typeService.save(
+            typeService.getValues(new TypesByGraphId(sourceGraphId), user).stream()
+                .map(t -> mapTypeToGraph(t, targetGraphId))
+                .collect(toList()),
+            saveMode(mode), opts(sync), user);
+
+        try (Stream<Node> nodes = nodeService
+            .getValueStream(new NodesByGraphId(sourceGraphId), user)) {
+          nodeService.save(
+              mapNodesToGraph(nodes, targetGraphId).collect(toList()),
+              saveMode(mode), opts(sync), user);
+        }
+
+      } catch (RuntimeException | Error e) {
+        manager.rollback(tx);
+        eventBus.post(new InvalidateCachesEvent());
+        throw e;
       }
 
-    } catch (RuntimeException | Error e) {
-      manager.rollback(tx);
-      throw e;
+      manager.commit(tx);
+
+      return targetGraphId.toString();
     }
 
-    manager.commit(tx);
-
-    return targetGraphId.toString();
+    throw new BadCredentialsException("");
   }
 
   private Graph mapGraphToGraph(Graph sourceGraph, UUID targetGraphId) {

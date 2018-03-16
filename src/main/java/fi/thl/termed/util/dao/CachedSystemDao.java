@@ -2,7 +2,9 @@ package fi.thl.termed.util.dao;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,16 +24,26 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
 
   private SystemDao<K, V> delegate;
 
-  public CachedSystemDao(SystemDao<K, V> delegate) {
+  private CachedSystemDao(SystemDao<K, V> delegate) {
     this(delegate, DEFAULT_SPECIFICATION_CACHE_SIZE, DEFAULT_KEY_VALUE_CACHE_SIZE);
   }
 
-  public CachedSystemDao(SystemDao<K, V> delegate, long specCacheSize, long keyValueCacheSize) {
+  private CachedSystemDao(SystemDao<K, V> delegate, long specCacheSize, long keyValueCacheSize) {
     this.delegate = delegate;
     this.specificationCache = CacheBuilder.newBuilder()
         .maximumSize(specCacheSize).recordStats().build();
     this.keyValueCache = CacheBuilder.newBuilder()
         .maximumSize(keyValueCacheSize).recordStats().build();
+  }
+
+  public static <K extends Serializable, V> CachedSystemDao<K, V> cache(SystemDao<K, V> delegate) {
+    return new CachedSystemDao<>(delegate);
+  }
+
+  @Subscribe
+  public void clearCachesOn(InvalidateCachesEvent e) {
+    specificationCache.invalidateAll();
+    keyValueCache.invalidateAll();
   }
 
   @Override
