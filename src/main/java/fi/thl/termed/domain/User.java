@@ -1,12 +1,14 @@
 package fi.thl.termed.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.ImmutableList.of;
+import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import fi.thl.termed.util.collect.Identifiable;
-import fi.thl.termed.util.collect.ListUtils;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,30 +16,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class User implements UserDetails, Identifiable<String> {
 
-  private String username;
-  private String password;
+  private final String username;
+  private final String password;
 
-  private AppRole appRole;
-  private List<GraphRole> graphRoles;
+  private final AppRole appRole;
+  private final ImmutableList<GraphRole> graphRoles;
 
   public User(String username, String password, AppRole appRole, List<GraphRole> graphRoles) {
     this.username = checkNotNull(username, "username can't be null in %s", getClass());
     this.password = checkNotNull(password, "password can't be null in %s", getClass());
     this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
-    this.graphRoles = graphRoles;
+    this.graphRoles = copyOf(graphRoles);
   }
 
   public User(String username, String password, AppRole appRole) {
-    this.username = checkNotNull(username, "username can't be null in %s", getClass());
-    this.password = checkNotNull(password, "password can't be null in %s", getClass());
-    this.appRole = checkNotNull(appRole, "appRole can't be null in %s", getClass());
+    this(username, password, appRole, of());
   }
 
   public User(User user) {
-    this.username = user.username;
-    this.password = user.password;
-    this.appRole = user.appRole;
-    this.graphRoles = user.graphRoles;
+    this(user.username, user.password, user.appRole, user.graphRoles);
   }
 
   @Override
@@ -47,7 +44,7 @@ public class User implements UserDetails, Identifiable<String> {
 
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
-    return Collections.singleton(new SimpleGrantedAuthority(appRole.toString()));
+    return of(new SimpleGrantedAuthority(appRole.toString()));
   }
 
   @Override
@@ -65,11 +62,7 @@ public class User implements UserDetails, Identifiable<String> {
   }
 
   public List<GraphRole> getGraphRoles() {
-    return ListUtils.nullToEmpty(graphRoles);
-  }
-
-  public void setGraphRoles(List<GraphRole> graphRoles) {
-    this.graphRoles = graphRoles;
+    return nullToEmpty(graphRoles);
   }
 
   @Override

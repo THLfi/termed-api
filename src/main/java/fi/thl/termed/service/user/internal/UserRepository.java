@@ -1,9 +1,8 @@
 package fi.thl.termed.service.user.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphRole;
@@ -15,6 +14,7 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -91,32 +91,15 @@ public class UserRepository extends AbstractRepository<String, User> {
   }
 
   private User populateValue(User user, User auth) {
-    user = new User(user);
+    List<GraphRole> graphRoles =
+        userGraphRoleDao.getKeys(
+            new UserGraphRolesByUsername(user.getUsername()), auth)
+            .stream()
+            .filter(value -> Objects.equals(user.getUsername(), value.getUsername()))
+            .map(value -> new GraphRole(value.getGraph(), value.getRole()))
+            .collect(toList());
 
-    user.setGraphRoles(Lists.transform(
-        userGraphRoleDao.getKeys(new UserGraphRolesByUsername(user.getUsername()), auth),
-        new ToGraphRole(user.getUsername())));
-
-    return user;
-  }
-
-  /**
-   * Transforms user graph role tuple to graph role. Checks that username in the tuple matches the
-   * expected username.
-   */
-  private class ToGraphRole implements Function<UserGraphRole, GraphRole> {
-
-    private String expectedUsername;
-
-    ToGraphRole(String expectedUsername) {
-      this.expectedUsername = expectedUsername;
-    }
-
-    @Override
-    public GraphRole apply(UserGraphRole id) {
-      Preconditions.checkArgument(Objects.equals(expectedUsername, id.getUsername()));
-      return new GraphRole(id.getGraph(), id.getRole());
-    }
+    return new User(user.getUsername(), user.getPassword(), user.getAppRole(), graphRoles);
   }
 
 }
