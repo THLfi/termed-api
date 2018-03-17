@@ -48,44 +48,44 @@ public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDa
 
   @Override
   public void insert(Map<K, V> map) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidateAll(map.keySet());
     delegate.insert(map);
+    keyValueCache.invalidateAll(map.keySet());
+    specificationCache.invalidateAll();
   }
 
   @Override
   public void insert(K key, V value) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidate(key);
     delegate.insert(key, value);
+    keyValueCache.invalidate(key);
+    specificationCache.invalidateAll();
   }
 
   @Override
   public void update(Map<K, V> map) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidateAll(map.keySet());
     delegate.update(map);
+    keyValueCache.invalidateAll(map.keySet());
+    specificationCache.invalidateAll();
   }
 
   @Override
   public void update(K key, V value) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidate(key);
     delegate.update(key, value);
+    keyValueCache.invalidate(key);
+    specificationCache.invalidateAll();
   }
 
   @Override
   public void delete(List<K> keys) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidateAll(keys);
     delegate.delete(keys);
+    keyValueCache.invalidateAll(keys);
+    specificationCache.invalidateAll();
   }
 
   @Override
   public void delete(K key) {
-    specificationCache.invalidateAll();
-    keyValueCache.invalidate(key);
     delegate.delete(key);
+    keyValueCache.invalidate(key);
+    specificationCache.invalidateAll();
   }
 
   @Override

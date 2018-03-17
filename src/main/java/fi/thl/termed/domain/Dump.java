@@ -1,5 +1,7 @@
 package fi.thl.termed.domain;
 
+import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
+
 import com.google.common.collect.ImmutableList;
 
 public class Dump {
@@ -18,15 +20,15 @@ public class Dump {
   }
 
   public ImmutableList<Graph> getGraphs() {
-    return graphs;
+    return nullToEmpty(graphs);
   }
 
   public ImmutableList<Type> getTypes() {
-    return types;
+    return nullToEmpty(types);
   }
 
   public ImmutableList<Node> getNodes() {
-    return nodes;
+    return nullToEmpty(nodes);
   }
 
 }

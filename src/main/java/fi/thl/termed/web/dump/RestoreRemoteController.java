@@ -97,8 +97,9 @@ public class RestoreRemoteController {
           nodeService.save(dump.getNodes(), saveMode(mode), opts(sync), user);
         } catch (RuntimeException | Error e) {
           manager.rollback(tx);
-          eventBus.post(new InvalidateCachesEvent());
           throw e;
+        } finally {
+          eventBus.post(new InvalidateCachesEvent());
         }
 
         manager.commit(tx);

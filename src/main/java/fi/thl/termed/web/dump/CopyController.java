@@ -89,8 +89,9 @@ public class CopyController {
 
       } catch (RuntimeException | Error e) {
         manager.rollback(tx);
-        eventBus.post(new InvalidateCachesEvent());
         throw e;
+      } finally {
+        eventBus.post(new InvalidateCachesEvent());
       }
 
       manager.commit(tx);

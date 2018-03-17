@@ -22,11 +22,12 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
 
     JsonObject graphIdObject = object("id", primitive(graphId));
     JsonObject typeIdObject = object("id", primitive(typeId), "graph", graphIdObject);
+    JsonObject nodeIdObject = object("id", primitive(nodeId), "type", typeIdObject);
 
     JsonObject dump = object(
         "graphs", array(graphIdObject),
         "types", array(typeIdObject),
-        "nodes", array(object("id", primitive(nodeId), "type", typeIdObject)));
+        "nodes", array(nodeIdObject));
 
     // save dump
     given()
@@ -49,6 +50,33 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
         .body(sameJSONAs(dump.toString())
             .allowingExtraUnexpectedFields()
             .allowingAnyArrayOrdering());
+
+    given()
+        .auth().basic(testUsername, testPassword)
+        .accept("application/json")
+        .when()
+        .get("/api/graphs/" + graphId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body(sameJSONAs(graphIdObject.toString()).allowingExtraUnexpectedFields());
+
+    given()
+        .auth().basic(testUsername, testPassword)
+        .accept("application/json")
+        .when()
+        .get("/api/graphs/" + graphId + "/types/" + typeId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body(sameJSONAs(typeIdObject.toString()).allowingExtraUnexpectedFields());
+
+    given()
+        .auth().basic(testUsername, testPassword)
+        .accept("application/json")
+        .when()
+        .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body(sameJSONAs(nodeIdObject.toString()).allowingExtraUnexpectedFields());
   }
 
 }
