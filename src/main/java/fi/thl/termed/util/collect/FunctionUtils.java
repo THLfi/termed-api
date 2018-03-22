@@ -3,6 +3,7 @@ package fi.thl.termed.util.collect;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class FunctionUtils {
@@ -14,6 +15,16 @@ public final class FunctionUtils {
     return input -> {
       try {
         return checked.apply(input);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    };
+  }
+
+  public static <T> Consumer<T> toUncheckedConsumer(CheckedConsumer<T> checked) {
+    return input -> {
+      try {
+        checked.apply(input);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

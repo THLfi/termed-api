@@ -1,21 +1,20 @@
 package fi.thl.termed.web.dump;
 
-import static fi.thl.termed.util.collect.StreamUtils.toStream;
+import static com.google.common.collect.ImmutableSet.copyOf;
+import static com.google.common.collect.ImmutableSet.of;
+import static fi.thl.termed.util.collect.SetUtils.toImmutableSet;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singleton;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
+import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -36,14 +35,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
-public class DumpController {
+public class DumpReadController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
+
   @Autowired
-  private Service<TypeId, Type> typeService;
-  @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service<ImmutableSet<GraphId>, Dump> dumpService;
+
   @Autowired
   private Gson gson;
 
@@ -55,15 +54,15 @@ public class DumpController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
-      Stream<Graph> graphs = graphService.getValueStream(user);
-      Stream<Type> types = typeService.getValueStream(user);
-      Stream<Node> nodes = nodeService.getValueStream(user);
+      ImmutableSet<GraphId> graphIds = copyOf(graphService.getKeys(user));
 
-      writeJson(graphs.iterator(), types.iterator(), nodes.iterator(), writer);
+      Dump dump = dumpService.get(graphIds, user).orElseThrow(IllegalStateException::new);
 
-      graphs.close();
-      types.close();
-      nodes.close();
+      try (Stream<Graph> graphs = dump.getGraphs();
+          Stream<Type> types = dump.getTypes();
+          Stream<Node> nodes = dump.getNodes()) {
+        writeJson(graphs.iterator(), types.iterator(), nodes.iterator(), writer);
+      }
     }
   }
 
@@ -76,14 +75,15 @@ public class DumpController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
-      writeJson(
-          ids.stream().flatMap(
-              id -> toStream(graphService.get(new GraphId(id), user))).iterator(),
-          ids.stream().flatMap(
-              id -> typeService.getValueStream(new TypesByGraphId(id), user)).iterator(),
-          ids.stream().flatMap(
-              id -> nodeService.getValueStream(new NodesByGraphId(id), user)).iterator(),
-          writer);
+      ImmutableSet<GraphId> graphIds = ids.stream().map(GraphId::new).collect(toImmutableSet());
+
+      Dump dump = dumpService.get(graphIds, user).orElseThrow(IllegalStateException::new);
+
+      try (Stream<Graph> graphs = dump.getGraphs();
+          Stream<Type> types = dump.getTypes();
+          Stream<Node> nodes = dump.getNodes()) {
+        writeJson(graphs.iterator(), types.iterator(), nodes.iterator(), writer);
+      }
     }
   }
 
@@ -98,11 +98,14 @@ public class DumpController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (Writer writer = new OutputStreamWriter(response.getOutputStream(), UTF_8)) {
-      writeJson(
-          singleton(graph).iterator(),
-          typeService.getValueStream(new TypesByGraphId(graphId), user).iterator(),
-          nodeService.getValueStream(new NodesByGraphId(graphId), user).iterator(),
-          writer);
+      Dump dump = dumpService.get(of(graph.identifier()), user)
+          .orElseThrow(IllegalStateException::new);
+
+      try (Stream<Graph> graphs = dump.getGraphs();
+          Stream<Type> types = dump.getTypes();
+          Stream<Node> nodes = dump.getNodes()) {
+        writeJson(graphs.iterator(), types.iterator(), nodes.iterator(), writer);
+      }
     }
   }
 

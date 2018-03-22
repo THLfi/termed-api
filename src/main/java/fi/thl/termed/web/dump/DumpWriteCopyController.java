@@ -1,105 +1,71 @@
 package fi.thl.termed.web.dump;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static fi.thl.termed.util.spring.SpEL.RANDOM_UUID;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
-import com.google.common.eventbus.EventBus;
-import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.event.InvalidateCachesEvent;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/dump")
-public class CopyController {
+@RequestMapping("/api")
+public class DumpWriteCopyController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
 
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service<ImmutableSet<GraphId>, Dump> dumpService;
 
-  @Autowired
-  private Service<NodeId, Node> nodeService;
-
-  @Autowired
-  private PlatformTransactionManager manager;
-
-  @Autowired
-  private EventBus eventBus;
-
-  @PostJsonMapping(params = "copy=true", produces = MediaType.TEXT_PLAIN_VALUE)
-  public String copy(
-      @RequestParam("sourceGraphId") UUID sourceGraphId,
+  @PostJsonMapping(path = "/graphs/{graphId}/dump", params = "copy=true", produces = APPLICATION_JSON_UTF8_VALUE)
+  public GraphId copyDump(
+      @PathVariable("graphId") UUID sourceGraphId,
       @RequestParam(name = "targetGraphId", defaultValue = RANDOM_UUID) UUID targetGraphId,
       @RequestParam(name = "mode", defaultValue = "insert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
 
-    if (user.getAppRole() == AppRole.ADMIN || user.getAppRole() == AppRole.SUPERUSER) {
-      TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
+    Graph sourceGraph = graphService.get(new GraphId(sourceGraphId), user)
+        .orElseThrow(NotFoundException::new);
 
-      try {
-        Graph sourceGraph = graphService.get(GraphId.of(sourceGraphId), user)
-            .orElseThrow(NotFoundException::new);
+    Dump dump = dumpService.get(of(sourceGraph.identifier()), user)
+        .orElseThrow(IllegalStateException::new);
 
-        graphService.save(mapGraphToGraph(sourceGraph, targetGraphId),
-            saveMode(mode), opts(sync), user);
-
-        typeService.save(
-            typeService.getValues(new TypesByGraphId(sourceGraphId), user).stream()
-                .map(t -> mapTypeToGraph(t, targetGraphId))
-                .collect(toList()),
-            saveMode(mode), opts(sync), user);
-
-        try (Stream<Node> nodes = nodeService
-            .getValueStream(new NodesByGraphId(sourceGraphId), user)) {
-          nodeService.save(
-              mapNodesToGraph(nodes, targetGraphId).collect(toList()),
-              saveMode(mode), opts(sync), user);
-        }
-
-      } catch (RuntimeException | Error e) {
-        manager.rollback(tx);
-        throw e;
-      } finally {
-        eventBus.post(new InvalidateCachesEvent());
-      }
-
-      manager.commit(tx);
-
-      return targetGraphId.toString();
+    try (Stream<Graph> graphs = dump.getGraphs();
+        Stream<Type> types = dump.getTypes();
+        Stream<Node> nodes = dump.getNodes()) {
+      dumpService.save(new Dump(
+              graphs.map(graph -> mapGraphToGraph(graph, targetGraphId)),
+              types.map(type -> mapTypeToGraph(type, targetGraphId)),
+              nodes.map(node -> mapNodeToGraph(node, targetGraphId))),
+          saveMode(mode), opts(sync), user);
     }
 
-    throw new BadCredentialsException("");
+    return new GraphId(targetGraphId);
   }
 
   private Graph mapGraphToGraph(Graph sourceGraph, UUID targetGraphId) {
@@ -121,7 +87,7 @@ public class CopyController {
             .map(a -> mapTextAttributeToType(a, targetTypeId))
             .collect(toList()))
         .referenceAttributes(sourceType.getReferenceAttributes().stream()
-            .map(a -> mapReferenceAttributesTo(a, targetTypeId))
+            .map(a -> mapReferenceAttributeTo(a, targetTypeId))
             .collect(toList()))
         .build();
   }
@@ -134,7 +100,7 @@ public class CopyController {
         .build();
   }
 
-  private ReferenceAttribute mapReferenceAttributesTo(ReferenceAttribute a, TypeId typeId) {
+  private ReferenceAttribute mapReferenceAttributeTo(ReferenceAttribute a, TypeId typeId) {
     return ReferenceAttribute.builder()
         .id(a.getId(), typeId)
         .range(a.getRange().equals(a.getDomain()) ? typeId : a.getRange())
@@ -142,8 +108,9 @@ public class CopyController {
         .build();
   }
 
-  private Stream<Node> mapNodesToGraph(Stream<Node> nodes, UUID graphId) {
-    return nodes.peek(node -> node.setType(TypeId.of(node.getTypeId(), graphId)));
+  private Node mapNodeToGraph(Node node, UUID graphId) {
+    node.setType(TypeId.of(node.getTypeId(), graphId));
+    return node;
   }
 
 }

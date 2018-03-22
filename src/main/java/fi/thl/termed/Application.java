@@ -8,6 +8,7 @@ import fi.thl.termed.util.json.DateTypeAdapter;
 import fi.thl.termed.util.json.ImmutableListDeserializer;
 import fi.thl.termed.util.json.ImmutableMultimapTypeAdapterFactory;
 import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
+import fi.thl.termed.util.json.StreamTypeAdapterFactory;
 import java.util.Date;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,6 +34,7 @@ public class Application extends SpringBootServletInitializer {
     return new GsonBuilder().setPrettyPrinting()
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
         .registerTypeAdapter(ImmutableList.class, new ImmutableListDeserializer())
+        .registerTypeAdapterFactory(new StreamTypeAdapterFactory())
         .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
         .registerTypeAdapterFactory(new ImmutableMultimapTypeAdapterFactory())
         .create();

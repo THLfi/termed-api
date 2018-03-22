@@ -8,19 +8,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
-import com.google.common.eventbus.EventBus;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Dump;
-import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
-import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.UrlWithCredentials;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import java.io.IOException;
@@ -34,9 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,27 +36,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping({"/api/dump", "/api/restore"})
-public class RestoreRemoteController {
+public class DumpWriteFromRemoteController {
 
   private Logger log = LoggerFactory.getLogger(getClass());
-
-  @Autowired
-  private Service<GraphId, Graph> graphService;
-
-  @Autowired
-  private Service<TypeId, Type> typeService;
-
-  @Autowired
-  private Service<NodeId, Node> nodeService;
-
-  @Autowired
-  private PlatformTransactionManager manager;
 
   @Autowired
   private Gson gson;
 
   @Autowired
-  private EventBus eventBus;
+  private Service<ImmutableSet<GraphId>, Dump> dumpService;
 
   private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -89,20 +68,7 @@ public class RestoreRemoteController {
 
         log.info("Restoring");
 
-        TransactionStatus tx = manager.getTransaction(new DefaultTransactionDefinition());
-
-        try {
-          graphService.save(dump.getGraphs(), saveMode(mode), opts(sync), user);
-          typeService.save(dump.getTypes(), saveMode(mode), opts(sync), user);
-          nodeService.save(dump.getNodes(), saveMode(mode), opts(sync), user);
-        } catch (RuntimeException | Error e) {
-          manager.rollback(tx);
-          throw e;
-        } finally {
-          eventBus.post(new InvalidateCachesEvent());
-        }
-
-        manager.commit(tx);
+        dumpService.save(dump, saveMode(mode), opts(sync), user);
       }
 
       log.info("Done");

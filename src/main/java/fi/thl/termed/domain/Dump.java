@@ -1,34 +1,34 @@
 package fi.thl.termed.domain;
 
-import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
+import static java.util.stream.Stream.empty;
 
-import com.google.common.collect.ImmutableList;
+import java.util.stream.Stream;
 
 public class Dump {
 
-  private final ImmutableList<Graph> graphs;
-  private final ImmutableList<Type> types;
-  private final ImmutableList<Node> nodes;
+  private final Stream<Graph> graphs;
+  private final Stream<Type> types;
+  private final Stream<Node> nodes;
 
   public Dump(
-      ImmutableList<Graph> graphs,
-      ImmutableList<Type> types,
-      ImmutableList<Node> nodes) {
+      Stream<Graph> graphs,
+      Stream<Type> types,
+      Stream<Node> nodes) {
     this.graphs = graphs;
     this.types = types;
     this.nodes = nodes;
   }
 
-  public ImmutableList<Graph> getGraphs() {
-    return nullToEmpty(graphs);
+  public Stream<Graph> getGraphs() {
+    return graphs != null ? graphs : empty();
   }
 
-  public ImmutableList<Type> getTypes() {
-    return nullToEmpty(types);
+  public Stream<Type> getTypes() {
+    return types != null ? types : empty();
   }
 
-  public ImmutableList<Node> getNodes() {
-    return nullToEmpty(nodes);
+  public Stream<Node> getNodes() {
+    return nodes != null ? nodes : empty();
   }
 
 }
