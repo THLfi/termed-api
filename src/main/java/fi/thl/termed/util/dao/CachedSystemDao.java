@@ -16,8 +16,8 @@ import java.util.concurrent.ExecutionException;
 
 public class CachedSystemDao<K extends Serializable, V> extends AbstractSystemDao<K, V> {
 
-  private static final int DEFAULT_SPECIFICATION_CACHE_SIZE = 1000;
-  private static final int DEFAULT_KEY_VALUE_CACHE_SIZE = 1000;
+  private static final int DEFAULT_SPECIFICATION_CACHE_SIZE = 100_000;
+  private static final int DEFAULT_KEY_VALUE_CACHE_SIZE = 100_000;
 
   private Cache<Specification<K, V>, List<K>> specificationCache;
   private Cache<K, Optional<V>> keyValueCache;
