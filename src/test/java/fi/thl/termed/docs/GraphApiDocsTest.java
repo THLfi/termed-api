@@ -61,7 +61,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class GraphApiDocs {
+public class GraphApiDocsTest {
 
   @Rule
   public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
