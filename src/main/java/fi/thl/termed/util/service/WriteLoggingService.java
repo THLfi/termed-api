@@ -26,8 +26,8 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
   public List<K> save(List<V> values, SaveMode mode, WriteOptions opts, User user) {
     if (log.isTraceEnabled()) {
       log.trace("save {} (user: {})", values, user.getUsername());
-    } else if (log.isInfoEnabled()) {
-      log.info("save {} values (user: {})", values.size(), user.getUsername());
+    } else if (log.isDebugEnabled()) {
+      log.debug("save {} values (user: {})", values.size(), user.getUsername());
     }
     return super.save(values, mode, opts, user);
   }
@@ -36,8 +36,8 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
   public K save(V value, SaveMode mode, WriteOptions opts, User user) {
     if (log.isTraceEnabled()) {
       log.trace("save {} (user: {})", value, user.getUsername());
-    } else if (log.isInfoEnabled()) {
-      log.info("save {} (user: {})", truncate(value.toString(), 150, "..."), user.getUsername());
+    } else if (log.isDebugEnabled()) {
+      log.debug("save {} (user: {})", truncate(value.toString(), 150, "..."), user.getUsername());
     }
     return super.save(value, mode, opts, user);
   }
@@ -46,16 +46,16 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
   public void delete(List<K> ids, WriteOptions opts, User user) {
     if (log.isTraceEnabled()) {
       log.trace("delete {} (user: {})", ids, user.getUsername());
-    } else if (log.isInfoEnabled()) {
-      log.info("delete {} values (user: {})", ids.size(), user.getUsername());
+    } else if (log.isDebugEnabled()) {
+      log.debug("delete {} values (user: {})", ids.size(), user.getUsername());
     }
     super.delete(ids, opts, user);
   }
 
   @Override
   public void delete(K id, WriteOptions opts, User user) {
-    if (log.isInfoEnabled()) {
-      log.info("delete {} (user: {})", id, user.getUsername());
+    if (log.isDebugEnabled()) {
+      log.debug("delete {} (user: {})", id, user.getUsername());
     }
     super.delete(id, opts, user);
   }
@@ -65,8 +65,8 @@ public class WriteLoggingService<K extends Serializable, V> extends ForwardingSe
       User user) {
     if (log.isTraceEnabled()) {
       log.trace("save {} and delete {} (user: {})", saves, deletes, user.getUsername());
-    } else if (log.isInfoEnabled()) {
-      log.info("save {} values and delete {} values (user: {})",
+    } else if (log.isDebugEnabled()) {
+      log.debug("save {} values and delete {} values (user: {})",
           saves.size(), deletes.size(), user.getUsername());
     }
     return super.saveAndDelete(saves, deletes, mode, opts, user);
