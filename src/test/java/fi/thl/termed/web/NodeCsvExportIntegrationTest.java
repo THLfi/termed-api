@@ -19,7 +19,7 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + graphId + "'}")
         .when()
@@ -30,7 +30,7 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
 
     // save type
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + typeId + "'}")
         .when()
@@ -41,7 +41,7 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
 
     // save one node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + nodeId + "'}")
         .when()
@@ -52,7 +52,7 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
 
     // get one node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .when()
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes.csv")
         .then()

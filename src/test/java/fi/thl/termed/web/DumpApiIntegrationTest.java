@@ -31,7 +31,7 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save dump
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(dump.toString())
         .when()
@@ -41,7 +41,7 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
 
     // read dump (limited only to previously posted data)
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .when()
         .get("/api/dump?graphId=" + graphId)
         .then()
@@ -52,7 +52,7 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
             .allowingAnyArrayOrdering());
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when()
         .get("/api/graphs/" + graphId)
@@ -61,7 +61,7 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
         .body(sameJSONAs(graphIdObject.toString()).allowingExtraUnexpectedFields());
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when()
         .get("/api/graphs/" + graphId + "/types/" + typeId)
@@ -70,7 +70,7 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
         .body(sameJSONAs(typeIdObject.toString()).allowingExtraUnexpectedFields());
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when()
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)

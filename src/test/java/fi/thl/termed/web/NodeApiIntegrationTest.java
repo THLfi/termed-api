@@ -23,7 +23,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + graphId + "'}")
         .when()
@@ -34,7 +34,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save type
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + typeId + "'}")
         .when()
@@ -45,7 +45,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save one node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + nodeId + "'}")
         .when()
@@ -56,7 +56,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // get one node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .when()
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)
@@ -71,7 +71,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(resourceToString("examples/termed/animals-graph.json"))
         .when()
@@ -82,7 +82,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save types
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(resourceToString("examples/termed/animals-types.json"))
         .when()
@@ -92,7 +92,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save nodes
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(resourceToString("examples/termed/animals-nodes.json"))
         .when()
@@ -102,7 +102,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // check that we get the same vocabulary information back
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .when()
         .get("/api/graphs/" + graphId + "/types/Concept/nodes")
@@ -123,7 +123,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + graphId + "'}")
         .post("/api/graphs")
@@ -132,7 +132,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save type
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + typeId + "'}")
         .post("/api/graphs/" + graphId + "/types")
@@ -141,7 +141,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // save first node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + firstNodeId + "'}")
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
@@ -150,14 +150,14 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // check preconditions
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()
@@ -168,7 +168,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
         "delete", array(object("id", primitive(firstNodeId))),
         "save", array(object("id", primitive(secondNodeId))));
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(changeset.toString())
         .post("/api/graphs/" + graphId + "/types/Concept/nodes?changeset=true")
@@ -177,14 +177,14 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
     // verify changes
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_NOT_FOUND);
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()

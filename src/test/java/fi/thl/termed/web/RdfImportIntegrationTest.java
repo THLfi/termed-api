@@ -30,7 +30,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(ResourceUtils.resourceToString("examples/nasa/example-graph.json"))
         .when()
@@ -41,7 +41,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph types
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(ResourceUtils.resourceToString("examples/nasa/example-types.json"))
         .when()
@@ -51,7 +51,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save graph nodes
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/rdf+xml")
         .body(ResourceUtils.resourceToString("examples/nasa/example-nodes.rdf"))
         .when()
@@ -66,7 +66,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save test graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(JsonUtils.getJsonResource("examples/skos/example-skos-graph.json").toString())
         .when()
@@ -77,7 +77,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save test types
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(JsonUtils.getJsonResource("examples/skos/example-skos-types.json").toString())
         .when()
@@ -90,7 +90,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // check that node is not yet in the graph
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when().get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId)
         .then().statusCode(HttpStatus.SC_NOT_FOUND);
@@ -102,7 +102,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // save rdf model containing the node
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .config(RestAssured.config().encoderConfig(
             encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML)))
         .contentType("application/rdf+xml")
@@ -114,7 +114,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
     // make sure that saved node exists
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when()
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId)

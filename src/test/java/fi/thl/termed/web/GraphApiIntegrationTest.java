@@ -18,7 +18,7 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
     String graphId = UUID.randomUUID().toString();
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body("{'id':'" + graphId + "'}")
         .when()
@@ -37,7 +37,7 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
     skosGraph.addProperty("id", graphId);
 
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
         .body(skosGraph.toString())
         .when()
@@ -48,7 +48,7 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
 
     // get the persisted graph and compare to original allowing extra fields such as timestamps
     given()
-        .auth().basic(testUsername, testPassword)
+        .auth().basic(testAdminUsername, testAdminPassword)
         .accept("application/json")
         .when()
         .get("/api/graphs/" + graphId)

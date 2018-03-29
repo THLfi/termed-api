@@ -1,43 +1,43 @@
 package fi.thl.termed.web;
 
-import static fi.thl.termed.util.service.SaveMode.UPSERT;
-import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 
-import fi.thl.termed.domain.AppRole;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.UUIDs;
 import org.apache.http.HttpStatus;
-import org.junit.Before;
 import org.junit.Test;
 
 public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
-  private String exampleUserUsername = "user";
-  private String exampleUserPassword = UUIDs.randomUUIDString();
   private String exampleUserData = String.format(
       "{ 'username': '%s', 'password': '%s', 'appRole': 'USER' }",
-      exampleUserUsername, exampleUserPassword);
+      testUsername, testPassword);
 
-  private String testAdminUsername = "testAdmin";
-  private String testAdminPassword = UUIDs.randomUUIDString();
+  @Test
+  public void regularUserShouldNotBeAbleToAccessUserApi() {
+    given()
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json").body(exampleUserData)
+        .when().post("/api/users")
+        .then().statusCode(HttpStatus.SC_FORBIDDEN);
 
-  private String testSuperuserUsername = "testSuperuser";
-  private String testSuperuserPassword = UUIDs.randomUUIDString();
+    given()
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json")
+        .when().get("/api/users/{username}", testUsername)
+        .then().statusCode(HttpStatus.SC_FORBIDDEN);
 
-  @Before
-  public void addTestAdminAndSuperuser() {
-    User initializer = new User("initializer", "", AppRole.SUPERUSER);
+    given()
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json")
+        .when().get("/api/users")
+        .then().statusCode(HttpStatus.SC_FORBIDDEN);
 
-    userRepository.save(new User(testAdminUsername,
-        passwordEncoder.encode(testAdminPassword),
-        AppRole.ADMIN), UPSERT, defaultOpts(), initializer);
-
-    userRepository.save(new User(testSuperuserUsername,
-        passwordEncoder.encode(testSuperuserPassword),
-        AppRole.SUPERUSER), UPSERT, defaultOpts(), initializer);
+    given()
+        .auth().basic(testUsername, testPassword)
+        .contentType("application/json")
+        .when().delete("/api/users/{username}", testUsername)
+        .then().statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
   @Test
@@ -51,7 +51,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     given()
         .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
-        .when().get("/api/users/{username}", exampleUserUsername)
+        .when().get("/api/users/{username}", testAdminUsername)
         .then().statusCode(HttpStatus.SC_FORBIDDEN);
 
     given()
@@ -63,7 +63,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     given()
         .auth().basic(testAdminUsername, testAdminPassword)
         .contentType("application/json")
-        .when().delete("/api/users/{username}", exampleUserUsername)
+        .when().delete("/api/users/{username}", testUsername)
         .then().statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
@@ -78,10 +78,10 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     given()
         .auth().basic(testSuperuserUsername, testSuperuserPassword)
         .contentType("application/json")
-        .when().get("/api/users/{username}", exampleUserUsername)
+        .when().get("/api/users/{username}", testUsername)
         .then().statusCode(HttpStatus.SC_OK)
-        .body("username", equalTo(exampleUserUsername))
-        .body("password", not(equalTo(exampleUserUsername)))
+        .body("username", equalTo(testUsername))
+        .body("password", not(equalTo(testUsername)))
         .body("appRole", equalTo("USER"));
 
     given()
@@ -93,7 +93,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
     given()
         .auth().basic(testSuperuserUsername, testSuperuserPassword)
         .contentType("application/json")
-        .when().delete("/api/users/{username}", exampleUserUsername)
+        .when().delete("/api/users/{username}", testUsername)
         .then().statusCode(HttpStatus.SC_NO_CONTENT);
   }
 

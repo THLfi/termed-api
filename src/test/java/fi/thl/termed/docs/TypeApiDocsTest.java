@@ -12,7 +12,6 @@ import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
 import static fi.thl.termed.util.RegularExpressions.ALL;
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.util.RegularExpressions.SIMPLE_EMAIL;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static io.restassured.RestAssured.given;
@@ -131,7 +130,7 @@ public class TypeApiDocsTest {
               .build(),
           TextAttribute.builder()
               .id("email", personTypeId)
-              .regex("^" + SIMPLE_EMAIL + "$")
+              .regex("^.*@.*$")
               .uri(FOAF.mbox.getURI())
               .permissions(examplePermissions)
               .properties("prefLabel", LangValue.of("en", "E-mail"))
