@@ -21,96 +21,67 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     String typeId = "Concept";
     String nodeId = UUID.randomUUID().toString();
 
-    // save graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save graph and type
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + graphId + "'}")
-        .when()
-        .post("/api/graphs")
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(graphId));
-
-    // save type
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .post("/api/graphs?mode=insert");
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + typeId + "'}")
-        .when()
-        .post("/api/graphs/" + graphId + "/types")
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(typeId));
+        .post("/api/graphs/" + graphId + "/types");
 
     // save one node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + nodeId + "'}")
-        .when()
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(nodeId));
 
     // get one node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
-        .when()
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(nodeId));
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
   @Test
   public void shouldSaveAndGetSimpleVocabulary() {
     String graphId = UUID.randomUUID().toString();
 
-    // save graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save graph and types
+    given(adminAuthorizedJsonRequest)
         .body(resourceToString("examples/termed/animals-graph.json"))
-        .when()
-        .put("/api/graphs/" + graphId)
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(graphId));
-
-    // save types
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .put("/api/graphs/" + graphId + "?mode=insert");
+    given(adminAuthorizedJsonRequest)
         .body(resourceToString("examples/termed/animals-types.json"))
-        .when()
-        .post("/api/graphs/" + graphId + "/types?batch=true")
-        .then()
-        .statusCode(HttpStatus.SC_NO_CONTENT);
+        .post("/api/graphs/" + graphId + "/types?batch=true");
 
     // save nodes
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .body(resourceToString("examples/termed/animals-nodes.json"))
-        .when()
         .post("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // check that we get the same vocabulary information back
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
-        .when()
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(resourceToString("examples/termed/animals-nodes.json"))
             .allowingExtraUnexpectedFields()
             .allowingAnyArrayOrdering());
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
   @Test
@@ -121,44 +92,27 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     String firstNodeId = UUID.randomUUID().toString();
     String secondNodeId = UUID.randomUUID().toString();
 
-    // save graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save graph and type
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + graphId + "'}")
-        .post("/api/graphs")
-        .then()
-        .statusCode(HttpStatus.SC_OK);
-
-    // save type
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .post("/api/graphs?mode=insert");
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + typeId + "'}")
-        .post("/api/graphs/" + graphId + "/types")
-        .then()
-        .statusCode(HttpStatus.SC_OK);
+        .post("/api/graphs/" + graphId + "/types");
 
-    // save first node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save first node (but not a second one)
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + firstNodeId + "'}")
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     // check preconditions
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_OK);
-
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()
         .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -167,29 +121,27 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     JsonObject changeset = object(
         "delete", array(object("id", primitive(firstNodeId))),
         "save", array(object("id", primitive(secondNodeId))));
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .body(changeset.toString())
         .post("/api/graphs/" + graphId + "/types/Concept/nodes?changeset=true")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // verify changes
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_NOT_FOUND);
-
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(secondNodeId));
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
 }

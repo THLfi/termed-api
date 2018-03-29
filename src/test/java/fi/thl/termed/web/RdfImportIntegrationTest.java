@@ -28,72 +28,54 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
   public void shouldSaveRdfVocabulary() {
     String graphId = UUID.randomUUID().toString();
 
-    // save graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save graph and types
+    given(adminAuthorizedJsonRequest)
         .body(ResourceUtils.resourceToString("examples/nasa/example-graph.json"))
-        .when()
-        .put("/api/graphs/" + graphId)
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(graphId));
-
-    // save graph types
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .put("/api/graphs/" + graphId + "?mode=insert");
+    given(adminAuthorizedJsonRequest)
         .body(ResourceUtils.resourceToString("examples/nasa/example-types.json"))
-        .when()
-        .post("/api/graphs/" + graphId + "/types?batch=true")
-        .then()
-        .statusCode(HttpStatus.SC_NO_CONTENT);
+        .post("/api/graphs/" + graphId + "/types?batch=true");
 
-    // save graph nodes
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
+    // save nodes
+    given(adminAuthorizedJsonRequest)
         .contentType("application/rdf+xml")
         .body(ResourceUtils.resourceToString("examples/nasa/example-nodes.rdf"))
-        .when()
         .post("/api/graphs/" + graphId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // verify that nodes got saved
+    given(adminAuthorizedJsonRequest)
+        .get("/api/graphs/" + graphId + "/node-count")
+        .then()
+        .body(equalTo("16"));
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
   @Test
   public void shouldPickNodeIdFromUuidUrn() throws IOException {
     String graphId = UUID.randomUUID().toString();
 
-    // save test graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save test graph and types
+    given(adminAuthorizedJsonRequest)
         .body(JsonUtils.getJsonResource("examples/skos/example-skos-graph.json").toString())
-        .when()
-        .put("/api/graphs/" + graphId)
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(graphId));
-
-    // save test types
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .put("/api/graphs/" + graphId + "?mode=insert");
+    given(adminAuthorizedJsonRequest)
         .body(JsonUtils.getJsonResource("examples/skos/example-skos-types.json").toString())
-        .when()
-        .post("/api/graphs/" + graphId + "/types?batch=true")
-        .then()
-        .statusCode(HttpStatus.SC_NO_CONTENT);
+        .post("/api/graphs/" + graphId + "/types?batch=true");
 
     // id for node to be added
     String nodeId = UUID.randomUUID().toString();
 
     // check that node is not yet in the graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .accept("application/json")
-        .when().get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId)
-        .then().statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
 
     Model model = ModelFactory.createDefaultModel();
     Resource subject = createResource("urn:uuid:" + nodeId);
@@ -101,28 +83,27 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
     model.add(createStatement(subject, SKOS.prefLabel, createPlainLiteral("Cat")));
 
     // save rdf model containing the node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
+    given(adminAuthorizedJsonRequest)
         .config(RestAssured.config().encoderConfig(
             encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML)))
         .contentType("application/rdf+xml")
         .body(JenaUtils.toRdfXmlString(model))
-        .when()
         .post("/api/graphs/" + graphId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // make sure that saved node exists
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .accept("application/json")
-        .when()
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(nodeId))
-        .and()
         .body("properties.prefLabel[0].value", equalTo("Cat"));
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
 }

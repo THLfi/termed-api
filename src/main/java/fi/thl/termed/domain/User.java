@@ -3,6 +3,7 @@ package fi.thl.termed.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.ImmutableList.of;
+import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
 
 import com.google.common.base.MoreObjects;
@@ -35,6 +36,30 @@ public class User implements UserDetails, Identifiable<String> {
 
   public User(User user) {
     this(user.username, user.password, user.appRole, user.graphRoles);
+  }
+
+  public static User newUser(String username) {
+    return newUser(username, randomAlphanumericString(25));
+  }
+
+  public static User newUser(String username, String password) {
+    return new User(username, password, AppRole.USER);
+  }
+
+  public static User newAdmin(String username) {
+    return newAdmin(username, randomAlphanumericString(25));
+  }
+
+  public static User newAdmin(String username, String password) {
+    return new User(username, password, AppRole.ADMIN);
+  }
+
+  public static User newSuperuser(String username) {
+    return newSuperuser(username, randomAlphanumericString(25));
+  }
+
+  public static User newSuperuser(String username, String password) {
+    return new User(username, password, AppRole.SUPERUSER);
   }
 
   @Override

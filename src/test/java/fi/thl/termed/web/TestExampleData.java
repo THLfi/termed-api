@@ -4,6 +4,8 @@ import static fi.thl.termed.domain.Permission.DELETE;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
+import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
+import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableMultimap;
@@ -18,29 +20,38 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import org.apache.jena.sparql.vocabulary.FOAF;
 
-public class TestExampleData {
+class TestExampleData {
 
-  static Multimap<String, Permission> examplePermissions = ImmutableMultimap.<String, Permission>builder()
+  static String testUserUsername = "test-user";
+  static String testUserPassword = randomAlphanumericString(8);
+
+  static String testAdminUsername = "test-admin";
+  static String testAdminPassword = randomAlphanumericString(12);
+
+  static String testSuperuserUsername = "test-superuser";
+  static String testSuperuserPassword = randomAlphanumericString(12);
+
+  static Multimap<String, Permission> testPermissions = ImmutableMultimap.<String, Permission>builder()
       .putAll("guest", READ)
       .putAll("admin", READ, INSERT, UPDATE, DELETE).build();
 
-  static GraphId exampleGraphId = GraphId.fromUuidString("example-graph");
+  static GraphId exampleGraphId = GraphId.of(nameUUIDFromString("example-graph"));
   static Graph exampleGraph = Graph.builder()
       .id(exampleGraphId)
       .code("example-graph")
       .uri("http://example.org/termed/example-graph/")
       .roles(asList("guest", "admin"))
-      .permissions(examplePermissions)
+      .permissions(testPermissions)
       .properties("prefLabel", LangValue.of("en", "Example Graph"))
       .build();
 
-  static GraphId anotherGraphId = GraphId.fromUuidString("another-graph");
+  static GraphId anotherGraphId = GraphId.of(nameUUIDFromString("another-graph"));
   static Graph anotherGraph = Graph.builder()
       .id(anotherGraphId)
       .code("another-graph")
       .uri("http://example.org/termed/another-graph/")
       .roles(asList("guest", "admin"))
-      .permissions(examplePermissions)
+      .permissions(testPermissions)
       .properties("prefLabel", LangValue.of("en", "Another Graph"))
       .build();
 
@@ -49,21 +60,21 @@ public class TestExampleData {
       .id(personTypeId)
       .uri(FOAF.Person.getURI())
       .nodeCodePrefix("PERSON-")
-      .permissions(examplePermissions)
+      .permissions(testPermissions)
       .properties("prefLabel", LangValue.of("en", "Person"))
       .textAttributes(
           TextAttribute.builder()
               .id("name", personTypeId)
               .regex("^\\w+$")
               .uri(FOAF.name.getURI())
-              .permissions(examplePermissions)
+              .permissions(testPermissions)
               .properties("prefLabel", LangValue.of("en", "Name"))
               .build(),
           TextAttribute.builder()
               .id("email", personTypeId)
               .regex("^.*@.*$")
               .uri(FOAF.mbox.getURI())
-              .permissions(examplePermissions)
+              .permissions(testPermissions)
               .properties("prefLabel", LangValue.of("en", "E-mail"))
               .build())
       .referenceAttributes(
@@ -71,7 +82,7 @@ public class TestExampleData {
               .id("knows", personTypeId)
               .range(personTypeId)
               .uri(FOAF.knows.getURI())
-              .permissions(examplePermissions)
+              .permissions(testPermissions)
               .properties("prefLabel", LangValue.of("en", "Knows"))
               .build())
       .build();
@@ -81,14 +92,14 @@ public class TestExampleData {
       .id(groupTypeId)
       .uri(FOAF.Group.getURI())
       .nodeCodePrefix("GROUP-")
-      .permissions(examplePermissions)
+      .permissions(testPermissions)
       .properties("prefLabel", LangValue.of("en", "Group"))
       .textAttributes(
           TextAttribute.builder()
               .id("name", groupTypeId)
               .regex("^\\w+$")
               .uri(FOAF.name.getURI())
-              .permissions(examplePermissions)
+              .permissions(testPermissions)
               .properties("prefLabel", LangValue.of("en", "Name"))
               .build())
       .referenceAttributes(
@@ -96,7 +107,7 @@ public class TestExampleData {
               .id("member", groupTypeId)
               .range(personTypeId)
               .uri(FOAF.member.getURI())
-              .permissions(examplePermissions)
+              .permissions(testPermissions)
               .properties("prefLabel", LangValue.of("en", "Member"))
               .build())
       .build();

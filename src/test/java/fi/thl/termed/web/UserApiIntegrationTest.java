@@ -1,5 +1,6 @@
 package fi.thl.termed.web;
 
+import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
@@ -9,92 +10,85 @@ import org.junit.Test;
 
 public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
-  private String exampleUserData = String.format(
+  private String exampleUserUsername = "test-user-" + randomAlphanumericString(4);
+  private String exampleUserPassword = randomAlphanumericString(8);
+  private String exampleUserJson = String.format(
       "{ 'username': '%s', 'password': '%s', 'appRole': 'USER' }",
-      testUsername, testPassword);
+      exampleUserUsername, exampleUserPassword);
 
   @Test
   public void regularUserShouldNotBeAbleToAccessUserApi() {
-    given()
-        .auth().basic(testUsername, testPassword)
-        .contentType("application/json").body(exampleUserData)
-        .when().post("/api/users")
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(userAuthorizedJsonRequest)
+        .body(exampleUserJson)
+        .post("/api/users")
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testUsername, testPassword)
-        .contentType("application/json")
-        .when().get("/api/users/{username}", testUsername)
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(userAuthorizedJsonRequest)
+        .get("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testUsername, testPassword)
-        .contentType("application/json")
-        .when().get("/api/users")
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(userAuthorizedJsonRequest)
+        .get("/api/users")
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testUsername, testPassword)
-        .contentType("application/json")
-        .when().delete("/api/users/{username}", testUsername)
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(userAuthorizedJsonRequest)
+        .delete("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
   @Test
   public void adminShouldNotBeAbleToAccessUserApi() {
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json").body(exampleUserData)
-        .when().post("/api/users")
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(adminAuthorizedJsonRequest)
+        .body(exampleUserJson)
+        .post("/api/users")
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
-        .when().get("/api/users/{username}", testAdminUsername)
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(adminAuthorizedJsonRequest)
+        .get("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
-        .when().get("/api/users")
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(adminAuthorizedJsonRequest)
+        .get("/api/users")
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
-        .when().delete("/api/users/{username}", testUsername)
-        .then().statusCode(HttpStatus.SC_FORBIDDEN);
+    given(adminAuthorizedJsonRequest)
+        .delete("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
   @Test
   public void superuserShouldBeAbleToAccessUserApi() {
-    given()
-        .auth().basic(testSuperuserUsername, testSuperuserPassword)
-        .contentType("application/json").body(exampleUserData)
-        .when().post("/api/users")
-        .then().statusCode(HttpStatus.SC_NO_CONTENT);
+    given(superuserAuthorizedJsonRequest)
+        .body(exampleUserJson)
+        .post("/api/users?mode=insert")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    given()
-        .auth().basic(testSuperuserUsername, testSuperuserPassword)
-        .contentType("application/json")
-        .when().get("/api/users/{username}", testUsername)
-        .then().statusCode(HttpStatus.SC_OK)
-        .body("username", equalTo(testUsername))
-        .body("password", not(equalTo(testUsername)))
+    given(superuserAuthorizedJsonRequest)
+        .get("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("username", equalTo(exampleUserUsername))
+        .body("password", not(equalTo(exampleUserUsername)))
         .body("appRole", equalTo("USER"));
 
-    given()
-        .auth().basic(testSuperuserUsername, testSuperuserPassword)
-        .contentType("application/json")
-        .when().get("/api/users")
-        .then().statusCode(HttpStatus.SC_OK);
+    given(superuserAuthorizedJsonRequest)
+        .get("/api/users")
+        .then()
+        .statusCode(HttpStatus.SC_OK);
 
-    given()
-        .auth().basic(testSuperuserUsername, testSuperuserPassword)
-        .contentType("application/json")
-        .when().delete("/api/users/{username}", testUsername)
-        .then().statusCode(HttpStatus.SC_NO_CONTENT);
+    given(superuserAuthorizedJsonRequest)
+        .delete("/api/users/{username}", exampleUserUsername)
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
 }

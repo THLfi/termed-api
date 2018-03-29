@@ -1,12 +1,12 @@
 package fi.thl.termed.web;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
 
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
@@ -17,48 +17,29 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
     String typeId = "Concept";
     String nodeId = UUID.randomUUID().toString();
 
-    // save graph
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+    // save test data
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + graphId + "'}")
-        .when()
-        .post("/api/graphs")
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(graphId));
-
-    // save type
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .post("/api/graphs?insert=true");
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + typeId + "'}")
-        .when()
-        .post("/api/graphs/" + graphId + "/types")
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(typeId));
-
-    // save one node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .contentType("application/json")
+        .post("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest)
         .body("{'id':'" + nodeId + "'}")
-        .when()
-        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", equalTo(nodeId));
+        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes");
 
-    // get one node
-    given()
-        .auth().basic(testAdminUsername, testAdminPassword)
-        .when()
+    // get node data in csv
+    given(adminAuthorizedJsonRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes.csv")
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaTypes.TEXT_CSV_VALUE)
-        .body(Matchers.not(Matchers.isEmptyString()));
+        .body(not(isEmptyString()));
+
+    // clean up
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
   }
 
 }
