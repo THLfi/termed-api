@@ -1,4 +1,4 @@
-package fi.thl.termed.docs;
+package fi.thl.termed.web;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
@@ -13,11 +13,11 @@ public class OperationIntroSnippet extends TemplatedSnippet {
     super("operation-intro", ImmutableMap.of("description", description));
   }
 
-  public static OperationIntroSnippet operationIntro() {
+  static OperationIntroSnippet operationIntro() {
     return new OperationIntroSnippet("");
   }
 
-  public static OperationIntroSnippet operationIntro(String description) {
+  static OperationIntroSnippet operationIntro(String description) {
     return new OperationIntroSnippet(description);
   }
 

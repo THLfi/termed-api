@@ -1,23 +1,15 @@
-package fi.thl.termed.docs;
+package fi.thl.termed.web;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.collect.ImmutableList.of;
-import static fi.thl.termed.docs.OperationIntroSnippet.operationIntro;
-import static fi.thl.termed.domain.AppRole.ADMIN;
-import static fi.thl.termed.domain.AppRole.SUPERUSER;
-import static fi.thl.termed.domain.AppRole.USER;
-import static fi.thl.termed.domain.Permission.DELETE;
-import static fi.thl.termed.domain.Permission.INSERT;
-import static fi.thl.termed.domain.Permission.READ;
-import static fi.thl.termed.domain.Permission.UPDATE;
 import static fi.thl.termed.util.RegularExpressions.ALL;
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.util.service.SaveMode.UPSERT;
-import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
+import static fi.thl.termed.web.TestExampleData.exampleGraph;
+import static fi.thl.termed.web.TestExampleData.exampleGraphId;
+import static fi.thl.termed.web.TestExampleData.groupType;
+import static fi.thl.termed.web.TestExampleData.personType;
+import static fi.thl.termed.web.TestExampleData.personTypeId;
 import static io.restassured.RestAssured.given;
-import static io.restassured.config.RestAssuredConfig.config;
-import static io.restassured.mapper.ObjectMapperType.GSON;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static java.util.Arrays.asList;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -30,184 +22,46 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.restassured3.operation.preprocess.RestAssuredPreprocessors.modifyUris;
 import static org.springframework.restdocs.snippet.Attributes.key;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
-import fi.thl.termed.domain.Graph;
-import fi.thl.termed.domain.GraphId;
-import fi.thl.termed.domain.GraphRole;
-import fi.thl.termed.domain.LangValue;
-import fi.thl.termed.domain.Permission;
-import fi.thl.termed.domain.ReferenceAttribute;
-import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.User;
-import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.specification.RequestSpecification;
-import java.util.Base64;
 import org.apache.http.HttpStatus;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.restdocs.JUnitRestDocumentation;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-public class TypeApiDocsTest {
-
-  @Rule
-  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
-
-  @Autowired
-  private Service<String, User> userService;
-
-  @Autowired
-  private Service<GraphId, Graph> graphService;
-
-  @Autowired
-  private Service<TypeId, Type> typeService;
-
-  @Autowired
-  private Gson gson;
-
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
-  @LocalServerPort
-  private int serverPort;
-
-  private RequestSpecification spec;
-
-  private String exampleAdminUsername = "admin";
-  private String exampleAdminPassword = "s3cret";
-
-  private String exampleUserUsername = "user";
-  private String exampleUserPassword = "passw0rd";
-
-  private Multimap<String, Permission> examplePermissions = ImmutableMultimap.<String, Permission>builder()
-      .putAll("guest", READ)
-      .putAll("admin", READ, INSERT, UPDATE, DELETE).build();
-
-  private GraphId exampleGraphId = GraphId.of(UUIDs.nameUUIDFromString("example-graph"));
-  private Graph exampleGraph = Graph.builder()
-      .id(exampleGraphId)
-      .roles(of("guest", "admin"))
-      .permissions(examplePermissions)
-      .build();
-
-  private TypeId personTypeId = TypeId.of("Person", exampleGraphId);
-  private Type personType = Type.builder()
-      .id(personTypeId)
-      .uri(FOAF.Person.getURI())
-      .nodeCodePrefix("PERSON-")
-      .permissions(examplePermissions)
-      .properties("prefLabel", LangValue.of("en", "Person"))
-      .textAttributes(
-          TextAttribute.builder()
-              .id("name", personTypeId)
-              .regex("^\\w+$")
-              .uri(FOAF.name.getURI())
-              .permissions(examplePermissions)
-              .properties("prefLabel", LangValue.of("en", "Name"))
-              .build(),
-          TextAttribute.builder()
-              .id("email", personTypeId)
-              .regex("^.*@.*$")
-              .uri(FOAF.mbox.getURI())
-              .permissions(examplePermissions)
-              .properties("prefLabel", LangValue.of("en", "E-mail"))
-              .build())
-      .referenceAttributes(
-          ReferenceAttribute.builder()
-              .id("knows", personTypeId)
-              .range(personTypeId)
-              .uri(FOAF.knows.getURI())
-              .permissions(examplePermissions)
-              .properties("prefLabel", LangValue.of("en", "Knows"))
-              .build())
-      .build();
-
-  private TypeId groupTypeId = TypeId.of("Group", exampleGraphId);
-  private Type groupType = Type.builder()
-      .id(groupTypeId)
-      .nodeCodePrefix("GROUP-")
-      .permissions(examplePermissions)
-      .properties("prefLabel", LangValue.of("en", "Group"))
-      .textAttributes(
-          TextAttribute.builder()
-              .id("name", groupTypeId)
-              .regex("^\\w+$")
-              .permissions(examplePermissions)
-              .properties("prefLabel", LangValue.of("en", "Name"))
-              .build())
-      .referenceAttributes(
-          ReferenceAttribute.builder()
-              .id("member", groupTypeId)
-              .range(personTypeId)
-              .permissions(examplePermissions)
-              .properties("prefLabel", LangValue.of("en", "Member"))
-              .build())
-      .build();
-
+public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
   @Before
-  public void setUp() {
-    RestAssured.port = serverPort;
-    RestAssured.config = config().objectMapperConfig(new ObjectMapperConfig(GSON));
+  public void insertExampleGraphWithTypes() {
+    given(adminAuthorizedJsonRequest)
+        .body(gson.toJson(exampleGraph))
+        .post("/api/graphs?mode=insert")
+        .then()
+        .statusCode(HttpStatus.SC_OK);
 
-    this.spec = new RequestSpecBuilder()
-        .addFilter(documentationConfiguration(this.restDocumentation)
-            .operationPreprocessors()
-            .withRequestDefaults(modifyUris().port(8080))
-            .withResponseDefaults(modifyUris().port(8080)))
-        .build();
-
-    User docsInitializer = new User("docs-initializer", "", SUPERUSER);
-
-    graphService.save(exampleGraph, SaveMode.UPSERT, defaultOpts(), docsInitializer);
-    typeService.save(of(personType, groupType), SaveMode.UPSERT, defaultOpts(), docsInitializer);
-
-    userService.save(of(
-        new User(
-            exampleAdminUsername,
-            passwordEncoder.encode(exampleAdminPassword),
-            ADMIN),
-        new User(
-            exampleUserUsername,
-            passwordEncoder.encode(exampleUserPassword),
-            USER,
-            of(new GraphRole(GraphId.of(exampleGraph), "guest")))),
-        UPSERT, defaultOpts(), docsInitializer);
+    given(adminAuthorizedJsonRequest)
+        .body(gson.toJson(asList(personType, groupType)))
+        .post("/api/graphs/{graphId}/types?batch=true&mode=insert", exampleGraphId.getId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @After
-  public void tearDown() {
-    User docsCleaner = new User("docs-cleaner", "", SUPERUSER);
-    typeService.delete(of(personTypeId, groupTypeId), defaultOpts(), docsCleaner);
-    graphService.delete(exampleGraphId, defaultOpts(), docsCleaner);
+  public void deleteExampleGraphWithTypes() {
+    given(adminAuthorizedJsonRequest)
+        .delete("/api/graphs/{id}/types", exampleGraphId.getId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    given(adminAuthorizedJsonRequest)
+        .delete("/api/graphs/{id}", exampleGraphId.getId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
   public void documentGetTypeById() {
-    given(this.spec)
+    given(adminAuthorizedJsonRequest)
         .filter(document("get-a-type",
             operationIntro("Get a type by id in given graph."),
             pathParameters(
@@ -288,19 +142,15 @@ public class TypeApiDocsTest {
                         + "(e.g. `prefLabel`, list of properties is available at "
                         + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
                         + "`{ \"lang\": \"en\", \"value\": \"Example Reference Attribute\" }`)"))))
-        .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
-        .header("Accept", "application/json")
         .when()
-        .get("/api/graphs/{graphId}/types/{id}",
-            personTypeId.getGraphId(),
-            personTypeId.getId())
+        .get("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
         .then()
         .statusCode(HttpStatus.SC_OK);
   }
 
   @Test
   public void documentGetGraphTypes() {
-    given(this.spec)
+    given(adminAuthorizedJsonRequest)
         .filter(document("get-graph-types",
             operationIntro(
                 "Returns an array containing all types in given graph. Roles and permissions "
@@ -308,8 +158,6 @@ public class TypeApiDocsTest {
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"))))
-        .header("Authorization", basic(exampleUserUsername, exampleUserPassword))
-        .header("Accept", "application/json")
         .when()
         .get("/api/graphs/{graphId}/types", exampleGraphId.getId())
         .then()
@@ -318,13 +166,11 @@ public class TypeApiDocsTest {
 
   @Test
   public void documentGetAllTypes() {
-    given(this.spec)
+    given(userAuthorizedJsonRequest)
         .filter(document("get-all-types",
             operationIntro(
                 "Returns an array containing all types visible to the user. Roles and permissions "
                     + "are visible for admin users only.")))
-        .header("Authorization", basic(exampleUserUsername, exampleUserPassword))
-        .header("Accept", "application/json")
         .when()
         .get("/api/types")
         .then()
@@ -333,7 +179,7 @@ public class TypeApiDocsTest {
 
   @Test
   public void documentSaveType() {
-    given(this.spec)
+    given(adminAuthorizedJsonRequest)
         .filter(document("save-a-type",
             operationIntro("On success, operation returns the saved type."),
             requestHeaders(
@@ -437,10 +283,8 @@ public class TypeApiDocsTest {
                         + "(e.g. `prefLabel`, list of properties is available at "
                         + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
                         + "`{ \"lang\": \"en\", \"value\": \"Example Reference Attribute\" }`)"))))
-        .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
-        .header("Content-Type", "application/json")
-        .body(gson.toJson(personType))
         .when()
+        .body(gson.toJson(personType))
         .post("/api/graphs/{graphId}/types", personTypeId.getGraphId())
         .then()
         .statusCode(HttpStatus.SC_OK);
@@ -448,7 +292,7 @@ public class TypeApiDocsTest {
 
   @Test
   public void documentSaveTypeUsingPut() {
-    given(this.spec)
+    given(adminAuthorizedJsonRequest)
         .filter(document("save-a-type-using-put", operationIntro(
             "Saving using `PUT` is also supported. Type id is given as a path parameter.\n"
                 + "On success, operation will return the saved type."),
@@ -457,18 +301,16 @@ public class TypeApiDocsTest {
                     .description("Graph identifier (UUID)"),
                 parameterWithName("id")
                     .description("Type identifier (matches `" + CODE + "`)"))))
-        .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
-        .header("Content-Type", "application/json")
-        .body(gson.toJson(personType))
         .when()
+        .body(gson.toJson(personType))
         .put("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
         .then()
         .statusCode(HttpStatus.SC_OK);
   }
 
   @Test
-  public void documentDeleteGraph() {
-    given(this.spec)
+  public void documentDeleteType() {
+    given(adminAuthorizedJsonRequest)
         .filter(document("delete-a-type", operationIntro(
             "On success, operation will return `204` with an empty body.\n\n"
                 + "A type can't be deleted if it contains any data (nodes)."),
@@ -477,19 +319,10 @@ public class TypeApiDocsTest {
                     .description("Graph identifier (UUID)"),
                 parameterWithName("id")
                     .description("Type identifier (matches `" + CODE + "`)"))))
-        .header("Authorization", basic(exampleAdminUsername, exampleAdminPassword))
         .when()
         .delete("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
-  }
-
-  private String basic(String username, String password) {
-    return "Basic " + encodeBase64(username + ":" + password);
-  }
-
-  private String encodeBase64(String str) {
-    return Base64.getEncoder().encodeToString(str.getBytes(UTF_8));
   }
 
 }

@@ -4,7 +4,6 @@ import static fi.thl.termed.domain.Permission.DELETE;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
-import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.Arrays.asList;
 
@@ -21,15 +20,6 @@ import fi.thl.termed.domain.TypeId;
 import org.apache.jena.sparql.vocabulary.FOAF;
 
 class TestExampleData {
-
-  static String testUserUsername = "test-user";
-  static String testUserPassword = randomAlphanumericString(8);
-
-  static String testAdminUsername = "test-admin";
-  static String testAdminPassword = randomAlphanumericString(12);
-
-  static String testSuperuserUsername = "test-superuser";
-  static String testSuperuserPassword = randomAlphanumericString(12);
 
   static Multimap<String, Permission> testPermissions = ImmutableMultimap.<String, Permission>builder()
       .putAll("guest", READ)
