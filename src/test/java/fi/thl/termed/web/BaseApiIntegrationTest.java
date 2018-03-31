@@ -7,6 +7,7 @@ import static fi.thl.termed.domain.User.newUser;
 import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+import static io.restassured.config.EncoderConfig.encoderConfig;
 import static io.restassured.config.RestAssuredConfig.config;
 import static io.restassured.mapper.ObjectMapperType.GSON;
 import static java.util.Arrays.asList;
@@ -17,6 +18,7 @@ import fi.thl.termed.util.service.Service;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
+import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import java.util.Base64;
 import org.junit.After;
@@ -48,34 +50,40 @@ public abstract class BaseApiIntegrationTest {
   private String testAdminPassword = randomAlphanumericString(20);
   private String testSuperuserPassword = randomAlphanumericString(20);
 
-  RequestSpecification userAuthorizedJsonRequest;
-  RequestSpecification adminAuthorizedJsonRequest;
-  RequestSpecification superuserAuthorizedJsonRequest;
+  RequestSpecification userAuthorizedRequest;
+  RequestSpecification adminAuthorizedRequest;
+  RequestSpecification superuserAuthorizedRequest;
+
+  RequestSpecification adminAuthorizedJsonGetRequest;
+  RequestSpecification adminAuthorizedJsonSaveRequest;
 
   @Before
   public void configRestAssured() {
     RestAssured.port = serverPort;
-    RestAssured.config = config().objectMapperConfig(new ObjectMapperConfig(GSON));
+    RestAssured.config = config()
+        .objectMapperConfig(new ObjectMapperConfig(GSON))
+        .encoderConfig(encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML));
   }
 
   @Before
   public void buildBaseRequestSpecifications() {
-    userAuthorizedJsonRequest = new RequestSpecBuilder()
+    userAuthorizedRequest = new RequestSpecBuilder()
         .addHeader("Authorization", basicAuth(testUserUsername, testUserPassword))
-        .addHeader("Content-type", "application/json")
-        .addHeader("Accept", "application/json")
+        .build();
+    adminAuthorizedRequest = new RequestSpecBuilder()
+        .addHeader("Authorization", basicAuth(testAdminUsername, testAdminPassword))
+        .build();
+    superuserAuthorizedRequest = new RequestSpecBuilder()
+        .addHeader("Authorization", basicAuth(testSuperuserUsername, testSuperuserPassword))
         .build();
 
-    adminAuthorizedJsonRequest = new RequestSpecBuilder()
+    adminAuthorizedJsonGetRequest = new RequestSpecBuilder()
+        .addHeader("Authorization", basicAuth(testAdminUsername, testAdminPassword))
+        .addHeader("Accept", "application/json")
+        .build();
+    adminAuthorizedJsonSaveRequest = new RequestSpecBuilder()
         .addHeader("Authorization", basicAuth(testAdminUsername, testAdminPassword))
         .addHeader("Content-type", "application/json")
-        .addHeader("Accept", "application/json")
-        .build();
-
-    superuserAuthorizedJsonRequest = new RequestSpecBuilder()
-        .addHeader("Authorization", basicAuth(testSuperuserUsername, testSuperuserPassword))
-        .addHeader("Content-type", "application/json")
-        .addHeader("Accept", "application/json")
         .build();
   }
 

@@ -26,9 +26,12 @@ public abstract class BaseApiDocumentingIntegrationTest extends BaseApiIntegrati
             .withRequestDefaults(modifyUris().port(8080))
             .withResponseDefaults(modifyUris().port(8080));
 
-    userAuthorizedJsonRequest.filter(documentationConfiguration);
-    adminAuthorizedJsonRequest.filter(documentationConfiguration);
-    superuserAuthorizedJsonRequest.filter(documentationConfiguration);
+    userAuthorizedRequest.filter(documentationConfiguration);
+    adminAuthorizedRequest.filter(documentationConfiguration);
+    superuserAuthorizedRequest.filter(documentationConfiguration);
+
+    adminAuthorizedJsonGetRequest.filter(documentationConfiguration);
+    adminAuthorizedJsonSaveRequest.filter(documentationConfiguration);
   }
 
 }

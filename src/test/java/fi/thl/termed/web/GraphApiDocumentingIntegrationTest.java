@@ -27,7 +27,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @Before
   public void insertExampleGraph() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(gson.toJson(exampleGraph))
         .post("/api/graphs?mode=insert")
         .then()
@@ -36,7 +36,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @After
   public void deleteExampleGraph() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -44,7 +44,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @Test
   public void documentGetGraphById() {
-    given(adminAuthorizedJsonRequest).filter(
+    given(adminAuthorizedJsonGetRequest).filter(
         document("get-a-graph",
             operationIntro(),
             pathParameters(
@@ -78,11 +78,11 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @Test
   public void documentGetAllGraphs() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(gson.toJson(anotherGraph))
         .post("/api/graphs?mode=insert");
 
-    given(adminAuthorizedJsonRequest).filter(
+    given(adminAuthorizedJsonGetRequest).filter(
         document("get-all-graphs",
             operationIntro("Returns an array containing all graphs visible to the user. "
                 + "Roles and permissions are visible for admin users only.")))
@@ -91,13 +91,13 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .then()
         .statusCode(HttpStatus.SC_OK);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}", anotherGraphId.getId());
   }
 
   @Test
   public void documentSaveGraph() {
-    given(adminAuthorizedJsonRequest).filter(
+    given(adminAuthorizedJsonSaveRequest).filter(
         document("save-a-graph",
             operationIntro("If posted object contains an id, a graph is either updated "
                 + "or inserted with the given id. If id is not present, graph is saved with "
@@ -147,7 +147,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @Test
   public void documentSaveGraphUsingPut() {
-    given(adminAuthorizedJsonRequest).filter(
+    given(adminAuthorizedJsonSaveRequest).filter(
         document("save-a-graph-using-put",
             operationIntro(
                 "Saving using `PUT` is also supported. Graph id is given as a path parameter.\n"
@@ -162,7 +162,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
 
   @Test
   public void documentDeleteGraph() {
-    given(adminAuthorizedJsonRequest).filter(
+    given(adminAuthorizedRequest).filter(
         document("delete-a-graph",
             operationIntro(
                 "On success, operation will return `204` with an empty body.\n\n"

@@ -33,13 +33,13 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Before
   public void insertExampleGraphWithTypes() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(gson.toJson(exampleGraph))
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(gson.toJson(asList(personType, groupType)))
         .post("/api/graphs/{graphId}/types?batch=true&mode=insert", exampleGraphId.getId())
         .then()
@@ -48,12 +48,12 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @After
   public void deleteExampleGraphWithTypes() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}/types", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -61,7 +61,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentGetTypeById() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .filter(document("get-a-type",
             operationIntro("Get a type by id in given graph."),
             pathParameters(
@@ -150,7 +150,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentGetGraphTypes() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .filter(document("get-graph-types",
             operationIntro(
                 "Returns an array containing all types in given graph. Roles and permissions "
@@ -166,7 +166,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentGetAllTypes() {
-    given(userAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .filter(document("get-all-types",
             operationIntro(
                 "Returns an array containing all types visible to the user. Roles and permissions "
@@ -179,7 +179,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentSaveType() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .filter(document("save-a-type",
             operationIntro("On success, operation returns the saved type."),
             requestHeaders(
@@ -292,7 +292,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentSaveTypeUsingPut() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .filter(document("save-a-type-using-put", operationIntro(
             "Saving using `PUT` is also supported. Type id is given as a path parameter.\n"
                 + "On success, operation will return the saved type."),
@@ -310,7 +310,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
 
   @Test
   public void documentDeleteType() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .filter(document("delete-a-type", operationIntro(
             "On success, operation will return `204` with an empty body.\n\n"
                 + "A type can't be deleted if it contains any data (nodes)."),

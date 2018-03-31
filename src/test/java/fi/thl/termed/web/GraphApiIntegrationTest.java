@@ -17,14 +17,14 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
   public void shouldSaveTrivialGraph() {
     String graphId = UUID.randomUUID().toString();
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + graphId + "'}")
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(graphId));
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/" + graphId)
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -38,7 +38,7 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
         .getAsJsonObject();
     skosGraph.addProperty("id", graphId);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(skosGraph.toString())
         .post("/api/graphs?mode=insert")
         .then()
@@ -46,14 +46,14 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
         .body("id", equalTo(graphId));
 
     // get the persisted graph and compare to original allowing extra fields such as timestamps
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .when()
         .get("/api/graphs/" + graphId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(skosGraph.toString()).allowingExtraUnexpectedFields());
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/graphs/" + graphId)
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);

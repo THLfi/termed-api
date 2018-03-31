@@ -18,18 +18,18 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
     String nodeId = UUID.randomUUID().toString();
 
     // save test data
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + graphId + "'}")
         .post("/api/graphs?insert=true");
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + typeId + "'}")
         .post("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + nodeId + "'}")
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes");
 
     // get node data in csv
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes.csv")
         .then()
         .statusCode(HttpStatus.SC_OK)
@@ -37,9 +37,9 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
         .body(not(isEmptyString()));
 
     // clean up
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
 }

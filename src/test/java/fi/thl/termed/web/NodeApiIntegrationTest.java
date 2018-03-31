@@ -22,15 +22,15 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     String nodeId = UUID.randomUUID().toString();
 
     // save graph and type
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + graphId + "'}")
         .post("/api/graphs?mode=insert");
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + typeId + "'}")
         .post("/api/graphs/" + graphId + "/types");
 
     // save one node
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + nodeId + "'}")
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
         .then()
@@ -38,16 +38,16 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
         .body("id", equalTo(nodeId));
 
     // get one node
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(nodeId));
 
     // clean up
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
   @Test
@@ -55,22 +55,22 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     String graphId = UUID.randomUUID().toString();
 
     // save graph and types
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(resourceToString("examples/termed/animals-graph.json"))
         .put("/api/graphs/" + graphId + "?mode=insert");
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(resourceToString("examples/termed/animals-types.json"))
         .post("/api/graphs/" + graphId + "/types?batch=true");
 
     // save nodes
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(resourceToString("examples/termed/animals-nodes.json"))
         .post("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // check that we get the same vocabulary information back
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK)
@@ -79,9 +79,9 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
             .allowingAnyArrayOrdering());
 
     // clean up
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
   @Test
@@ -93,26 +93,26 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     String secondNodeId = UUID.randomUUID().toString();
 
     // save graph and type
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + graphId + "'}")
         .post("/api/graphs?mode=insert");
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + typeId + "'}")
         .post("/api/graphs/" + graphId + "/types");
 
     // save first node (but not a second one)
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + firstNodeId + "'}")
         .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     // check preconditions
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_OK);
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()
         .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -121,27 +121,27 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     JsonObject changeset = object(
         "delete", array(object("id", primitive(firstNodeId))),
         "save", array(object("id", primitive(secondNodeId))));
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(changeset.toString())
         .post("/api/graphs/" + graphId + "/types/Concept/nodes?changeset=true")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // verify changes
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
         .then()
         .statusCode(HttpStatus.SC_NOT_FOUND);
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("id", equalTo(secondNodeId));
 
     // clean up
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
 }

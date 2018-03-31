@@ -18,23 +18,26 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
   public void regularUserShouldNotBeAbleToAccessUserApi() {
-    given(userAuthorizedJsonRequest)
+    given(userAuthorizedRequest)
+        .contentType("application/json")
         .body(exampleUserJson)
         .post("/api/users")
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(userAuthorizedJsonRequest)
+    given(userAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(userAuthorizedJsonRequest)
+    given(userAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users")
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(userAuthorizedJsonRequest)
+    given(userAuthorizedRequest)
         .delete("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
@@ -42,23 +45,26 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
   public void adminShouldNotBeAbleToAccessUserApi() {
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
+        .contentType("application/json")
         .body(exampleUserJson)
         .post("/api/users")
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users")
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedRequest)
         .delete("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_FORBIDDEN);
@@ -66,13 +72,15 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
   public void superuserShouldBeAbleToAccessUserApi() {
-    given(superuserAuthorizedJsonRequest)
+    given(superuserAuthorizedRequest)
+        .contentType("application/json")
         .body(exampleUserJson)
         .post("/api/users?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    given(superuserAuthorizedJsonRequest)
+    given(superuserAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_OK)
@@ -80,12 +88,13 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
         .body("password", not(equalTo(exampleUserUsername)))
         .body("appRole", equalTo("USER"));
 
-    given(superuserAuthorizedJsonRequest)
+    given(superuserAuthorizedRequest)
+        .accept("application/json")
         .get("/api/users")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
-    given(superuserAuthorizedJsonRequest)
+    given(superuserAuthorizedRequest)
         .delete("/api/users/{username}", exampleUserUsername)
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);

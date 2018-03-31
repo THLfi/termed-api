@@ -30,14 +30,14 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
         "nodes", array(nodeIdObject));
 
     // save dump
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonSaveRequest)
         .body(dump.toString())
         .post("/api/dump?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // verify dump (limit dump only to previously posted data)
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/dump?graphId=" + graphId)
         .then()
         .statusCode(HttpStatus.SC_OK)
@@ -47,26 +47,26 @@ public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
             .allowingAnyArrayOrdering());
 
     // double-check individually
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(graphIdObject.toString()).allowingExtraUnexpectedFields());
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(typeIdObject.toString()).allowingExtraUnexpectedFields());
-    given(adminAuthorizedJsonRequest)
+    given(adminAuthorizedJsonGetRequest)
         .get("/api/graphs/" + graphId + "/types/" + typeId + "/nodes/" + nodeId)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body(sameJSONAs(nodeIdObject.toString()).allowingExtraUnexpectedFields());
 
     // clean up
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/nodes");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId + "/types");
-    given(adminAuthorizedJsonRequest).delete("/api/graphs/" + graphId);
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
 }
