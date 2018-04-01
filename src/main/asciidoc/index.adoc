@@ -15,39 +15,22 @@
 [[overview]]
 = Overview
 
-[[resources-graphs]]
-== Graphs
+Termed API is service for storing data in graph structure.
 
-=== Get a Graph
+[[resources-nodes]]
+== Nodes
 
-include::{snippets}/get-a-graph/operation-intro.adoc[]
-
-operation::get-a-graph[snippets='path-parameters,response-fields,curl-request,response-body']
-
-=== Get all Graphs
-
-include::{snippets}/get-all-graphs/operation-intro.adoc[]
-
-operation::get-all-graphs[snippets='curl-request,response-body']
-
-=== Save a Graph
-
-include::{snippets}/save-a-graph/operation-intro.adoc[]
-
-operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
-
-==== Saving using PUT
-
-include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
-
-=== Delete a Graph
-
-include::{snippets}/delete-a-graph/operation-intro.adoc[]
-
-operation::delete-a-graph[snippets='path-parameters,curl-request']
+Applications operate mostly on Node APIs. There are two main APIs for nodes. CRUD API and
+Tree API. The former is simple create-read-update-delete API for nodes. The latter is read-only
+API that supports complex queries and tree serializations.
 
 [[resources-types]]
 == Types
+
+Write operations on Type API are typically used only before data (i.e. Nodes) are loaded the first
+time. After that, Types are mostly just read. Types can be expanded on the fly (i.e. new attributes
+can be added). However, removing an attribute might not be possible if there are still values in
+the nodes with the given attribute.
 
 === Get a Type
 
@@ -102,3 +85,34 @@ include::{snippets}/save-a-type-using-put/operation-intro.adoc[]
 include::{snippets}/delete-a-type/operation-intro.adoc[]
 
 operation::delete-a-type[snippets='path-parameters,curl-request']
+
+[[resources-graphs]]
+== Graphs
+
+=== Get a Graph
+
+include::{snippets}/get-a-graph/operation-intro.adoc[]
+
+operation::get-a-graph[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get all Graphs
+
+include::{snippets}/get-all-graphs/operation-intro.adoc[]
+
+operation::get-all-graphs[snippets='curl-request,response-body']
+
+=== Save a Graph
+
+include::{snippets}/save-a-graph/operation-intro.adoc[]
+
+operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
+
+==== Saving using PUT
+
+include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
+
+=== Delete a Graph
+
+include::{snippets}/delete-a-graph/operation-intro.adoc[]
+
+operation::delete-a-graph[snippets='path-parameters,curl-request']
