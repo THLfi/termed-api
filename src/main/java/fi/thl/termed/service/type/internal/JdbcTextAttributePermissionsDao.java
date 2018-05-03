@@ -1,22 +1,21 @@
 package fi.thl.termed.service.type.internal;
 
-import org.springframework.jdbc.core.RowMapper;
+import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.GrantedPermission;
-import fi.thl.termed.domain.ObjectRolePermission;
-import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
+import fi.thl.termed.domain.ObjectRolePermission;
+import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.TextAttributeId;
-import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcTextAttributePermissionsDao
     extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> {
@@ -29,6 +28,9 @@ public class JdbcTextAttributePermissionsDao
   public void insert(ObjectRolePermission<TextAttributeId> id, GrantedPermission value) {
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
+
+    checkArgument(Objects.equals(id.getGraph(), textAttributeDomainId.getGraph()));
+
     jdbcTemplate.update(
         "insert into text_attribute_permission (text_attribute_domain_graph_id, text_attribute_domain_id, text_attribute_id, role, permission) values (?, ?, ?, ?, ?)",
         textAttributeDomainId.getGraphId(),
@@ -47,6 +49,9 @@ public class JdbcTextAttributePermissionsDao
   public void delete(ObjectRolePermission<TextAttributeId> id) {
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
+
+    checkArgument(Objects.equals(id.getGraph(), textAttributeDomainId.getGraph()));
+
     jdbcTemplate.update(
         "delete from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
         textAttributeDomainId.getGraphId(),
@@ -76,26 +81,27 @@ public class JdbcTextAttributePermissionsDao
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
     return jdbcTemplate.queryForObject(
-        "select count(*) from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
+        "select count(*) from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and text_attribute_domain_graph_id = ? and role = ? and permission = ?",
         Long.class,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
+        id.getGraphId(),
         id.getRole(),
         id.getPermission().toString()) > 0;
   }
 
   @Override
-  protected <E> Optional<E> get(ObjectRolePermission<TextAttributeId> id,
-                                RowMapper<E> mapper) {
+  protected <E> Optional<E> get(ObjectRolePermission<TextAttributeId> id, RowMapper<E> mapper) {
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
     return jdbcTemplate.query(
-        "select * from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and role = ? and permission = ?",
+        "select * from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and text_attribute_domain_graph_id = ? and role = ? and permission = ?",
         mapper,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
+        id.getGraphId(),
         id.getRole(),
         id.getPermission().toString()).stream().findFirst();
   }
@@ -103,7 +109,7 @@ public class JdbcTextAttributePermissionsDao
   @Override
   protected RowMapper<ObjectRolePermission<TextAttributeId>> buildKeyMapper() {
     return (rs, rowNum) -> {
-      GraphId graphId = new GraphId(UUIDs.fromString(rs.getString("text_attribute_domain_graph_id")));
+      GraphId graphId = GraphId.fromUuidString(rs.getString("text_attribute_domain_graph_id"));
       TypeId domainId = new TypeId(rs.getString("text_attribute_domain_id"), graphId);
       TextAttributeId textAttributeId = new TextAttributeId(
           domainId, rs.getString("text_attribute_id"));

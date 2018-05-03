@@ -1,11 +1,11 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
-import java.util.Objects;
-
-import java.io.Serializable;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.MoreObjects;
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.UUID;
 
 public class ObjectRolePermission<K extends Serializable> implements Serializable {
 
@@ -27,6 +27,14 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     return graphRole;
   }
 
+  public Object getGraph() {
+    return graphRole != null ? graphRole.getGraph() : null;
+  }
+
+  public UUID getGraphId() {
+    return graphRole != null ? graphRole.getGraphId() : null;
+  }
+
   public String getRole() {
     return graphRole != null ? graphRole.getRole() : null;
   }
@@ -45,8 +53,8 @@ public class ObjectRolePermission<K extends Serializable> implements Serializabl
     }
     ObjectRolePermission<?> that = (ObjectRolePermission<?>) o;
     return Objects.equals(objectId, that.objectId) &&
-           Objects.equals(graphRole, that.graphRole) &&
-           Objects.equals(permission, that.permission);
+        Objects.equals(graphRole, that.graphRole) &&
+        Objects.equals(permission, that.permission);
   }
 
   @Override
