@@ -103,7 +103,7 @@ public class TypeServiceConfiguration {
   }
 
   private Dao<TypeId, Type> typeDao() {
-    return new AuthorizedDao<>(typeSystemDao(), typeEvaluator());
+    return new AuthorizedDao<>(typeSystemDao(), typeEvaluator(), SILENT);
   }
 
   private Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao() {
@@ -111,7 +111,7 @@ public class TypeServiceConfiguration {
   }
 
   private Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao() {
-    return new AuthorizedDao<>(typePropertySystemDao(), typePropertyEvaluator());
+    return new AuthorizedDao<>(typePropertySystemDao(), typePropertyEvaluator(), SILENT);
   }
 
   private PermissionEvaluator<PropertyValueId<TypeId>> typePropertyEvaluator() {
@@ -151,7 +151,8 @@ public class TypeServiceConfiguration {
   }
 
   private Dao<PropertyValueId<TextAttributeId>, LangValue> textAttributePropertyDao() {
-    return new AuthorizedDao<>(textAttributePropertySystemDao(), textAttributePropertyEvaluator());
+    return new AuthorizedDao<>(textAttributePropertySystemDao(), textAttributePropertyEvaluator(),
+        SILENT);
   }
 
 
@@ -196,7 +197,7 @@ public class TypeServiceConfiguration {
 
   private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> referenceAttributePropertyDao() {
     return new AuthorizedDao<>(referenceAttributePropertySystemDao(),
-        referenceAttributePropertyEvaluator());
+        referenceAttributePropertyEvaluator(), SILENT);
   }
 
   private PermissionEvaluator<PropertyValueId<ReferenceAttributeId>> referenceAttributePropertyEvaluator() {

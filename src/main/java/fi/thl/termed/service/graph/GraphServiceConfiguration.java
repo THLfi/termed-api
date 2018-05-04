@@ -75,7 +75,7 @@ public class GraphServiceConfiguration {
   }
 
   private Dao<GraphId, Graph> graphDao() {
-    return new AuthorizedDao<>(graphSystemDao(), graphEvaluator());
+    return new AuthorizedDao<>(graphSystemDao(), graphEvaluator(), SILENT);
   }
 
   private Dao<GraphRole, Empty> graphRoleDao() {
@@ -87,9 +87,8 @@ public class GraphServiceConfiguration {
   }
 
   private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao() {
-    return new AuthorizedDao<>(
-        graphPropertySystemDao(),
-        (u, o, p) -> graphEvaluator().hasPermission(u, o.getSubjectId(), p));
+    return new AuthorizedDao<>(graphPropertySystemDao(),
+        (u, o, p) -> graphEvaluator().hasPermission(u, o.getSubjectId(), p), SILENT);
   }
 
   private SystemDao<GraphId, Graph> graphSystemDao() {
