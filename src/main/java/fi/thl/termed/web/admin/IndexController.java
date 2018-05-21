@@ -14,6 +14,7 @@ import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.service.Service;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +37,8 @@ public class IndexController {
   public void reindex(@AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(nodeService.getKeys(user)));
+    } else {
+      throw new AccessDeniedException("");
     }
   }
 
@@ -46,6 +49,8 @@ public class IndexController {
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(nodeService.getKeys(new NodesByGraphId(graphId), user)));
+    } else {
+      throw new AccessDeniedException("");
     }
   }
 
@@ -59,6 +64,8 @@ public class IndexController {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(nodeService.getKeys(
           and(new NodesByGraphId(graphId), new NodesByTypeId(id)), user)));
+    } else {
+      throw new AccessDeniedException("");
     }
   }
 

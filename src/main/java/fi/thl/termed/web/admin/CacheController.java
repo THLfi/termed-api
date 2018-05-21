@@ -7,6 +7,7 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,8 @@ public class CacheController {
   public void invalidateCaches(@AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new InvalidateCachesEvent());
+    }  else {
+      throw new AccessDeniedException("");
     }
   }
 

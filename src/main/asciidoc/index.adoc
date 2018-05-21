@@ -145,3 +145,38 @@ operation::save-a-user[snippets='request-parameters,request-fields,curl-request'
 include::{snippets}/delete-a-user/operation-intro.adoc[]
 
 operation::delete-a-user[snippets='path-parameters,curl-request']
+
+[[resources-admin-operations]]
+== Admin operations
+
+Following administrative API operations are permitted only for superusers.
+
+=== Delete index
+
+Full index on nodes is kept on disk. If index is corrupted, indexing format is updated etc. full
+re-indexing may be required.
+
+include::{snippets}/delete-index/operation-intro.adoc[]
+
+=== Delete graph index
+
+include::{snippets}/delete-graph-index/operation-intro.adoc[]
+
+=== Delete type index
+
+include::{snippets}/delete-type-index/operation-intro.adoc[]
+
+=== Delete caches
+
+Most database read operations excluding node API involve simple LRU-cache. If e.g. type, graph or
+user definitions are edited directly from underlying relational database, cache invalidation
+may be required. Operation is typically very fast.
+
+include::{snippets}/delete-caches/operation-intro.adoc[]
+
+=== Delete revisions
+
+Node revisions are automatically created on each node modification. Purging revision history cleans
+all entries from history tables. Operation may take several minutes to complete.
+
+include::{snippets}/delete-revisions/operation-intro.adoc[]
