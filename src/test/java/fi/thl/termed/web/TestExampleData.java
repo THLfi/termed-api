@@ -7,16 +7,20 @@ import static fi.thl.termed.domain.Permission.UPDATE;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.Arrays.asList;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.User;
 import org.apache.jena.sparql.vocabulary.FOAF;
 
 class TestExampleData {
@@ -101,5 +105,9 @@ class TestExampleData {
               .properties("prefLabel", LangValue.of("en", "Member"))
               .build())
       .build();
+
+  static String exampleUserName = "exampleUsername";
+  static User exampleUser = new User(exampleUserName, "examplePassword", AppRole.USER,
+      ImmutableList.of(new GraphRole(exampleGraphId, "guest")));
 
 }

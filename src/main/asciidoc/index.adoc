@@ -116,3 +116,32 @@ include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
 include::{snippets}/delete-a-graph/operation-intro.adoc[]
 
 operation::delete-a-graph[snippets='path-parameters,curl-request']
+
+[[resources-users]]
+== Users
+
+User API operations are permitted only for superusers.
+
+=== Get a User
+
+include::{snippets}/get-a-user/operation-intro.adoc[]
+
+operation::get-a-user[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get all Users
+
+include::{snippets}/get-all-users/operation-intro.adoc[]
+
+operation::get-all-users[snippets='curl-request']
+
+=== Save a User
+
+include::{snippets}/save-a-user/operation-intro.adoc[]
+
+operation::save-a-user[snippets='request-parameters,request-fields,curl-request']
+
+=== Delete a User
+
+include::{snippets}/delete-a-user/operation-intro.adoc[]
+
+operation::delete-a-user[snippets='path-parameters,curl-request']
