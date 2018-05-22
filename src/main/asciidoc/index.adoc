@@ -151,22 +151,18 @@ operation::delete-a-user[snippets='path-parameters,curl-request']
 
 Following administrative API operations are permitted only for superusers.
 
-=== Delete index
+=== Reindex
 
 Full index on nodes is kept on disk. If index is corrupted, indexing format is updated etc. full
 re-indexing may be required.
 
 include::{snippets}/delete-index/operation-intro.adoc[]
 
-=== Delete graph index
-
 include::{snippets}/delete-graph-index/operation-intro.adoc[]
-
-=== Delete type index
 
 include::{snippets}/delete-type-index/operation-intro.adoc[]
 
-=== Delete caches
+=== Invalidate caches
 
 Most database read operations excluding node API involve simple LRU-cache. If e.g. type, graph or
 user definitions are edited directly from underlying relational database, cache invalidation
@@ -174,7 +170,7 @@ may be required. Operation is typically very fast.
 
 include::{snippets}/delete-caches/operation-intro.adoc[]
 
-=== Delete revisions
+=== Purge revision history
 
 Node revisions are automatically created on each node modification. Purging revision history cleans
 all entries from history tables. Operation may take several minutes to complete.

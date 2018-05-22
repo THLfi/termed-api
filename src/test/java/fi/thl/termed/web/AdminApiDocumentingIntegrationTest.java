@@ -47,7 +47,7 @@ public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
     given(adminAuthorizedRequest).filter(
         document("delete-type-index",
             operationIntro(
-                "Delete request to type index triggers re-indexing of given type."),
+                "Delete request to graph type index triggers re-indexing of given type."),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
