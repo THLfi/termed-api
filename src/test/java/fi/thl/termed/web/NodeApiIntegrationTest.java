@@ -144,4 +144,56 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
 
+  @Test
+  public void shouldDeleteNodeBatch() {
+    String graphId = UUID.randomUUID().toString();
+    String typeId = "Concept";
+
+    String nodeId0 = UUID.randomUUID().toString();
+    String nodeId1 = UUID.randomUUID().toString();
+
+    // save graph, type and nodes
+    given(adminAuthorizedJsonSaveRequest)
+        .body("{'id':'" + graphId + "'}")
+        .post("/api/graphs?mode=insert");
+    given(adminAuthorizedJsonSaveRequest)
+        .body("{'id':'" + typeId + "'}")
+        .post("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedJsonSaveRequest)
+        .body("[{'id':'" + nodeId0 + "'},{'id':'" + nodeId1 + "'}]")
+        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes?batch=true");
+
+    // check preconditions
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId0)
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId1)
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+
+    // delete nodes in batch
+    given(adminAuthorizedJsonSaveRequest)
+        .body("[{'id':'" + nodeId0 + "'},{'id':'" + nodeId1 + "'}]")
+        .delete("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // verify changes
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId0)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + nodeId1)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+
+    // clean up
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
+  }
+
 }

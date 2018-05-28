@@ -183,7 +183,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
   private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
       Collection<K> keys, Long revision, RevisionType revisionType) {
-    return keys.stream().collect(toMap(
+    return keys.stream().distinct().collect(toMap(
         key -> RevisionId.of(key, revision),
         key -> Tuple.of(revisionType, null)));
   }
