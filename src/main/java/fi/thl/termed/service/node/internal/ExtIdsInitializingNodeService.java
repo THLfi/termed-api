@@ -1,7 +1,5 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
-import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static java.util.Collections.singletonList;
@@ -108,9 +106,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       Type type = typeSource.apply(node.getType(), user)
           .orElseThrow(IllegalStateException::new);
 
-      String code = type.getNodeCodePrefix()
-          .map(prefix -> prefix + node.getNumber())
-          .orElseGet(() -> UPPER_CAMEL.to(LOWER_HYPHEN, node.getTypeId()) + "-" + node.getNumber());
+      String code = type.getNodeCodePrefixOrDefault() + node.getNumber();
 
       if (!usedCodes.contains(code)) {
         node.setCode(code);

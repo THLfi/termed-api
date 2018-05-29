@@ -1,5 +1,7 @@
 package fi.thl.termed.domain;
 
+import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static fi.thl.termed.util.collect.ListUtils.nullToEmpty;
 import static fi.thl.termed.util.collect.ListUtils.nullableImmutableCopyOf;
 import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
@@ -77,6 +79,10 @@ public class Type implements Identifiable<TypeId> {
 
   public Optional<String> getNodeCodePrefix() {
     return ofNullable(nodeCodePrefix);
+  }
+
+  public String getNodeCodePrefixOrDefault() {
+    return getNodeCodePrefix().orElse(UPPER_CAMEL.to(LOWER_HYPHEN, id) + "-");
   }
 
   public Optional<Integer> getIndex() {
