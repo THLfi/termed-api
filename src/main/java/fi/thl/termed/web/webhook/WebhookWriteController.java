@@ -1,15 +1,16 @@
 package fi.thl.termed.web.webhook;
 
-import static fi.thl.termed.util.service.SaveMode.UPSERT;
+import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.UUID.randomUUID;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.specification.WebhookByUrl;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import java.net.URI;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -28,15 +29,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookWriteController {
 
   @Autowired
-  private Service<UUID, Webhook> webhookService;
+  private Service2<UUID, Webhook> webhookService;
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
-    try (Stream<Webhook> hooks = webhookService.getValueStream(new WebhookByUrl(url), user)) {
+    try (Stream<Webhook> hooks = webhookService.values(new Query<>(new WebhookByUrl(url)), user)) {
       return hooks.findFirst()
           .map(Webhook::getId)
           .orElseGet(() ->
-              webhookService.save(new Webhook(randomUUID(), url), UPSERT, defaultOpts(), user));
+              webhookService.save(new Webhook(randomUUID(), url), INSERT, defaultOpts(), user));
     }
   }
 
@@ -49,7 +50,8 @@ public class WebhookWriteController {
   @DeleteMapping
   @ResponseStatus(NO_CONTENT)
   public void delete(@AuthenticationPrincipal User user) {
-    webhookService.delete(webhookService.getKeyStream(user).collect(toList()), defaultOpts(), user);
+    webhookService.delete(
+        webhookService.keys(new Query<>(new MatchAll<>()), user), defaultOpts(), user);
   }
 
 }

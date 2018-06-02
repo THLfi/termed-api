@@ -1,15 +1,17 @@
 package fi.thl.termed.service.property.internal;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Strings;
 import fi.thl.termed.domain.Property;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
+public class JdbcPropertyDao extends AbstractJdbcDao2<String, Property> {
 
   public JdbcPropertyDao(DataSource dataSource) {
     super(dataSource);
@@ -37,17 +39,11 @@ public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from property order by index", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<String, Property> specification,
+  protected <E> Stream<E> get(SqlSpecification<String, Property> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
-        String.format("select * from property where %s order by index",
-            specification.sqlQueryTemplate()),
-        specification.sqlQueryParameters(), mapper);
+    return jdbcTemplate.queryForStream(
+        format("select * from property where %s order by index", specification.sqlQueryTemplate()),
+        mapper);
   }
 
   @Override

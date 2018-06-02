@@ -2,17 +2,17 @@ package fi.thl.termed.service.webhook.internal;
 
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcWebhookDao extends AbstractJdbcDao<UUID, Webhook> {
+public class JdbcWebhookDao extends AbstractJdbcDao2<UUID, Webhook> {
 
   public JdbcWebhookDao(DataSource dataSource) {
     super(dataSource);
@@ -36,14 +36,9 @@ public class JdbcWebhookDao extends AbstractJdbcDao<UUID, Webhook> {
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from webhook", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<UUID, Webhook> specification,
+  protected <E> Stream<E> get(SqlSpecification<UUID, Webhook> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from webhook where %s", specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }

@@ -46,7 +46,6 @@ import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
-import fi.thl.termed.util.EventBusUtils;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.AuthorizedDao.ReportLevel;
@@ -62,6 +61,7 @@ import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.QueryProfilingService;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.SynchronizedNamedSequenceService;
 import fi.thl.termed.util.service.TransactionalNamedSequenceService;
 import fi.thl.termed.util.service.TransactionalService;
@@ -95,7 +95,7 @@ public class NodeServiceConfiguration {
   @Autowired
   private SequenceService revisionSeqService;
   @Autowired
-  private Service<Long, Revision> revisionService;
+  private Service2<Long, Revision> revisionService;
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;

@@ -12,6 +12,7 @@ import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Date;
 import java.util.List;
@@ -19,12 +20,12 @@ import java.util.List;
 public class RevisionInitializingNodeService extends ForwardingService<NodeId, Node> {
 
   private SequenceService revisionSequenceService;
-  private Service<Long, Revision> revisionService;
+  private Service2<Long, Revision> revisionService;
 
   public RevisionInitializingNodeService(
       Service<NodeId, Node> delegate,
       SequenceService revisionSequenceService,
-      Service<Long, Revision> revisionService) {
+      Service2<Long, Revision> revisionService) {
     super(delegate);
     this.revisionSequenceService = revisionSequenceService;
     this.revisionService = revisionService;

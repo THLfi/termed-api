@@ -29,6 +29,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -50,9 +51,9 @@ public class TypeServiceIntegrationTest {
   @Autowired
   private Service<TypeId, Type> typeService;
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
-  private Service<String, Property> propertyService;
+  private Service2<String, Property> propertyService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

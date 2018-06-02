@@ -1,9 +1,11 @@
 package fi.thl.termed.service.property.internal;
 
-import static com.google.common.collect.ImmutableList.copyOf;
+import static fi.thl.termed.domain.Property.builderFromCopyOf;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
-import static fi.thl.termed.util.collect.StreamUtils.zipWithIndex;
-import static java.util.stream.Collectors.toList;
+import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
+import static fi.thl.termed.util.collect.StreamUtils.zipIndex;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
+import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -12,52 +14,63 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
-import fi.thl.termed.domain.transform.PropertyValueModelToDto;
-import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
+import fi.thl.termed.util.dao.Dao2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository;
+import fi.thl.termed.util.service.AbstractRepository2;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class PropertyRepository extends AbstractRepository<String, Property> {
+public class PropertyRepository extends AbstractRepository2<String, Property> {
 
-  private Dao<String, Property> propertyDao;
-  private Dao<PropertyValueId<String>, LangValue> propertyValueDao;
+  private Dao2<String, Property> propertyDao;
+  private Dao2<PropertyValueId<String>, LangValue> propertyValueDao;
 
-  public PropertyRepository(Dao<String, Property> propertyDao,
-      Dao<PropertyValueId<String>, LangValue> propertyValueDao) {
+  public PropertyRepository(Dao2<String, Property> propertyDao,
+      Dao2<PropertyValueId<String>, LangValue> propertyValueDao) {
     this.propertyDao = propertyDao;
     this.propertyValueDao = propertyValueDao;
   }
 
   @Override
-  public List<String> save(List<Property> properties, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(addPropertyIndices(properties), mode, opts, user);
+  public Stream<String> save(Stream<Property> values, SaveMode mode,
+      WriteOptions opts, User user) {
+    return super.save(addPropertyIndices(values), mode, opts, user);
   }
 
-  private List<Property> addPropertyIndices(List<Property> props) {
-    return zipWithIndex(props.stream(), (p, i) -> Property.builderFromCopyOf(p).index(i).build())
-        .collect(toList());
+  private Stream<Property> addPropertyIndices(Stream<Property> values) {
+    return zipIndex(values, (v, i) -> builderFromCopyOf(v).index(i).build());
   }
 
   @Override
-  public void insert(String id, Property property, SaveMode mode, WriteOptions opts, User user) {
+  public void insert(String id, Property property, WriteOptions opts, User user) {
     propertyDao.insert(id, property, user);
     insertProperties(id, property.getProperties(), user);
   }
 
   private void insertProperties(String id, Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
+    propertyValueDao.insert(propertiesToStream(id, properties), user);
+  }
+
+  private Stream<Tuple2<PropertyValueId<String>, LangValue>> propertiesToStream(
+      String subjectId, Multimap<String, LangValue> properties) {
+
+    Stream<Entry<String, Collection<LangValue>>> entries = properties.asMap().entrySet().stream();
+
+    return entries.flatMap(e -> zipIndex(
+        e.getValue().stream().distinct(),
+        (value, i) -> Tuple.of(new PropertyValueId<>(subjectId, e.getKey(), i), value)));
   }
 
   @Override
-  public void update(String id, Property property, SaveMode mode, WriteOptions opts, User user) {
+  public void update(String id, Property property, WriteOptions opts, User user) {
     propertyDao.update(id, property, user);
     updateProperties(id, property.getProperties(), user);
   }
@@ -65,17 +78,17 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   private void updateProperties(String propertyId, Multimap<String, LangValue> propertyMultimap,
       User user) {
 
-    Map<PropertyValueId<String>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(propertyId).apply(propertyMultimap);
-    Map<PropertyValueId<String>, LangValue> oldProperties =
-        propertyValueDao.getMap(new PropertyPropertiesByPropertyId(propertyId), user);
+    Map<PropertyValueId<String>, LangValue> newProperties = tupleStreamToMap(
+        propertiesToStream(propertyId, propertyMultimap));
+    Map<PropertyValueId<String>, LangValue> oldProperties = tupleStreamToMap(
+        propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(propertyId), user));
 
     MapDifference<PropertyValueId<String>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyValueDao.insert(diff.entriesOnlyOnLeft(), user);
-    propertyValueDao.update(leftValues(diff.entriesDiffering()), user);
-    propertyValueDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    propertyValueDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    propertyValueDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    propertyValueDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
   @Override
@@ -95,14 +108,13 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public Stream<Property> getValueStream(Query<String, Property> query, User user) {
-    return propertyDao.getValues(query.getWhere(), user).stream()
-        .map(property -> populateValue(property, user));
+  public Stream<Property> values(Query<String, Property> query, User user) {
+    return propertyDao.getValues(query.getWhere(), user).map(p -> populateValue(p, user));
   }
 
   @Override
-  public Stream<String> getKeyStream(Query<String, Property> query, User user) {
-    return propertyDao.getKeys(query.getWhere(), user).stream();
+  public Stream<String> keys(Query<String, Property> query, User user) {
+    return propertyDao.getKeys(query.getWhere(), user);
   }
 
   @Override
@@ -111,10 +123,13 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   private Property populateValue(Property property, User user) {
-    return Property.builderFromCopyOf(property)
-        .properties(new PropertyValueModelToDto<String>().apply(
-            propertyValueDao.getMap(new PropertyPropertiesByPropertyId(property.getId()), user)))
-        .build();
+    try (Stream<Tuple2<PropertyValueId<String>, LangValue>> ps =
+        propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(property.getId()), user)) {
+
+      return builderFromCopyOf(property)
+          .properties(ps.collect(toImmutableMultimap(t -> t._1.getPropertyId(), t -> t._2)))
+          .build();
+    }
   }
 
 }

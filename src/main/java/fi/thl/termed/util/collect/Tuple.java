@@ -1,6 +1,24 @@
 package fi.thl.termed.util.collect;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public interface Tuple {
+
+  static <T1, T2> Stream<Tuple2<T1, T2>> entriesAsTupleStream(Map<T1, T2> map) {
+    return map.entrySet().stream().map(Tuple::of);
+  }
+
+  static <T1, T2> Map<T1, T2> tupleStreamToMap(Stream<Tuple2<T1, T2>> tupleStream) {
+    try (Stream<Tuple2<T1, T2>> closableTupleStream = tupleStream) {
+      return closableTupleStream.collect(Collectors.toMap(e -> e._1, e -> e._2));
+    }
+  }
+
+  static <T1, T2> Tuple2<T1, T2> of(Map.Entry<T1, T2> entry) {
+    return new Tuple2<>(entry.getKey(), entry.getValue());
+  }
 
   static <T1, T2> Tuple2<T1, T2> of(T1 t1, T2 t2) {
     return new Tuple2<>(t1, t2);

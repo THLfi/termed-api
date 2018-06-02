@@ -28,6 +28,7 @@ import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Before;
@@ -49,7 +50,7 @@ public class NodeRevisionServiceIntegrationTest {
   @Autowired
   private Service<TypeId, Type> typeService;
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
   private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   @Autowired

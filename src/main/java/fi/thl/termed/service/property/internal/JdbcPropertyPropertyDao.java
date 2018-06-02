@@ -1,18 +1,15 @@
 package fi.thl.termed.service.property.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcPropertyPropertyDao extends AbstractJdbcDao<PropertyValueId<String>, LangValue> {
+public class JdbcPropertyPropertyDao extends AbstractJdbcDao2<PropertyValueId<String>, LangValue> {
 
   public JdbcPropertyPropertyDao(DataSource dataSource) {
     super(dataSource);
@@ -48,16 +45,11 @@ public class JdbcPropertyPropertyDao extends AbstractJdbcDao<PropertyValueId<Str
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from property_property", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<PropertyValueId<String>, LangValue> specification,
-                            RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+  protected <E> Stream<E> get(SqlSpecification<PropertyValueId<String>, LangValue> specification,
+      RowMapper<E> mapper) {
+    return jdbcTemplate.queryForStream(
         String.format("select * from property_property where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
 
   }
@@ -85,8 +77,8 @@ public class JdbcPropertyPropertyDao extends AbstractJdbcDao<PropertyValueId<Str
   @Override
   protected RowMapper<PropertyValueId<String>> buildKeyMapper() {
     return (rs, rowNum) -> new PropertyValueId<>(rs.getString("subject_id"),
-                                                 rs.getString("property_id"),
-                                                 rs.getInt("index"));
+        rs.getString("property_id"),
+        rs.getInt("index"));
   }
 
   @Override

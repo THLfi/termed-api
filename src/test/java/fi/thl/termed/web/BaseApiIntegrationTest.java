@@ -10,17 +10,17 @@ import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static io.restassured.config.RestAssuredConfig.config;
 import static io.restassured.mapper.ObjectMapperType.GSON;
-import static java.util.Arrays.asList;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import java.util.Base64;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -35,7 +35,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public abstract class BaseApiIntegrationTest {
 
   @Autowired
-  private Service<String, User> users;
+  private Service2<String, User> users;
 
   @Autowired
   private PasswordEncoder encoder;
@@ -89,7 +89,7 @@ public abstract class BaseApiIntegrationTest {
 
   @Before
   public void insertTestUsers() {
-    users.save(asList(
+    users.save(Stream.of(
         newUser(testUserUsername, encoder.encode(testUserPassword)),
         newAdmin(testAdminUsername, encoder.encode(testAdminPassword)),
         newSuperuser(testSuperuserUsername, encoder.encode(testSuperuserPassword))),
@@ -101,7 +101,7 @@ public abstract class BaseApiIntegrationTest {
   @After
   public void deleteTestUsers() {
     users.delete(
-        asList(testUserUsername, testAdminUsername, testSuperuserUsername),
+        Stream.of(testUserUsername, testAdminUsername, testSuperuserUsername),
         defaultOpts(),
         newSuperuser("test-cleaner"));
   }

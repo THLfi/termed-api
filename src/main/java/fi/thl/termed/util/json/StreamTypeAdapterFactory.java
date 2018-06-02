@@ -58,7 +58,11 @@ public class StreamTypeAdapterFactory implements TypeAdapterFactory {
     @Override
     public void write(JsonWriter out, Stream<T> stream) throws IOException {
       out.beginArray();
-      stream.forEach(toUncheckedConsumer(v -> valueAdapter.write(out, v)));
+
+      try (Stream<T> closable = stream) {
+        closable.forEach(toUncheckedConsumer(v -> valueAdapter.write(out, v)));
+      }
+
       out.endArray();
     }
 

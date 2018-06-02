@@ -3,7 +3,7 @@ package fi.thl.termed.service.type.internal;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static fi.thl.termed.util.collect.DequeUtils.addFirst;
 import static fi.thl.termed.util.collect.DequeUtils.newArrayDeque;
-import static fi.thl.termed.util.collect.StreamUtils.zipWithIndex;
+import static fi.thl.termed.util.collect.StreamUtils.zipIndex;
 import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -47,7 +47,7 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   private List<Type> init(List<Type> types) {
-    return zipWithIndex(types.stream(), this::init).collect(toList());
+    return zipIndex(types.stream(), this::init).collect(toList());
   }
 
   private Type init(Type type, int index) {

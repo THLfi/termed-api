@@ -13,7 +13,8 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.service.Service2;
 import java.lang.reflect.Type;
 import java.util.List;
 import javax.annotation.PreDestroy;
@@ -48,9 +49,9 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private PasswordEncoder passwordEncoder;
 
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
-  private Service<String, Property> propertyService;
+  private Service2<String, Property> propertyService;
 
   private User initializer = new User("initializer", "", AppRole.SUPERUSER);
 
@@ -65,7 +66,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userService.getKeys(initializer).isEmpty()) {
+    if (userService.count(new MatchAll<>(), initializer) == 0) {
       String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
       User admin = new User("admin", passwordEncoder.encode(password), AppRole.SUPERUSER);
       userService.save(admin, UPSERT, defaultOpts(), initializer);
@@ -76,7 +77,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private void saveDefaultProperties() {
     List<Property> props = gson.fromJson(resourceToString("default/properties.json"),
         propertyListType);
-    propertyService.save(props, UPSERT, defaultOpts(), initializer);
+    propertyService.save(props.stream(), UPSERT, defaultOpts(), initializer);
   }
 
   @PreDestroy

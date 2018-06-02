@@ -10,10 +10,13 @@ import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.domain.event.NodeEvent;
 import fi.thl.termed.domain.event.WebEvent;
 import fi.thl.termed.util.FutureUtils;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
@@ -28,13 +31,13 @@ public class NodeEventPostingService {
   private Logger log = LoggerFactory.getLogger(getClass());
   private User eventBroadcaster = new User("httpEventBroadcaster", "", AppRole.SUPERUSER);
 
-  private Service<UUID, Webhook> webhookService;
+  private Service2<UUID, Webhook> webhookService;
   private Gson gson;
 
   private CloseableHttpAsyncClient httpClient;
   private FutureCallback<HttpResponse> errorCallback = new ErrorLoggingCallback();
 
-  public NodeEventPostingService(Service<UUID, Webhook> webhookService, Gson gson) {
+  public NodeEventPostingService(Service2<UUID, Webhook> webhookService, Gson gson) {
     this.gson = gson;
     this.webhookService = webhookService;
     this.httpClient = HttpAsyncClients.createMinimal();
@@ -43,18 +46,21 @@ public class NodeEventPostingService {
 
   @Subscribe
   public void subscribe(NodeEvent nodeEvent) {
-    webhookService.getValues(eventBroadcaster).forEach(hook -> {
-      HttpPost request = new HttpPost(hook.getUrl());
-      request.addHeader("Content-Type", "application/json");
-      request.setEntity(new StringEntity(gson.toJson(new WebEvent(nodeEvent)), UTF_8));
+    try (Stream<Webhook> hooks = webhookService
+        .values(new Query<>(new MatchAll<>()), eventBroadcaster)) {
+      hooks.forEach(hook -> {
+        HttpPost request = new HttpPost(hook.getUrl());
+        request.addHeader("Content-Type", "application/json");
+        request.setEntity(new StringEntity(gson.toJson(new WebEvent(nodeEvent)), UTF_8));
 
-      Future<HttpResponse> future = httpClient.execute(request, errorCallback);
+        Future<HttpResponse> future = httpClient.execute(request, errorCallback);
 
-      if (nodeEvent.isSync()) {
-        FutureUtils.waitFor(future, 1, TimeUnit.MINUTES,
-            e -> log.warn("{} {} {}", hook, e.getClass(), e.getMessage()));
-      }
-    });
+        if (nodeEvent.isSync()) {
+          FutureUtils.waitFor(future, 1, TimeUnit.MINUTES,
+              e -> log.warn("{} {} {}", hook, e.getClass(), e.getMessage()));
+        }
+      });
+    }
   }
 
   /**

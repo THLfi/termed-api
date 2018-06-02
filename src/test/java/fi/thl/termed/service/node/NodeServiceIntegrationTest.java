@@ -24,6 +24,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Before;
@@ -45,7 +46,7 @@ public class NodeServiceIntegrationTest {
   @Autowired
   private Service<TypeId, Type> typeService;
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

@@ -13,9 +13,12 @@ import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
 import java.util.Date;
@@ -39,7 +42,7 @@ public class RevisionController {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  private Service<Long, Revision> revisionService;
+  private Service2<Long, Revision> revisionService;
   @Autowired
   private SequenceService revisionSeq;
   @Autowired
@@ -61,7 +64,8 @@ public class RevisionController {
 
       TransactionUtils.runInTransaction(manager, () -> {
         // nodes are cascaded when revisions are deleted
-        revisionService.delete(revisionService.getKeys(user), defaultOpts(), user);
+        revisionService
+            .delete(revisionService.keys(new Query<>(new MatchAll<>()), user), defaultOpts(), user);
 
         Long revision = revisionSeq.getAndAdvance(user);
 

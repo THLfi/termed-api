@@ -2,10 +2,12 @@ package fi.thl.termed.web.property;
 
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,16 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/properties")
 public class PropertyReadController {
 
-  private Service<String, Property> propertyService;
-
   @Autowired
-  public PropertyReadController(Service<String, Property> propertyService) {
-    this.propertyService = propertyService;
-  }
+  private Service2<String, Property> propertyService;
 
   @GetJsonMapping
-  public List<Property> get(@AuthenticationPrincipal User user) {
-    return propertyService.getValues(user);
+  public Stream<Property> get(@AuthenticationPrincipal User user) {
+    return propertyService.values(new Query<>(new MatchAll<>()), user);
   }
 
   @GetJsonMapping("/{id}")

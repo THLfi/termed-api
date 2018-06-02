@@ -30,6 +30,7 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.io.Serializable;
 import java.util.Date;
@@ -51,14 +52,14 @@ public class NodeRevisionRepository implements
   private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao;
   private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao;
 
-  private Service<Long, Revision> revisionService;
+  private Service2<Long, Revision> revisionService;
   private SequenceService revisionSeqService;
 
   public NodeRevisionRepository(
       Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao,
       Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao,
       Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao,
-      Service<Long, Revision> revisionService, SequenceService revisionSeqService) {
+      Service2<Long, Revision> revisionService, SequenceService revisionSeqService) {
     this.nodeRevisionDao = nodeRevisionDao;
     this.textAttributeValueRevDao = textAttributeValueRevDao;
     this.referenceAttributeValueRevDao = referenceAttributeValueRevDao;

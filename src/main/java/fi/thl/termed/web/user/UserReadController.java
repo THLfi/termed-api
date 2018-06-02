@@ -1,12 +1,12 @@
 package fi.thl.termed.web.user;
 
-import static java.util.stream.Collectors.toList;
-
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,13 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserReadController {
 
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
 
   @GetJsonMapping
-  public List<User> get(@AuthenticationPrincipal User currentUser) {
-    return userService.getValues(currentUser).stream()
-        .map(user -> new User(user.getUsername(), "", user.getAppRole(), user.getGraphRoles()))
-        .collect(toList());
+  public Stream<User> get(@AuthenticationPrincipal User currentUser) {
+    return userService.values(new Query<>(new MatchAll<>()), currentUser)
+        .map(u -> new User(u.getUsername(), "", u.getAppRole(), u.getGraphRoles()));
   }
 
   @GetJsonMapping("/{username}")

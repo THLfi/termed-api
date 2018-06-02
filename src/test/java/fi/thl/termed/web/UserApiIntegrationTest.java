@@ -3,9 +3,9 @@ package fi.thl.termed.web;
 import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
 
 import org.apache.http.HttpStatus;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 public class UserApiIntegrationTest extends BaseApiIntegrationTest {
@@ -29,13 +29,14 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
         .accept("application/json")
         .get("/api/users/{username}", exampleUserUsername)
         .then()
-        .statusCode(HttpStatus.SC_FORBIDDEN);
+        .statusCode(HttpStatus.SC_NOT_FOUND);
 
     given(userAuthorizedRequest)
         .accept("application/json")
         .get("/api/users")
         .then()
-        .statusCode(HttpStatus.SC_FORBIDDEN);
+        .statusCode(HttpStatus.SC_OK)
+        .body("isEmpty()", Matchers.is(true));
 
     given(userAuthorizedRequest)
         .delete("/api/users/{username}", exampleUserUsername)
@@ -56,13 +57,14 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
         .accept("application/json")
         .get("/api/users/{username}", exampleUserUsername)
         .then()
-        .statusCode(HttpStatus.SC_FORBIDDEN);
+        .statusCode(HttpStatus.SC_NOT_FOUND);
 
     given(adminAuthorizedRequest)
         .accept("application/json")
         .get("/api/users")
         .then()
-        .statusCode(HttpStatus.SC_FORBIDDEN);
+        .statusCode(HttpStatus.SC_OK)
+        .body("isEmpty()", Matchers.is(true));
 
     given(adminAuthorizedRequest)
         .delete("/api/users/{username}", exampleUserUsername)
@@ -85,7 +87,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("username", equalTo(exampleUserUsername))
-        .body("password", not(equalTo(exampleUserUsername)))
+        .body("password", equalTo(""))
         .body("appRole", equalTo("USER"));
 
     given(superuserAuthorizedRequest)

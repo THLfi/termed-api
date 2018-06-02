@@ -2,11 +2,13 @@ package fi.thl.termed.web.webhook;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,11 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookReadController {
 
   @Autowired
-  private Service<UUID, Webhook> webhookService;
+  private Service2<UUID, Webhook> webhookService;
 
   @GetJsonMapping
-  public List<Webhook> get(@AuthenticationPrincipal User user) {
-    return webhookService.getValues(user);
+  public Stream<Webhook> get(@AuthenticationPrincipal User user) {
+    return webhookService.values(new Query<>(new MatchAll<>()), user);
   }
 
   @GetJsonMapping("/{id}")

@@ -4,14 +4,14 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> {
+public class JdbcUserGraphRoleDao extends AbstractJdbcDao2<UserGraphRole, Empty> {
 
   public JdbcUserGraphRoleDao(DataSource dataSource) {
     super(dataSource);
@@ -37,14 +37,9 @@ public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> 
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from user_graph_role", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<UserGraphRole, Empty> specification,
+  protected <E> Stream<E> get(SqlSpecification<UserGraphRole, Empty> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from user_graph_role where %s",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);

@@ -2,7 +2,7 @@ package fi.thl.termed;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class Security extends WebSecurityConfigurerAdapter {
 
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

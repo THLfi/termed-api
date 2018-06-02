@@ -5,9 +5,10 @@ import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
-import java.util.List;
+import fi.thl.termed.util.spring.exception.BadRequestException;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,24 +25,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserWriteController {
 
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
 
   @PostJsonMapping(params = "batch=true", produces = {})
   @ResponseStatus(NO_CONTENT)
-  public void save(@RequestBody List<User> userData,
+  public void save(@RequestBody Stream<User> userData,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User currentUser) {
-    for (User userDatum : userData) {
-      userService.save(new User(userDatum.getUsername(),
-              passwordEncoder.encode(userDatum.getPassword()),
-              userDatum.getAppRole(),
-              userDatum.getGraphRoles()),
-          saveMode(mode), opts(sync), currentUser);
-    }
+    userService.save(userData.map(user ->
+        new User(user.getUsername(),
+            passwordEncoder.encode(user.getPassword()),
+            user.getAppRole(),
+            user.getGraphRoles())), saveMode(mode), opts(sync), currentUser);
   }
 
   @PostJsonMapping(params = "batch!=true", produces = {})
@@ -52,13 +51,12 @@ public class UserWriteController {
       @RequestParam(name = "updatePassword", defaultValue = "true") boolean updatePassword,
       @AuthenticationPrincipal User currentUser) {
 
-    boolean useOldPassword =
-        userService.exists(userData.getUsername(), currentUser) && !updatePassword;
-
     User user = new User(userData.getUsername(),
-        useOldPassword ? userService.get(userData.getUsername(), currentUser)
-            .orElseThrow(IllegalStateException::new)
-            .getPassword() : passwordEncoder.encode(userData.getPassword()),
+        updatePassword ?
+            passwordEncoder.encode(userData.getPassword()) :
+            userService.get(userData.getUsername(), currentUser)
+                .orElseThrow(BadRequestException::new)
+                .getPassword(),
         userData.getAppRole(),
         userData.getGraphRoles());
 

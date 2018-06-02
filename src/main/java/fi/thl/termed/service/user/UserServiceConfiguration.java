@@ -1,8 +1,7 @@
 package fi.thl.termed.service.user;
 
 import static fi.thl.termed.util.EventBusUtils.register;
-import static fi.thl.termed.util.dao.AuthorizedDao.ReportLevel.THROW;
-import static fi.thl.termed.util.dao.CachedSystemDao.cache;
+import static fi.thl.termed.util.dao.CachedSystemDao2.cache;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
@@ -12,12 +11,12 @@ import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.service.user.internal.JdbcUserDao;
 import fi.thl.termed.service.user.internal.JdbcUserGraphRoleDao;
 import fi.thl.termed.service.user.internal.UserRepository;
-import fi.thl.termed.util.dao.AuthorizedDao;
-import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.dao.AuthorizedDao2;
+import fi.thl.termed.util.dao.SystemDao2;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.service.TransactionalService;
-import fi.thl.termed.util.service.WriteLoggingService;
+import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.TransactionalService2;
+import fi.thl.termed.util.service.WriteLoggingService2;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,12 +30,12 @@ public class UserServiceConfiguration {
   private EventBus eventBus;
 
   @Bean
-  public Service<String, User> userService(
+  public Service2<String, User> userService(
       DataSource dataSource, PlatformTransactionManager transactionManager) {
 
-    SystemDao<String, User> userDao =
+    SystemDao2<String, User> userDao =
         register(eventBus, cache(new JdbcUserDao(dataSource)));
-    SystemDao<UserGraphRole, Empty> userGraphRoleDao =
+    SystemDao2<UserGraphRole, Empty> userGraphRoleDao =
         register(eventBus, cache(new JdbcUserGraphRoleDao(dataSource)));
 
     PermissionEvaluator<String> userPermissionEvaluator =
@@ -44,14 +43,14 @@ public class UserServiceConfiguration {
     PermissionEvaluator<UserGraphRole> userGraphRolePermissionEvaluator =
         (u, o, p) -> u.getAppRole() == AppRole.SUPERUSER;
 
-    Service<String, User> service =
+    Service2<String, User> service =
         new UserRepository(
-            new AuthorizedDao<>(userDao, userPermissionEvaluator, THROW),
-            new AuthorizedDao<>(userGraphRoleDao, userGraphRolePermissionEvaluator, THROW));
+            new AuthorizedDao2<>(userDao, userPermissionEvaluator),
+            new AuthorizedDao2<>(userGraphRoleDao, userGraphRolePermissionEvaluator));
 
-    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
 
-    return new TransactionalService<>(service, transactionManager);
+    return new TransactionalService2<>(service, transactionManager);
   }
 
 }

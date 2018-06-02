@@ -21,6 +21,7 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,9 +39,9 @@ public class GraphServiceIntegrationTest {
   @Autowired
   private Service<GraphId, Graph> graphService;
   @Autowired
-  private Service<String, User> userService;
+  private Service2<String, User> userService;
   @Autowired
-  private Service<String, Property> propertyService;
+  private Service2<String, Property> propertyService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 
