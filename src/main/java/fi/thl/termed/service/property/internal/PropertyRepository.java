@@ -14,7 +14,7 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.Dao2;
 import fi.thl.termed.util.query.Query;
@@ -22,9 +22,7 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.service.AbstractRepository2;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -56,17 +54,7 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
   }
 
   private void insertProperties(String id, Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(propertiesToStream(id, properties), user);
-  }
-
-  private Stream<Tuple2<PropertyValueId<String>, LangValue>> propertiesToStream(
-      String subjectId, Multimap<String, LangValue> properties) {
-
-    Stream<Entry<String, Collection<LangValue>>> entries = properties.asMap().entrySet().stream();
-
-    return entries.flatMap(e -> zipIndex(
-        e.getValue().stream().distinct(),
-        (value, i) -> Tuple.of(new PropertyValueId<>(subjectId, e.getKey(), i), value)));
+    propertyValueDao.insert(new PropertyValueDtoToModel2<>(id).apply(properties), user);
   }
 
   @Override
@@ -79,7 +67,7 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
       User user) {
 
     Map<PropertyValueId<String>, LangValue> newProperties = tupleStreamToMap(
-        propertiesToStream(propertyId, propertyMultimap));
+        new PropertyValueDtoToModel2<>(propertyId).apply(propertyMultimap));
     Map<PropertyValueId<String>, LangValue> oldProperties = tupleStreamToMap(
         propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(propertyId), user));
 
