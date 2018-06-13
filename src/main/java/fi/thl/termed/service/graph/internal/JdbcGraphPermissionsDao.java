@@ -57,13 +57,13 @@ public class JdbcGraphPermissionsDao
 
   @Override
   public boolean exists(ObjectRolePermission<GraphId> id) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from graph_permission where graph_id = ? and graph_id = ? and role = ? and permission = ?",
         Long.class,
         id.getObjectId().getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()) > 0;
+        id.getPermission().toString()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

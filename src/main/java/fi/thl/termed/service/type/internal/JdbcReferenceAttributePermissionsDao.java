@@ -75,7 +75,7 @@ public class JdbcReferenceAttributePermissionsDao
   public boolean exists(ObjectRolePermission<ReferenceAttributeId> id) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from reference_attribute_permission where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and reference_attribute_domain_graph_id = ? and role = ? and permission = ?",
         Long.class,
         referenceAttributeDomainId.getGraphId(),
@@ -83,7 +83,7 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()) > 0;
+        id.getPermission().toString()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

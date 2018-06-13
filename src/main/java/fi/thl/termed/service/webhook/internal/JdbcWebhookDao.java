@@ -45,8 +45,8 @@ public class JdbcWebhookDao extends AbstractJdbcDao2<UUID, Webhook> {
 
   @Override
   public boolean exists(UUID id) {
-    return jdbcTemplate.queryForObject("select count(*) from webhook where id = ?",
-        Long.class, id) > 0;
+    return jdbcTemplate.queryForOptional("select count(*) from webhook where id = ?",
+        Long.class, id).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

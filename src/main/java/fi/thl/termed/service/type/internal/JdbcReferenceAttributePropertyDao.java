@@ -80,14 +80,14 @@ public class JdbcReferenceAttributePropertyDao
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from reference_attribute_property where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()) > 0;
+        id.getIndex()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

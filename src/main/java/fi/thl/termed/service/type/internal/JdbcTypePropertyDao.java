@@ -70,13 +70,13 @@ public class JdbcTypePropertyDao extends AbstractJdbcDao2<PropertyValueId<TypeId
   public boolean exists(PropertyValueId<TypeId> id) {
     TypeId typeId = id.getSubjectId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from type_property where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         Long.class,
         typeId.getGraphId(),
         typeId.getId(),
         id.getPropertyId(),
-        id.getIndex()) > 0;
+        id.getIndex()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

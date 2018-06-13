@@ -70,12 +70,12 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao2<TextAttributeId, Text
   public boolean exists(TextAttributeId textAttributeId) {
     TypeId domainId = textAttributeId.getDomainId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from text_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         Long.class,
         domainId.getGraphId(),
         domainId.getId(),
-        textAttributeId.getId()) > 0;
+        textAttributeId.getId()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

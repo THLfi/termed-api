@@ -81,14 +81,14 @@ public class JdbcTextAttributePropertyDao
     TextAttributeId textAttributeId = id.getSubjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from text_attribute_property where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         Long.class,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()) > 0;
+        id.getIndex()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

@@ -48,8 +48,8 @@ public class JdbcGraphDao extends AbstractJdbcDao2<GraphId, Graph> {
 
   @Override
   public boolean exists(GraphId id) {
-    return jdbcTemplate.queryForObject("select count(*) from graph where id = ?",
-        Long.class, id.getId()) > 0;
+    return jdbcTemplate.queryForOptional("select count(*) from graph where id = ?",
+        Long.class, id.getId()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

@@ -75,7 +75,7 @@ public class JdbcTextAttributePermissionsDao
   public boolean exists(ObjectRolePermission<TextAttributeId> id) {
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and text_attribute_domain_graph_id = ? and role = ? and permission = ?",
         Long.class,
         textAttributeDomainId.getGraphId(),
@@ -83,7 +83,8 @@ public class JdbcTextAttributePermissionsDao
         textAttributeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()) > 0;
+        id.getPermission().toString())
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

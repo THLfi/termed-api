@@ -42,8 +42,9 @@ public class JdbcUserDao extends AbstractJdbcDao2<String, User> {
 
   @Override
   public boolean exists(String username) {
-    return jdbcTemplate.queryForObject("select count(*) from users where username = ?",
-        Long.class, username) > 0;
+    return jdbcTemplate.queryForOptional("select count(*) from users where username = ?",
+        Long.class, username)
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

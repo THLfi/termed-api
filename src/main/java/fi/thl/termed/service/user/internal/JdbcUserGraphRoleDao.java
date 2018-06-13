@@ -47,12 +47,12 @@ public class JdbcUserGraphRoleDao extends AbstractJdbcDao2<UserGraphRole, Empty>
 
   @Override
   public boolean exists(UserGraphRole id) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from user_graph_role where username = ? and graph_id = ? and role = ?",
         Long.class,
         id.getUsername(),
         id.getGraphId(),
-        id.getRole()) > 0;
+        id.getRole()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

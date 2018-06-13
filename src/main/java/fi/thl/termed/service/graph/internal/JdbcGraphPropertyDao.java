@@ -57,12 +57,12 @@ public class JdbcGraphPropertyDao extends AbstractJdbcDao2<PropertyValueId<Graph
 
   @Override
   public boolean exists(PropertyValueId<GraphId> id) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from graph_property where graph_id = ? and property_id = ? and index = ?",
         Long.class,
         id.getSubjectId().getId(),
         id.getPropertyId(),
-        id.getIndex()) > 0;
+        id.getIndex()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

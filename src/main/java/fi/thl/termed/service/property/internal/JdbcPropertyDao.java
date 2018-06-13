@@ -48,8 +48,8 @@ public class JdbcPropertyDao extends AbstractJdbcDao2<String, Property> {
 
   @Override
   public boolean exists(String id) {
-    return jdbcTemplate.queryForObject("select count(*) from property where id = ?",
-        Long.class, id) > 0;
+    return jdbcTemplate.queryForOptional("select count(*) from property where id = ?",
+        Long.class, id).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

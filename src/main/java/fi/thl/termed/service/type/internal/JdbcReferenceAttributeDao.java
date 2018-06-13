@@ -78,12 +78,12 @@ public class JdbcReferenceAttributeDao
   public boolean exists(ReferenceAttributeId referenceAttributeId) {
     TypeId domainId = referenceAttributeId.getDomainId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from reference_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         Long.class,
         domainId.getGraphId(),
         domainId.getId(),
-        referenceAttributeId.getId()) > 0;
+        referenceAttributeId.getId()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

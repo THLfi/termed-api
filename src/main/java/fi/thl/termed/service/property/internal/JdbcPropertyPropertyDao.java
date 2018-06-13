@@ -56,12 +56,12 @@ public class JdbcPropertyPropertyDao extends AbstractJdbcDao2<PropertyValueId<St
 
   @Override
   public boolean exists(PropertyValueId<String> id) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from property_property where subject_id = ? and property_id = ? and index = ?",
         Long.class,
         id.getSubjectId(),
         id.getPropertyId(),
-        id.getIndex()) > 0;
+        id.getIndex()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

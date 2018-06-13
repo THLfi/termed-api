@@ -39,8 +39,9 @@ public class JdbcRevisionDao extends AbstractJdbcDao2<Long, Revision> {
 
   @Override
   public boolean exists(Long id) {
-    return jdbcTemplate.queryForObject(
-        "select count(*) from revision where number = ?", Long.class, id) > 0;
+    return jdbcTemplate.queryForOptional(
+        "select count(*) from revision where number = ?", Long.class, id)
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

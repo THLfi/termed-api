@@ -52,11 +52,11 @@ public class JdbcGraphRoleDao extends AbstractJdbcDao2<GraphRole, Empty> {
 
   @Override
   public boolean exists(GraphRole id) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from graph_role where graph_id = ? and role = ?",
         Long.class,
         id.getGraphId(),
-        id.getRole()) > 0;
+        id.getRole()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

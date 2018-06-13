@@ -64,14 +64,15 @@ public class JdbcTypePermissionsDao
   @Override
   public boolean exists(ObjectRolePermission<TypeId> id) {
     TypeId typeId = id.getObjectId();
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from type_permission where type_graph_id = ? and type_id = ? and type_graph_id = ? and role = ? and permission = ?",
         Long.class,
         typeId.getGraphId(),
         typeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()) > 0;
+        id.getPermission().toString())
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override
