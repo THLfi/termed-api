@@ -96,15 +96,11 @@ public class TypeWriteController {
       Set<TypeId> oldTypes = typeIdStream.collect(toImmutableSet());
       Set<TypeId> newTypes = typeList.stream().map(Type::identifier).collect(toImmutableSet());
 
-      try {
-        TransactionUtils.runInTransaction(transactionManager, () -> {
-          typeService.save(typeList.stream(), saveMode(mode), opts(sync), user);
-          typeService.delete(difference(oldTypes, newTypes).stream(), opts(sync), user);
-          return null;
-        });
-      } catch (RuntimeException | Error e) {
-        eventBus.post(new InvalidateCachesEvent());
-      }
+      TransactionUtils.runInTransaction(transactionManager, () -> {
+        typeService.save(typeList.stream(), saveMode(mode), opts(sync), user);
+        typeService.delete(difference(oldTypes, newTypes).stream(), opts(sync), user);
+        return null;
+      }, (error) -> eventBus.post(new InvalidateCachesEvent()));
     }
   }
 
