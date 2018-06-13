@@ -1,20 +1,17 @@
 package fi.thl.termed.service.graph.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcGraphPropertyDao extends AbstractJdbcDao<PropertyValueId<GraphId>, LangValue> {
+public class JdbcGraphPropertyDao extends AbstractJdbcDao2<PropertyValueId<GraphId>, LangValue> {
 
   public JdbcGraphPropertyDao(DataSource dataSource) {
     super(dataSource);
@@ -50,16 +47,11 @@ public class JdbcGraphPropertyDao extends AbstractJdbcDao<PropertyValueId<GraphI
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from graph_property", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<PropertyValueId<GraphId>, LangValue> specification,
-                            RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+  protected <E> Stream<E> get(SqlSpecification<PropertyValueId<GraphId>, LangValue> specification,
+      RowMapper<E> mapper) {
+    return jdbcTemplate.queryForStream(
         String.format("select * from graph_property where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 

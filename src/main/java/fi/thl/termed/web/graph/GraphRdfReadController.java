@@ -14,7 +14,6 @@ import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.rdf.RdfResource;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -40,12 +39,14 @@ public class GraphRdfReadController {
   private Service2<String, Property> propertyService;
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
 
   @GetRdfMapping
   public Model getAllGraphs(@AuthenticationPrincipal User user) {
-    try (Stream<Property> props = propertyService.values(new Query<>(new MatchAll<>()), user)) {
-      return toModel(props.collect(toList()), graphService.getValues(user));
+    try (
+        Stream<Property> props = propertyService.values(new Query<>(new MatchAll<>()), user);
+        Stream<Graph> graphs = graphService.values(new Query<>(new MatchAll<>()), user)) {
+      return toModel(props.collect(toList()), graphs.collect(toList()));
     }
   }
 

@@ -4,11 +4,10 @@ import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Dump;
-import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DumpWriteController {
 
   @Autowired
-  private Service<ImmutableSet<GraphId>, Dump> dumpService;
+  private Service2<DumpId, Dump> dumpService;
 
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)

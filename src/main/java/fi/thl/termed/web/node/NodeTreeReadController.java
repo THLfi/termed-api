@@ -3,6 +3,7 @@ package fi.thl.termed.web.node;
 import static fi.thl.termed.service.node.select.Selects.selectReferences;
 import static fi.thl.termed.service.node.select.Selects.selectReferrers;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -25,10 +26,12 @@ import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.node.util.NodeTreeToJsonStream;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
@@ -50,9 +53,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeTreeReadController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
 
@@ -65,8 +68,8 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
     Set<Select> selects = Selects.parse(join(",", select));
@@ -99,9 +102,10 @@ public class NodeTreeReadController {
       throw new NotFoundException();
     }
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
-    List<Type> anyDomain = typeService.getValues(new TypesByGraphId(graphId), user);
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> anyDomain = toListAndClose(
+        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
     Set<Select> selects = Selects.parse(join(",", select));
@@ -131,8 +135,8 @@ public class NodeTreeReadController {
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
-    List<Graph> graphs = graphService.getValues(user);
-    List<Type> types = typeService.getValues(user);
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
     Type domain = typeService.get(new TypeId(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 

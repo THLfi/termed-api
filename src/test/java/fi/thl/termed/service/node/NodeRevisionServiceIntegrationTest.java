@@ -46,9 +46,9 @@ public class NodeRevisionServiceIntegrationTest {
   @Autowired
   private Service<NodeId, Node> nodeService;
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service2<String, User> userService;
   @Autowired

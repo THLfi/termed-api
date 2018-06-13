@@ -7,16 +7,16 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcGraphPermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<GraphId>, GrantedPermission> {
+    extends AbstractJdbcDao2<ObjectRolePermission<GraphId>, GrantedPermission> {
 
   public JdbcGraphPermissionsDao(DataSource dataSource) {
     super(dataSource);
@@ -46,15 +46,10 @@ public class JdbcGraphPermissionsDao
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from graph_permission", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<ObjectRolePermission<GraphId>, GrantedPermission> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from graph_permission where %s",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);

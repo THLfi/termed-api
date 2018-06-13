@@ -19,8 +19,12 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class StreamUtils {
+
+  private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
   private StreamUtils() {
   }
@@ -29,6 +33,7 @@ public final class StreamUtils {
       ScheduledExecutorService scheduledExecutorService, int delay, TimeUnit timeUnit) {
     ScheduledFuture<Void> closeOnTimeout = scheduledExecutorService.schedule(() -> {
       stream.close();
+      log.warn("Stream closed on timeout");
       return null;
     }, delay, timeUnit);
 

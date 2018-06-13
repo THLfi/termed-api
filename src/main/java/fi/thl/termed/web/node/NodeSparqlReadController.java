@@ -1,5 +1,6 @@
 package fi.thl.termed.web.node;
 
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.jena.rdf.model.ModelFactory.createModelForGraph;
 import static org.apache.jena.riot.Lang.TURTLE;
@@ -13,9 +14,11 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.NodeRdfGraphWrapper;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.io.ByteArrayOutputStream;
@@ -55,20 +58,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeSparqlReadController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
+
+  @Autowired
+  private Service2<TypeId, Type> typeService;
 
   @Autowired
   private Service<NodeId, Node> nodeService;
-
-  @Autowired
-  private Service<TypeId, Type> typeService;
 
   private Model buildModelWrapper(UUID graphId, User user) {
     if (!graphService.exists(new GraphId(graphId), user)) {
       throw new NotFoundException();
     }
 
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+    List<Type> types = toListAndClose(
+        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
     Function<Specification<NodeId, Node>, Stream<Node>> nodes =
         s -> nodeService.getValueStream(s, user);
     return createModelForGraph(new NodeRdfGraphWrapper(types, nodes));

@@ -111,11 +111,13 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
   }
 
   private Property populateValue(Property property, User user) {
-    try (Stream<Tuple2<PropertyValueId<String>, LangValue>> ps =
+    try (Stream<Tuple2<PropertyValueId<String>, LangValue>> propertyStream =
         propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(property.getId()), user)) {
 
       return builderFromCopyOf(property)
-          .properties(ps.collect(toImmutableMultimap(t -> t._1.getPropertyId(), t -> t._2)))
+          .properties(propertyStream.collect(toImmutableMultimap(
+              e -> e._1.getPropertyId(),
+              e -> e._2)))
           .build();
     }
   }

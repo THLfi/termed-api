@@ -27,6 +27,7 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,9 +43,9 @@ public class NodeServiceIntegrationTest {
   @Autowired
   private Service<NodeId, Node> nodeService;
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service2<String, User> userService;
   @Autowired
@@ -81,7 +82,7 @@ public class NodeServiceIntegrationTest {
             ReferenceAttribute.builder().id("member", groupId).range(personId).build())
         .build();
 
-    typeService.save(asList(person, group), UPSERT, defaultOpts(), testUser);
+    typeService.save(Stream.of(person, group), UPSERT, defaultOpts(), testUser);
   }
 
   @Test

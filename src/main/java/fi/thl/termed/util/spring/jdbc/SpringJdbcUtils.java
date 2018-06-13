@@ -4,8 +4,11 @@ import com.google.common.collect.AbstractIterator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import javax.sql.DataSource;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.MetaDataAccessException;
 
 public final class SpringJdbcUtils {
 
@@ -23,6 +26,14 @@ public final class SpringJdbcUtils {
         }
       }
     };
+  }
+
+  public static String getDatabaseProductName(DataSource dataSource) {
+    try {
+      return JdbcUtils.extractDatabaseMetaData(dataSource, "getDatabaseProductName");
+    } catch (MetaDataAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

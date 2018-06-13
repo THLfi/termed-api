@@ -8,14 +8,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Dump;
-import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.UrlWithCredentials;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,7 +43,7 @@ public class DumpWriteFromRemoteController {
   private Gson gson;
 
   @Autowired
-  private Service<ImmutableSet<GraphId>, Dump> dumpService;
+  private Service2<DumpId, Dump> dumpService;
 
   private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 

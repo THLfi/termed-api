@@ -28,9 +28,9 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,9 +47,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class TypeServiceIntegrationTest {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service2<String, User> userService;
   @Autowired
@@ -72,7 +72,7 @@ public class TypeServiceIntegrationTest {
     };
     user = new User("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()), ADMIN);
 
-    graphService.save(asList(graphs), INSERT, defaultOpts(), testDataLoader);
+    graphService.save(Stream.of(graphs), INSERT, defaultOpts(), testDataLoader);
     userService.save(user, INSERT, defaultOpts(), testDataLoader);
 
     if (!propertyService.exists("label", testDataLoader)) {
@@ -84,8 +84,7 @@ public class TypeServiceIntegrationTest {
 
   @After
   public void tearDown() {
-    graphService.delete(stream(graphs).map(Graph::identifier).collect(toList()),
-        defaultOpts(), testDataLoader);
+    graphService.delete(stream(graphs).map(Graph::identifier), defaultOpts(), testDataLoader);
     userService.delete(user.identifier(), defaultOpts(), testDataLoader);
     if (labelPropertyInsertedByTest) {
       propertyService.delete("label", defaultOpts(), testDataLoader);
@@ -117,11 +116,11 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.exists(typeId0, user));
     assertFalse(typeService.exists(typeId1, user));
 
-    typeService.save(asList(type0, type1), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(type0, type1), INSERT, defaultOpts(), user);
     assertTrue(typeService.get(typeId0, user).isPresent());
     assertTrue(typeService.get(typeId1, user).isPresent());
 
-    typeService.delete(asList(typeId0, typeId1), defaultOpts(), user);
+    typeService.delete(Stream.of(typeId0, typeId1), defaultOpts(), user);
     assertFalse(typeService.get(typeId0, user).isPresent());
     assertFalse(typeService.get(typeId1, user).isPresent());
   }
@@ -268,13 +267,13 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.get(typeId0, user).isPresent());
     assertFalse(typeService.get(typeId1, user).isPresent());
 
-    typeService.save(asList(type0, type1), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(type0, type1), INSERT, defaultOpts(), user);
 
     Type savedType0 = typeService.get(typeId0, user).orElseThrow(AssertionError::new);
 
     assertEquals(typeId1, savedType0.getReferenceAttributes().get(0).getRange());
 
-    typeService.delete(asList(typeId0, typeId1), defaultOpts(), user);
+    typeService.delete(Stream.of(typeId0, typeId1), defaultOpts(), user);
   }
 
   @Test
@@ -315,17 +314,17 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.get(typeId0, user).isPresent());
     assertFalse(typeService.get(typeId1, user).isPresent());
 
-    typeService.save(asList(type0, type1), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(type0, type1), INSERT, defaultOpts(), user);
     Type savedType0 = typeService.get(typeId0, user).orElseThrow(AssertionError::new);
     assertEquals(typeId1, savedType0.getReferenceAttributes().get(0).getRange());
 
-    typeService.delete(asList(typeId0, typeId1), defaultOpts(), user);
+    typeService.delete(Stream.of(typeId0, typeId1), defaultOpts(), user);
 
-    typeService.save(asList(type0, type1), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(type0, type1), INSERT, defaultOpts(), user);
     Type reSavedType0 = typeService.get(typeId0, user).orElseThrow(AssertionError::new);
     assertEquals(typeId1, reSavedType0.getReferenceAttributes().get(0).getRange());
 
-    typeService.delete(asList(typeId0, typeId1), defaultOpts(), user);
+    typeService.delete(Stream.of(typeId0, typeId1), defaultOpts(), user);
 
     assertFalse(typeService.get(typeId0, user).isPresent());
     assertFalse(typeService.get(typeId1, user).isPresent());
@@ -346,13 +345,13 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.get(graph0TypeId, user).isPresent());
     assertFalse(typeService.get(graph1TypeId, user).isPresent());
 
-    typeService.save(asList(graph0Type, graph1Type), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(graph0Type, graph1Type), INSERT, defaultOpts(), user);
 
     Type savedGraph0Type = typeService.get(graph0TypeId, user).orElseThrow(AssertionError::new);
 
     assertEquals(graph1TypeId, savedGraph0Type.getReferenceAttributes().get(0).getRange());
 
-    typeService.delete(asList(graph0TypeId, graph1TypeId), defaultOpts(), user);
+    typeService.delete(Stream.of(graph0TypeId, graph1TypeId), defaultOpts(), user);
   }
 
   @Test
@@ -416,7 +415,7 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.get(graph0TypeId, user).isPresent());
     assertFalse(typeService.get(graph1TypeId, user).isPresent());
 
-    typeService.save(asList(graph0Type, graph1Type), INSERT, defaultOpts(), user);
+    typeService.save(Stream.of(graph0Type, graph1Type), INSERT, defaultOpts(), user);
 
     Type savedGraph0Type = typeService.get(graph0TypeId, user).orElseThrow(AssertionError::new);
 

@@ -5,14 +5,14 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {
+public class JdbcTextAttributeDao extends AbstractJdbcDao2<TextAttributeId, TextAttribute> {
 
   public JdbcTextAttributeDao(DataSource dataSource) {
     super(dataSource);
@@ -58,14 +58,9 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from text_attribute", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<TextAttributeId, TextAttribute> specification,
+  protected <E> Stream<E> get(SqlSpecification<TextAttributeId, TextAttribute> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from text_attribute where %s order by index",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);

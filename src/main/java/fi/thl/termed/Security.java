@@ -1,6 +1,9 @@
 package fi.thl.termed;
 
-import fi.thl.termed.domain.AppRole;
+import static fi.thl.termed.domain.AppRole.SUPERUSER;
+import static fi.thl.termed.domain.User.newSuperuser;
+import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
+
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service2;
 import java.util.Optional;
@@ -32,21 +35,19 @@ public class Security extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http
-        .headers().frameOptions().sameOrigin()
-        .and()
-        .csrf().disable()
-        .authorizeRequests()
-        .anyRequest().authenticated()
-        .and()
-        .httpBasic();
+    http.csrf().disable();
+
+    http.authorizeRequests()
+        .requestMatchers(toAnyEndpoint()).hasAuthority(SUPERUSER.toString())
+        .anyRequest().authenticated();
+
+    http.httpBasic();
   }
 
   @Override
   public void configure(AuthenticationManagerBuilder auth) throws Exception {
     UserDetailsService userDetailsService = username -> {
-      Optional<User> user = userService.get(
-          username, new User("authenticator", "", AppRole.SUPERUSER));
+      Optional<User> user = userService.get(username, newSuperuser("authenticator", ""));
       return user.orElseThrow(() -> new UsernameNotFoundException(""));
     };
 

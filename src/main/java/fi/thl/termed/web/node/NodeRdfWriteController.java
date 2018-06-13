@@ -1,5 +1,6 @@
 package fi.thl.termed.web.node;
 
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -14,7 +15,9 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.RdfModelToNodes;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
@@ -40,10 +43,10 @@ public class NodeRdfWriteController {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
 
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
 
   @Autowired
   private Service<NodeId, Node> nodeService;
@@ -66,7 +69,8 @@ public class NodeRdfWriteController {
 
     Function<NodeId, Optional<Node>> nodeProvider = id -> nodeService.get(id, user);
 
-    List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+    List<Type> types = toListAndClose(
+        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
     List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
         .apply(new JenaRdfModel(model));
 

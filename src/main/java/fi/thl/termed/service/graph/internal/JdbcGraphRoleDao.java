@@ -1,23 +1,20 @@
 package fi.thl.termed.service.graph.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import javax.sql.DataSource;
+import static com.google.common.base.Preconditions.checkState;
 
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
-import static com.google.common.base.Preconditions.checkState;
-
-public class JdbcGraphRoleDao extends AbstractJdbcDao<GraphRole, Empty> {
+public class JdbcGraphRoleDao extends AbstractJdbcDao2<GraphRole, Empty> {
 
   public JdbcGraphRoleDao(DataSource dataSource) {
     super(dataSource);
@@ -45,16 +42,11 @@ public class JdbcGraphRoleDao extends AbstractJdbcDao<GraphRole, Empty> {
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from graph_role", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<GraphRole, Empty> specification,
-                            RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+  protected <E> Stream<E> get(SqlSpecification<GraphRole, Empty> specification,
+      RowMapper<E> mapper) {
+    return jdbcTemplate.queryForStream(
         String.format("select * from graph_role where %s",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
@@ -79,7 +71,7 @@ public class JdbcGraphRoleDao extends AbstractJdbcDao<GraphRole, Empty> {
   @Override
   protected RowMapper<GraphRole> buildKeyMapper() {
     return (rs, rowNum) -> new GraphRole(new GraphId(UUIDs.fromString(rs.getString("graph_id"))),
-                                         rs.getString("role"));
+        rs.getString("role"));
   }
 
   @Override

@@ -1,40 +1,32 @@
 package fi.thl.termed.service.graph.internal;
 
 import static java.util.UUID.randomUUID;
-import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.ForwardingService2;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-public class InitializingGraphService extends ForwardingService<GraphId, Graph> {
+public class InitializingGraphService extends ForwardingService2<GraphId, Graph> {
 
-  public InitializingGraphService(Service<GraphId, Graph> delegate) {
+  public InitializingGraphService(Service2<GraphId, Graph> delegate) {
     super(delegate);
   }
 
   @Override
-  public List<GraphId> save(List<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(graphs.stream().map(this::initialize).collect(toList()), mode, opts, user);
+  public Stream<GraphId> save(Stream<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(graphs.map(this::initialize), mode, opts, user);
   }
 
   @Override
   public GraphId save(Graph graph, SaveMode mode, WriteOptions opts, User user) {
     return super.save(initialize(graph), mode, opts, user);
-  }
-
-  @Override
-  public List<GraphId> saveAndDelete(List<Graph> saves, List<GraphId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    return super.saveAndDelete(
-        saves.stream().map(this::initialize).collect(toList()), deletes, mode, opts, user);
   }
 
   private Graph initialize(Graph graph) {

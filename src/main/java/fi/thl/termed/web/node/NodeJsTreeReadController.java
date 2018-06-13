@@ -2,6 +2,7 @@ package fi.thl.termed.web.node;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -125,7 +126,7 @@ public class NodeJsTreeReadController {
               .collect(Collectors.toList()))));
       jsTree.setIcon(false);
       jsTree.setText(htmlEscape(getLocalizedLabel(node)) +
-          smallMuted(htmlEscape(getCode(node)), htmlEscape(node.getUri())));
+          smallMuted(htmlEscape(getCode(node)), htmlEscape(nullToEmpty(node.getUri()))));
 
       jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.test(nodeId),
           "selected", selectedPredicate.test(nodeId)));

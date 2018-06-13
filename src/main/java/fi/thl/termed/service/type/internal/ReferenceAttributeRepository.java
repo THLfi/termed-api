@@ -1,6 +1,9 @@
 package fi.thl.termed.service.type.internal;
 
-import static com.google.common.collect.ImmutableList.copyOf;
+import static fi.thl.termed.util.collect.MapUtils.leftValues;
+import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
+import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -14,40 +17,37 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
-import fi.thl.termed.domain.transform.PropertyValueModelToDto;
-import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
-import fi.thl.termed.domain.transform.RolePermissionsModelToDto;
-import fi.thl.termed.util.collect.MapUtils;
-import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
+import fi.thl.termed.domain.transform.RolePermissionsDtoToModel2;
+import fi.thl.termed.util.collect.Tuple2;
+import fi.thl.termed.util.dao.Dao2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.AbstractRepository2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ReferenceAttributeRepository
-    extends AbstractRepository<ReferenceAttributeId, ReferenceAttribute> {
+    extends AbstractRepository2<ReferenceAttributeId, ReferenceAttribute> {
 
-  private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
-  private Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
-  private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao;
+  private Dao2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
+  private Dao2<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
+  private Dao2<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao;
 
   public ReferenceAttributeRepository(
-      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
-      Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
-      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao) {
+      Dao2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
+      Dao2<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
+      Dao2<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao) {
     this.referenceAttributeDao = referenceAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyDao = propertyDao;
   }
 
   @Override
-  public void insert(ReferenceAttributeId id, ReferenceAttribute attr, SaveMode mode,
-      WriteOptions opts, User user) {
+  public void insert(ReferenceAttributeId id, ReferenceAttribute attr, WriteOptions opts,
+      User user) {
     referenceAttributeDao.insert(id, attr, user);
     insertPermissions(id, attr.getPermissions(), user);
     insertProperties(id, attr.getProperties(), user);
@@ -56,18 +56,18 @@ public class ReferenceAttributeRepository
   private void insertPermissions(ReferenceAttributeId attributeId,
       Multimap<String, Permission> permissions, User user) {
     TypeId domainId = attributeId.getDomainId();
-    permissionDao.insert(new RolePermissionsDtoToModel<>(
+    permissionDao.insert(new RolePermissionsDtoToModel2<>(
         domainId.getGraph(), attributeId).apply(permissions), user);
   }
 
   private void insertProperties(ReferenceAttributeId attributeId,
       Multimap<String, LangValue> properties, User user) {
-    propertyDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
+    propertyDao.insert(new PropertyValueDtoToModel2<>(attributeId).apply(properties), user);
   }
 
   @Override
-  public void update(ReferenceAttributeId id, ReferenceAttribute attribute, SaveMode mode,
-      WriteOptions opts, User user) {
+  public void update(ReferenceAttributeId id, ReferenceAttribute attribute, WriteOptions opts,
+      User user) {
     referenceAttributeDao.update(id, attribute, user);
     updatePermissions(id, attribute.getPermissions(), user);
     updateProperties(id, attribute.getProperties(), user);
@@ -79,31 +79,34 @@ public class ReferenceAttributeRepository
     TypeId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
-        new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions);
+        tupleStreamToMap(
+            new RolePermissionsDtoToModel2<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
-        permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user);
+        tupleStreamToMap(permissionDao.getEntries(
+            new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user));
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    permissionDao.insert(diff.entriesOnlyOnLeft(), user);
-    permissionDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    permissionDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    permissionDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
   private void updateProperties(ReferenceAttributeId attributeId,
       Multimap<String, LangValue> properties, User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
-        new PropertyValueDtoToModel<>(attributeId).apply(properties);
+        tupleStreamToMap(new PropertyValueDtoToModel2<>(attributeId).apply(properties));
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
-        propertyDao.getMap(new ReferenceAttributePropertiesByAttributeId(attributeId), user);
+        tupleStreamToMap(propertyDao.getEntries(
+            new ReferenceAttributePropertiesByAttributeId(attributeId), user));
 
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyDao.insert(diff.entriesOnlyOnLeft(), user);
-    propertyDao.update(MapUtils.leftValues(diff.entriesDiffering()), user);
-    propertyDao.delete(copyOf(diff.entriesOnlyOnRight().keySet()), user);
+    propertyDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    propertyDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    propertyDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
   @Override
@@ -129,16 +132,16 @@ public class ReferenceAttributeRepository
   }
 
   @Override
-  public Stream<ReferenceAttribute> getValueStream(
+  public Stream<ReferenceAttribute> values(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
-    return referenceAttributeDao.getValues(spec.getWhere(), user).stream()
+    return referenceAttributeDao.getValues(spec.getWhere(), user)
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
-  public Stream<ReferenceAttributeId> getKeyStream(
+  public Stream<ReferenceAttributeId> keys(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
-    return referenceAttributeDao.getKeys(spec.getWhere(), user).stream();
+    return referenceAttributeDao.getKeys(spec.getWhere(), user);
   }
 
   @Override
@@ -147,14 +150,23 @@ public class ReferenceAttributeRepository
   }
 
   private ReferenceAttribute populateValue(ReferenceAttribute attribute, User user) {
-    return ReferenceAttribute.builderFromCopyOf(attribute)
-        .permissions(new RolePermissionsModelToDto<ReferenceAttributeId>().apply(
-            permissionDao.getMap(new ReferenceAttributePermissionsByReferenceAttributeId(
-                new ReferenceAttributeId(attribute)), user)))
-        .properties(new PropertyValueModelToDto<ReferenceAttributeId>().apply(
-            propertyDao.getMap(new ReferenceAttributePropertiesByAttributeId(
-                new ReferenceAttributeId(attribute)), user)))
-        .build();
+    ReferenceAttributeId id = attribute.identifier();
+
+    try (
+        Stream<ObjectRolePermission<ReferenceAttributeId>> permissionStream = permissionDao
+            .getKeys(new ReferenceAttributePermissionsByReferenceAttributeId(id), user);
+        Stream<Tuple2<PropertyValueId<ReferenceAttributeId>, LangValue>> propertyStream = propertyDao
+            .getEntries(new ReferenceAttributePropertiesByAttributeId(id), user)) {
+
+      return ReferenceAttribute.builderFromCopyOf(attribute)
+          .permissions(permissionStream.collect(toImmutableMultimap(
+              ObjectRolePermission::getRole,
+              ObjectRolePermission::getPermission)))
+          .properties(propertyStream.collect(toImmutableMultimap(
+              e -> e._1.getPropertyId(),
+              e -> e._2)))
+          .build();
+    }
   }
 
 }

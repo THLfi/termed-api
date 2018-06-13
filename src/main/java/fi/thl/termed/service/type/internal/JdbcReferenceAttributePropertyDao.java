@@ -5,15 +5,15 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcReferenceAttributePropertyDao
-    extends AbstractJdbcDao<PropertyValueId<ReferenceAttributeId>, LangValue> {
+    extends AbstractJdbcDao2<PropertyValueId<ReferenceAttributeId>, LangValue> {
 
   public JdbcReferenceAttributePropertyDao(DataSource dataSource) {
     super(dataSource);
@@ -66,19 +66,13 @@ public class JdbcReferenceAttributePropertyDao
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from reference_attribute_property", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<PropertyValueId<ReferenceAttributeId>, LangValue> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from reference_attribute_property where %s order by index",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
-
   }
 
   @Override

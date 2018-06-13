@@ -9,16 +9,16 @@ import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcTextAttributePermissionsDao
-    extends AbstractJdbcDao<ObjectRolePermission<TextAttributeId>, GrantedPermission> {
+    extends AbstractJdbcDao2<ObjectRolePermission<TextAttributeId>, GrantedPermission> {
 
   public JdbcTextAttributePermissionsDao(DataSource dataSource) {
     super(dataSource);
@@ -62,17 +62,12 @@ public class JdbcTextAttributePermissionsDao
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from text_attribute_permission", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<ObjectRolePermission<TextAttributeId>, GrantedPermission> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from text_attribute_permission where %s",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 

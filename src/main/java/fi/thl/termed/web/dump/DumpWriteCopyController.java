@@ -7,9 +7,9 @@ import static fi.thl.termed.util.spring.SpEL.RANDOM_UUID;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import fi.thl.termed.domain.Dump;
+import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
@@ -19,7 +19,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.UUID;
@@ -36,10 +36,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class DumpWriteCopyController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
 
   @Autowired
-  private Service<ImmutableSet<GraphId>, Dump> dumpService;
+  private Service2<DumpId, Dump> dumpService;
 
   @PostJsonMapping(path = "/graphs/{graphId}/dump", params = "copy=true", produces = APPLICATION_JSON_UTF8_VALUE)
   public GraphId copyDump(
@@ -52,7 +52,7 @@ public class DumpWriteCopyController {
     Graph sourceGraph = graphService.get(new GraphId(sourceGraphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Dump dump = dumpService.get(of(sourceGraph.identifier()), user)
+    Dump dump = dumpService.get(new DumpId(sourceGraph.identifier()), user)
         .orElseThrow(IllegalStateException::new);
 
     try (Stream<Graph> graphs = dump.getGraphs();

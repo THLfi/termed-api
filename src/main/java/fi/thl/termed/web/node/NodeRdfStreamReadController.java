@@ -1,5 +1,6 @@
 package fi.thl.termed.web.node;
 
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
@@ -13,9 +14,11 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.NodeRdfGraphWrapper;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.StreamRDFWriterUtils;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,13 +42,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRdfStreamReadController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
-
+  private Service2<GraphId, Graph> graphService;
+  @Autowired
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
-
-  @Autowired
-  private Service<TypeId, Type> typeService;
 
   @GetMapping(produces = RdfMediaTypes.N_TRIPLES_VALUE)
   public void streamNTriples(
@@ -66,7 +67,8 @@ public class NodeRdfStreamReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (OutputStream out = response.getOutputStream()) {
-      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+      List<Type> types = toListAndClose(
+          typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
       Function<Specification<NodeId, Node>, Stream<Node>> nodes =
           s -> nodeService.getValueStream(s, user);
 
@@ -95,7 +97,8 @@ public class NodeRdfStreamReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     try (OutputStream out = response.getOutputStream()) {
-      List<Type> types = typeService.getValues(new TypesByGraphId(graphId), user);
+      List<Type> types = toListAndClose(
+          typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
       Function<Specification<NodeId, Node>, Stream<Node>> nodes =
           s -> nodeService.getValueStream(s, user);
 

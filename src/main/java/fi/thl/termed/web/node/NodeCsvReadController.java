@@ -1,6 +1,7 @@
 package fi.thl.termed.web.node;
 
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -22,10 +23,12 @@ import fi.thl.termed.util.csv.CsvDelimiter;
 import fi.thl.termed.util.csv.CsvLineBreak;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.csv.CsvQuoteChar;
+import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetCsvMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.MediaTypes;
@@ -50,9 +53,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeCsvReadController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
-  private Service<TypeId, Type> typeService;
+  private Service2<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
 
@@ -82,9 +85,10 @@ public class NodeCsvReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     Set<Select> selects = Selects.parse(join(",", select));
-    List<Type> types = typeService.getValues(user);
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
     Specification<NodeId, Node> spec = specifyByQuery(
-        graphService.getValues(user), types, types, where);
+        graphs, types, types, where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
@@ -134,9 +138,12 @@ public class NodeCsvReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     Set<Select> selects = Selects.parse(join(",", select));
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> graphTypes = toListAndClose(
+        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
     Specification<NodeId, Node> spec = specifyByQuery(
-        graphService.getValues(user), typeService.getValues(user),
-        typeService.getValues(new TypesByGraphId(graphId), user), where);
+        graphs, types, graphTypes, where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {
@@ -189,8 +196,9 @@ public class NodeCsvReadController {
     response.setCharacterEncoding(UTF_8.toString());
 
     Set<Select> selects = Selects.parse(join(",", select));
-    Specification<NodeId, Node> spec = specifyByQuery(
-        graphService.getValues(user), typeService.getValues(user), domain, where);
+    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
+    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
 
     try (Stream<Node> nodes = nodeService
         .getValueStream(new Query<>(selects, spec, sort, max), user)) {

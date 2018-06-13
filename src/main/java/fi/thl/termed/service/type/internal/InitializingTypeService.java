@@ -4,7 +4,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static fi.thl.termed.util.collect.DequeUtils.addFirst;
 import static fi.thl.termed.util.collect.DequeUtils.newArrayDeque;
 import static fi.thl.termed.util.collect.StreamUtils.zipIndex;
-import static java.util.stream.Collectors.toList;
 
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
@@ -12,26 +11,27 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.ForwardingService2;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Set default values for types and attributes: ascending indices, range and regex
  */
-public class InitializingTypeService extends ForwardingService<TypeId, Type> {
+public class InitializingTypeService extends ForwardingService2<TypeId, Type> {
 
-  public InitializingTypeService(Service<TypeId, Type> delegate) {
+  public InitializingTypeService(Service2<TypeId, Type> delegate) {
     super(delegate);
   }
 
   @Override
-  public List<TypeId> save(List<Type> types, SaveMode mode, WriteOptions opts, User user) {
+  public Stream<TypeId> save(Stream<Type> types, SaveMode mode, WriteOptions opts, User user) {
     return super.save(init(types), mode, opts, user);
   }
 
@@ -40,14 +40,8 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
     return super.save(init(type, type.getIndex().orElse(0)), mode, opts, user);
   }
 
-  @Override
-  public List<TypeId> saveAndDelete(List<Type> saves, List<TypeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    return super.saveAndDelete(init(saves), deletes, mode, opts, user);
-  }
-
-  private List<Type> init(List<Type> types) {
-    return zipIndex(types.stream(), this::init).collect(toList());
+  private Stream<Type> init(Stream<Type> types) {
+    return zipIndex(types, this::init);
   }
 
   private Type init(Type type, int index) {

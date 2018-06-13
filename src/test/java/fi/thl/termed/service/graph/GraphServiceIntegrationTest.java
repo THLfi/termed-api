@@ -7,7 +7,6 @@ import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
 import static org.junit.Assert.assertEquals;
@@ -20,8 +19,8 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GraphServiceIntegrationTest {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
+  private Service2<GraphId, Graph> graphService;
   @Autowired
   private Service2<String, User> userService;
   @Autowired
@@ -98,11 +97,11 @@ public class GraphServiceIntegrationTest {
     assertFalse(graphService.exists(graphId0, user));
     assertFalse(graphService.exists(graphId1, user));
 
-    graphService.save(asList(graph0, graph1), INSERT, defaultOpts(), user);
+    graphService.save(Stream.of(graph0, graph1), INSERT, defaultOpts(), user);
     assertTrue(graphService.get(graphId0, user).isPresent());
     assertTrue(graphService.get(graphId1, user).isPresent());
 
-    graphService.delete(asList(graphId0, graphId1), defaultOpts(), user);
+    graphService.delete(Stream.of(graphId0, graphId1), defaultOpts(), user);
     assertFalse(graphService.get(graphId0, user).isPresent());
     assertFalse(graphService.get(graphId1, user).isPresent());
   }

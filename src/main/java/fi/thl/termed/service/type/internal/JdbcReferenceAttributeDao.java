@@ -5,15 +5,15 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcReferenceAttributeDao
-    extends AbstractJdbcDao<ReferenceAttributeId, ReferenceAttribute> {
+    extends AbstractJdbcDao2<ReferenceAttributeId, ReferenceAttribute> {
 
   public JdbcReferenceAttributeDao(DataSource dataSource) {
     super(dataSource);
@@ -65,15 +65,10 @@ public class JdbcReferenceAttributeDao
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from reference_attribute", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<ReferenceAttributeId, ReferenceAttribute> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from reference_attribute where %s order by index",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);

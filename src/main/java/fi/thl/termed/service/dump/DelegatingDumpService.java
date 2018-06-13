@@ -1,11 +1,11 @@
 package fi.thl.termed.service.dump;
 
-import static fi.thl.termed.util.collect.SetUtils.toImmutableSet;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Dump;
+import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -21,20 +21,20 @@ import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class DelegatingDumpService implements Service<ImmutableSet<GraphId>, Dump> {
+class DelegatingDumpService implements Service2<DumpId, Dump> {
 
-  private Service<GraphId, Graph> graphService;
-  private Service<TypeId, Type> typeService;
+  private Service2<GraphId, Graph> graphService;
+  private Service2<TypeId, Type> typeService;
   private Service<NodeId, Node> nodeService;
 
   DelegatingDumpService(
-      Service<GraphId, Graph> graphService,
-      Service<TypeId, Type> typeService,
+      Service2<GraphId, Graph> graphService,
+      Service2<TypeId, Type> typeService,
       Service<NodeId, Node> nodeService) {
     this.graphService = graphService;
     this.typeService = typeService;
@@ -42,46 +42,70 @@ class DelegatingDumpService implements Service<ImmutableSet<GraphId>, Dump> {
   }
 
   @Override
-  public ImmutableSet<GraphId> save(Dump dump, SaveMode mode, WriteOptions opts, User user) {
-    List<Graph> graphs = dump.getGraphs().collect(toList());
-    List<Type> types = dump.getTypes().collect(toList());
-    List<Node> nodes = dump.getNodes().collect(toList());
-
-    graphService.save(graphs, mode, opts, user);
-    typeService.save(types, mode, opts, user);
-    nodeService.save(nodes, mode, opts, user);
-
-    return graphs.stream().map(Graph::identifier).collect(toImmutableSet());
+  public Stream<DumpId> save(Stream<Dump> dumps, SaveMode mode, WriteOptions opts, User user) {
+    Stream.Builder<DumpId> ids = Stream.builder();
+    try (Stream<Dump> closeable = dumps) {
+      closeable.forEach(dump -> ids.accept(save(dump, mode, opts, user)));
+    }
+    return ids.build();
   }
 
   @Override
-  public Optional<Dump> get(ImmutableSet<GraphId> ids, User u, Select... selects) {
-    Specification<GraphId, Graph> graphSpecification =
-        or(ids.stream().map(id -> new GraphById(id.getId())).collect(toList()));
-    Specification<TypeId, Type> typeSpecification =
-        or(ids.stream().map(id -> new TypesByGraphId(id.getId())).collect(toList()));
-    Specification<NodeId, Node> nodeSpecification =
-        or(ids.stream().map(id -> new NodesByGraphId(id.getId())).collect(toList()));
+  public DumpId save(Dump dump, SaveMode mode, WriteOptions opts, User user) {
+    graphService.save(dump.getGraphs(), mode, opts, user);
+    typeService.save(dump.getTypes(), mode, opts, user);
+    nodeService.save(toListAndClose(dump.getNodes()), mode, opts, user);
+    return dump.identifier();
+  }
+
+  @Override
+  public Optional<Dump> get(DumpId dumpId, User u, Select... selects) {
+    Query<GraphId, Graph> graphSpecification =
+        new Query<>(or(dumpId.getGraphIds().stream()
+            .map(id -> new GraphById(id.getId()))
+            .collect(toList())));
+    Query<TypeId, Type> typeSpecification =
+        new Query<>(or(dumpId.getGraphIds().stream()
+            .map(id -> new TypesByGraphId(id.getId()))
+            .collect(toList())));
+    Query<NodeId, Node> nodeSpecification =
+        new Query<>(or(dumpId.getGraphIds().stream()
+            .map(id -> new NodesByGraphId(id.getId()))
+            .collect(toList())));
 
     return Optional.of(new Dump(
-        graphService.getValueStream(graphSpecification, u),
-        typeService.getValueStream(typeSpecification, u),
+        graphService.values(graphSpecification, u),
+        typeService.values(typeSpecification, u),
         nodeService.getValueStream(nodeSpecification, u)));
   }
 
   @Override
-  public void delete(ImmutableSet<GraphId> id, WriteOptions opts, User user) {
+  public void delete(Stream<DumpId> keys, WriteOptions opts, User user) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Stream<Dump> getValueStream(Query<ImmutableSet<GraphId>, Dump> query, User user) {
+  public void delete(DumpId id, WriteOptions opts, User user) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Stream<ImmutableSet<GraphId>> getKeyStream(
-      Query<ImmutableSet<GraphId>, Dump> query, User user) {
+  public Stream<Dump> values(Query<DumpId, Dump> query, User user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public long count(Specification<DumpId, Dump> spec, User user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean exists(DumpId key, User user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Stream<DumpId> keys(Query<DumpId, Dump> query, User user) {
     throw new UnsupportedOperationException();
   }
 

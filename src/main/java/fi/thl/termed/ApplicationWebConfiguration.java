@@ -1,12 +1,9 @@
 package fi.thl.termed;
 
 import com.google.gson.Gson;
-import fi.thl.termed.util.csv.GsonCsvMessageConverter;
 import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.spring.http.MediaTypes;
-import fi.thl.termed.util.xml.GsonXmlMessageConverter;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +13,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
+public class ApplicationWebConfiguration implements WebMvcConfigurer {
 
   @Autowired
   private Gson gson;
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer config) {
+    config.setUseSuffixPatternMatch(true);
+  }
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
@@ -41,14 +44,8 @@ public class ApplicationWebConfiguration extends WebMvcConfigurerAdapter {
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-    GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
-    gsonHttpMessageConverter.setGson(gson);
-    converters.addAll(Arrays.asList(
-        new JenaModelMessageConverter(),
-        new GsonXmlMessageConverter(gson),
-        new GsonCsvMessageConverter(gson),
-        gsonHttpMessageConverter));
-    super.configureMessageConverters(converters);
+    converters.add(new GsonHttpMessageConverter(gson));
+    converters.add(new JenaModelMessageConverter());
   }
 
   @Override

@@ -6,13 +6,19 @@ import static fi.thl.termed.util.collect.StreamUtils.forEachAndClose;
 import com.google.common.collect.Iterators;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Identifiable;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRepository2<K extends Serializable, V extends Identifiable<K>>
     implements Service2<K, V> {
+
+  protected Logger log = LoggerFactory.getLogger(getClass());
 
   private static final int UPSERT_BATCH_SIZE = 10_000;
 
@@ -22,22 +28,23 @@ public abstract class AbstractRepository2<K extends Serializable, V extends Iden
   public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
     switch (mode) {
       case INSERT:
-        return insert(values, opts, user);
+        return insert(values.map(v -> Tuple.of(v.identifier(), v)), opts, user);
       case UPDATE:
-        return update(values, opts, user);
+        return update(values.map(v -> Tuple.of(v.identifier(), v)), opts, user);
       case UPSERT:
         try (Stream<V> closeable = values) {
           Stream.Builder<K> keys = Stream.builder();
 
           Iterators.partition(closeable.iterator(), UPSERT_BATCH_SIZE).forEachRemaining(batch -> {
-            Stream.Builder<V> inserts = Stream.builder();
-            Stream.Builder<V> updates = Stream.builder();
+            Stream.Builder<Tuple2<K, V>> inserts = Stream.builder();
+            Stream.Builder<Tuple2<K, V>> updates = Stream.builder();
 
             batch.forEach(value -> {
-              if (exists(value.identifier(), helper)) {
-                updates.accept(value);
+              K key = value.identifier();
+              if (exists(key, helper)) {
+                updates.accept(Tuple.of(key, value));
               } else {
-                inserts.accept(value);
+                inserts.accept(Tuple.of(key, value));
               }
             });
 
@@ -52,28 +59,26 @@ public abstract class AbstractRepository2<K extends Serializable, V extends Iden
     }
   }
 
-  protected Stream<K> insert(Stream<V> stream, WriteOptions opts, User user) {
-    try (Stream<V> closeable = stream) {
+  protected Stream<K> insert(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
+    try (Stream<Tuple2<K, V>> closeable = stream) {
       Stream.Builder<K> keys = Stream.builder();
 
-      closeable.forEach(value -> {
-        K key = value.identifier();
-        insert(key, value, opts, user);
-        keys.accept(key);
+      closeable.forEach(t -> {
+        insert(t._1, t._2, opts, user);
+        keys.accept(t._1);
       });
 
       return keys.build();
     }
   }
 
-  protected Stream<K> update(Stream<V> stream, WriteOptions opts, User user) {
-    try (Stream<V> closeable = stream) {
+  protected Stream<K> update(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
+    try (Stream<Tuple2<K, V>> closeable = stream) {
       Stream.Builder<K> keys = Stream.builder();
 
-      closeable.forEach(value -> {
-        K key = value.identifier();
-        update(key, value, opts, user);
-        keys.accept(key);
+      closeable.forEach(t -> {
+        update(t._1, t._2, opts, user);
+        keys.accept(t._1);
       });
 
       return keys.build();
