@@ -16,7 +16,7 @@ import fi.thl.termed.service.node.util.RdfModelToNodes;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
@@ -42,13 +42,13 @@ public class NodeRdfWriteController {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @PostRdfMapping(produces = {})
   @ResponseStatus(NO_CONTENT)

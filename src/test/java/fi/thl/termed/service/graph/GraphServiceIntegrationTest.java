@@ -19,7 +19,7 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
@@ -37,11 +37,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GraphServiceIntegrationTest {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
   @Autowired
-  private Service2<String, Property> propertyService;
+  private Service<String, Property> propertyService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

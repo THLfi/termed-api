@@ -11,18 +11,18 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QueryProfilingService<K extends Serializable, V> extends ForwardingService2<K, V> {
+public class QueryProfilingService<K extends Serializable, V> extends ForwardingService<K, V> {
 
   private Logger log;
   private long limitInNanos;
 
-  public QueryProfilingService(Service2<K, V> delegate, String loggerName, int limitInMillis) {
+  public QueryProfilingService(Service<K, V> delegate, String loggerName, int limitInMillis) {
     super(delegate);
     this.log = LoggerFactory.getLogger(loggerName);
     this.limitInNanos = MILLISECONDS.toNanos(limitInMillis);
   }
 
-  public QueryProfilingService(Service2<K, V> delegate, Class<?> loggerName, int limitInMillis) {
+  public QueryProfilingService(Service<K, V> delegate, Class<?> loggerName, int limitInMillis) {
     super(delegate);
     this.log = LoggerFactory.getLogger(loggerName);
     this.limitInNanos = MILLISECONDS.toNanos(limitInMillis);

@@ -14,7 +14,7 @@ import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.MatchAll;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.lang.reflect.Type;
 import java.util.List;
 import javax.annotation.PreDestroy;
@@ -49,9 +49,9 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   private PasswordEncoder passwordEncoder;
 
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
   @Autowired
-  private Service2<String, Property> propertyService;
+  private Service<String, Property> propertyService;
 
   private User initializer = new User("initializer", "", AppRole.SUPERUSER);
 

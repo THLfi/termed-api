@@ -12,7 +12,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeRevisionDao extends
-    AbstractJdbcDao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
+    AbstractJdbcDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
   public JdbcNodeRevisionDao(DataSource dataSource) {
     super(dataSource);

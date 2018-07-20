@@ -13,7 +13,7 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeCodeAdminController {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @DeleteMapping("/graphs/{graphId}/node-codes")
   @ResponseStatus(NO_CONTENT)

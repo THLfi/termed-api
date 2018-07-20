@@ -12,7 +12,7 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,17 +30,17 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
   private User user;
   private Set<Select> selects;
 
-  public IndexedReferrerLoader(Service2<NodeId, Node> nodeService, User user) {
+  public IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = singleton(new SelectAll());
   }
 
-  public IndexedReferrerLoader(Service2<NodeId, Node> nodeService, User user, Set<Select> selects) {
+  public IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user, Set<Select> selects) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = selects;

@@ -4,14 +4,14 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcTypePropertyDao extends AbstractJdbcDao2<PropertyValueId<TypeId>, LangValue> {
+public class JdbcTypePropertyDao extends AbstractJdbcDao<PropertyValueId<TypeId>, LangValue> {
 
   public JdbcTypePropertyDao(DataSource dataSource) {
     super(dataSource);

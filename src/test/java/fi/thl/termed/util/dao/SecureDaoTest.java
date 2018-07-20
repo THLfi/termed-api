@@ -26,8 +26,8 @@ public class SecureDaoTest {
     data.put("greeting", "Hello");
     data.put("secret_greeting", "Hi!");
 
-    Dao2<String, String> secureDao = new AuthorizedDao2<>(
-        new MemoryBasedSystemDao2<>(data),
+    Dao<String, String> secureDao = new AuthorizedDao<>(
+        new MemoryBasedSystemDao<>(data),
         (user, key, permission) -> !key.startsWith("secret_"));
 
     assertTrue(secureDao.exists("greeting", dummyUser));
@@ -46,8 +46,8 @@ public class SecureDaoTest {
     data.put("greeting", "Hello");
     data.put("locked_greeting", "Good day");
 
-    Dao2<String, String> secureDao = new AuthorizedDao2<>(
-        new MemoryBasedSystemDao2<>(data),
+    Dao<String, String> secureDao = new AuthorizedDao<>(
+        new MemoryBasedSystemDao<>(data),
         (user, key, permission) -> !(key.startsWith("locked_") && permission != Permission.READ));
 
     assertTrue(secureDao.exists("greeting", dummyUser));

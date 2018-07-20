@@ -1,6 +1,6 @@
 package fi.thl.termed.util.dao;
 
-import static fi.thl.termed.util.dao.CachedSystemDao2.cache;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -17,11 +17,11 @@ public class CachedSystemDaoTest {
   @Test
   public void shouldCacheGet() {
     @SuppressWarnings("unchecked")
-    SystemDao2<String, String> dao = mock(SystemDao2.class);
+    SystemDao<String, String> dao = mock(SystemDao.class);
 
     when(dao.get("foo")).thenReturn(Optional.of("bar"));
 
-    SystemDao2<String, String> cachedDao = cache(dao);
+    SystemDao<String, String> cachedDao = cache(dao);
 
     assertEquals(Optional.of("bar"), cachedDao.get("foo"));
     verify(dao, times(1)).get("foo");
@@ -38,13 +38,13 @@ public class CachedSystemDaoTest {
   @Test
   public void shouldInvalidateCacheOnEvent() {
     @SuppressWarnings("unchecked")
-    SystemDao2<String, String> dao = mock(SystemDao2.class);
+    SystemDao<String, String> dao = mock(SystemDao.class);
 
     when(dao.get("foo")).thenReturn(Optional.of("bar"));
 
     EventBus eventBus = new EventBus();
 
-    SystemDao2<String, String> cachedDao = cache(dao);
+    SystemDao<String, String> cachedDao = cache(dao);
     eventBus.register(cachedDao);
 
     assertEquals(Optional.of("bar"), cachedDao.get("foo"));

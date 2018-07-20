@@ -11,11 +11,11 @@ import java.util.stream.Stream;
 /**
  * A service which simply forwards all requests to a delegate.
  */
-public class ForwardingService2<K extends Serializable, V> implements Service2<K, V> {
+public class ForwardingService<K extends Serializable, V> implements Service<K, V> {
 
-  private Service2<K, V> delegate;
+  private Service<K, V> delegate;
 
-  public ForwardingService2(Service2<K, V> delegate) {
+  public ForwardingService(Service<K, V> delegate) {
     this.delegate = delegate;
   }
 

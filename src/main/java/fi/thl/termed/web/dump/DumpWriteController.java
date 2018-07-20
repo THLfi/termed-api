@@ -7,7 +7,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DumpWriteController {
 
   @Autowired
-  private Service2<DumpId, Dump> dumpService;
+  private Service<DumpId, Dump> dumpService;
 
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)

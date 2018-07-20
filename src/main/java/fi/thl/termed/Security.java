@@ -5,7 +5,7 @@ import static fi.thl.termed.domain.User.newSuperuser;
 import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class Security extends WebSecurityConfigurerAdapter {
 
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

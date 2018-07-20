@@ -6,13 +6,13 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.springframework.security.access.AccessDeniedException;
 
-public class WritePreAuthorizingService2<K extends Serializable, V>
-    extends ForwardingService2<K, V> {
+public class WritePreAuthorizingService<K extends Serializable, V>
+    extends ForwardingService<K, V> {
 
   private Predicate<User> savePredicate;
   private Predicate<User> deletePredicate;
 
-  public WritePreAuthorizingService2(Service2<K, V> delegate,
+  public WritePreAuthorizingService(Service<K, V> delegate,
       Predicate<User> savePredicate,
       Predicate<User> deletePredicate) {
     super(delegate);

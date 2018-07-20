@@ -25,15 +25,15 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
-import fi.thl.termed.domain.transform.RolePermissionsDtoToModel2;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
+import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 import java.util.Map;
@@ -41,21 +41,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class TypeRepository extends AbstractRepository2<TypeId, Type> {
+public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
-  private Dao2<TypeId, Type> typeDao;
-  private Dao2<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao;
-  private Dao2<PropertyValueId<TypeId>, LangValue> typePropertyDao;
+  private Dao<TypeId, Type> typeDao;
+  private Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao;
+  private Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao;
 
-  private Service2<TextAttributeId, TextAttribute> textAttributeRepository;
-  private Service2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
+  private Service<TextAttributeId, TextAttribute> textAttributeRepository;
+  private Service<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
 
   public TypeRepository(
-      Dao2<TypeId, Type> typeDao,
-      Dao2<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao,
-      Dao2<PropertyValueId<TypeId>, LangValue> typePropertyDao,
-      Service2<TextAttributeId, TextAttribute> textAttributeRepository,
-      Service2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository,
+      Dao<TypeId, Type> typeDao,
+      Dao<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao,
+      Dao<PropertyValueId<TypeId>, LangValue> typePropertyDao,
+      Service<TextAttributeId, TextAttribute> textAttributeRepository,
+      Service<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository,
       int batchSize) {
     super(batchSize);
     this.typeDao = typeDao;
@@ -91,12 +91,12 @@ public class TypeRepository extends AbstractRepository2<TypeId, Type> {
 
   private void insertPermissions(TypeId id, Multimap<String, Permission> permissions, User user) {
     typePermissionDao.insert(
-        new RolePermissionsDtoToModel2<>(id.getGraph(), id).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(id.getGraph(), id).apply(permissions), user);
   }
 
   private void insertProperties(TypeId id, Multimap<String, LangValue> properties, User user) {
     typePropertyDao.insert(
-        new PropertyValueDtoToModel2<>(id).apply(properties), user);
+        new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void saveTextAttributes(TypeId id, List<TextAttribute> textAttributes, SaveMode mode,
@@ -144,7 +144,7 @@ public class TypeRepository extends AbstractRepository2<TypeId, Type> {
 
   private void updatePermissions(TypeId id, Multimap<String, Permission> permissions, User user) {
     Map<ObjectRolePermission<TypeId>, GrantedPermission> newPermissionMap =
-        tuplesToMap(new RolePermissionsDtoToModel2<>(id.getGraph(), id).apply(permissions));
+        tuplesToMap(new RolePermissionsDtoToModel<>(id.getGraph(), id).apply(permissions));
     Map<ObjectRolePermission<TypeId>, GrantedPermission> oldPermissionMap =
         tuplesToMap(typePermissionDao.getEntries(new TypePermissionsByTypeId(id), user));
 
@@ -157,7 +157,7 @@ public class TypeRepository extends AbstractRepository2<TypeId, Type> {
 
   private void updateProperties(TypeId id, Multimap<String, LangValue> properties, User user) {
     Map<PropertyValueId<TypeId>, LangValue> newProperties =
-        tuplesToMap(new PropertyValueDtoToModel2<>(id).apply(properties));
+        tuplesToMap(new PropertyValueDtoToModel<>(id).apply(properties));
     Map<PropertyValueId<TypeId>, LangValue> oldProperties =
         tuplesToMap(typePropertyDao.getEntries(new TypePropertiesByTypeId(id), user));
 

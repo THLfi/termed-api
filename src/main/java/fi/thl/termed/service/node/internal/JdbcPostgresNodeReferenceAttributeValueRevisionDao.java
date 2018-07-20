@@ -8,7 +8,7 @@ import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import java.util.Optional;
 import javax.sql.DataSource;
 
@@ -16,7 +16,7 @@ public class JdbcPostgresNodeReferenceAttributeValueRevisionDao extends
     AbstractJdbcPostgresDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> {
 
   public JdbcPostgresNodeReferenceAttributeValueRevisionDao(
-      SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> delegate,
+      SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> delegate,
       DataSource dataSource) {
     super(delegate, dataSource, "node_reference_attribute_value_aud");
   }

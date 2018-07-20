@@ -12,15 +12,15 @@ import java.util.stream.Stream;
 /**
  * Simple memory based dao implementation. Useful e.g. in tests.
  */
-public class MemoryBasedSystemDao2<K extends Serializable, V> implements SystemDao2<K, V> {
+public class MemoryBasedSystemDao<K extends Serializable, V> implements SystemDao<K, V> {
 
   private Map<K, V> data;
 
-  public MemoryBasedSystemDao2() {
+  public MemoryBasedSystemDao() {
     this(new LinkedHashMap<>());
   }
 
-  public MemoryBasedSystemDao2(Map<K, V> data) {
+  public MemoryBasedSystemDao(Map<K, V> data) {
     this.data = data;
   }
 

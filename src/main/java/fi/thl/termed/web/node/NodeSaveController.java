@@ -9,7 +9,7 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeSaveController {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "batch=true", produces = {})
   @ResponseStatus(NO_CONTENT)

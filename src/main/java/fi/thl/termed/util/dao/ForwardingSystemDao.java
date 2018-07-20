@@ -6,11 +6,11 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class ForwardingSystemDao2<K extends Serializable, V> implements SystemDao2<K, V> {
+public class ForwardingSystemDao<K extends Serializable, V> implements SystemDao<K, V> {
 
-  private SystemDao2<K, V> delegate;
+  private SystemDao<K, V> delegate;
 
-  public ForwardingSystemDao2(SystemDao2<K, V> delegate) {
+  public ForwardingSystemDao(SystemDao<K, V> delegate) {
     this.delegate = delegate;
   }
 

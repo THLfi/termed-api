@@ -9,7 +9,7 @@ import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import java.util.Optional;
 import javax.sql.DataSource;
 
@@ -17,7 +17,7 @@ public class JdbcPostgresNodeTextAttributeValueRevisionDao extends
     AbstractJdbcPostgresDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> {
 
   public JdbcPostgresNodeTextAttributeValueRevisionDao(
-      SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> delegate,
+      SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> delegate,
       DataSource dataSource) {
     super(delegate, dataSource, "node_text_attribute_value_aud");
   }

@@ -9,7 +9,7 @@ import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcTypePermissionsDao
-    extends AbstractJdbcDao2<ObjectRolePermission<TypeId>, GrantedPermission> {
+    extends AbstractJdbcDao<ObjectRolePermission<TypeId>, GrantedPermission> {
 
   public JdbcTypePermissionsDao(DataSource dataSource) {
     super(dataSource);

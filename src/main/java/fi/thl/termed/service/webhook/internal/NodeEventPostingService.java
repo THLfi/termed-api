@@ -12,7 +12,7 @@ import fi.thl.termed.domain.event.WebEvent;
 import fi.thl.termed.util.FutureUtils;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -31,13 +31,13 @@ public class NodeEventPostingService {
   private Logger log = LoggerFactory.getLogger(getClass());
   private User eventBroadcaster = new User("httpEventBroadcaster", "", AppRole.SUPERUSER);
 
-  private Service2<UUID, Webhook> webhookService;
+  private Service<UUID, Webhook> webhookService;
   private Gson gson;
 
   private CloseableHttpAsyncClient httpClient;
   private FutureCallback<HttpResponse> errorCallback = new ErrorLoggingCallback();
 
-  public NodeEventPostingService(Service2<UUID, Webhook> webhookService, Gson gson) {
+  public NodeEventPostingService(Service<UUID, Webhook> webhookService, Gson gson) {
     this.gson = gson;
     this.webhookService = webhookService;
     this.httpClient = HttpAsyncClients.createMinimal();

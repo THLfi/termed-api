@@ -15,21 +15,21 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-public class TransactionalService2<K extends Serializable, V> implements Service2<K, V> {
+public class TransactionalService<K extends Serializable, V> implements Service<K, V> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private Service2<K, V> delegate;
+  private Service<K, V> delegate;
 
   private PlatformTransactionManager manager;
   private TransactionDefinition definition;
   private TransactionDefinition readOnlyDefinition;
 
-  public TransactionalService2(Service2<K, V> delegate, PlatformTransactionManager manager) {
+  public TransactionalService(Service<K, V> delegate, PlatformTransactionManager manager) {
     this(delegate, manager, new DefaultTransactionDefinition());
   }
 
-  public TransactionalService2(Service2<K, V> delegate, PlatformTransactionManager manager,
+  public TransactionalService(Service<K, V> delegate, PlatformTransactionManager manager,
       TransactionDefinition definition) {
     this.delegate = delegate;
     this.manager = manager;

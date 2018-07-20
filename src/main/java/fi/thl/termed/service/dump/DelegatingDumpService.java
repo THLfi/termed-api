@@ -19,21 +19,21 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-class DelegatingDumpService implements Service2<DumpId, Dump> {
+class DelegatingDumpService implements Service<DumpId, Dump> {
 
-  private Service2<GraphId, Graph> graphService;
-  private Service2<TypeId, Type> typeService;
-  private Service2<NodeId, Node> nodeService;
+  private Service<GraphId, Graph> graphService;
+  private Service<TypeId, Type> typeService;
+  private Service<NodeId, Node> nodeService;
 
   DelegatingDumpService(
-      Service2<GraphId, Graph> graphService,
-      Service2<TypeId, Type> typeService,
-      Service2<NodeId, Node> nodeService) {
+      Service<GraphId, Graph> graphService,
+      Service<TypeId, Type> typeService,
+      Service<NodeId, Node> nodeService) {
     this.graphService = graphService;
     this.typeService = typeService;
     this.nodeService = nodeService;

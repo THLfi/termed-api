@@ -48,8 +48,8 @@ import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.AuthorizedDao2;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
@@ -60,11 +60,11 @@ import fi.thl.termed.util.service.DaoNamedSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.QueryProfilingService;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.SynchronizedNamedSequenceService;
 import fi.thl.termed.util.service.TransactionalNamedSequenceService;
-import fi.thl.termed.util.service.TransactionalService2;
-import fi.thl.termed.util.service.WriteLoggingService2;
+import fi.thl.termed.util.service.TransactionalService;
+import fi.thl.termed.util.service.WriteLoggingService;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -88,13 +88,13 @@ public class NodeServiceConfiguration {
   private PermissionEvaluator<ReferenceAttributeId> referenceAttributeEvaluator;
 
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
   @Autowired
   private SequenceService revisionSeqService;
   @Autowired
-  private Service2<Long, Revision> revisionService;
+  private Service<Long, Revision> revisionService;
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
@@ -105,10 +105,10 @@ public class NodeServiceConfiguration {
   private EventBus eventBus;
 
   @Bean
-  public Service2<NodeId, Node> nodeService() {
-    Service2<NodeId, Node> service = nodeRepository();
+  public Service<NodeId, Node> nodeService() {
+    Service<NodeId, Node> service = nodeRepository();
     service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
-    service = new TransactionalService2<>(service, transactionManager);
+    service = new TransactionalService<>(service, transactionManager);
 
     Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
         indexPath, new JsonStringConverter<>(NodeId.class),
@@ -120,7 +120,7 @@ public class NodeServiceConfiguration {
     service = new ReadAuthorizedNodeService(
         service, typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
-    service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
     service = new NodeWriteEventPostingService(service, eventBus);
 
     service = new TimestampingNodeService(service);
@@ -136,32 +136,32 @@ public class NodeServiceConfiguration {
   }
 
   @Bean
-  public Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService() {
-    Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
+  public Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService() {
+    Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
 
-    service = new TransactionalService2<>(service, transactionManager);
+    service = new TransactionalService<>(service, transactionManager);
     service = new QueryProfilingService<>(service,
         getClass().getPackage().getName() + ".NodeRevisionService", 500);
 
     return service;
   }
 
-  private Service2<NodeId, Node> nodeRepository() {
+  private Service<NodeId, Node> nodeRepository() {
     return new NodeRepository(
-        new AuthorizedDao2<>(nodeSystemDao(), nodeEvaluator()),
-        new AuthorizedDao2<>(textAttributeValueSystemDao(), textAttributeValueEvaluator()),
-        new AuthorizedDao2<>(referenceAttributeValueSystemDao(),
+        new AuthorizedDao<>(nodeSystemDao(), nodeEvaluator()),
+        new AuthorizedDao<>(textAttributeValueSystemDao(), textAttributeValueEvaluator()),
+        new AuthorizedDao<>(referenceAttributeValueSystemDao(),
             referenceAttributeValueEvaluator()),
-        new AuthorizedDao2<>(nodeRevSysDao(), nodeRevEvaluator()),
-        new AuthorizedDao2<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
-        new AuthorizedDao2<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
+        new AuthorizedDao<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
         getDatabaseProductName(dataSource).equals("postgresql") ? 5000 : -1);
   }
 
   private NamedSequenceService<TypeId> nodeSequenceService() {
     NamedSequenceService<TypeId> sequenceService =
         new DaoNamedSequenceService<>(
-            new AuthorizedDao2<>(nodeSequenceSystemDao(), nodeSequenceEvaluator()));
+            new AuthorizedDao<>(nodeSequenceSystemDao(), nodeSequenceEvaluator()));
 
     sequenceService = new CachedNamedSequenceService<>(sequenceService);
     sequenceService = new TransactionalNamedSequenceService<>(sequenceService, transactionManager);
@@ -170,11 +170,11 @@ public class NodeServiceConfiguration {
     return sequenceService;
   }
 
-  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionRepository() {
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionRepository() {
     return new NodeRevisionRepository(
-        new AuthorizedDao2<>(nodeRevSysDao(), nodeRevEvaluator()),
-        new AuthorizedDao2<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
-        new AuthorizedDao2<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
+        new AuthorizedDao<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
+        new AuthorizedDao<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
         revisionService, revisionSeqService);
   }
 
@@ -221,41 +221,41 @@ public class NodeServiceConfiguration {
     });
   }
 
-  private SystemDao2<TypeId, Long> nodeSequenceSystemDao() {
+  private SystemDao<TypeId, Long> nodeSequenceSystemDao() {
     return new JdbcNodeSequenceDao(dataSource);
   }
 
-  private SystemDao2<NodeId, Node> nodeSystemDao() {
-    SystemDao2<NodeId, Node> nodeDao = new JdbcNodeDao(dataSource);
+  private SystemDao<NodeId, Node> nodeSystemDao() {
+    SystemDao<NodeId, Node> nodeDao = new JdbcNodeDao(dataSource);
     return new JdbcPostgresNodeDao(nodeDao, dataSource);
   }
 
-  private SystemDao2<NodeAttributeValueId, StrictLangValue> textAttributeValueSystemDao() {
-    SystemDao2<NodeAttributeValueId, StrictLangValue> textAttrValueDao =
+  private SystemDao<NodeAttributeValueId, StrictLangValue> textAttributeValueSystemDao() {
+    SystemDao<NodeAttributeValueId, StrictLangValue> textAttrValueDao =
         new JdbcNodeTextAttributeValueDao(dataSource);
     return new JdbcPostgresNodeTextAttributeValueDao(textAttrValueDao, dataSource);
   }
 
-  private SystemDao2<NodeAttributeValueId, NodeId> referenceAttributeValueSystemDao() {
-    SystemDao2<NodeAttributeValueId, NodeId> refAttrValueDao =
+  private SystemDao<NodeAttributeValueId, NodeId> referenceAttributeValueSystemDao() {
+    SystemDao<NodeAttributeValueId, NodeId> refAttrValueDao =
         new JdbcNodeReferenceAttributeValueDao(dataSource);
     return new JdbcPostgresNodeReferenceAttributeValueDao(refAttrValueDao, dataSource);
   }
 
-  private SystemDao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevSysDao() {
-    SystemDao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao =
+  private SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevSysDao() {
+    SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao =
         new JdbcNodeRevisionDao(dataSource);
     return new JdbcPostgresNodeRevisionDao(nodeRevDao, dataSource);
   }
 
-  private SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevSysDao() {
-    SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> dao =
+  private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevSysDao() {
+    SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> dao =
         new JdbcNodeTextAttributeValueRevisionDao(dataSource);
     return new JdbcPostgresNodeTextAttributeValueRevisionDao(dao, dataSource);
   }
 
-  private SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevSysDao() {
-    SystemDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> dao =
+  private SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevSysDao() {
+    SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> dao =
         new JdbcNodeReferenceAttributeValueRevisionDao(dataSource);
     return new JdbcPostgresNodeReferenceAttributeValueRevisionDao(dao, dataSource);
   }

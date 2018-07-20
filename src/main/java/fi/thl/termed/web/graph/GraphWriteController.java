@@ -7,7 +7,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GraphWriteController {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @PostJsonMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Graph save(@RequestBody Graph graph,

@@ -5,15 +5,15 @@ import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import java.io.Serializable;
 
-public class DaoPermissionEvaluator2<E extends Serializable> implements PermissionEvaluator<E> {
+public class DaoPermissionEvaluator<E extends Serializable> implements PermissionEvaluator<E> {
 
-  private SystemDao2<ObjectRolePermission<E>, GrantedPermission> permissionDao;
+  private SystemDao<ObjectRolePermission<E>, GrantedPermission> permissionDao;
 
-  public DaoPermissionEvaluator2(
-      SystemDao2<ObjectRolePermission<E>, GrantedPermission> permissionDao) {
+  public DaoPermissionEvaluator(
+      SystemDao<ObjectRolePermission<E>, GrantedPermission> permissionDao) {
     this.permissionDao = permissionDao;
   }
 

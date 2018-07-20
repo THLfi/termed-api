@@ -17,7 +17,7 @@ import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
 import java.util.Date;
@@ -41,13 +41,13 @@ public class RevisionController {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  private Service2<Long, Revision> revisionService;
+  private Service<Long, Revision> revisionService;
   @Autowired
   private SequenceService revisionSeq;
   @Autowired
-  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
   @Autowired
   private PlatformTransactionManager manager;
 

@@ -13,7 +13,7 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,7 +32,7 @@ public class IndexController {
   private EventBus eventBus;
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @DeleteMapping("/index")
   @ResponseStatus(NO_CONTENT)

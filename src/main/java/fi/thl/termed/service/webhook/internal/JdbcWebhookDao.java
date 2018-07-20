@@ -2,7 +2,7 @@ package fi.thl.termed.service.webhook.internal;
 
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcWebhookDao extends AbstractJdbcDao2<UUID, Webhook> {
+public class JdbcWebhookDao extends AbstractJdbcDao<UUID, Webhook> {
 
   public JdbcWebhookDao(DataSource dataSource) {
     super(dataSource);

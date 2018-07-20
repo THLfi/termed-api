@@ -5,14 +5,14 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcTextAttributeDao extends AbstractJdbcDao2<TextAttributeId, TextAttribute> {
+public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextAttribute> {
 
   public JdbcTextAttributeDao(DataSource dataSource) {
     super(dataSource);

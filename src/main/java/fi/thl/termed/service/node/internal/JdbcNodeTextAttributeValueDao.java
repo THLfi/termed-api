@@ -4,7 +4,7 @@ import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeTextAttributeValueDao
-    extends AbstractJdbcDao2<NodeAttributeValueId, StrictLangValue> {
+    extends AbstractJdbcDao<NodeAttributeValueId, StrictLangValue> {
 
   public JdbcNodeTextAttributeValueDao(DataSource dataSource) {
     super(dataSource);

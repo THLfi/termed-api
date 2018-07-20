@@ -1,16 +1,16 @@
 package fi.thl.termed.domain.transform;
 
-import com.google.common.collect.Maps;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class GraphRoleDtoToModel implements Function<List<String>, Map<GraphRole, Empty>> {
+public class GraphRoleDtoToModel implements
+    Function<List<String>, Stream<Tuple2<GraphRole, Empty>>> {
 
   private GraphId graphId;
 
@@ -19,12 +19,8 @@ public class GraphRoleDtoToModel implements Function<List<String>, Map<GraphRole
   }
 
   @Override
-  public Map<GraphRole, Empty> apply(List<String> roles) {
-    Map<GraphRole, Empty> map = Maps.newHashMap();
-    for (String role : roles) {
-      map.put(new GraphRole(graphId, role), Empty.INSTANCE);
-    }
-    return map;
+  public Stream<Tuple2<GraphRole, Empty>> apply(List<String> roles) {
+    return roles.stream().map(role -> Tuple.of(new GraphRole(graphId, role), Empty.INSTANCE));
   }
 
 }

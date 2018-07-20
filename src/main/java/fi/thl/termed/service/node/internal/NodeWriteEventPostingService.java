@@ -13,7 +13,7 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Date;
 import java.util.List;
@@ -23,12 +23,12 @@ import java.util.stream.Stream;
 /**
  * Posts events to event bus for each node save and delete request.
  */
-public class NodeWriteEventPostingService implements Service2<NodeId, Node> {
+public class NodeWriteEventPostingService implements Service<NodeId, Node> {
 
-  private Service2<NodeId, Node> delegate;
+  private Service<NodeId, Node> delegate;
   private EventBus eventBus;
 
-  public NodeWriteEventPostingService(Service2<NodeId, Node> delegate, EventBus eventBus) {
+  public NodeWriteEventPostingService(Service<NodeId, Node> delegate, EventBus eventBus) {
     this.delegate = delegate;
     this.eventBus = eventBus;
   }

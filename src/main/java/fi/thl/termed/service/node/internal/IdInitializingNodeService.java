@@ -6,9 +6,9 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -16,9 +16,9 @@ import java.util.stream.Stream;
 /**
  * Make sure that node has an identifier
  */
-public class IdInitializingNodeService extends ForwardingService2<NodeId, Node> {
+public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
 
-  public IdInitializingNodeService(Service2<NodeId, Node> delegate) {
+  public IdInitializingNodeService(Service<NodeId, Node> delegate) {
     super(delegate);
   }
 

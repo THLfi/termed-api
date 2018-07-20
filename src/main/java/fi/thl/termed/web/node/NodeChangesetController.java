@@ -14,7 +14,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeChangesetController {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @Autowired
   private PlatformTransactionManager transactionManager;

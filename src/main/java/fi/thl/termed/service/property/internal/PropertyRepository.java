@@ -14,25 +14,25 @@ import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class PropertyRepository extends AbstractRepository2<String, Property> {
+public class PropertyRepository extends AbstractRepository<String, Property> {
 
-  private Dao2<String, Property> propertyDao;
-  private Dao2<PropertyValueId<String>, LangValue> propertyValueDao;
+  private Dao<String, Property> propertyDao;
+  private Dao<PropertyValueId<String>, LangValue> propertyValueDao;
 
-  public PropertyRepository(Dao2<String, Property> propertyDao,
-      Dao2<PropertyValueId<String>, LangValue> propertyValueDao) {
+  public PropertyRepository(Dao<String, Property> propertyDao,
+      Dao<PropertyValueId<String>, LangValue> propertyValueDao) {
     this.propertyDao = propertyDao;
     this.propertyValueDao = propertyValueDao;
   }
@@ -54,7 +54,7 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
   }
 
   private void insertProperties(String id, Multimap<String, LangValue> properties, User user) {
-    propertyValueDao.insert(new PropertyValueDtoToModel2<>(id).apply(properties), user);
+    propertyValueDao.insert(new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
       User user) {
 
     Map<PropertyValueId<String>, LangValue> newProperties = tuplesToMap(
-        new PropertyValueDtoToModel2<>(propertyId).apply(propertyMultimap));
+        new PropertyValueDtoToModel<>(propertyId).apply(propertyMultimap));
     Map<PropertyValueId<String>, LangValue> oldProperties = tuplesToMap(
         propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(propertyId), user));
 

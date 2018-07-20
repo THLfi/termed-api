@@ -1,7 +1,7 @@
 package fi.thl.termed.service.property;
 
 import static fi.thl.termed.util.EventBusUtils.register;
-import static fi.thl.termed.util.dao.CachedSystemDao2.cache;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
@@ -12,12 +12,12 @@ import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.service.property.internal.JdbcPropertyDao;
 import fi.thl.termed.service.property.internal.JdbcPropertyPropertyDao;
 import fi.thl.termed.service.property.internal.PropertyRepository;
-import fi.thl.termed.util.dao.AuthorizedDao2;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.Service2;
-import fi.thl.termed.util.service.TransactionalService2;
-import fi.thl.termed.util.service.WriteLoggingService2;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.TransactionalService;
+import fi.thl.termed.util.service.WriteLoggingService;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,12 +31,12 @@ public class PropertyServiceConfiguration {
   private EventBus eventBus;
 
   @Bean
-  public Service2<String, Property> propertyService(
+  public Service<String, Property> propertyService(
       DataSource dataSource, PlatformTransactionManager transactionManager) {
 
-    SystemDao2<String, Property> propertyDao =
+    SystemDao<String, Property> propertyDao =
         register(eventBus, cache(new JdbcPropertyDao(dataSource)));
-    SystemDao2<PropertyValueId<String>, LangValue> propertyPropertyDao =
+    SystemDao<PropertyValueId<String>, LangValue> propertyPropertyDao =
         register(eventBus, cache(new JdbcPropertyPropertyDao(dataSource)));
 
     PermissionEvaluator<String> propertyEvaluator =
@@ -44,14 +44,14 @@ public class PropertyServiceConfiguration {
     PermissionEvaluator<PropertyValueId<String>> propertyPropertyEvaluator =
         (u, o, p) -> propertyEvaluator.hasPermission(u, o.getSubjectId(), p);
 
-    Service2<String, Property> service =
+    Service<String, Property> service =
         new PropertyRepository(
-            new AuthorizedDao2<>(propertyDao, propertyEvaluator),
-            new AuthorizedDao2<>(propertyPropertyDao, propertyPropertyEvaluator));
+            new AuthorizedDao<>(propertyDao, propertyEvaluator),
+            new AuthorizedDao<>(propertyPropertyDao, propertyPropertyEvaluator));
 
-    service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
 
-    return new TransactionalService2<>(service, transactionManager);
+    return new TransactionalService<>(service, transactionManager);
   }
 
 }

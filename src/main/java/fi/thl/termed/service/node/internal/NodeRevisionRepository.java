@@ -25,13 +25,13 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -47,22 +47,22 @@ import java.util.stream.Stream.Builder;
  * full revision saves which are useful in e.g. admin operations.
  */
 public class NodeRevisionRepository implements
-    Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
+    Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
   private static final int BATCH_SIZE = 5000;
 
-  private Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao;
-  private Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao;
-  private Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao;
+  private Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao;
+  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao;
+  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao;
 
-  private Service2<Long, Revision> revisionService;
+  private Service<Long, Revision> revisionService;
   private SequenceService revisionSeqService;
 
   public NodeRevisionRepository(
-      Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao,
-      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao,
-      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao,
-      Service2<Long, Revision> revisionService, SequenceService revisionSeqService) {
+      Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao,
+      Service<Long, Revision> revisionService, SequenceService revisionSeqService) {
     this.nodeRevisionDao = nodeRevisionDao;
     this.textAttributeValueRevDao = textAttributeValueRevDao;
     this.referenceAttributeValueRevDao = referenceAttributeValueRevDao;

@@ -5,7 +5,7 @@ import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -13,7 +13,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcReferenceAttributeDao
-    extends AbstractJdbcDao2<ReferenceAttributeId, ReferenceAttribute> {
+    extends AbstractJdbcDao<ReferenceAttributeId, ReferenceAttribute> {
 
   public JdbcReferenceAttributeDao(DataSource dataSource) {
     super(dataSource);

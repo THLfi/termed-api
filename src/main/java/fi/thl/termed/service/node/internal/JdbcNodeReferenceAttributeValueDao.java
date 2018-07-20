@@ -3,7 +3,7 @@ package fi.thl.termed.service.node.internal;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -11,7 +11,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeReferenceAttributeValueDao
-    extends AbstractJdbcDao2<NodeAttributeValueId, NodeId> {
+    extends AbstractJdbcDao<NodeAttributeValueId, NodeId> {
 
   public JdbcNodeReferenceAttributeValueDao(DataSource dataSource) {
     super(dataSource);

@@ -13,7 +13,7 @@ import static io.restassured.mapper.ObjectMapperType.GSON;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
@@ -35,7 +35,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public abstract class BaseApiIntegrationTest {
 
   @Autowired
-  private Service2<String, User> users;
+  private Service<String, User> users;
 
   @Autowired
   private PasswordEncoder encoder;

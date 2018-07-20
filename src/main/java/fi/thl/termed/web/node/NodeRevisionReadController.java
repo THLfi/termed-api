@@ -14,7 +14,7 @@ import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevision;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
@@ -31,10 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRevisionReadController {
 
   @Autowired
-  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
 
   @Autowired
-  private Service2<Long, Revision> revisionService;
+  private Service<Long, Revision> revisionService;
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions")
   public List<ObjectRevision<NodeId>> getNodeRevisions(

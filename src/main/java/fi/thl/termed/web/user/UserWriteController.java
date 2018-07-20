@@ -5,7 +5,7 @@ import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.BadRequestException;
 import java.util.stream.Stream;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserWriteController {
 
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
 
   @Autowired
   private PasswordEncoder passwordEncoder;

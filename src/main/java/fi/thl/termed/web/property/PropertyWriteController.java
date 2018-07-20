@@ -6,7 +6,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PropertyWriteController {
 
   @Autowired
-  private Service2<String, Property> propertyService;
+  private Service<String, Property> propertyService;
 
   @PostJsonMapping(produces = {})
   @ResponseStatus(NO_CONTENT)

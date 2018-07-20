@@ -2,14 +2,14 @@ package fi.thl.termed.service.node.internal;
 
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcNodeSequenceDao extends AbstractJdbcDao2<TypeId, Long> {
+public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Long> {
 
   public JdbcNodeSequenceDao(DataSource dataSource) {
     super(dataSource);

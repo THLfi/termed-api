@@ -15,22 +15,22 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-public class ExtIdsInitializingNodeService extends ForwardingService2<NodeId, Node> {
+public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Node> {
 
   private NamedSequenceService<TypeId> nodeSequenceService;
   private BiFunction<TypeId, User, Type> typeSource;
   private BiFunction<GraphId, User, Graph> graphSource;
 
-  public ExtIdsInitializingNodeService(Service2<NodeId, Node> delegate,
+  public ExtIdsInitializingNodeService(Service<NodeId, Node> delegate,
       NamedSequenceService<TypeId> nodeSequenceService,
       BiFunction<TypeId, User, Optional<Type>> typeSource,
       BiFunction<GraphId, User, Optional<Graph>> graphSource) {

@@ -3,14 +3,14 @@ package fi.thl.termed.service.node.internal;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import javax.sql.DataSource;
 
 public class JdbcPostgresNodeReferenceAttributeValueDao extends
     AbstractJdbcPostgresDao<NodeAttributeValueId, NodeId> {
 
   public JdbcPostgresNodeReferenceAttributeValueDao(
-      SystemDao2<NodeAttributeValueId, NodeId> delegate, DataSource dataSource) {
+      SystemDao<NodeAttributeValueId, NodeId> delegate, DataSource dataSource) {
     super(delegate, dataSource, "node_reference_attribute_value");
   }
 

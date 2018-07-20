@@ -4,14 +4,14 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.UserGraphRole;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcUserGraphRoleDao extends AbstractJdbcDao2<UserGraphRole, Empty> {
+public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> {
 
   public JdbcUserGraphRoleDao(DataSource dataSource) {
     super(dataSource);

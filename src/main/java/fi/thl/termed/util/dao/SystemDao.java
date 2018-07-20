@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface SystemDao2<K extends Serializable, V> {
+public interface SystemDao<K extends Serializable, V> {
 
   void insert(Stream<Tuple2<K, V>> map);
 

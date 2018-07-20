@@ -22,7 +22,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -39,13 +39,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class NodeServiceIntegrationTest {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

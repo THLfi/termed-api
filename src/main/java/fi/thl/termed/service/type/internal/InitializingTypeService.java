@@ -11,9 +11,9 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 /**
  * Set default values for types and attributes: ascending indices, range and regex
  */
-public class InitializingTypeService extends ForwardingService2<TypeId, Type> {
+public class InitializingTypeService extends ForwardingService<TypeId, Type> {
 
-  public InitializingTypeService(Service2<TypeId, Type> delegate) {
+  public InitializingTypeService(Service<TypeId, Type> delegate) {
     super(delegate);
   }
 

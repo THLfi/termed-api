@@ -14,7 +14,7 @@ import fi.thl.termed.util.jena.JenaRdfModel;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.rdf.RdfResource;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.ArrayList;
@@ -36,10 +36,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class GraphRdfReadController {
 
   @Autowired
-  private Service2<String, Property> propertyService;
+  private Service<String, Property> propertyService;
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @GetRdfMapping
   public Model getAllGraphs(@AuthenticationPrincipal User user) {

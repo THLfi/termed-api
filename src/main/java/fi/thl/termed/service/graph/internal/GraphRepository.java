@@ -19,31 +19,31 @@ import fi.thl.termed.domain.ObjectRolePermission;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.PropertyValueId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.GraphRoleDtoToModel2;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
-import fi.thl.termed.domain.transform.RolePermissionsDtoToModel2;
+import fi.thl.termed.domain.transform.GraphRoleDtoToModel;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
+import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
+public class GraphRepository extends AbstractRepository<GraphId, Graph> {
 
-  private Dao2<GraphId, Graph> graphDao;
-  private Dao2<GraphRole, Empty> graphRoleDao;
-  private Dao2<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao;
-  private Dao2<PropertyValueId<GraphId>, LangValue> graphPropertyDao;
+  private Dao<GraphId, Graph> graphDao;
+  private Dao<GraphRole, Empty> graphRoleDao;
+  private Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao;
+  private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao;
 
-  public GraphRepository(Dao2<GraphId, Graph> graphDao,
-      Dao2<GraphRole, Empty> graphRoleDao,
-      Dao2<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao,
-      Dao2<PropertyValueId<GraphId>, LangValue> graphPropertyDao) {
+  public GraphRepository(Dao<GraphId, Graph> graphDao,
+      Dao<GraphRole, Empty> graphRoleDao,
+      Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao,
+      Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao) {
     this.graphDao = graphDao;
     this.graphRoleDao = graphRoleDao;
     this.graphPermissionDao = graphPermissionDao;
@@ -60,19 +60,19 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
 
   private void insertRoles(GraphId graphId, List<String> roles, User user) {
     graphRoleDao.insert(
-        new GraphRoleDtoToModel2(graphId).apply(roles), user);
+        new GraphRoleDtoToModel(graphId).apply(roles), user);
   }
 
   private void insertPermissions(GraphId graphId, Multimap<String, Permission> permissions,
       User user) {
     graphPermissionDao.insert(
-        new RolePermissionsDtoToModel2<>(graphId, graphId).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(graphId, graphId).apply(permissions), user);
   }
 
   private void insertProperties(GraphId graphId, Multimap<String, LangValue> properties,
       User user) {
     graphPropertyDao.insert(
-        new PropertyValueDtoToModel2<>(graphId).apply(properties), user);
+        new PropertyValueDtoToModel<>(graphId).apply(properties), user);
   }
 
   @Override
@@ -85,7 +85,7 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
 
   private void updateRoles(GraphId graphId, List<String> roles, User user) {
     Map<GraphRole, Empty> newRolesMap = tuplesToMap(
-        new GraphRoleDtoToModel2(graphId).apply(roles));
+        new GraphRoleDtoToModel(graphId).apply(roles));
     Map<GraphRole, Empty> oldRolesMap = tuplesToMap(graphRoleDao.getEntries(
         new GraphRolesByGraphId(graphId), user));
 
@@ -99,7 +99,7 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
       User u) {
 
     Map<ObjectRolePermission<GraphId>, GrantedPermission> newPermissionMap =
-        tuplesToMap(new RolePermissionsDtoToModel2<>(graphId, graphId).apply(permissions));
+        tuplesToMap(new RolePermissionsDtoToModel<>(graphId, graphId).apply(permissions));
     Map<ObjectRolePermission<GraphId>, GrantedPermission> oldPermissionMap =
         tuplesToMap(graphPermissionDao.getEntries(new GraphPermissionsByGraphId(graphId), u));
 
@@ -114,7 +114,7 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
       User user) {
 
     Map<PropertyValueId<GraphId>, LangValue> newProperties =
-        tuplesToMap(new PropertyValueDtoToModel2<>(graphId).apply(propertyMultimap));
+        tuplesToMap(new PropertyValueDtoToModel<>(graphId).apply(propertyMultimap));
     Map<PropertyValueId<GraphId>, LangValue> oldProperties =
         tuplesToMap(graphPropertyDao.getEntries(new GraphPropertiesByGraphId(graphId), user));
 

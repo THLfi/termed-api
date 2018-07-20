@@ -6,13 +6,13 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class WriteErrorHandlingService2<K extends Serializable, V>
-    extends ForwardingService2<K, V> {
+public class WriteErrorHandlingService<K extends Serializable, V>
+    extends ForwardingService<K, V> {
 
   private Consumer<Throwable> errorHandler;
   private Runnable finalHandler;
 
-  public WriteErrorHandlingService2(Service2<K, V> delegate,
+  public WriteErrorHandlingService(Service<K, V> delegate,
       Consumer<Throwable> errorHandler, Runnable finalHandler) {
     super(delegate);
     this.errorHandler = errorHandler;

@@ -11,7 +11,7 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeTextAttributeValueRevisionDao extends
-    AbstractJdbcDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> {
+    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> {
 
   public JdbcNodeTextAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);

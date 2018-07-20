@@ -2,14 +2,14 @@ package fi.thl.termed.service.user.internal;
 
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcUserDao extends AbstractJdbcDao2<String, User> {
+public class JdbcUserDao extends AbstractJdbcDao<String, User> {
 
   public JdbcUserDao(DataSource dataSource) {
     super(dataSource);

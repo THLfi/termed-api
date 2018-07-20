@@ -5,13 +5,13 @@ import static com.google.common.base.Strings.emptyToNull;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import javax.sql.DataSource;
 import org.joda.time.DateTime;
 
 public class JdbcPostgresNodeDao extends AbstractJdbcPostgresDao<NodeId, Node> {
 
-  public JdbcPostgresNodeDao(SystemDao2<NodeId, Node> delegate, DataSource dataSource) {
+  public JdbcPostgresNodeDao(SystemDao<NodeId, Node> delegate, DataSource dataSource) {
     super(delegate, dataSource, "node");
   }
 

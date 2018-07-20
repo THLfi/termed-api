@@ -7,14 +7,14 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcNodeDao extends AbstractJdbcDao2<NodeId, Node> {
+public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
   public JdbcNodeDao(DataSource dataSource) {
     super(dataSource);

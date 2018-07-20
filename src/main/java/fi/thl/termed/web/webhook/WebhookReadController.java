@@ -4,7 +4,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.UUID;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookReadController {
 
   @Autowired
-  private Service2<UUID, Webhook> webhookService;
+  private Service<UUID, Webhook> webhookService;
 
   @GetJsonMapping
   public Stream<Webhook> get(@AuthenticationPrincipal User user) {

@@ -6,7 +6,7 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcGraphRoleDao extends AbstractJdbcDao2<GraphRole, Empty> {
+public class JdbcGraphRoleDao extends AbstractJdbcDao<GraphRole, Empty> {
 
   public JdbcGraphRoleDao(DataSource dataSource) {
     super(dataSource);

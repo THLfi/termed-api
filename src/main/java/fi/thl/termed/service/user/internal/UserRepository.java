@@ -9,10 +9,10 @@ import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.UserGraphRole;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 import java.util.Objects;
@@ -20,12 +20,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class UserRepository extends AbstractRepository2<String, User> {
+public class UserRepository extends AbstractRepository<String, User> {
 
-  private Dao2<String, User> userDao;
-  private Dao2<UserGraphRole, Empty> userGraphRoleDao;
+  private Dao<String, User> userDao;
+  private Dao<UserGraphRole, Empty> userGraphRoleDao;
 
-  public UserRepository(Dao2<String, User> userDao, Dao2<UserGraphRole, Empty> userGraphRoleDao) {
+  public UserRepository(Dao<String, User> userDao, Dao<UserGraphRole, Empty> userGraphRoleDao) {
     this.userDao = userDao;
     this.userGraphRoleDao = userGraphRoleDao;
   }

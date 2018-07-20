@@ -1,7 +1,7 @@
 package fi.thl.termed.service.graph;
 
 import static fi.thl.termed.util.EventBusUtils.register;
-import static fi.thl.termed.util.dao.CachedSystemDao2.cache;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
@@ -19,15 +19,15 @@ import fi.thl.termed.service.graph.internal.JdbcGraphDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphPermissionsDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphPropertyDao;
 import fi.thl.termed.service.graph.internal.JdbcGraphRoleDao;
-import fi.thl.termed.util.dao.AuthorizedDao2;
-import fi.thl.termed.util.dao.Dao2;
-import fi.thl.termed.util.dao.SystemDao2;
-import fi.thl.termed.util.permission.DaoPermissionEvaluator2;
+import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.permission.DaoPermissionEvaluator;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.Service2;
-import fi.thl.termed.util.service.TransactionalService2;
-import fi.thl.termed.util.service.WriteLoggingService2;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.TransactionalService;
+import fi.thl.termed.util.service.WriteLoggingService;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,14 +46,14 @@ public class GraphServiceConfiguration {
   @Autowired
   private EventBus eventBus;
 
-  private SystemDao2<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao;
+  private SystemDao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao;
 
   @Bean
-  public Service2<GraphId, Graph> graphService() {
-    Service2<GraphId, Graph> service = graphRepository();
+  public Service<GraphId, Graph> graphService() {
+    Service<GraphId, Graph> service = graphRepository();
 
-    service = new TransactionalService2<>(service, transactionManager);
-    service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
+    service = new TransactionalService<>(service, transactionManager);
+    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
     service = new InitializingGraphService(service);
 
     return service;
@@ -62,10 +62,10 @@ public class GraphServiceConfiguration {
   @Bean
   public PermissionEvaluator<GraphId> graphEvaluator() {
     return new DisjunctionPermissionEvaluator<>(
-        appAdminEvaluator(), new DaoPermissionEvaluator2<>(graphPermissionSystemDao()));
+        appAdminEvaluator(), new DaoPermissionEvaluator<>(graphPermissionSystemDao()));
   }
 
-  private Service2<GraphId, Graph> graphRepository() {
+  private Service<GraphId, Graph> graphRepository() {
     return new GraphRepository(
         graphDao(),
         graphRoleDao(),
@@ -73,40 +73,40 @@ public class GraphServiceConfiguration {
         graphPropertyDao());
   }
 
-  private Dao2<GraphId, Graph> graphDao() {
-    return new AuthorizedDao2<>(graphSystemDao(), graphEvaluator());
+  private Dao<GraphId, Graph> graphDao() {
+    return new AuthorizedDao<>(graphSystemDao(), graphEvaluator());
   }
 
-  private Dao2<GraphRole, Empty> graphRoleDao() {
-    return new AuthorizedDao2<>(graphRoleSystemDao(), appAdminEvaluator());
+  private Dao<GraphRole, Empty> graphRoleDao() {
+    return new AuthorizedDao<>(graphRoleSystemDao(), appAdminEvaluator());
   }
 
-  private Dao2<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao() {
-    return new AuthorizedDao2<>(graphPermissionSystemDao(), appAdminEvaluator());
+  private Dao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionDao() {
+    return new AuthorizedDao<>(graphPermissionSystemDao(), appAdminEvaluator());
   }
 
-  private Dao2<PropertyValueId<GraphId>, LangValue> graphPropertyDao() {
-    return new AuthorizedDao2<>(graphPropertySystemDao(),
+  private Dao<PropertyValueId<GraphId>, LangValue> graphPropertyDao() {
+    return new AuthorizedDao<>(graphPropertySystemDao(),
         (u, o, p) -> graphEvaluator().hasPermission(u, o.getSubjectId(), p));
   }
 
-  private SystemDao2<GraphId, Graph> graphSystemDao() {
+  private SystemDao<GraphId, Graph> graphSystemDao() {
     return register(eventBus, cache(new JdbcGraphDao(dataSource)));
   }
 
-  private SystemDao2<GraphRole, Empty> graphRoleSystemDao() {
+  private SystemDao<GraphRole, Empty> graphRoleSystemDao() {
     return register(eventBus, cache(new JdbcGraphRoleDao(dataSource)));
   }
 
   // this instance is shared internally between other DAOs and evaluators
-  private SystemDao2<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao() {
+  private SystemDao<ObjectRolePermission<GraphId>, GrantedPermission> graphPermissionSystemDao() {
     if (graphPermissionSystemDao == null) {
       graphPermissionSystemDao = register(eventBus, cache(new JdbcGraphPermissionsDao(dataSource)));
     }
     return graphPermissionSystemDao;
   }
 
-  private SystemDao2<PropertyValueId<GraphId>, LangValue> graphPropertySystemDao() {
+  private SystemDao<PropertyValueId<GraphId>, LangValue> graphPropertySystemDao() {
     return register(eventBus, cache(new JdbcGraphPropertyDao(dataSource)));
   }
 

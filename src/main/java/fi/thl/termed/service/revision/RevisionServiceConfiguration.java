@@ -4,21 +4,21 @@ import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
 import static fi.thl.termed.util.EventBusUtils.register;
-import static fi.thl.termed.util.dao.CachedSystemDao2.cache;
+import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.service.revision.internal.JdbcRevisionDao;
-import fi.thl.termed.util.dao.AuthorizedDao2;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
-import fi.thl.termed.util.service.DaoForwardingRepository2;
+import fi.thl.termed.util.service.DaoForwardingRepository;
 import fi.thl.termed.util.service.JdbcSequenceService;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service2;
-import fi.thl.termed.util.service.TransactionalService2;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.TransactionalService;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -43,14 +43,14 @@ public class RevisionServiceConfiguration {
   }
 
   @Bean
-  public Service2<Long, Revision> revisionService() {
-    SystemDao2<Long, Revision> dao = register(eventBus, cache(new JdbcRevisionDao(dataSource)));
+  public Service<Long, Revision> revisionService() {
+    SystemDao<Long, Revision> dao = register(eventBus, cache(new JdbcRevisionDao(dataSource)));
 
-    Service2<Long, Revision> service =
-        new DaoForwardingRepository2<>(
-            new AuthorizedDao2<>(dao, revisionEvaluator()));
+    Service<Long, Revision> service =
+        new DaoForwardingRepository<>(
+            new AuthorizedDao<>(dao, revisionEvaluator()));
 
-    return new TransactionalService2<>(service, transactionManager);
+    return new TransactionalService<>(service, transactionManager);
   }
 
   private PermissionEvaluator<String> revisionSeqEvaluator() {

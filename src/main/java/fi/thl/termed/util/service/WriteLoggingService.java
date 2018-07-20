@@ -7,17 +7,17 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WriteLoggingService2<K extends Serializable, V extends Identifiable<K>>
-    extends ForwardingService2<K, V> {
+public class WriteLoggingService<K extends Serializable, V extends Identifiable<K>>
+    extends ForwardingService<K, V> {
 
   private Logger log;
 
-  public WriteLoggingService2(Service2<K, V> delegate, String loggerName) {
+  public WriteLoggingService(Service<K, V> delegate, String loggerName) {
     super(delegate);
     this.log = LoggerFactory.getLogger(loggerName);
   }
 
-  public WriteLoggingService2(Service2<K, V> delegate, Class<?> loggerName) {
+  public WriteLoggingService(Service<K, V> delegate, Class<?> loggerName) {
     super(delegate);
     this.log = LoggerFactory.getLogger(loggerName);
   }

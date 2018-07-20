@@ -33,9 +33,9 @@ import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.HashSet;
 import java.util.Optional;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IndexedNodeService extends ForwardingService2<NodeId, Node> {
+public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -52,7 +52,7 @@ public class IndexedNodeService extends ForwardingService2<NodeId, Node> {
   private User indexer = new User("indexer", "", AppRole.ADMIN);
   private Gson gson;
 
-  public IndexedNodeService(Service2<NodeId, Node> delegate, Index<NodeId, Node> index, Gson gson) {
+  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index, Gson gson) {
     super(delegate);
     this.index = index;
     this.gson = gson;

@@ -8,23 +8,23 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Date;
 import java.util.stream.Stream;
 
-public class RevisionInitializingNodeService extends ForwardingService2<NodeId, Node> {
+public class RevisionInitializingNodeService extends ForwardingService<NodeId, Node> {
 
   private SequenceService revisionSequenceService;
-  private Service2<Long, Revision> revisionService;
+  private Service<Long, Revision> revisionService;
 
   public RevisionInitializingNodeService(
-      Service2<NodeId, Node> delegate,
+      Service<NodeId, Node> delegate,
       SequenceService revisionSequenceService,
-      Service2<Long, Revision> revisionService) {
+      Service<Long, Revision> revisionService) {
     super(delegate);
     this.revisionSequenceService = revisionSequenceService;
     this.revisionService = revisionService;

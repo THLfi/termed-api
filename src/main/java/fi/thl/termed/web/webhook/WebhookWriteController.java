@@ -10,7 +10,7 @@ import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.specification.WebhookByUrl;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.net.URI;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookWriteController {
 
   @Autowired
-  private Service2<UUID, Webhook> webhookService;
+  private Service<UUID, Webhook> webhookService;
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {

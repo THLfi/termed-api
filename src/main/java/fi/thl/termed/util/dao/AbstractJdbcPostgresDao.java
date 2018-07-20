@@ -24,7 +24,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
  * to delegate.
  */
 public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
-    ForwardingSystemDao2<K, V> {
+    ForwardingSystemDao<K, V> {
 
   private static final int DEFAULT_BATCH_SIZE = 10_000;
   private static final int ANALYZE_LIMIT = 1000;
@@ -33,11 +33,11 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
   private final String table;
   private final int batchSize;
 
-  public AbstractJdbcPostgresDao(SystemDao2<K, V> delegate, DataSource dataSource, String table) {
+  public AbstractJdbcPostgresDao(SystemDao<K, V> delegate, DataSource dataSource, String table) {
     this(delegate, dataSource, table, DEFAULT_BATCH_SIZE);
   }
 
-  public AbstractJdbcPostgresDao(SystemDao2<K, V> delegate, DataSource dataSource, String table,
+  public AbstractJdbcPostgresDao(SystemDao<K, V> delegate, DataSource dataSource, String table,
       int batchSize) {
     super(delegate);
 

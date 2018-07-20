@@ -10,7 +10,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.Objects;
@@ -27,10 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class TypeReadController {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
 
   @GetJsonMapping("/types")
   public Stream<Type> getTypes(@AuthenticationPrincipal User currentUser) {

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface Dao2<K extends Serializable, V> {
+public interface Dao<K extends Serializable, V> {
 
   void insert(Stream<Tuple2<K, V>> entries, User user);
 

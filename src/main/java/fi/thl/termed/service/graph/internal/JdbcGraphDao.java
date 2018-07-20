@@ -3,14 +3,14 @@ package fi.thl.termed.service.graph.internal;
 import com.google.common.base.Strings;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcGraphDao extends AbstractJdbcDao2<GraphId, Graph> {
+public class JdbcGraphDao extends AbstractJdbcDao<GraphId, Graph> {
 
   public JdbcGraphDao(DataSource dataSource) {
     super(dataSource);

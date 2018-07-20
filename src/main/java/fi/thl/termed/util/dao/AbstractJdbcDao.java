@@ -19,7 +19,7 @@ import org.springframework.jdbc.core.RowMapper;
 /**
  * Base class to help with implementing a JDBC Dao.
  */
-public abstract class AbstractJdbcDao2<K extends Serializable, V> implements SystemDao2<K, V> {
+public abstract class AbstractJdbcDao<K extends Serializable, V> implements SystemDao<K, V> {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -29,7 +29,7 @@ public abstract class AbstractJdbcDao2<K extends Serializable, V> implements Sys
   private RowMapper<V> valueMapper;
   private RowMapper<Tuple2<K, V>> entryMapper;
 
-  public AbstractJdbcDao2(DataSource dataSource) {
+  public AbstractJdbcDao(DataSource dataSource) {
     this.jdbcTemplate = new StreamingJdbcTemplate(dataSource);
 
     this.keyMapper = buildKeyMapper();

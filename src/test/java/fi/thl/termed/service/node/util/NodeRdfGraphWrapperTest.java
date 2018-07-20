@@ -15,8 +15,8 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.dao.MemoryBasedSystemDao2;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.MemoryBasedSystemDao;
+import fi.thl.termed.util.dao.SystemDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class NodeRdfGraphWrapperTest {
   @Before
   public void setUp() {
     List<Type> types = new ArrayList<>();
-    SystemDao2<NodeId, Node> nodeDao = new MemoryBasedSystemDao2<>();
+    SystemDao<NodeId, Node> nodeDao = new MemoryBasedSystemDao<>();
 
     UUID graphId = nameUUIDFromString("test-graph");
 

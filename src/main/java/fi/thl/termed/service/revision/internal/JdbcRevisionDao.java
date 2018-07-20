@@ -1,14 +1,14 @@
 package fi.thl.termed.service.revision.internal;
 
 import fi.thl.termed.domain.Revision;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcRevisionDao extends AbstractJdbcDao2<Long, Revision> {
+public class JdbcRevisionDao extends AbstractJdbcDao<Long, Revision> {
 
   public JdbcRevisionDao(DataSource dataSource) {
     super(dataSource);

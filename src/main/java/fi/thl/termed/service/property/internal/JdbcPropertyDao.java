@@ -4,14 +4,14 @@ import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import fi.thl.termed.domain.Property;
-import fi.thl.termed.util.dao.AbstractJdbcDao2;
+import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcPropertyDao extends AbstractJdbcDao2<String, Property> {
+public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
 
   public JdbcPropertyDao(DataSource dataSource) {
     super(dataSource);

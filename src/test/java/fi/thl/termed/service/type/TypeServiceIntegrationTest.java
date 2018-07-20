@@ -28,7 +28,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -47,13 +47,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class TypeServiceIntegrationTest {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
   @Autowired
-  private Service2<String, User> userService;
+  private Service<String, User> userService;
   @Autowired
-  private Service2<String, Property> propertyService;
+  private Service<String, Property> propertyService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 

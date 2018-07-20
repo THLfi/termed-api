@@ -22,7 +22,7 @@ import fi.thl.termed.util.GraphUtils;
 import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.Tree;
 import fi.thl.termed.util.collect.ListUtils;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeJsTreeReadController {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @GetJsonMapping
   public List<JsTree> getContextJsTrees(

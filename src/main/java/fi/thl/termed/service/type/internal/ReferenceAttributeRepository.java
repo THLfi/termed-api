@@ -17,29 +17,29 @@ import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
-import fi.thl.termed.domain.transform.RolePermissionsDtoToModel2;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
+import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ReferenceAttributeRepository
-    extends AbstractRepository2<ReferenceAttributeId, ReferenceAttribute> {
+    extends AbstractRepository<ReferenceAttributeId, ReferenceAttribute> {
 
-  private Dao2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
-  private Dao2<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
-  private Dao2<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao;
+  private Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao;
+  private Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao;
+  private Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao;
 
   public ReferenceAttributeRepository(
-      Dao2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
-      Dao2<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
-      Dao2<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao) {
+      Dao<ReferenceAttributeId, ReferenceAttribute> referenceAttributeDao,
+      Dao<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> permissionDao,
+      Dao<PropertyValueId<ReferenceAttributeId>, LangValue> propertyDao) {
     this.referenceAttributeDao = referenceAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyDao = propertyDao;
@@ -56,13 +56,13 @@ public class ReferenceAttributeRepository
   private void insertPermissions(ReferenceAttributeId attributeId,
       Multimap<String, Permission> permissions, User user) {
     TypeId domainId = attributeId.getDomainId();
-    permissionDao.insert(new RolePermissionsDtoToModel2<>(
+    permissionDao.insert(new RolePermissionsDtoToModel<>(
         domainId.getGraph(), attributeId).apply(permissions), user);
   }
 
   private void insertProperties(ReferenceAttributeId attributeId,
       Multimap<String, LangValue> properties, User user) {
-    propertyDao.insert(new PropertyValueDtoToModel2<>(attributeId).apply(properties), user);
+    propertyDao.insert(new PropertyValueDtoToModel<>(attributeId).apply(properties), user);
   }
 
   @Override
@@ -80,7 +80,7 @@ public class ReferenceAttributeRepository
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
         tuplesToMap(
-            new RolePermissionsDtoToModel2<>(domainId.getGraph(), attrId).apply(permissions));
+            new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
         tuplesToMap(permissionDao.getEntries(
             new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user));
@@ -96,7 +96,7 @@ public class ReferenceAttributeRepository
       Multimap<String, LangValue> properties, User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
-        tuplesToMap(new PropertyValueDtoToModel2<>(attributeId).apply(properties));
+        tuplesToMap(new PropertyValueDtoToModel<>(attributeId).apply(properties));
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
         tuplesToMap(propertyDao.getEntries(
             new ReferenceAttributePropertiesByAttributeId(attributeId), user));

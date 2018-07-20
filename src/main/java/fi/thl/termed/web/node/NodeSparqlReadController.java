@@ -17,7 +17,7 @@ import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.io.ByteArrayOutputStream;
@@ -57,13 +57,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeSparqlReadController {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   private Model buildModelWrapper(UUID graphId, User user) {
     if (!graphService.exists(new GraphId(graphId), user)) {

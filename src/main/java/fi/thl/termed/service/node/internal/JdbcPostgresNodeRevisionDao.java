@@ -9,7 +9,7 @@ import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.joda.time.DateTime;
@@ -18,7 +18,7 @@ public class JdbcPostgresNodeRevisionDao extends
     AbstractJdbcPostgresDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
   public JdbcPostgresNodeRevisionDao(
-      SystemDao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> delegate, DataSource dataSource) {
+      SystemDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> delegate, DataSource dataSource) {
     super(delegate, dataSource, "node_aud");
   }
 

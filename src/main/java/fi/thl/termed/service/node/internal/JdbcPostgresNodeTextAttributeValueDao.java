@@ -4,14 +4,14 @@ import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
-import fi.thl.termed.util.dao.SystemDao2;
+import fi.thl.termed.util.dao.SystemDao;
 import javax.sql.DataSource;
 
 public class JdbcPostgresNodeTextAttributeValueDao extends
     AbstractJdbcPostgresDao<NodeAttributeValueId, StrictLangValue> {
 
   public JdbcPostgresNodeTextAttributeValueDao(
-      SystemDao2<NodeAttributeValueId, StrictLangValue> delegate, DataSource dataSource) {
+      SystemDao<NodeAttributeValueId, StrictLangValue> delegate, DataSource dataSource) {
     super(delegate, dataSource, "node_text_attribute_value");
   }
 

@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-public class CachedSystemDao2<K extends Serializable, V> implements SystemDao2<K, V> {
+public class CachedSystemDao<K extends Serializable, V> implements SystemDao<K, V> {
 
   private static final int DEFAULT_SPECIFICATION_CACHE_SIZE = 100_000;
   private static final int DEFAULT_KEY_VALUE_CACHE_SIZE = 100_000;
@@ -25,13 +25,13 @@ public class CachedSystemDao2<K extends Serializable, V> implements SystemDao2<K
   private Cache<Specification<K, V>, List<K>> specificationCache;
   private Cache<K, Optional<V>> keyValueCache;
 
-  private SystemDao2<K, V> delegate;
+  private SystemDao<K, V> delegate;
 
-  private CachedSystemDao2(SystemDao2<K, V> delegate) {
+  private CachedSystemDao(SystemDao<K, V> delegate) {
     this(delegate, DEFAULT_SPECIFICATION_CACHE_SIZE, DEFAULT_KEY_VALUE_CACHE_SIZE);
   }
 
-  private CachedSystemDao2(SystemDao2<K, V> delegate, long specCacheSize, long keyValueCacheSize) {
+  private CachedSystemDao(SystemDao<K, V> delegate, long specCacheSize, long keyValueCacheSize) {
     this.delegate = delegate;
     this.specificationCache = CacheBuilder.newBuilder()
         .maximumSize(specCacheSize).recordStats().build();
@@ -39,9 +39,9 @@ public class CachedSystemDao2<K extends Serializable, V> implements SystemDao2<K
         .maximumSize(keyValueCacheSize).recordStats().build();
   }
 
-  public static <K extends Serializable, V> CachedSystemDao2<K, V> cache(
-      SystemDao2<K, V> delegate) {
-    return new CachedSystemDao2<>(delegate);
+  public static <K extends Serializable, V> CachedSystemDao<K, V> cache(
+      SystemDao<K, V> delegate) {
+    return new CachedSystemDao<>(delegate);
   }
 
   @Subscribe

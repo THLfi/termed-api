@@ -14,13 +14,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.security.access.AccessDeniedException;
 
-public class AuthorizedDao2<K extends Serializable, V> implements Dao2<K, V> {
+public class AuthorizedDao<K extends Serializable, V> implements Dao<K, V> {
 
-  private SystemDao2<K, V> delegate;
+  private SystemDao<K, V> delegate;
 
   private PermissionEvaluator<K> evaluator;
 
-  public AuthorizedDao2(SystemDao2<K, V> delegate, PermissionEvaluator<K> evaluator) {
+  public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator) {
     this.delegate = delegate;
     this.evaluator = evaluator;
   }

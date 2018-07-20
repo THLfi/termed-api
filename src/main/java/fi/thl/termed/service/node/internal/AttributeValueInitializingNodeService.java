@@ -9,9 +9,9 @@ import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.exception.BadRequestException;
 import java.util.HashMap;
@@ -22,11 +22,11 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class AttributeValueInitializingNodeService
-    extends ForwardingService2<NodeId, Node> {
+    extends ForwardingService<NodeId, Node> {
 
   private BiFunction<TypeId, User, Optional<Type>> typeSource;
 
-  public AttributeValueInitializingNodeService(Service2<NodeId, Node> delegate,
+  public AttributeValueInitializingNodeService(Service<NodeId, Node> delegate,
       BiFunction<TypeId, User, Optional<Type>> typeSource) {
     super(delegate);
     this.typeSource = typeSource;

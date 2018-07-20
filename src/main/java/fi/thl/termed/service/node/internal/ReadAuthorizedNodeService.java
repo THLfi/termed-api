@@ -15,7 +15,7 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Map;
 import java.util.Optional;
@@ -25,16 +25,16 @@ import java.util.stream.Stream;
 /**
  * For filtering node service read operations. Useful to put in front of an index.
  */
-public class ReadAuthorizedNodeService implements Service2<NodeId, Node> {
+public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
 
-  private Service2<NodeId, Node> delegate;
+  private Service<NodeId, Node> delegate;
 
   private PermissionEvaluator<NodeId> nodeEvaluator;
   private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
   private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
 
   public ReadAuthorizedNodeService(
-      Service2<NodeId, Node> delegate,
+      Service<NodeId, Node> delegate,
       PermissionEvaluator<TypeId> typeEvaluator,
       PermissionEvaluator<TextAttributeId> textAttrEvaluator,
       PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {

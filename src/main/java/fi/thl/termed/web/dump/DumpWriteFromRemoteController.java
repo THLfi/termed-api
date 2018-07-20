@@ -14,7 +14,7 @@ import fi.thl.termed.domain.Dump;
 import fi.thl.termed.domain.DumpId;
 import fi.thl.termed.domain.UrlWithCredentials;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,7 +43,7 @@ public class DumpWriteFromRemoteController {
   private Gson gson;
 
   @Autowired
-  private Service2<DumpId, Dump> dumpService;
+  private Service<DumpId, Dump> dumpService;
 
   private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 

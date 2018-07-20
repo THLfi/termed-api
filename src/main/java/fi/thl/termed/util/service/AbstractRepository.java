@@ -17,8 +17,8 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractRepository2<K extends Serializable, V extends Identifiable<K>>
-    implements Service2<K, V> {
+public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
+    implements Service<K, V> {
 
   private final User helper = new User("abstract-repository-helper", "", SUPERUSER);
 
@@ -26,11 +26,11 @@ public abstract class AbstractRepository2<K extends Serializable, V extends Iden
 
   private int batchSize;
 
-  public AbstractRepository2() {
+  public AbstractRepository() {
     this(1);
   }
 
-  public AbstractRepository2(int batchSize) {
+  public AbstractRepository(int batchSize) {
     this.batchSize = batchSize;
   }
 

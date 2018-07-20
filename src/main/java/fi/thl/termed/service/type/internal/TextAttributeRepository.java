@@ -17,28 +17,28 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.PropertyValueDtoToModel2;
-import fi.thl.termed.domain.transform.RolePermissionsDtoToModel2;
+import fi.thl.termed.domain.transform.PropertyValueDtoToModel;
+import fi.thl.termed.domain.transform.RolePermissionsDtoToModel;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class TextAttributeRepository extends AbstractRepository2<TextAttributeId, TextAttribute> {
+public class TextAttributeRepository extends AbstractRepository<TextAttributeId, TextAttribute> {
 
-  private Dao2<TextAttributeId, TextAttribute> textAttributeDao;
-  private Dao2<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
-  private Dao2<PropertyValueId<TextAttributeId>, LangValue> propertyDao;
+  private Dao<TextAttributeId, TextAttribute> textAttributeDao;
+  private Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao;
+  private Dao<PropertyValueId<TextAttributeId>, LangValue> propertyDao;
 
   public TextAttributeRepository(
-      Dao2<TextAttributeId, TextAttribute> textAttributeDao,
-      Dao2<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao,
-      Dao2<PropertyValueId<TextAttributeId>, LangValue> propertyDao) {
+      Dao<TextAttributeId, TextAttribute> textAttributeDao,
+      Dao<ObjectRolePermission<TextAttributeId>, GrantedPermission> permissionDao,
+      Dao<PropertyValueId<TextAttributeId>, LangValue> propertyDao) {
     this.textAttributeDao = textAttributeDao;
     this.permissionDao = permissionDao;
     this.propertyDao = propertyDao;
@@ -54,14 +54,14 @@ public class TextAttributeRepository extends AbstractRepository2<TextAttributeId
   private void insertProperties(TextAttributeId id, Multimap<String, LangValue> properties,
       User user) {
     propertyDao.insert(
-        new PropertyValueDtoToModel2<>(id).apply(properties), user);
+        new PropertyValueDtoToModel<>(id).apply(properties), user);
   }
 
   private void insertPermissions(TextAttributeId id, Multimap<String, Permission> permissions,
       User user) {
     TypeId domainId = id.getDomainId();
     permissionDao.insert(
-        new RolePermissionsDtoToModel2<>(domainId.getGraph(), id).apply(permissions), user);
+        new RolePermissionsDtoToModel<>(domainId.getGraph(), id).apply(permissions), user);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class TextAttributeRepository extends AbstractRepository2<TextAttributeId
 
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> newPermissionMap =
         tuplesToMap(
-            new RolePermissionsDtoToModel2<>(domainId.getGraph(), attrId).apply(permissions));
+            new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> oldPermissionMap =
         tuplesToMap(
             permissionDao.getEntries(new TextAttributePermissionsByTextAttributeId(attrId), user));
@@ -95,7 +95,7 @@ public class TextAttributeRepository extends AbstractRepository2<TextAttributeId
 
     Map<PropertyValueId<TextAttributeId>, LangValue> newProperties =
         tuplesToMap(
-            new PropertyValueDtoToModel2<>(attributeId).apply(properties));
+            new PropertyValueDtoToModel<>(attributeId).apply(properties));
     Map<PropertyValueId<TextAttributeId>, LangValue> oldProperties =
         tuplesToMap(
             propertyDao.getEntries(new TextAttributePropertiesByAttributeId(attributeId), user));

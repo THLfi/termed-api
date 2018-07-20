@@ -6,16 +6,16 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.ForwardingService2;
+import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class InitializingGraphService extends ForwardingService2<GraphId, Graph> {
+public class InitializingGraphService extends ForwardingService<GraphId, Graph> {
 
-  public InitializingGraphService(Service2<GraphId, Graph> delegate) {
+  public InitializingGraphService(Service<GraphId, Graph> delegate) {
     super(delegate);
   }
 

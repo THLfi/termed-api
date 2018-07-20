@@ -18,7 +18,7 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeDeleteController {
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @Autowired
   private PlatformTransactionManager transactionManager;

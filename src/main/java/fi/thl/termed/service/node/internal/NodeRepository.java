@@ -23,10 +23,10 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao2;
+import fi.thl.termed.util.dao.Dao;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository2;
+import fi.thl.termed.util.service.AbstractRepository;
 import fi.thl.termed.util.service.WriteOptions;
 import java.io.Serializable;
 import java.util.Collection;
@@ -37,23 +37,23 @@ import java.util.stream.Stream;
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs.
  */
-public class NodeRepository extends AbstractRepository2<NodeId, Node> {
+public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
-  private final Dao2<NodeId, Node> nodeDao;
-  private final Dao2<NodeAttributeValueId, StrictLangValue> textAttrValueDao;
-  private final Dao2<NodeAttributeValueId, NodeId> refAttrValueDao;
+  private final Dao<NodeId, Node> nodeDao;
+  private final Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao;
+  private final Dao<NodeAttributeValueId, NodeId> refAttrValueDao;
 
-  private final Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao;
-  private final Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao;
-  private final Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao;
+  private final Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao;
+  private final Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao;
+  private final Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao;
 
   public NodeRepository(
-      Dao2<NodeId, Node> nodeDao,
-      Dao2<NodeAttributeValueId, StrictLangValue> textAttrValueDao,
-      Dao2<NodeAttributeValueId, NodeId> refAttrValueDao,
-      Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao,
-      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao,
-      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao,
+      Dao<NodeId, Node> nodeDao,
+      Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao,
+      Dao<NodeAttributeValueId, NodeId> refAttrValueDao,
+      Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao,
+      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao,
       int batchSize) {
     super(batchSize);
     this.nodeDao = nodeDao;

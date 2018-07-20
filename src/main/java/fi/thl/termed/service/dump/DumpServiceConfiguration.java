@@ -13,11 +13,11 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.event.InvalidateCachesEvent;
-import fi.thl.termed.util.service.Service2;
-import fi.thl.termed.util.service.TransactionalService2;
-import fi.thl.termed.util.service.WriteErrorHandlingService2;
-import fi.thl.termed.util.service.WriteLoggingService2;
-import fi.thl.termed.util.service.WritePreAuthorizingService2;
+import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.TransactionalService;
+import fi.thl.termed.util.service.WriteErrorHandlingService;
+import fi.thl.termed.util.service.WriteLoggingService;
+import fi.thl.termed.util.service.WritePreAuthorizingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,13 +27,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class DumpServiceConfiguration {
 
   @Autowired
-  private Service2<GraphId, Graph> graphService;
+  private Service<GraphId, Graph> graphService;
 
   @Autowired
-  private Service2<TypeId, Type> typeService;
+  private Service<TypeId, Type> typeService;
 
   @Autowired
-  private Service2<NodeId, Node> nodeService;
+  private Service<NodeId, Node> nodeService;
 
   @Autowired
   private PlatformTransactionManager transactionManager;
@@ -42,17 +42,17 @@ public class DumpServiceConfiguration {
   private EventBus eventBus;
 
   @Bean
-  public Service2<DumpId, Dump> dumpService() {
-    Service2<DumpId, Dump> service =
+  public Service<DumpId, Dump> dumpService() {
+    Service<DumpId, Dump> service =
         new DelegatingDumpService(graphService, typeService, nodeService);
 
-    service = new TransactionalService2<>(service, transactionManager);
-    service = new WriteErrorHandlingService2<>(service, (x) -> {
+    service = new TransactionalService<>(service, transactionManager);
+    service = new WriteErrorHandlingService<>(service, (x) -> {
     }, () -> eventBus.post(new InvalidateCachesEvent()));
-    service = new WritePreAuthorizingService2<>(service,
+    service = new WritePreAuthorizingService<>(service,
         (user) -> user.getAppRole() == SUPERUSER || user.getAppRole() == ADMIN,
         (user) -> false);
-    service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
 
     return service;
   }
