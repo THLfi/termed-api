@@ -1,13 +1,18 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.difference;
+import static fi.thl.termed.domain.NodeTransformations.nodePropertiesToRows;
+import static fi.thl.termed.domain.NodeTransformations.nodeReferencesToRows;
 import static fi.thl.termed.domain.RevisionType.DELETE;
 import static fi.thl.termed.domain.RevisionType.INSERT;
 import static fi.thl.termed.domain.RevisionType.UPDATE;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
-import static java.util.stream.Collectors.toMap;
+import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTuples;
+import static fi.thl.termed.util.collect.Tuple.tuplesToMap;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapDifference;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
@@ -16,47 +21,41 @@ import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.NodeTextAttributeValueDtoToModel;
-import fi.thl.termed.domain.transform.NodeTextAttributeValueModelToDto;
-import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
-import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToDto;
-import fi.thl.termed.domain.transform.ReferenceAttributeValueIdModelToReferrerDto;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.dao.Dao2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.service.AbstractRepository;
-import fi.thl.termed.util.service.SaveMode;
+import fi.thl.termed.util.service.AbstractRepository2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs.
  */
-public class NodeRepository extends AbstractRepository<NodeId, Node> {
+public class NodeRepository extends AbstractRepository2<NodeId, Node> {
 
-  private Dao<NodeId, Node> nodeDao;
-  private Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao;
-  private Dao<NodeAttributeValueId, NodeId> refAttrValueDao;
+  private final Dao2<NodeId, Node> nodeDao;
+  private final Dao2<NodeAttributeValueId, StrictLangValue> textAttrValueDao;
+  private final Dao2<NodeAttributeValueId, NodeId> refAttrValueDao;
 
-  private Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao;
+  private final Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao;
+  private final Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao;
+  private final Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao;
 
-  public NodeRepository(Dao<NodeId, Node> nodeDao,
-      Dao<NodeAttributeValueId, StrictLangValue> textAttrValueDao,
-      Dao<NodeAttributeValueId, NodeId> refAttrValueDao,
-      Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao,
-      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao,
-      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao) {
+  public NodeRepository(
+      Dao2<NodeId, Node> nodeDao,
+      Dao2<NodeAttributeValueId, StrictLangValue> textAttrValueDao,
+      Dao2<NodeAttributeValueId, NodeId> refAttrValueDao,
+      Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevDao,
+      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrValueRevDao,
+      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrValueRevDao,
+      int batchSize) {
+    super(batchSize);
     this.nodeDao = nodeDao;
     this.textAttrValueDao = textAttrValueDao;
     this.refAttrValueDao = refAttrValueDao;
@@ -65,127 +64,144 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
     this.refAttrValueRevDao = refAttrValueRevDao;
   }
 
-  /**
-   * With bulk insert, first save all nodes, then dependant values.
-   */
   @Override
-  public void insert(Map<NodeId, Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    Map<NodeAttributeValueId, StrictLangValue> allTextAttrValues = new LinkedHashMap<>();
-    Map<NodeAttributeValueId, NodeId> allRefAttrValues = new LinkedHashMap<>();
-    nodes.forEach((k, v) -> {
-      allTextAttrValues.putAll(new NodeTextAttributeValueDtoToModel(k).apply(v.getProperties()));
-      allRefAttrValues.putAll(new ReferenceAttributeValueIdDtoToModel(k).apply(v.getReferences()));
-    });
+  protected Stream<NodeId> insertBatch(List<Tuple2<NodeId, Node>> nodes, WriteOptions opts,
+      User user) {
 
-    nodeDao.insert(nodes, user);
-    textAttrValueDao.insert(allTextAttrValues, user);
-    refAttrValueDao.insert(allRefAttrValues, user);
+    ImmutableList<Tuple2<NodeAttributeValueId, StrictLangValue>> textValues = nodes.stream()
+        .flatMap(idNode -> nodePropertiesToRows(idNode._1, idNode._2.getProperties()))
+        .collect(toImmutableList());
+    ImmutableList<Tuple2<NodeAttributeValueId, NodeId>> refValues = nodes.stream()
+        .flatMap(idNode -> nodeReferencesToRows(idNode._1, idNode._2.getReferences()))
+        .collect(toImmutableList());
+
+    // first save all nodes, then all dependant values
+    nodeDao.insert(nodes.stream(), user);
+    textAttrValueDao.insert(textValues.stream(), user);
+    refAttrValueDao.insert(refValues.stream(), user);
 
     opts.getRevision().ifPresent(r -> {
-      nodeRevDao.insert(toRevs(nodes, r, INSERT), user);
-      textAttrValueRevDao.insert(toRevs(allTextAttrValues, r, INSERT), user);
-      refAttrValueRevDao.insert(toRevs(allRefAttrValues, r, INSERT), user);
+      nodeRevDao.insert(toRevs(nodes.stream(), r, INSERT), user);
+      textAttrValueRevDao.insert(toRevs(textValues.stream(), r, INSERT), user);
+      refAttrValueRevDao.insert(toRevs(refValues.stream(), r, INSERT), user);
     });
+
+    return nodes.stream().map(e -> e._1);
   }
 
   @Override
-  public void insert(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
-    Map<NodeAttributeValueId, StrictLangValue> textAttrValues =
-        new NodeTextAttributeValueDtoToModel(id).apply(node.getProperties());
-    Map<NodeAttributeValueId, NodeId> refAttrValues =
-        new ReferenceAttributeValueIdDtoToModel(id).apply(node.getReferences());
+  public void insert(NodeId id, Node node, WriteOptions opts, User user) {
+    ImmutableList<Tuple2<NodeAttributeValueId, StrictLangValue>> textAttrValues =
+        nodePropertiesToRows(id, node.getProperties()).collect(toImmutableList());
+    ImmutableList<Tuple2<NodeAttributeValueId, NodeId>> refAttrValues =
+        nodeReferencesToRows(id, node.getReferences()).collect(toImmutableList());
 
     nodeDao.insert(id, node, user);
-    textAttrValueDao.insert(textAttrValues, user);
-    refAttrValueDao.insert(refAttrValues, user);
+    textAttrValueDao.insert(textAttrValues.stream(), user);
+    refAttrValueDao.insert(refAttrValues.stream(), user);
 
     opts.getRevision().ifPresent(r -> {
       nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(INSERT, node), user);
-      textAttrValueRevDao.insert(toRevs(textAttrValues, r, INSERT), user);
-      refAttrValueRevDao.insert(toRevs(refAttrValues, r, INSERT), user);
+      textAttrValueRevDao.insert(toRevs(textAttrValues.stream(), r, INSERT), user);
+      refAttrValueRevDao.insert(toRevs(refAttrValues.stream(), r, INSERT), user);
     });
   }
 
   @Override
-  public void update(NodeId id, Node node, SaveMode mode, WriteOptions opts, User user) {
+  public void update(NodeId id, Node node, WriteOptions opts, User user) {
     MapDifference<NodeAttributeValueId, StrictLangValue> textsDiff = difference(
-        new NodeTextAttributeValueDtoToModel(id).apply(node.getProperties()),
-        textAttrValueDao.getMap(new NodeTextAttributeValuesByNodeId(id), user));
+        tuplesToMap(nodePropertiesToRows(id, node.getProperties())),
+        tuplesToMap(textAttrValueDao.getEntries(new NodeTextAttributeValuesByNodeId(id), user)));
     MapDifference<NodeAttributeValueId, NodeId> refsDiff = difference(
-        new ReferenceAttributeValueIdDtoToModel(id).apply(node.getReferences()),
-        refAttrValueDao.getMap(new NodeReferenceAttributeValuesByNodeId(id), user));
+        tuplesToMap(nodeReferencesToRows(id, node.getReferences())),
+        tuplesToMap(
+            refAttrValueDao.getEntries(new NodeReferenceAttributeValuesByNodeId(id), user)));
 
     nodeDao.update(id, node, user);
-    textAttrValueDao.insert(textsDiff.entriesOnlyOnLeft(), user);
-    textAttrValueDao.update(leftValues(textsDiff.entriesDiffering()), user);
-    textAttrValueDao.delete(copyOf(textsDiff.entriesOnlyOnRight().keySet()), user);
-    refAttrValueDao.insert(refsDiff.entriesOnlyOnLeft(), user);
-    refAttrValueDao.update(leftValues(refsDiff.entriesDiffering()), user);
-    refAttrValueDao.delete(copyOf(refsDiff.entriesOnlyOnRight().keySet()), user);
+
+    textAttrValueDao.insert(entriesAsTuples(textsDiff.entriesOnlyOnLeft()), user);
+    textAttrValueDao.update(entriesAsTuples(leftValues(textsDiff.entriesDiffering())), user);
+    textAttrValueDao.delete(textsDiff.entriesOnlyOnRight().keySet().stream(), user);
+
+    refAttrValueDao.insert(entriesAsTuples(refsDiff.entriesOnlyOnLeft()), user);
+    refAttrValueDao.update(entriesAsTuples(leftValues(refsDiff.entriesDiffering())), user);
+    refAttrValueDao.delete(refsDiff.entriesOnlyOnRight().keySet().stream(), user);
 
     opts.getRevision().ifPresent(r -> {
       nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(UPDATE, node), user);
-      textAttrValueRevDao.insert(toRevs(textsDiff.entriesOnlyOnLeft(), r, INSERT), user);
-      textAttrValueRevDao.insert(toRevs(leftValues(textsDiff.entriesDiffering()), r, UPDATE), user);
-      textAttrValueRevDao.insert(toRevs(textsDiff.entriesOnlyOnRight().keySet(), r, DELETE), user);
-      refAttrValueRevDao.insert(toRevs(refsDiff.entriesOnlyOnLeft(), r, INSERT), user);
-      refAttrValueRevDao.insert(toRevs(leftValues(refsDiff.entriesDiffering()), r, UPDATE), user);
-      refAttrValueRevDao.insert(toRevs(refsDiff.entriesOnlyOnRight().keySet(), r, DELETE), user);
+
+      textAttrValueRevDao.insert(
+          toRevs(entriesAsTuples(textsDiff.entriesOnlyOnLeft()), r, INSERT), user);
+      textAttrValueRevDao.insert(
+          toRevs(entriesAsTuples(leftValues(textsDiff.entriesDiffering())), r, UPDATE), user);
+      textAttrValueRevDao.insert(
+          toRevs(textsDiff.entriesOnlyOnRight().keySet(), r, DELETE), user);
+
+      refAttrValueRevDao.insert(
+          toRevs(entriesAsTuples(refsDiff.entriesOnlyOnLeft()), r, INSERT), user);
+      refAttrValueRevDao.insert(
+          toRevs(entriesAsTuples(leftValues(refsDiff.entriesDiffering())), r, UPDATE), user);
+      refAttrValueRevDao.insert(
+          toRevs(refsDiff.entriesOnlyOnRight().keySet(), r, DELETE), user);
     });
   }
 
+  // first delete all dependant values, then all nodes
   @Override
-  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
-    List<NodeAttributeValueId> allTextAttrValues = new ArrayList<>();
-    List<NodeAttributeValueId> allRefAttrValues = new ArrayList<>();
-    ids.forEach(id -> {
-      allTextAttrValues.addAll(refAttrValueDao.getKeys(
-          new NodeReferenceAttributeValuesByNodeId(id), user));
-      allRefAttrValues.addAll(textAttrValueDao.getKeys(
-          new NodeTextAttributeValuesByNodeId(id), user));
-    });
+  protected void deleteBatch(List<NodeId> ids, WriteOptions opts, User user) {
+    // note that flatMap will close streams returned by DAOs
+    ImmutableList<NodeAttributeValueId> allTextAttrValueIds = ids.stream()
+        .flatMap(id -> textAttrValueDao.getKeys(new NodeTextAttributeValuesByNodeId(id), user))
+        .collect(toImmutableList());
+    ImmutableList<NodeAttributeValueId> allRefAttrValueIds = ids.stream()
+        .flatMap(id -> refAttrValueDao.getKeys(new NodeReferenceAttributeValuesByNodeId(id), user))
+        .collect(toImmutableList());
 
-    refAttrValueDao.delete(allTextAttrValues, user);
-    textAttrValueDao.delete(allRefAttrValues, user);
-    nodeDao.delete(ids, user);
+    textAttrValueDao.delete(allTextAttrValueIds.stream(), user);
+    refAttrValueDao.delete(allRefAttrValueIds.stream(), user);
+    nodeDao.delete(ids.stream(), user);
 
     opts.getRevision().ifPresent(r -> {
-      refAttrValueRevDao.insert(toRevs(allTextAttrValues, r, DELETE), user);
-      textAttrValueRevDao.insert(toRevs(allRefAttrValues, r, DELETE), user);
+      textAttrValueRevDao.insert(toRevs(allTextAttrValueIds, r, DELETE), user);
+      refAttrValueRevDao.insert(toRevs(allRefAttrValueIds, r, DELETE), user);
       nodeRevDao.insert(toRevs(ids, r, DELETE), user);
     });
   }
 
   @Override
   public void delete(NodeId id, WriteOptions opts, User user) {
-    List<NodeAttributeValueId> refAttrValues = refAttrValueDao.getKeys(
-        new NodeReferenceAttributeValuesByNodeId(id), user);
-    List<NodeAttributeValueId> textAttrValues = textAttrValueDao.getKeys(
-        new NodeTextAttributeValuesByNodeId(id), user);
+    try (
+        Stream<NodeAttributeValueId> textAttrValueIds = textAttrValueDao.getKeys(
+            new NodeTextAttributeValuesByNodeId(id), user);
+        Stream<NodeAttributeValueId> refAttrValueIds = refAttrValueDao.getKeys(
+            new NodeReferenceAttributeValuesByNodeId(id), user)) {
 
-    refAttrValueDao.delete(refAttrValues, user);
-    textAttrValueDao.delete(textAttrValues, user);
-    nodeDao.delete(id, user);
+      ImmutableList<NodeAttributeValueId> textAttrValueIdList = textAttrValueIds
+          .collect(toImmutableList());
+      ImmutableList<NodeAttributeValueId> refAttrValueIdList = refAttrValueIds
+          .collect(toImmutableList());
 
-    opts.getRevision().ifPresent(r -> {
-      refAttrValueRevDao.insert(toRevs(refAttrValues, r, DELETE), user);
-      textAttrValueRevDao.insert(toRevs(textAttrValues, r, DELETE), user);
-      nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(DELETE, null), user);
-    });
+      textAttrValueDao.delete(textAttrValueIdList.stream(), user);
+      refAttrValueDao.delete(refAttrValueIdList.stream(), user);
+      nodeDao.delete(id, user);
+
+      opts.getRevision().ifPresent(r -> {
+        textAttrValueRevDao.insert(toRevs(textAttrValueIdList, r, DELETE), user);
+        refAttrValueRevDao.insert(toRevs(refAttrValueIdList, r, DELETE), user);
+        nodeRevDao.insert(RevisionId.of(id, r), Tuple.of(DELETE, null), user);
+      });
+    }
   }
 
-  private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
-      Map<K, V> map, Long revision, RevisionType revisionType) {
-    return map.entrySet().stream().collect(toMap(
-        e -> RevisionId.of(e.getKey(), revision),
-        e -> Tuple.of(revisionType, e.getValue())));
+  private <K extends Serializable, V> Stream<Tuple2<RevisionId<K>, Tuple2<RevisionType, V>>> toRevs(
+      Stream<Tuple2<K, V>> entries, Long revision, RevisionType revisionType) {
+    return entries.map(e -> Tuple.of(RevisionId.of(e._1, revision), Tuple.of(revisionType, e._2)));
   }
 
-  private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
+  private <K extends Serializable, V> Stream<Tuple2<RevisionId<K>, Tuple2<RevisionType, V>>> toRevs(
       Collection<K> keys, Long revision, RevisionType revisionType) {
-    return keys.stream().distinct().collect(toMap(
-        key -> RevisionId.of(key, revision),
-        key -> Tuple.of(revisionType, null)));
+    return keys.stream()
+        .map(key -> Tuple.of(RevisionId.of(key, revision), Tuple.of(revisionType, (V) null)));
   }
 
   @Override
@@ -194,14 +210,13 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
-    return nodeDao.getValues(query.getWhere(), user).stream()
-        .map(node -> populateValue(node, user));
+  public Stream<Node> values(Query<NodeId, Node> query, User user) {
+    return nodeDao.getValues(query.getWhere(), user).map(node -> populateValue(node, user));
   }
 
   @Override
-  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
-    return nodeDao.getKeys(query.getWhere(), user).stream();
+  public Stream<NodeId> keys(Query<NodeId, Node> query, User user) {
+    return nodeDao.getKeys(query.getWhere(), user);
   }
 
   @Override
@@ -210,23 +225,32 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   private Node populateValue(Node node, User user) {
-    node = new Node(node);
+    NodeId nodeId = node.identifier();
 
-    node.setProperties(
-        new NodeTextAttributeValueModelToDto().apply(textAttrValueDao.getMap(
-            new NodeTextAttributeValuesByNodeId(new NodeId(node)), user)));
+    try (
+        Stream<Tuple2<NodeAttributeValueId, StrictLangValue>> texts = textAttrValueDao
+            .getEntries(new NodeTextAttributeValuesByNodeId(nodeId), user);
+        Stream<Tuple2<NodeAttributeValueId, NodeId>> references = refAttrValueDao.getEntries(
+            new NodeReferenceAttributeValuesByNodeId(nodeId), user);
+        Stream<Tuple2<NodeAttributeValueId, NodeId>> referrers = refAttrValueDao.getEntries(
+            new NodeReferenceAttributeNodesByValueId(nodeId), user)) {
 
-    node.setReferences(
-        new ReferenceAttributeValueIdModelToDto()
-            .apply(refAttrValueDao.getMap(
-                new NodeReferenceAttributeValuesByNodeId(new NodeId(node)), user)));
+      node = new Node(node);
 
-    node.setReferrers(
-        new ReferenceAttributeValueIdModelToReferrerDto()
-            .apply(refAttrValueDao.getMap(
-                new NodeReferenceAttributeNodesByValueId(new NodeId(node)), user)));
+      node.setProperties(texts.collect(toImmutableMultimap(
+          e -> e._1.getAttributeId(),
+          e -> e._2)));
 
-    return node;
+      node.setReferences(references.collect(toImmutableMultimap(
+          e -> e._1.getAttributeId(),
+          e -> e._2)));
+
+      node.setReferrers(referrers.collect(toImmutableMultimap(
+          e -> e._1.getAttributeId(),
+          e -> e._1.getNodeId())));
+
+      return node;
+    }
   }
 
 }

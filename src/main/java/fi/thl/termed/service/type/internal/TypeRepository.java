@@ -3,9 +3,8 @@ package fi.thl.termed.service.type.internal;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
 import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
-import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
-import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTuples;
+import static fi.thl.termed.util.collect.Tuple.tuplesToMap;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static java.util.stream.Collectors.toList;
@@ -51,41 +50,32 @@ public class TypeRepository extends AbstractRepository2<TypeId, Type> {
   private Service2<TextAttributeId, TextAttribute> textAttributeRepository;
   private Service2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository;
 
-  private boolean streamingInsertsSupported;
-
   public TypeRepository(
       Dao2<TypeId, Type> typeDao,
       Dao2<ObjectRolePermission<TypeId>, GrantedPermission> typePermissionDao,
       Dao2<PropertyValueId<TypeId>, LangValue> typePropertyDao,
       Service2<TextAttributeId, TextAttribute> textAttributeRepository,
       Service2<ReferenceAttributeId, ReferenceAttribute> referenceAttributeRepository,
-      boolean streamingInsertsSupported) {
+      int batchSize) {
+    super(batchSize);
     this.typeDao = typeDao;
     this.typePermissionDao = typePermissionDao;
     this.typePropertyDao = typePropertyDao;
     this.textAttributeRepository = textAttributeRepository;
     this.referenceAttributeRepository = referenceAttributeRepository;
-    this.streamingInsertsSupported = streamingInsertsSupported;
   }
 
   @Override
-  protected Stream<TypeId> insert(Stream<Tuple2<TypeId, Type>> types, WriteOptions opts,
+  protected Stream<TypeId> insertBatch(List<Tuple2<TypeId, Type>> types, WriteOptions opts,
       User user) {
-    if (streamingInsertsSupported) {
-      return super.insert(types, opts, user);
-    } else {
-      // if streaming inserts is not supported, collect all types and first insert type rows and
-      // then dependant values
-      List<Tuple2<TypeId, Type>> typeList = toListAndClose(types);
-      typeDao.insert(typeList.stream(), user);
-      typeList.forEach(t -> {
-        insertPermissions(t._1, t._2.getPermissions(), user);
-        insertProperties(t._1, t._2.getProperties(), user);
-        saveTextAttributes(t._1, t._2.getTextAttributes(), INSERT, opts, user);
-        saveReferenceAttributes(t._1, t._2.getReferenceAttributes(), INSERT, opts, user);
-      });
-      return typeList.stream().map(t -> t._1);
-    }
+    typeDao.insert(types.stream(), user);
+    types.forEach(t -> {
+      insertPermissions(t._1, t._2.getPermissions(), user);
+      insertProperties(t._1, t._2.getProperties(), user);
+      saveTextAttributes(t._1, t._2.getTextAttributes(), INSERT, opts, user);
+      saveReferenceAttributes(t._1, t._2.getReferenceAttributes(), INSERT, opts, user);
+    });
+    return types.stream().map(t -> t._1);
   }
 
   @Override
@@ -154,28 +144,28 @@ public class TypeRepository extends AbstractRepository2<TypeId, Type> {
 
   private void updatePermissions(TypeId id, Multimap<String, Permission> permissions, User user) {
     Map<ObjectRolePermission<TypeId>, GrantedPermission> newPermissionMap =
-        tupleStreamToMap(new RolePermissionsDtoToModel2<>(id.getGraph(), id).apply(permissions));
+        tuplesToMap(new RolePermissionsDtoToModel2<>(id.getGraph(), id).apply(permissions));
     Map<ObjectRolePermission<TypeId>, GrantedPermission> oldPermissionMap =
-        tupleStreamToMap(typePermissionDao.getEntries(new TypePermissionsByTypeId(id), user));
+        tuplesToMap(typePermissionDao.getEntries(new TypePermissionsByTypeId(id), user));
 
     MapDifference<ObjectRolePermission<TypeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    typePermissionDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    typePermissionDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
     typePermissionDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
   private void updateProperties(TypeId id, Multimap<String, LangValue> properties, User user) {
     Map<PropertyValueId<TypeId>, LangValue> newProperties =
-        tupleStreamToMap(new PropertyValueDtoToModel2<>(id).apply(properties));
+        tuplesToMap(new PropertyValueDtoToModel2<>(id).apply(properties));
     Map<PropertyValueId<TypeId>, LangValue> oldProperties =
-        tupleStreamToMap(typePropertyDao.getEntries(new TypePropertiesByTypeId(id), user));
+        tuplesToMap(typePropertyDao.getEntries(new TypePropertiesByTypeId(id), user));
 
     MapDifference<PropertyValueId<TypeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    typePropertyDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
-    typePropertyDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    typePropertyDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
+    typePropertyDao.update(entriesAsTuples(leftValues(diff.entriesDiffering())), user);
     typePropertyDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 

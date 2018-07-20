@@ -15,7 +15,6 @@ import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.FutureUtils;
-import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.query.LuceneSpecification;
@@ -33,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -107,8 +107,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public void index(List<K> keys, Function<K, Optional<V>> valueProvider) {
-    IndexingTask indexingTask = new IndexingTask(keys, valueProvider);
+  public void index(Supplier<Stream<K>> keySupplier, Function<K, Optional<V>> valueProvider) {
+    IndexingTask indexingTask = new IndexingTask(keySupplier, valueProvider);
     addCallback(listeningDecorator(indexingExecutor).submit(indexingTask),
         FutureUtils.errorHandler(t -> log.error("", t)), directExecutor());
   }
@@ -313,11 +313,11 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private class IndexingTask implements Callable<Void> {
 
-    private List<K> keys;
+    private Supplier<Stream<K>> keyStreamProvider;
     private Function<K, Optional<V>> valueProvider;
 
-    IndexingTask(List<K> keys, Function<K, Optional<V>> valueProvider) {
-      this.keys = keys;
+    IndexingTask(Supplier<Stream<K>> keyStreamProvider, Function<K, Optional<V>> valueProvider) {
+      this.keyStreamProvider = keyStreamProvider;
       this.valueProvider = valueProvider;
     }
 
@@ -325,21 +325,17 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     public Void call() {
       log.info("Indexing");
 
-      ProgressReporter reporter = new ProgressReporter(log, "Indexed", 1000, keys.size());
+      try (Stream<K> keyStream = keyStreamProvider.get()) {
+        keyStream.forEach(key -> {
+          Optional<V> value = valueProvider.apply(key);
 
-      for (K id : keys) {
-        Optional<V> value = valueProvider.apply(id);
-
-        if (value.isPresent()) {
-          index(id, value.get());
-        } else {
-          delete(id);
-        }
-
-        reporter.tick();
+          if (value.isPresent()) {
+            index(key, value.get());
+          } else {
+            delete(key);
+          }
+        });
       }
-
-      reporter.report();
 
       log.info("Done");
       return null;

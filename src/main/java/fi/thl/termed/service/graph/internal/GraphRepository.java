@@ -3,8 +3,8 @@ package fi.thl.termed.service.graph.internal;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
 import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
-import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
-import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTuples;
+import static fi.thl.termed.util.collect.Tuple.tuplesToMap;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -84,14 +84,14 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
   }
 
   private void updateRoles(GraphId graphId, List<String> roles, User user) {
-    Map<GraphRole, Empty> newRolesMap = tupleStreamToMap(
+    Map<GraphRole, Empty> newRolesMap = tuplesToMap(
         new GraphRoleDtoToModel2(graphId).apply(roles));
-    Map<GraphRole, Empty> oldRolesMap = tupleStreamToMap(graphRoleDao.getEntries(
+    Map<GraphRole, Empty> oldRolesMap = tuplesToMap(graphRoleDao.getEntries(
         new GraphRolesByGraphId(graphId), user));
 
     MapDifference<GraphRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
 
-    graphRoleDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    graphRoleDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
     graphRoleDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
@@ -99,14 +99,14 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
       User u) {
 
     Map<ObjectRolePermission<GraphId>, GrantedPermission> newPermissionMap =
-        tupleStreamToMap(new RolePermissionsDtoToModel2<>(graphId, graphId).apply(permissions));
+        tuplesToMap(new RolePermissionsDtoToModel2<>(graphId, graphId).apply(permissions));
     Map<ObjectRolePermission<GraphId>, GrantedPermission> oldPermissionMap =
-        tupleStreamToMap(graphPermissionDao.getEntries(new GraphPermissionsByGraphId(graphId), u));
+        tuplesToMap(graphPermissionDao.getEntries(new GraphPermissionsByGraphId(graphId), u));
 
     MapDifference<ObjectRolePermission<GraphId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    graphPermissionDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), u);
+    graphPermissionDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), u);
     graphPermissionDao.delete(diff.entriesOnlyOnRight().keySet().stream(), u);
   }
 
@@ -114,15 +114,15 @@ public class GraphRepository extends AbstractRepository2<GraphId, Graph> {
       User user) {
 
     Map<PropertyValueId<GraphId>, LangValue> newProperties =
-        tupleStreamToMap(new PropertyValueDtoToModel2<>(graphId).apply(propertyMultimap));
+        tuplesToMap(new PropertyValueDtoToModel2<>(graphId).apply(propertyMultimap));
     Map<PropertyValueId<GraphId>, LangValue> oldProperties =
-        tupleStreamToMap(graphPropertyDao.getEntries(new GraphPropertiesByGraphId(graphId), user));
+        tuplesToMap(graphPropertyDao.getEntries(new GraphPropertiesByGraphId(graphId), user));
 
     MapDifference<PropertyValueId<GraphId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    graphPropertyDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
-    graphPropertyDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    graphPropertyDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
+    graphPropertyDao.update(entriesAsTuples(leftValues(diff.entriesDiffering())), user);
     graphPropertyDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 

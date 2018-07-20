@@ -1,10 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static fi.thl.termed.util.query.AndSpecification.and;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toSet;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -14,117 +10,98 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.service.node.specification.NodesByUri;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.ForwardingService2;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Node> {
+public class ExtIdsInitializingNodeService extends ForwardingService2<NodeId, Node> {
 
   private NamedSequenceService<TypeId> nodeSequenceService;
-  private BiFunction<TypeId, User, Optional<Type>> typeSource;
-  private BiFunction<GraphId, User, Optional<Graph>> graphSource;
+  private BiFunction<TypeId, User, Type> typeSource;
+  private BiFunction<GraphId, User, Graph> graphSource;
 
-  public ExtIdsInitializingNodeService(Service<NodeId, Node> delegate,
+  public ExtIdsInitializingNodeService(Service2<NodeId, Node> delegate,
       NamedSequenceService<TypeId> nodeSequenceService,
       BiFunction<TypeId, User, Optional<Type>> typeSource,
       BiFunction<GraphId, User, Optional<Graph>> graphSource) {
     super(delegate);
     this.nodeSequenceService = nodeSequenceService;
-    this.typeSource = typeSource;
-    this.graphSource = graphSource;
+    this.typeSource = (typeId, user) -> typeSource.apply(typeId, user)
+        .orElseThrow(IllegalStateException::new);
+    this.graphSource = (graphId, user) -> graphSource.apply(graphId, user)
+        .orElseThrow(IllegalStateException::new);
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    addSerialNumbersWithDefaultCodesAndUris(nodes, user);
-    return super.save(nodes, mode, opts, user);
+  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(nodes.map(n -> addExternalIdentifiers(n, user)), mode, opts, user);
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    addSerialNumbersWithDefaultCodesAndUris(singletonList(node), user);
-    return super.save(node, mode, opts, user);
+    return super.save(addExternalIdentifiers(node, user), mode, opts, user);
   }
 
-  @Override
-  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    addSerialNumbersWithDefaultCodesAndUris(saves, user);
-    return super.saveAndDelete(saves, deletes, mode, opts, user);
-  }
+  private Node addExternalIdentifiers(Node node, User user) {
+    Optional<Node> cachedNode = findCachedNode(node.identifier(), user);
 
-  private void addSerialNumbersWithDefaultCodesAndUris(List<Node> nodes, User user) {
-    nodes.stream().collect(groupingBy(Node::getType)).forEach((type, instances) -> {
+    if (cachedNode.isPresent()) {
+      node.setNumber(cachedNode.get().getNumber());
+    } else {
+      Long number = nodeSequenceService.getAndAdvance(node.getType(), user);
+      node.setNumber(number);
 
-      List<Node> newNodes = new ArrayList<>();
-
-      for (Node node : instances) {
-        try (Stream<Node> stream = getValueStream(and(
-            new NodesByGraphId(node.getTypeGraphId()),
-            new NodesByTypeId(node.getTypeId()),
-            new NodeById(node.getId())), user)) {
-          Optional<Node> old = stream.findAny();
-          if (old.isPresent()) {
-            node.setNumber(old.get().getNumber());
-          } else {
-            newNodes.add(node);
-          }
+      if (node.getCode() == null) {
+        Type type = typeSource.apply(node.getType(), user);
+        String code = type.getNodeCodePrefixOrDefault() + number;
+        if (existsNodeWithCode(node.getType(), code, user)) {
+          node.setCode(code);
         }
       }
 
-      if (!newNodes.isEmpty()) {
-        Set<String> usedCodes = instances.stream()
-            .map(Node::getCode).filter(Objects::nonNull).collect(toSet());
-        Set<String> usedUris = nodes.stream()
-            .filter(node -> Objects.equals(node.getTypeGraphId(), type.getGraphId()))
-            .map(Node::getUri).filter(Objects::nonNull).collect(toSet());
-
-        long number = nodeSequenceService.getAndAdvance(type, (long) (newNodes.size()), user);
-
-        for (Node node : newNodes) {
-          node.setNumber(number++);
-          addDefaultCodeIfMissing(node, usedCodes, user);
-          addDefaultUriIfMissing(node, usedUris, user);
+      if (node.getUri() == null) {
+        Graph graph = graphSource.apply(node.getTypeGraph(), user);
+        Optional<String> uri = graph.getUri().map(ns -> ns + node.getCode());
+        if (uri.isPresent() && !existsNodeWithUri(node.getType(), uri.get(), user)) {
+          node.setUri(uri.get());
         }
       }
-    });
+    }
+
+    return node;
   }
 
-  private void addDefaultCodeIfMissing(Node node, Set<String> usedCodes, User user) {
-    if (isNullOrEmpty(node.getCode())) {
-      Type type = typeSource.apply(node.getType(), user)
-          .orElseThrow(IllegalStateException::new);
-
-      String code = type.getNodeCodePrefixOrDefault() + node.getNumber();
-
-      if (!usedCodes.contains(code)) {
-        node.setCode(code);
-      }
+  private Optional<Node> findCachedNode(NodeId nodeId, User user) {
+    try (Stream<Node> nodeStream = values(new Query<>(and(
+        new NodesByGraphId(nodeId.getTypeGraphId()),
+        new NodesByTypeId(nodeId.getTypeId()),
+        new NodeById(nodeId.getId()))), user)) {
+      return nodeStream.findAny();
     }
   }
 
-  private void addDefaultUriIfMissing(Node node, Set<String> usedUris, User user) {
-    if (isNullOrEmpty(node.getUri()) && !isNullOrEmpty(node.getCode())) {
-      Graph graph = graphSource.apply(node.getTypeGraph(), user)
-          .orElseThrow(IllegalStateException::new);
+  private boolean existsNodeWithCode(TypeId typeId, String code, User user) {
+    return count(and(
+        new NodesByGraphId(typeId.getGraphId()),
+        new NodesByTypeId(typeId.getId()),
+        new NodesByCode(code)), user) > 0;
+  }
 
-      graph.getUri().map(ns -> ns + node.getCode()).ifPresent(uri -> {
-        if (!usedUris.contains(uri)) {
-          node.setUri(uri);
-        }
-      });
-    }
+  private boolean existsNodeWithUri(TypeId typeId, String uri, User user) {
+    return count(and(
+        new NodesByGraphId(typeId.getGraphId()),
+        new NodesByTypeId(typeId.getId()),
+        new NodesByUri(uri)), user) > 0;
   }
 
 }

@@ -2,8 +2,8 @@ package fi.thl.termed.service.type.internal;
 
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
 import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
-import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
-import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTuples;
+import static fi.thl.termed.util.collect.Tuple.tuplesToMap;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -79,16 +79,16 @@ public class ReferenceAttributeRepository
     TypeId domainId = attrId.getDomainId();
 
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> newPermissionMap =
-        tupleStreamToMap(
+        tuplesToMap(
             new RolePermissionsDtoToModel2<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
-        tupleStreamToMap(permissionDao.getEntries(
+        tuplesToMap(permissionDao.getEntries(
             new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user));
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
 
-    permissionDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
+    permissionDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
     permissionDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 
@@ -96,16 +96,16 @@ public class ReferenceAttributeRepository
       Multimap<String, LangValue> properties, User user) {
 
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
-        tupleStreamToMap(new PropertyValueDtoToModel2<>(attributeId).apply(properties));
+        tuplesToMap(new PropertyValueDtoToModel2<>(attributeId).apply(properties));
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
-        tupleStreamToMap(propertyDao.getEntries(
+        tuplesToMap(propertyDao.getEntries(
             new ReferenceAttributePropertiesByAttributeId(attributeId), user));
 
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
-    propertyDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    propertyDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
+    propertyDao.update(entriesAsTuples(leftValues(diff.entriesDiffering())), user);
     propertyDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 

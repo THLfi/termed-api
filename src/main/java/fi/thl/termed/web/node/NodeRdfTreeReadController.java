@@ -37,7 +37,6 @@ import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -66,7 +65,7 @@ public class NodeRdfTreeReadController {
   @Autowired
   private Service2<TypeId, Type> typeService;
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @GetRdfMapping("/node-trees")
   public Model get(
@@ -85,8 +84,7 @@ public class NodeRdfTreeReadController {
     selects.add(new SelectType());
     selects.addAll(Selects.parse(join(",", select)));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
@@ -124,8 +122,7 @@ public class NodeRdfTreeReadController {
     selects.add(new SelectType());
     selects.addAll(Selects.parse(join(",", select)));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
@@ -160,8 +157,7 @@ public class NodeRdfTreeReadController {
     selects.add(new SelectType());
     selects.addAll(Selects.parse(join(",", select)));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();

@@ -101,7 +101,7 @@ public class TypeServiceConfiguration {
         typePropertyDao(),
         textAttributeRepository(),
         referenceAttributeRepository(),
-        getDatabaseProductName(dataSource).equals("db/migration/postgresql"));
+        getDatabaseProductName(dataSource).equals("postgresql") ? 1 : -1);
   }
 
   private Dao2<TypeId, Type> typeDao() {

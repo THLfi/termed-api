@@ -5,7 +5,6 @@ import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +22,6 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,7 +39,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class NodeServiceIntegrationTest {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
   @Autowired
   private Service2<GraphId, Graph> graphService;
   @Autowired
@@ -162,7 +160,7 @@ public class NodeServiceIntegrationTest {
     john.addReference("knows", jackId);
     jack.addReference("knows", maryId);
 
-    nodeService.save(asList(john, jack, mary), INSERT, defaultOpts(), testUser);
+    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNode = nodeService.get(jackId, testUser);
 
@@ -193,7 +191,7 @@ public class NodeServiceIntegrationTest {
     john.addReference("knows", jackId);
     jack.addReference("knows", maryId);
 
-    nodeService.save(asList(john, jack, mary), INSERT, defaultOpts(), testUser);
+    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedOptionalNode = nodeService.get(jackId, testUser);
 

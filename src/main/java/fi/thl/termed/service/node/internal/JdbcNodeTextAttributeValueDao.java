@@ -1,21 +1,18 @@
 package fi.thl.termed.service.node.internal;
 
-import org.springframework.jdbc.core.RowMapper;
-
-import java.util.List;
-import java.util.Optional;
-
-import javax.sql.DataSource;
-
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeTextAttributeValueDao
-    extends AbstractJdbcDao<NodeAttributeValueId, StrictLangValue> {
+    extends AbstractJdbcDao2<NodeAttributeValueId, StrictLangValue> {
 
   public JdbcNodeTextAttributeValueDao(DataSource dataSource) {
     super(dataSource);
@@ -67,33 +64,28 @@ public class JdbcNodeTextAttributeValueDao
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from node_text_attribute_value", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<NodeAttributeValueId, StrictLangValue> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from node_text_attribute_value where %s order by index",
-                      specification.sqlQueryTemplate()),
+            specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
-
   }
 
   @Override
   public boolean exists(NodeAttributeValueId id) {
     NodeId nodeId = id.getNodeId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from node_text_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         Long.class,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
         id.getAttributeId(),
-        id.getIndex()) > 0;
+        id.getIndex())
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override
@@ -114,7 +106,7 @@ public class JdbcNodeTextAttributeValueDao
   protected RowMapper<NodeAttributeValueId> buildKeyMapper() {
     return (rs, rowNum) -> new NodeAttributeValueId(
         new NodeId(UUIDs.fromString(rs.getString("node_id")),
-                   rs.getString("node_type_id"), UUIDs.fromString(rs.getString("node_graph_id"))),
+            rs.getString("node_type_id"), UUIDs.fromString(rs.getString("node_graph_id"))),
         rs.getString("attribute_id"),
         rs.getInt("index")
     );
@@ -123,8 +115,8 @@ public class JdbcNodeTextAttributeValueDao
   @Override
   protected RowMapper<StrictLangValue> buildValueMapper() {
     return (rs, rowNum) -> new StrictLangValue(rs.getString("lang"),
-                                               rs.getString("value"),
-                                               rs.getString("regex"));
+        rs.getString("value"),
+        rs.getString("regex"));
   }
 
 }

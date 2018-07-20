@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static java.util.Collections.singletonList;
 
 import com.google.common.eventbus.EventBus;
@@ -12,7 +13,7 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Date;
 import java.util.List;
@@ -22,12 +23,12 @@ import java.util.stream.Stream;
 /**
  * Posts events to event bus for each node save and delete request.
  */
-public class NodeWriteEventPostingService implements Service<NodeId, Node> {
+public class NodeWriteEventPostingService implements Service2<NodeId, Node> {
 
-  private Service<NodeId, Node> delegate;
+  private Service2<NodeId, Node> delegate;
   private EventBus eventBus;
 
-  public NodeWriteEventPostingService(Service<NodeId, Node> delegate, EventBus eventBus) {
+  public NodeWriteEventPostingService(Service2<NodeId, Node> delegate, EventBus eventBus) {
     this.delegate = delegate;
     this.eventBus = eventBus;
   }
@@ -49,10 +50,10 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, SaveMode mode, WriteOptions opts, User user) {
-    List<NodeId> ids = delegate.save(values, mode, opts, user);
+  public Stream<NodeId> save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
+    List<NodeId> ids = toListAndClose(delegate.save(values, mode, opts, user));
     fireSaveEvents(ids, user.getUsername(), opts.isSync());
-    return ids;
+    return ids.stream();
   }
 
   @Override
@@ -63,9 +64,10 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
-    delegate.delete(ids, opts, user);
-    fireDeleteEvents(ids, user.getUsername(), opts.isSync());
+  public void delete(Stream<NodeId> ids, WriteOptions opts, User user) {
+    List<NodeId> idList = toListAndClose(ids);
+    delegate.delete(idList.stream(), opts, user);
+    fireDeleteEvents(idList, user.getUsername(), opts.isSync());
   }
 
   @Override
@@ -75,32 +77,13 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    List<NodeId> ids = delegate.saveAndDelete(saves, deletes, mode, opts, user);
-    fireSaveEvents(ids, user.getUsername(), opts.isSync());
-    fireDeleteEvents(deletes, user.getUsername(), opts.isSync());
-    return ids;
+  public Stream<Node> values(Query<NodeId, Node> query, User user) {
+    return delegate.values(query, user);
   }
 
   @Override
-  public Stream<Node> getValueStream(User user) {
-    return delegate.getValueStream(user);
-  }
-
-  @Override
-  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
-    return delegate.getValueStream(query, user);
-  }
-
-  @Override
-  public Stream<NodeId> getKeyStream(User user) {
-    return delegate.getKeyStream(user);
-  }
-
-  @Override
-  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
-    return delegate.getKeyStream(query, user);
+  public Stream<NodeId> keys(Query<NodeId, Node> query, User user) {
+    return delegate.keys(query, user);
   }
 
   @Override

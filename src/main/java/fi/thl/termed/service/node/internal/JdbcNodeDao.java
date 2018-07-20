@@ -7,14 +7,14 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
+public class JdbcNodeDao extends AbstractJdbcDao2<NodeId, Node> {
 
   public JdbcNodeDao(DataSource dataSource) {
     super(dataSource);
@@ -62,26 +62,22 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from node", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<NodeId, Node> specification,
+  protected <E> Stream<E> get(SqlSpecification<NodeId, Node> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from node where %s", specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
   @Override
   public boolean exists(NodeId nodeId) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from node where graph_id = ? and type_id = ? and id = ?",
         Long.class,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
-        nodeId.getId()) > 0;
+        nodeId.getId())
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

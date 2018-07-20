@@ -11,7 +11,9 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.service.Service2;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,13 +32,14 @@ public class IndexController {
   private EventBus eventBus;
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @DeleteMapping("/index")
   @ResponseStatus(NO_CONTENT)
   public void reindex(@AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(nodeService.getKeys(user)));
+      eventBus.post(new ReindexEvent<>(
+          nodeService.keys(new Query<>(new MatchAll<>()), user)));
     } else {
       throw new AccessDeniedException("");
     }
@@ -48,7 +51,8 @@ public class IndexController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(nodeService.getKeys(new NodesByGraphId(graphId), user)));
+      eventBus.post(new ReindexEvent<>(
+          nodeService.keys(new Query<>(new NodesByGraphId(graphId)), user)));
     } else {
       throw new AccessDeniedException("");
     }
@@ -62,8 +66,8 @@ public class IndexController {
       @PathVariable("id") String id,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(nodeService.getKeys(
-          and(new NodesByGraphId(graphId), new NodesByTypeId(id)), user)));
+      eventBus.post(new ReindexEvent<>(nodeService.keys(
+          new Query<>(and(new NodesByGraphId(graphId), new NodesByTypeId(id))), user)));
     } else {
       throw new AccessDeniedException("");
     }

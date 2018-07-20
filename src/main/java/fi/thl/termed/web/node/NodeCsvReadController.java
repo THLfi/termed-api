@@ -27,7 +27,6 @@ import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetCsvMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -57,7 +56,7 @@ public class NodeCsvReadController {
   @Autowired
   private Service2<TypeId, Type> typeService;
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @GetCsvMapping("/nodes")
   public void get(
@@ -90,8 +89,7 @@ public class NodeCsvReadController {
     Specification<NodeId, Node> spec = specifyByQuery(
         graphs, types, types, where);
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
 
       try (OutputStream out = response.getOutputStream()) {
         CsvOptions csvOptions = CsvOptions.builder()
@@ -145,8 +143,7 @@ public class NodeCsvReadController {
     Specification<NodeId, Node> spec = specifyByQuery(
         graphs, types, graphTypes, where);
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
 
       try (OutputStream out = response.getOutputStream()) {
         CsvOptions csvOptions = CsvOptions.builder()
@@ -200,8 +197,7 @@ public class NodeCsvReadController {
     List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       try (OutputStream out = response.getOutputStream()) {
         CsvOptions csvOptions = CsvOptions.builder()
             .delimiter(delimiter)

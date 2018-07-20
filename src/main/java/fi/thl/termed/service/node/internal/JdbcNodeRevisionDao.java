@@ -12,15 +12,15 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
+    AbstractJdbcDao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
   public JdbcNodeRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -57,15 +57,10 @@ public class JdbcNodeRevisionDao extends
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from node_aud", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<RevisionId<NodeId>, Tuple2<RevisionType, Node>> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from node_aud where %s order by revision desc",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
@@ -74,13 +69,14 @@ public class JdbcNodeRevisionDao extends
   @Override
   public boolean exists(RevisionId<NodeId> revisionIdId) {
     NodeId nodeId = revisionIdId.getId();
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from node_aud where graph_id = ? and type_id = ? and id = ? and revision = ?",
         Long.class,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
-        revisionIdId.getRevision()) > 0;
+        revisionIdId.getRevision())
+        .orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

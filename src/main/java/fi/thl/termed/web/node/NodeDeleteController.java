@@ -1,25 +1,34 @@
 package fi.thl.termed.web.node;
 
 import static com.google.common.collect.Multimaps.filterValues;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
+import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
+import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.util.spring.transaction.TransactionUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +42,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeDeleteController {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
+
+  @Autowired
+  private PlatformTransactionManager transactionManager;
+
+  @Autowired
+  private EventBus eventBus;
 
   @DeleteMapping("/graphs/{graphId}/nodes")
   @ResponseStatus(NO_CONTENT)
@@ -42,13 +57,13 @@ public class NodeDeleteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestParam(name = "disconnect", defaultValue = "false") boolean disconnect,
       @AuthenticationPrincipal User user) {
-    List<NodeId> deleteIds = nodeService.getKeys(new NodesByGraphId(graphId), user);
+    Query<NodeId, Node> nodesByGraphId = new Query<>(new NodesByGraphId(graphId));
 
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, SaveMode.UPDATE, opts(sync), user);
+      List<NodeId> deleteIds = toListAndClose(nodeService.keys(nodesByGraphId, user));
+      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
     } else {
-      nodeService.delete(deleteIds, opts(sync), user);
+      nodeService.delete(nodeService.keys(nodesByGraphId, user), opts(sync), user);
     }
   }
 
@@ -65,10 +80,9 @@ public class NodeDeleteController {
         .collect(toList());
 
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, SaveMode.UPDATE, opts(sync), user);
+      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
     } else {
-      nodeService.delete(deleteIds, opts(sync), user);
+      nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
   }
 
@@ -80,15 +94,15 @@ public class NodeDeleteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestParam(name = "disconnect", defaultValue = "false") boolean disconnect,
       @AuthenticationPrincipal User user) {
-    List<NodeId> deleteIds = nodeService.getKeys(and(
+    Query<NodeId, Node> nodesByType = new Query<>(and(
         new NodesByGraphId(graphId),
-        new NodesByTypeId(typeId)), user);
+        new NodesByTypeId(typeId)));
 
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, SaveMode.UPDATE, opts(sync), user);
+      List<NodeId> deleteIds = toListAndClose(nodeService.keys(nodesByType, user));
+      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
     } else {
-      nodeService.delete(deleteIds, opts(sync), user);
+      nodeService.delete(nodeService.keys(nodesByType, user), opts(sync), user);
     }
   }
 
@@ -100,10 +114,9 @@ public class NodeDeleteController {
       @RequestBody List<NodeId> deleteIds,
       @AuthenticationPrincipal User user) {
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, SaveMode.UPDATE, opts(sync), user);
+      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
     } else {
-      nodeService.delete(deleteIds, opts(sync), user);
+      nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
   }
 
@@ -121,10 +134,9 @@ public class NodeDeleteController {
         .collect(toList());
 
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, SaveMode.UPDATE, opts(sync), user);
+      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
     } else {
-      nodeService.delete(deleteIds, opts(sync), user);
+      nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
   }
 
@@ -136,8 +148,8 @@ public class NodeDeleteController {
       @RequestBody NodeId deleteId,
       @AuthenticationPrincipal User user) {
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteId, user),
-          singletonList(deleteId), SaveMode.UPDATE, opts(sync), user);
+      saveAndDelete(collectRefsAndDisconnect(deleteId, user),
+          singletonList(deleteId), UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteId, opts(sync), user);
     }
@@ -154,8 +166,8 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     NodeId deleteId = new NodeId(id, typeId, graphId);
     if (disconnect) {
-      nodeService.saveAndDelete(collectRefsAndDisconnect(deleteId, user),
-          singletonList(deleteId), SaveMode.UPDATE, opts(sync), user);
+      saveAndDelete(collectRefsAndDisconnect(deleteId, user),
+          singletonList(deleteId), UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteId, opts(sync), user);
     }
@@ -176,6 +188,20 @@ public class NodeDeleteController {
           referrerReferenceId -> !Objects.equals(referrerReferenceId, deleteId)));
       return referrer;
     }).collect(toList());
+  }
+
+  private void saveAndDelete(List<Node> saves, List<NodeId> deletes,
+      SaveMode mode, WriteOptions opts, User user) {
+    TransactionUtils.runInTransaction(transactionManager, () -> {
+      nodeService.save(saves.stream(), mode, opts, user);
+      nodeService.delete(deletes.stream(), opts, user);
+      return null;
+    }, (error) -> {
+      Stream<NodeId> reindex = Stream.concat(
+          saves.stream().map(Node::identifier),
+          deletes.stream());
+      eventBus.post(new ReindexEvent<>(reindex));
+    });
   }
 
 }

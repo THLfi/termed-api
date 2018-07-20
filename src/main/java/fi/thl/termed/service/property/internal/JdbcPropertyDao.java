@@ -42,8 +42,9 @@ public class JdbcPropertyDao extends AbstractJdbcDao2<String, Property> {
   protected <E> Stream<E> get(SqlSpecification<String, Property> specification,
       RowMapper<E> mapper) {
     return jdbcTemplate.queryForStream(
-        format("select * from property where %s order by index", specification.sqlQueryTemplate()),
-        mapper);
+        format("select * from property where %s order by index",
+            specification.sqlQueryTemplate()),
+        specification.sqlQueryParameters(), mapper);
   }
 
   @Override

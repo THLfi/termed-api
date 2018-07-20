@@ -13,7 +13,6 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.event.InvalidateCachesEvent;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.TransactionalService2;
 import fi.thl.termed.util.service.WriteErrorHandlingService2;
@@ -34,7 +33,7 @@ public class DumpServiceConfiguration {
   private Service2<TypeId, Type> typeService;
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @Autowired
   private PlatformTransactionManager transactionManager;
@@ -54,7 +53,6 @@ public class DumpServiceConfiguration {
         (user) -> user.getAppRole() == SUPERUSER || user.getAppRole() == ADMIN,
         (user) -> false);
     service = new WriteLoggingService2<>(service, getClass().getPackage().getName() + ".Service");
-
 
     return service;
   }

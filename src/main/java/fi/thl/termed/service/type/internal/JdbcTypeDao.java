@@ -60,9 +60,9 @@ public class JdbcTypeDao extends AbstractJdbcDao2<TypeId, Type> {
 
   @Override
   public boolean exists(TypeId typeId) {
-    return jdbcTemplate.queryForOptional("select count(*) from type where graph_id = ? and id = ?",
+    return jdbcTemplate.queryForObject("select count(*) from type where graph_id = ? and id = ?",
         Long.class, typeId.getGraphId(), typeId.getId())
-        .orElseThrow(IllegalStateException::new) > 0;
+         > 0;
   }
 
   @Override

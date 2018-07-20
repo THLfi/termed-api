@@ -13,7 +13,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevision;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeRevisionReadController {
 
   @Autowired
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
 
   @Autowired
   private Service2<Long, Revision> revisionService;
@@ -43,7 +43,7 @@ public class NodeRevisionReadController {
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User user) {
     return toListAndClose(nodeRevisionService
-        .getKeyStream(new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId)), user)
+        .keys(new Query<>(new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId))), user)
         .map(revisionId -> {
           Revision revision = revisionService.get(revisionId.getRevision(), user)
               .orElseThrow(IllegalStateException::new);
@@ -69,7 +69,7 @@ public class NodeRevisionReadController {
     }
 
     try (Stream<RevisionId<NodeId>> revisionIds = nodeRevisionService
-        .getKeyStream(new NodeRevisionsLessOrEqualToRevision(revisionId), user)) {
+        .keys(new Query<>(new NodeRevisionsLessOrEqualToRevision(revisionId)), user)) {
 
       RevisionId<NodeId> maxRevisionLessOrEqualToRequested = revisionIds
           .max(comparing(RevisionId::getRevision))

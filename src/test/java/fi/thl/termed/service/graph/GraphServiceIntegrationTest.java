@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -170,6 +171,23 @@ public class GraphServiceIntegrationTest {
         savedGraph.getProperties().get("label"));
 
     graphService.delete(graphId, defaultOpts(), user);
+  }
+
+  @Test
+  public void shouldNotSaveGraphWitIllegalProperties() {
+    Graph graph = Graph.builder().id(graphId)
+        .properties("label!", LangValue.of("TestGraph label")).build();
+
+    assertFalse(graphService.exists(graphId, user));
+
+    try {
+      graphService.save(graph, INSERT, defaultOpts(), user);
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException e) {
+      assertFalse(graphService.exists(graphId, user));
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
   }
 
   @Test

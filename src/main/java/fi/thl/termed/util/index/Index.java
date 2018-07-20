@@ -5,15 +5,16 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface Index<K extends Serializable, V> {
 
   /**
-   * Index values, may be processed parallel/async. If provider gives an empty Optional, any
+   * Index values, may be processed parallel/async. If value provider gives an empty Optional, any
    * previous values will be removed from this index.
    */
-  void index(List<K> keys, Function<K, Optional<V>> valueProvider);
+  void index(Supplier<Stream<K>> keyStreamProvider, Function<K, Optional<V>> valueProvider);
 
   void index(K key, V value);
 

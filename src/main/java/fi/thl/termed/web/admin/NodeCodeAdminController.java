@@ -11,8 +11,9 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -31,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeCodeAdminController {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @DeleteMapping("/graphs/{graphId}/node-codes")
   @ResponseStatus(NO_CONTENT)
@@ -40,12 +41,13 @@ public class NodeCodeAdminController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      try (Stream<Node> stream = nodeService.getValueStream(new NodesByGraphId(graphId), user)) {
+      try (Stream<Node> stream = nodeService.values(
+          new Query<>(new NodesByGraphId(graphId)), user)) {
         List<Node> nodes = stream
             .peek(node -> node.setCode(null))
             .collect(toList());
 
-        nodeService.save(nodes, SaveMode.UPDATE, opts(sync), user);
+        nodeService.save(nodes.stream(), SaveMode.UPDATE, opts(sync), user);
       }
     } else {
       throw new AccessDeniedException("");
@@ -60,14 +62,14 @@ public class NodeCodeAdminController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      try (Stream<Node> stream = nodeService.getValueStream(
+      try (Stream<Node> stream = nodeService.values(new Query<>(
           and(new NodesByGraphId(graphId),
-              new NodesByTypeId(typeId)), user)) {
+              new NodesByTypeId(typeId))), user)) {
         List<Node> nodes = stream
             .peek(node -> node.setCode(null))
             .collect(toList());
 
-        nodeService.save(nodes, SaveMode.UPDATE, opts(sync), user);
+        nodeService.save(nodes.stream(), SaveMode.UPDATE, opts(sync), user);
       }
     } else {
       throw new AccessDeniedException("");

@@ -16,7 +16,6 @@ import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Specification;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -39,7 +38,7 @@ public class NodeReadController {
   @Autowired
   private Service2<TypeId, Type> typeService;
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @GetJsonMapping("/nodes")
   public Stream<Node> get(
@@ -52,7 +51,7 @@ public class NodeReadController {
         typeService.values(new Query<>(new MatchAll<>()), user)
             .map(type -> specifyByAnyPropertyPrefix(type, query))));
 
-    return nodeService.getValueStream(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sort, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -71,7 +70,7 @@ public class NodeReadController {
         typeService.values(new Query<>(new TypesByGraphId(graphId)), user)
             .map(type -> specifyByAnyPropertyPrefix(type, query))));
 
-    return nodeService.getValueStream(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sort, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -88,7 +87,7 @@ public class NodeReadController {
 
     Specification<NodeId, Node> spec = specifyByAnyPropertyPrefix(type, query);
 
-    return nodeService.getValueStream(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sort, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

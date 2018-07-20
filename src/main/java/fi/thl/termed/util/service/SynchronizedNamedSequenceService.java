@@ -21,6 +21,11 @@ public class SynchronizedNamedSequenceService<K extends Serializable> implements
   }
 
   @Override
+  public Long get(K sequenceId, User user) {
+    return runSynchronized(() -> delegate.get(sequenceId, user));
+  }
+
+  @Override
   public Long getAndAdvance(K sequenceId, User user) {
     return runSynchronized(() -> delegate.getAndAdvance(sequenceId, user));
   }
@@ -28,6 +33,14 @@ public class SynchronizedNamedSequenceService<K extends Serializable> implements
   @Override
   public Long getAndAdvance(K sequenceId, Long count, User user) {
     return runSynchronized(() -> delegate.getAndAdvance(sequenceId, count, user));
+  }
+
+  @Override
+  public void set(K sequenceId, Long value, User user) {
+    runSynchronized(() -> {
+      delegate.set(sequenceId, value, user);
+      return null;
+    });
   }
 
   private <E> E runSynchronized(Supplier<E> supplier) {

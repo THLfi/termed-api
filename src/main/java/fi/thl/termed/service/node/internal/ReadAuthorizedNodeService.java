@@ -15,9 +15,8 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -26,16 +25,16 @@ import java.util.stream.Stream;
 /**
  * For filtering node service read operations. Useful to put in front of an index.
  */
-public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
+public class ReadAuthorizedNodeService implements Service2<NodeId, Node> {
 
-  private Service<NodeId, Node> delegate;
+  private Service2<NodeId, Node> delegate;
 
   private PermissionEvaluator<NodeId> nodeEvaluator;
   private PermissionEvaluator<TextAttributeId> textAttrEvaluator;
   private PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator;
 
   public ReadAuthorizedNodeService(
-      Service<NodeId, Node> delegate,
+      Service2<NodeId, Node> delegate,
       PermissionEvaluator<TypeId> typeEvaluator,
       PermissionEvaluator<TextAttributeId> textAttrEvaluator,
       PermissionEvaluator<ReferenceAttributeId> refAttrEvaluator) {
@@ -46,7 +45,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> save(List<Node> values, SaveMode mode, WriteOptions opts, User user) {
+  public Stream<NodeId> save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
     return delegate.save(values, mode, opts, user);
   }
 
@@ -56,7 +55,7 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public void delete(List<NodeId> ids, WriteOptions opts, User user) {
+  public void delete(Stream<NodeId> ids, WriteOptions opts, User user) {
     delegate.delete(ids, opts, user);
   }
 
@@ -66,39 +65,13 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    return delegate.saveAndDelete(saves, deletes, mode, opts, user);
+  public Stream<Node> values(Query<NodeId, Node> query, User user) {
+    return filterValues(delegate.values(query, user), user);
   }
 
   @Override
-  public Stream<Node> getValueStream(User user) {
-    return filterValues(delegate.getValueStream(user), user);
-  }
-
-  @Override
-  public Stream<Node> getValueStream(Specification<NodeId, Node> spec, User user) {
-    return filterValues(delegate.getValueStream(spec, user), user);
-  }
-
-  @Override
-  public Stream<Node> getValueStream(Query<NodeId, Node> query, User user) {
-    return filterValues(delegate.getValueStream(query, user), user);
-  }
-
-  @Override
-  public Stream<NodeId> getKeyStream(User user) {
-    return filterKeys(delegate.getKeyStream(user), user);
-  }
-
-  @Override
-  public Stream<NodeId> getKeyStream(Specification<NodeId, Node> spec, User user) {
-    return filterKeys(delegate.getKeyStream(spec, user), user);
-  }
-
-  @Override
-  public Stream<NodeId> getKeyStream(Query<NodeId, Node> query, User user) {
-    return filterKeys(delegate.getKeyStream(query, user), user);
+  public Stream<NodeId> keys(Query<NodeId, Node> query, User user) {
+    return filterKeys(delegate.keys(query, user), user);
   }
 
   @Override

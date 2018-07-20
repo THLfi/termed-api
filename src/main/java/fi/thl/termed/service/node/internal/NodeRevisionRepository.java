@@ -1,44 +1,45 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.domain.NodeTransformations.nodePropertiesToRows;
+import static fi.thl.termed.domain.NodeTransformations.nodeReferencesToRows;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Stream.builder;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.NodeTransformations;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.transform.NodeTextAttributeValueDtoToModel;
-import fi.thl.termed.domain.transform.ReferenceAttributeValueIdDtoToModel;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.Dao;
+import fi.thl.termed.util.dao.Dao2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs. Revision reads are typically done here.
@@ -46,19 +47,21 @@ import java.util.stream.Stream;
  * full revision saves which are useful in e.g. admin operations.
  */
 public class NodeRevisionRepository implements
-    Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
+    Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
-  private Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao;
-  private Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao;
+  private static final int BATCH_SIZE = 5000;
+
+  private Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao;
+  private Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao;
+  private Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao;
 
   private Service2<Long, Revision> revisionService;
   private SequenceService revisionSeqService;
 
   public NodeRevisionRepository(
-      Dao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao,
-      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao,
-      Dao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao,
+      Dao2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionDao,
+      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttributeValueRevDao,
+      Dao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> referenceAttributeValueRevDao,
       Service2<Long, Revision> revisionService, SequenceService revisionSeqService) {
     this.nodeRevisionDao = nodeRevisionDao;
     this.textAttributeValueRevDao = textAttributeValueRevDao;
@@ -67,60 +70,63 @@ public class NodeRevisionRepository implements
     this.revisionSeqService = revisionSeqService;
   }
 
+  private <K, V> Tuple2<RevisionId<K>, Tuple2<RevisionType, V>> toRev(
+      K key, V value, RevisionType revisionType, Long revision) {
+    return Tuple.of(RevisionId.of(key, revision), Tuple.of(revisionType, value));
+  }
+
   @Override
-  public List<RevisionId<NodeId>> save(List<Tuple2<RevisionType, Node>> typeNodePairs,
+  public Stream<RevisionId<NodeId>> save(Stream<Tuple2<RevisionType, Node>> entries,
       SaveMode mode, WriteOptions opts, User user) {
 
     Preconditions.checkArgument(mode == INSERT);
 
     Long revision = opts.getRevision().orElseGet(() -> newRevision(user));
 
-    Map<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevs = new LinkedHashMap<>();
-    Map<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>> textAttrRevs = new LinkedHashMap<>();
-    Map<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> refAttrRevs = new LinkedHashMap<>();
+    Builder<RevisionId<NodeId>> keys = builder();
 
-    typeNodePairs.forEach(typeAndNode -> {
-      RevisionType type = typeAndNode._1;
+    try (Stream<Tuple2<RevisionType, Node>> closeable = entries) {
+      Iterators.partition(closeable.iterator(), BATCH_SIZE).forEachRemaining(batch -> {
+        nodeRevisionDao.insert(batch.stream()
+            .map(e -> toRev(e._2.identifier(), e._2, e._1, revision)), user);
 
-      Node node = typeAndNode._2;
-      NodeId id = node.identifier();
+        textAttributeValueRevDao.insert(batch.stream()
+            .flatMap(e -> nodePropertiesToRows(e._2.identifier(), e._2.getProperties())
+                .map(property -> toRev(property._1, property._2, e._1, revision))), user);
 
-      Map<NodeAttributeValueId, StrictLangValue> textAttrValues =
-          new NodeTextAttributeValueDtoToModel(id).apply(node.getProperties());
-      Map<NodeAttributeValueId, NodeId> refAttrValues =
-          new ReferenceAttributeValueIdDtoToModel(id).apply(node.getReferences());
+        referenceAttributeValueRevDao.insert(batch.stream()
+            .flatMap(e -> nodeReferencesToRows(e._2.identifier(), e._2.getReferences())
+                .map(reference -> toRev(reference._1, reference._2, e._1, revision))), user);
 
-      nodeRevs.put(RevisionId.of(id, revision), Tuple.of(type, node));
-      textAttrRevs.putAll(toRevs(textAttrValues, revision, type));
-      refAttrRevs.putAll(toRevs(refAttrValues, revision, type));
-    });
+        batch.stream()
+            .map(e -> RevisionId.of(e._2.identifier(), revision))
+            .forEach(keys);
+      });
+    }
 
-    nodeRevisionDao.insert(nodeRevs, user);
-    textAttributeValueRevDao.insert(textAttrRevs, user);
-    referenceAttributeValueRevDao.insert(refAttrRevs, user);
-
-    return ImmutableList.copyOf(nodeRevs.keySet());
+    return keys.build();
   }
 
   @Override
-  public RevisionId<NodeId> save(Tuple2<RevisionType, Node> typeAndNode, SaveMode mode,
+  public RevisionId<NodeId> save(Tuple2<RevisionType, Node> revisionTypeAndNode, SaveMode mode,
       WriteOptions opts, User user) {
 
     Preconditions.checkArgument(mode == INSERT);
 
     Long revision = opts.getRevision().orElseGet(() -> newRevision(user));
-    RevisionType type = typeAndNode._1;
-    Node node = typeAndNode._2;
+    RevisionType type = revisionTypeAndNode._1;
+    Node node = revisionTypeAndNode._2;
     NodeId id = node.identifier();
 
-    Map<NodeAttributeValueId, StrictLangValue> textAttrValues =
-        new NodeTextAttributeValueDtoToModel(id).apply(node.getProperties());
-    Map<NodeAttributeValueId, NodeId> refAttrValues =
-        new ReferenceAttributeValueIdDtoToModel(id).apply(node.getReferences());
-
     nodeRevisionDao.insert(RevisionId.of(id, revision), Tuple.of(type, node), user);
-    textAttributeValueRevDao.insert(toRevs(textAttrValues, revision, type), user);
-    referenceAttributeValueRevDao.insert(toRevs(refAttrValues, revision, type), user);
+
+    textAttributeValueRevDao.insert(
+        nodePropertiesToRows(id, node.getProperties())
+            .map(t -> Tuple.of(RevisionId.of(t._1, revision), Tuple.of(type, t._2))), user);
+
+    referenceAttributeValueRevDao.insert(
+        NodeTransformations.nodeReferencesToRows(id, node.getReferences())
+            .map(t -> Tuple.of(RevisionId.of(t._1, revision), Tuple.of(type, t._2))), user);
 
     return RevisionId.of(id, revision);
   }
@@ -131,11 +137,9 @@ public class NodeRevisionRepository implements
         INSERT, defaultOpts(), user);
   }
 
-  private <K extends Serializable, V> Map<RevisionId<K>, Tuple2<RevisionType, V>> toRevs(
-      Map<K, V> map, Long revision, RevisionType revisionType) {
-    return map.entrySet().stream().collect(toMap(
-        e -> RevisionId.of(e.getKey(), revision),
-        e -> Tuple.of(revisionType, e.getValue())));
+  @Override
+  public void delete(Stream<RevisionId<NodeId>> keys, WriteOptions opts, User user) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -149,16 +153,23 @@ public class NodeRevisionRepository implements
   }
 
   @Override
-  public Stream<Tuple2<RevisionType, Node>> getValueStream(
+  public Stream<Tuple2<RevisionType, Node>> values(
       Query<RevisionId<NodeId>, Tuple2<RevisionType, Node>> query, User user) {
-    return nodeRevisionDao.getMap(query.getWhere(), user).entrySet().stream()
-        .map(e -> populate(e.getKey(), e.getValue(), user));
+    return nodeRevisionDao.getEntries(query.getWhere(), user)
+        .map(e -> populate(e._1, e._2, user));
   }
 
   @Override
-  public Stream<RevisionId<NodeId>> getKeyStream(
+  public long count(Specification<RevisionId<NodeId>, Tuple2<RevisionType, Node>> spec, User user) {
+    try (Stream<RevisionId<NodeId>> keys = keys(new Query<>(spec), user)) {
+      return keys.count();
+    }
+  }
+
+  @Override
+  public Stream<RevisionId<NodeId>> keys(
       Query<RevisionId<NodeId>, Tuple2<RevisionType, Node>> query, User user) {
-    return nodeRevisionDao.getKeys(query.getWhere(), user).stream();
+    return nodeRevisionDao.getKeys(query.getWhere(), user);
   }
 
   @Override
@@ -182,10 +193,9 @@ public class NodeRevisionRepository implements
   private Multimap<String, StrictLangValue> findPropertiesFor(RevisionId<NodeId> revId, User user) {
     Map<NodeAttributeValueId, List<Tuple2<Long, StrictLangValue>>> attrValueRevs =
         textAttributeValueRevDao
-            .getMap(new NodeRevisionTextAttributeValuesLessOrEqualToRevision(revId), user)
-            .entrySet().stream()
-            .collect(groupingBy(e -> e.getKey().getId(), LinkedHashMap::new,
-                mapping(e -> Tuple.of(e.getKey().getRevision(), e.getValue()._2), toList())));
+            .getEntries(new NodeRevisionTextAttributeValuesLessOrEqualToRevision(revId), user)
+            .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
+                mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
     Multimap<String, StrictLangValue> properties = LinkedHashMultimap.create();
 
@@ -203,10 +213,9 @@ public class NodeRevisionRepository implements
   private Multimap<String, NodeId> findReferencesFor(RevisionId<NodeId> revId, User user) {
     Map<NodeAttributeValueId, List<Tuple2<Long, NodeId>>> attrValueRevs =
         referenceAttributeValueRevDao
-            .getMap(new NodeRevisionReferenceAttributeValuesLessOrEqualToRevision(revId), user)
-            .entrySet().stream()
-            .collect(groupingBy(e -> e.getKey().getId(), LinkedHashMap::new,
-                mapping(e -> Tuple.of(e.getKey().getRevision(), e.getValue()._2), toList())));
+            .getEntries(new NodeRevisionReferenceAttributeValuesLessOrEqualToRevision(revId), user)
+            .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
+                mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
     Multimap<String, NodeId> references = LinkedHashMultimap.create();
 

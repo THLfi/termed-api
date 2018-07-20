@@ -6,11 +6,11 @@ import java.util.stream.Stream;
 
 public interface Tuple {
 
-  static <T1, T2> Stream<Tuple2<T1, T2>> entriesAsTupleStream(Map<T1, T2> map) {
+  static <T1, T2> Stream<Tuple2<T1, T2>> entriesAsTuples(Map<T1, T2> map) {
     return map.entrySet().stream().map(Tuple::of);
   }
 
-  static <T1, T2> Map<T1, T2> tupleStreamToMap(Stream<Tuple2<T1, T2>> tupleStream) {
+  static <T1, T2> Map<T1, T2> tuplesToMap(Stream<Tuple2<T1, T2>> tupleStream) {
     try (Stream<Tuple2<T1, T2>> closableTupleStream = tupleStream) {
       return closableTupleStream.collect(Collectors.toMap(e -> e._1, e -> e._2));
     }

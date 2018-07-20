@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -15,10 +17,13 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 public class TransactionalService2<K extends Serializable, V> implements Service2<K, V> {
 
+  private Logger log = LoggerFactory.getLogger(getClass());
+
   private Service2<K, V> delegate;
 
   private PlatformTransactionManager manager;
   private TransactionDefinition definition;
+  private TransactionDefinition readOnlyDefinition;
 
   public TransactionalService2(Service2<K, V> delegate, PlatformTransactionManager manager) {
     this(delegate, manager, new DefaultTransactionDefinition());
@@ -29,6 +34,11 @@ public class TransactionalService2<K extends Serializable, V> implements Service
     this.delegate = delegate;
     this.manager = manager;
     this.definition = definition;
+
+    DefaultTransactionDefinition readOnlyDefinition = new DefaultTransactionDefinition(definition);
+    readOnlyDefinition.setReadOnly(true);
+
+    this.readOnlyDefinition = readOnlyDefinition;
   }
 
   @Override
@@ -97,8 +107,14 @@ public class TransactionalService2<K extends Serializable, V> implements Service
 
   private <E> Stream<E> readStreamInTransaction(Supplier<Stream<E>> supplier) {
     Stream<E> stream = supplier.get();
-    TransactionStatus tx = manager.getTransaction(definition);
-    return stream.onClose(() -> manager.commit(tx));
+
+    log.trace("Opening read only transaction");
+    TransactionStatus tx = manager.getTransaction(readOnlyDefinition);
+
+    return stream.onClose(() -> {
+      log.trace("Closing read only transaction");
+      manager.commit(tx);
+    });
   }
 
 }

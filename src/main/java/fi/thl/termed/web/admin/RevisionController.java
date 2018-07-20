@@ -17,7 +17,6 @@ import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
@@ -46,9 +45,9 @@ public class RevisionController {
   @Autowired
   private SequenceService revisionSeq;
   @Autowired
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
   @Autowired
   private PlatformTransactionManager manager;
 
@@ -73,7 +72,7 @@ public class RevisionController {
             Revision.of(revision, user.getUsername(), new Date()),
             SaveMode.INSERT, defaultOpts(), user);
 
-        try (Stream<NodeId> nodeIds = nodeService.getKeyStream(user)) {
+        try (Stream<NodeId> nodeIds = nodeService.keys(new Query<>(new MatchAll<>()), user)) {
           WriteOptions revisionOpts = opts(revision);
 
           nodeIds

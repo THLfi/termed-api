@@ -1,11 +1,11 @@
 package fi.thl.termed.service.node;
 
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -27,10 +27,11 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service2;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +45,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class NodeRevisionServiceIntegrationTest {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
   @Autowired
   private Service2<GraphId, Graph> graphService;
   @Autowired
@@ -52,7 +53,7 @@ public class NodeRevisionServiceIntegrationTest {
   @Autowired
   private Service2<String, User> userService;
   @Autowired
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+  private Service2<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   @Autowired
   private PasswordEncoder passwordEncoder;
 
@@ -103,8 +104,8 @@ public class NodeRevisionServiceIntegrationTest {
 
     nodeService.delete(nodeId, defaultOpts(), testUser);
 
-    List<Tuple2<RevisionType, Node>> revisions =
-        nodeRevisionService.getValues(new NodeRevisionsByNodeId(nodeId), testUser);
+    List<Tuple2<RevisionType, Node>> revisions = toListAndClose(
+        nodeRevisionService.values(new Query<>(new NodeRevisionsByNodeId(nodeId)), testUser));
     assertEquals(3, revisions.size());
 
     assertEquals(nodeId, revisions.get(0)._2.identifier());
@@ -140,7 +141,7 @@ public class NodeRevisionServiceIntegrationTest {
     mary.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
 
     jack.setReferences(ImmutableMultimap.of("knows", maryId));
-    nodeService.save(asList(john, jack, mary), INSERT, defaultOpts(), testUser);
+    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
 
     jack.setReferences(ImmutableMultimap.of());
     nodeService.save(jack, UPDATE, defaultOpts(), testUser);
@@ -148,8 +149,8 @@ public class NodeRevisionServiceIntegrationTest {
     jack.setReferences(ImmutableMultimap.of("knows", johnId));
     nodeService.save(jack, UPDATE, defaultOpts(), testUser);
 
-    List<Tuple2<RevisionType, Node>> jackRevisions =
-        nodeRevisionService.getValues(new NodeRevisionsByNodeId(jackId), testUser);
+    List<Tuple2<RevisionType, Node>> jackRevisions = toListAndClose(
+        nodeRevisionService.values(new Query<>(new NodeRevisionsByNodeId(jackId)), testUser));
     assertEquals(3, jackRevisions.size());
 
     assertEquals(jackId, jackRevisions.get(0)._2.identifier());

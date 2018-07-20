@@ -12,7 +12,7 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,17 +30,18 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
   private User user;
   private Set<Select> selects;
 
-  public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user) {
+  public IndexedReferenceLoader(Service2<NodeId, Node> nodeService, User user) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = singleton(new SelectAll());
   }
 
-  public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, Set<Select> selects) {
+  public IndexedReferenceLoader(Service2<NodeId, Node> nodeService, User user,
+      Set<Select> selects) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = selects;
@@ -53,7 +54,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
     Query<NodeId, Node> query = new Query<>(selects,
         new NodeReferences(new NodeId(node), attributeId));
 
-    try (Stream<Node> results = nodeService.getValueStream(query, user)) {
+    try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referenceValueMap = results.collect(toMap(Node::identifier, n -> n));
 
       Collection<NodeId> referenceIds = node.getReferences().get(attributeId);

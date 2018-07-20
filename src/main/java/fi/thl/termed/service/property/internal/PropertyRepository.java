@@ -4,8 +4,8 @@ import static fi.thl.termed.domain.Property.builderFromCopyOf;
 import static fi.thl.termed.util.collect.MapUtils.leftValues;
 import static fi.thl.termed.util.collect.MultimapUtils.toImmutableMultimap;
 import static fi.thl.termed.util.collect.StreamUtils.zipIndex;
-import static fi.thl.termed.util.collect.Tuple.entriesAsTupleStream;
-import static fi.thl.termed.util.collect.Tuple.tupleStreamToMap;
+import static fi.thl.termed.util.collect.Tuple.entriesAsTuples;
+import static fi.thl.termed.util.collect.Tuple.tuplesToMap;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -66,16 +66,16 @@ public class PropertyRepository extends AbstractRepository2<String, Property> {
   private void updateProperties(String propertyId, Multimap<String, LangValue> propertyMultimap,
       User user) {
 
-    Map<PropertyValueId<String>, LangValue> newProperties = tupleStreamToMap(
+    Map<PropertyValueId<String>, LangValue> newProperties = tuplesToMap(
         new PropertyValueDtoToModel2<>(propertyId).apply(propertyMultimap));
-    Map<PropertyValueId<String>, LangValue> oldProperties = tupleStreamToMap(
+    Map<PropertyValueId<String>, LangValue> oldProperties = tuplesToMap(
         propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(propertyId), user));
 
     MapDifference<PropertyValueId<String>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
 
-    propertyValueDao.insert(entriesAsTupleStream(diff.entriesOnlyOnLeft()), user);
-    propertyValueDao.update(entriesAsTupleStream(leftValues(diff.entriesDiffering())), user);
+    propertyValueDao.insert(entriesAsTuples(diff.entriesOnlyOnLeft()), user);
+    propertyValueDao.update(entriesAsTuples(leftValues(diff.entriesDiffering())), user);
     propertyValueDao.delete(diff.entriesOnlyOnRight().keySet().stream(), user);
   }
 

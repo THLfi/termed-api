@@ -30,7 +30,6 @@ import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -57,7 +56,7 @@ public class NodeTreeReadController {
   @Autowired
   private Service2<TypeId, Type> typeService;
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @GetJsonMapping("/node-trees")
   public void get(
@@ -74,8 +73,7 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<NodeTree> trees = toTrees(nodes, selects, user);
 
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);
@@ -110,8 +108,7 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<NodeTree> trees = toTrees(nodes, selects, user);
 
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);
@@ -143,8 +140,7 @@ public class NodeTreeReadController {
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
     Set<Select> selects = Selects.parse(join(",", select));
 
-    try (Stream<Node> nodes = nodeService
-        .getValueStream(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<NodeTree> trees = toTrees(nodes, selects, user);
 
       response.setContentType(APPLICATION_JSON_UTF8_VALUE);

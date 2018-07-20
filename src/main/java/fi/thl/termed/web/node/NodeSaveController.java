@@ -9,13 +9,13 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NodeSaveController {
 
   @Autowired
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", params = "batch=true", produces = {})
   @ResponseStatus(NO_CONTENT)
@@ -40,11 +40,16 @@ public class NodeSaveController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody List<Node> nodes,
+      @RequestBody Stream<Node> nodes,
       @AuthenticationPrincipal User user) {
     TypeId type = TypeId.of(typeId, graphId);
-    nodes.forEach(node -> node.setType(type));
-    nodeService.save(nodes, saveMode(mode), opts(sync), user);
+
+    Stream<Node> nodesWithTypes = nodes.map(node -> {
+      node.setType(type);
+      return node;
+    });
+
+    nodeService.save(nodesWithTypes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -66,10 +71,15 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody List<Node> nodes,
+      @RequestBody Stream<Node> nodes,
       @AuthenticationPrincipal User user) {
-    nodes.forEach(node -> node.setType(TypeId.of(node.getTypeId(), graphId)));
-    nodeService.save(nodes, saveMode(mode), opts(sync), user);
+
+    Stream<Node> nodesWithTypes = nodes.map(node -> {
+      node.setType(TypeId.of(node.getTypeId(), graphId));
+      return node;
+    });
+
+    nodeService.save(nodesWithTypes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -89,7 +99,7 @@ public class NodeSaveController {
   public void saveAll(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
-      @RequestBody List<Node> nodes,
+      @RequestBody Stream<Node> nodes,
       @AuthenticationPrincipal User user) {
     nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }

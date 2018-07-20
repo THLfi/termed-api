@@ -10,15 +10,15 @@ import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcNodeReferenceAttributeValueRevisionDao extends
-    AbstractJdbcDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> {
+    AbstractJdbcDao2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> {
 
   public JdbcNodeReferenceAttributeValueRevisionDao(DataSource dataSource) {
     super(dataSource);
@@ -59,15 +59,10 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from node_reference_attribute_value_aud", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(
+  protected <E> Stream<E> get(
       SqlSpecification<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from node_reference_attribute_value_aud where %s order by index",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
@@ -78,7 +73,7 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from node_reference_attribute_value_aud where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ? and revision = ?",
         Long.class,
         nodeId.getTypeGraphId(),
@@ -86,7 +81,7 @@ public class JdbcNodeReferenceAttributeValueRevisionDao extends
         nodeId.getId(),
         nodeAttributeValueId.getAttributeId(),
         nodeAttributeValueId.getIndex(),
-        revisionId.getRevision()) > 0;
+        revisionId.getRevision()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

@@ -2,14 +2,14 @@ package fi.thl.termed.service.node.internal;
 
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.dao.AbstractJdbcDao;
+import fi.thl.termed.util.dao.AbstractJdbcDao2;
 import fi.thl.termed.util.query.SqlSpecification;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 
-public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Long> {
+public class JdbcNodeSequenceDao extends AbstractJdbcDao2<TypeId, Long> {
 
   public JdbcNodeSequenceDao(DataSource dataSource) {
     super(dataSource);
@@ -42,25 +42,20 @@ public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Long> {
   }
 
   @Override
-  protected <E> List<E> get(RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from node_sequence", mapper);
-  }
-
-  @Override
-  protected <E> List<E> get(SqlSpecification<TypeId, Long> specification,
+  protected <E> Stream<E> get(SqlSpecification<TypeId, Long> specification,
       RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForStream(
         String.format("select * from node_sequence where %s", specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }
 
   @Override
   public boolean exists(TypeId typeId) {
-    return jdbcTemplate.queryForObject(
+    return jdbcTemplate.queryForOptional(
         "select count(*) from node_sequence where graph_id = ? and type_id = ?",
         Long.class,
         typeId.getGraphId(),
-        typeId.getId()) > 0;
+        typeId.getId()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override

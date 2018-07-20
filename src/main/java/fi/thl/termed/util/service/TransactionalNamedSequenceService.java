@@ -37,6 +37,11 @@ public class TransactionalNamedSequenceService<K extends Serializable> implement
   }
 
   @Override
+  public Long get(K sequenceId, User user) {
+    return runInTransaction(() -> delegate.get(sequenceId, user));
+  }
+
+  @Override
   public Long getAndAdvance(K sequenceId, User user) {
     return runInTransaction(() -> delegate.getAndAdvance(sequenceId, user));
   }
@@ -44,6 +49,14 @@ public class TransactionalNamedSequenceService<K extends Serializable> implement
   @Override
   public Long getAndAdvance(K sequenceId, Long count, User user) {
     return runInTransaction(() -> delegate.getAndAdvance(sequenceId, count, user));
+  }
+
+  @Override
+  public void set(K sequenceId, Long value, User user) {
+    runInTransaction(() -> {
+      delegate.set(sequenceId, value, user);
+      return null;
+    });
   }
 
   private <E> E runInTransaction(Supplier<E> supplier) {

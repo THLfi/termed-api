@@ -106,6 +106,23 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
+  public void shouldNotInsertTypeWithIllegalId() {
+    TypeId typeId = TypeId.of("Te$tType", graphs[0].identifier());
+    Type type = Type.builder().id(typeId).build();
+
+    assertFalse(typeService.exists(typeId, user));
+
+    try {
+      typeService.save(type, INSERT, defaultOpts(), user);
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException e) {
+      assertFalse(typeService.exists(typeId, user));
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
+  }
+
+  @Test
   public void shouldInsertAndDeleteMultipleNewTypes() {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     Type type0 = Type.builder().id(typeId0).build();
@@ -253,6 +270,29 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
+  public void shouldNotSaveTypeWithIllegalAttributeIds() {
+    TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
+    Type type = Type.builder().id(typeId)
+        .textAttributes(
+            TextAttribute.builder().id("label", typeId).regexAll().build(),
+            TextAttribute.builder().id("note!", typeId).regexAll().build())
+        .referenceAttributes(
+            ReferenceAttribute.builder().id("child", typeId).range(typeId).build())
+        .build();
+
+    assertFalse(typeService.exists(typeId, user));
+
+    try {
+      typeService.save(type, INSERT, defaultOpts(), user);
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException e) {
+      assertFalse(typeService.exists(typeId, user));
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
+  }
+
+  @Test
   public void shouldSaveTypesWithCrossReferencingAttributes() {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
@@ -277,7 +317,8 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotSaveTypeWithReferencingAttributePointingNonExistentType() {
+  public void shouldNotSaveTypeWithReferencingAttributePointingNonExistentType()
+      throws InterruptedException {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 

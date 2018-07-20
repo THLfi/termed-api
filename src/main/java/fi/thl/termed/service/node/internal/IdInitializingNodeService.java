@@ -6,42 +6,33 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
-import fi.thl.termed.util.service.ForwardingService;
+import fi.thl.termed.util.service.ForwardingService2;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Make sure that node has an identifier
  */
-public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
+public class IdInitializingNodeService extends ForwardingService2<NodeId, Node> {
 
-  public IdInitializingNodeService(Service<NodeId, Node> delegate) {
+  public IdInitializingNodeService(Service2<NodeId, Node> delegate) {
     super(delegate);
   }
 
   @Override
-  public List<NodeId> save(List<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    nodes.forEach(this::resolveId);
-    return super.save(nodes, mode, opts, user);
+  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+    return super.save(nodes.map(this::resolveId), mode, opts, user);
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    resolveId(node);
-    return super.save(node, mode, opts, user);
+    return super.save(resolveId(node), mode, opts, user);
   }
 
-  @Override
-  public List<NodeId> saveAndDelete(List<Node> saves, List<NodeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    saves.forEach(this::resolveId);
-    return super.saveAndDelete(saves, deletes, mode, opts, user);
-  }
-
-  private void resolveId(Node node) {
+  private Node resolveId(Node node) {
     Preconditions.checkNotNull(node.getTypeGraphId(), ErrorCode.NODE_GRAPH_ID_MISSING);
     Preconditions.checkNotNull(node.getTypeId(), ErrorCode.NODE_TYPE_ID_MISSING);
 
@@ -63,6 +54,8 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
     }
 
     node.setId(id);
+
+    return node;
   }
 
 }

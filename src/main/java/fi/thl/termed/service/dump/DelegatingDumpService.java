@@ -1,6 +1,5 @@
 package fi.thl.termed.service.dump;
 
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.OrSpecification.or;
 import static java.util.stream.Collectors.toList;
 
@@ -20,7 +19,6 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
-import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.Service2;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.Optional;
@@ -30,12 +28,12 @@ class DelegatingDumpService implements Service2<DumpId, Dump> {
 
   private Service2<GraphId, Graph> graphService;
   private Service2<TypeId, Type> typeService;
-  private Service<NodeId, Node> nodeService;
+  private Service2<NodeId, Node> nodeService;
 
   DelegatingDumpService(
       Service2<GraphId, Graph> graphService,
       Service2<TypeId, Type> typeService,
-      Service<NodeId, Node> nodeService) {
+      Service2<NodeId, Node> nodeService) {
     this.graphService = graphService;
     this.typeService = typeService;
     this.nodeService = nodeService;
@@ -54,7 +52,7 @@ class DelegatingDumpService implements Service2<DumpId, Dump> {
   public DumpId save(Dump dump, SaveMode mode, WriteOptions opts, User user) {
     graphService.save(dump.getGraphs(), mode, opts, user);
     typeService.save(dump.getTypes(), mode, opts, user);
-    nodeService.save(toListAndClose(dump.getNodes()), mode, opts, user);
+    nodeService.save(dump.getNodes(), mode, opts, user);
     return dump.identifier();
   }
 
@@ -76,7 +74,7 @@ class DelegatingDumpService implements Service2<DumpId, Dump> {
     return Optional.of(new Dump(
         graphService.values(graphSpecification, u),
         typeService.values(typeSpecification, u),
-        nodeService.getValueStream(nodeSpecification, u)));
+        nodeService.values(nodeSpecification, u)));
   }
 
   @Override
