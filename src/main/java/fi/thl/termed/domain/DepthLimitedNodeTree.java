@@ -3,6 +3,7 @@ package fi.thl.termed.domain;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Multimaps.transformValues;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import java.util.Date;
 import java.util.Map;
@@ -10,12 +11,12 @@ import java.util.UUID;
 
 public class DepthLimitedNodeTree implements NodeTree {
 
-  private NodeTree source;
+  private final NodeTree source;
 
-  private int depth;
+  private final int depth;
 
-  private Map<String, Integer> maxReferenceAttributeDepth;
-  private Map<String, Integer> maxReferrerAttributeDepth;
+  private final ImmutableMap<String, Integer> maxReferenceAttributeDepth;
+  private final ImmutableMap<String, Integer> maxReferrerAttributeDepth;
 
   public DepthLimitedNodeTree(NodeTree source,
       Map<String, Integer> maxReferenceAttributeDepth,
@@ -29,8 +30,8 @@ public class DepthLimitedNodeTree implements NodeTree {
       Map<String, Integer> maxReferrerAttributeDepth) {
     this.source = source;
     this.depth = depth;
-    this.maxReferenceAttributeDepth = maxReferenceAttributeDepth;
-    this.maxReferrerAttributeDepth = maxReferrerAttributeDepth;
+    this.maxReferenceAttributeDepth = ImmutableMap.copyOf(maxReferenceAttributeDepth);
+    this.maxReferrerAttributeDepth = ImmutableMap.copyOf(maxReferrerAttributeDepth);
   }
 
   @Override

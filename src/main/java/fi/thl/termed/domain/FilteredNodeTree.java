@@ -3,6 +3,7 @@ package fi.thl.termed.domain;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Multimaps.transformValues;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.service.node.select.SelectAllProperties;
 import fi.thl.termed.service.node.select.SelectAllReferences;
@@ -27,12 +28,12 @@ import java.util.UUID;
 
 public class FilteredNodeTree implements NodeTree {
 
-  private NodeTree source;
-  private Set<Select> s;
+  private final NodeTree source;
+  private final ImmutableSet<Select> s;
 
   public FilteredNodeTree(NodeTree source, Set<Select> selects) {
     this.source = source;
-    this.s = selects;
+    this.s = ImmutableSet.copyOf(selects);
   }
 
   @Override

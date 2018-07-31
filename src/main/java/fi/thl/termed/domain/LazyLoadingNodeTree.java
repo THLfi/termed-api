@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 public class LazyLoadingNodeTree implements NodeTree {
 
-  private Node source;
+  private final Node source;
 
-  private BiFunction<Node, String, List<Node>> referenceProvider;
-  private BiFunction<Node, String, List<Node>> referrerProvider;
+  private final BiFunction<Node, String, List<Node>> referenceProvider;
+  private final BiFunction<Node, String, List<Node>> referrerProvider;
 
   public LazyLoadingNodeTree(Node source,
       BiFunction<Node, String, List<Node>> referenceProvider,
