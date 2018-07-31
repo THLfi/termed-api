@@ -1,10 +1,12 @@
 package fi.thl.termed.web.node;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Changeset;
 import fi.thl.termed.domain.GraphId;
@@ -57,7 +59,7 @@ public class NodeChangesetController {
       @AuthenticationPrincipal User user) {
 
     TypeId type = new TypeId(typeId, new GraphId(graphId));
-    changeset.getDelete().forEach(id -> id.setType(type));
+
     changeset.getSave().forEach(node -> node.setType(type));
     changeset.getPatch().forEach(node -> node.setType(type));
 
@@ -65,7 +67,12 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
+    ImmutableList<NodeId> deletes =
+        changeset.getDelete().stream()
+            .map(node -> new NodeId(node.getId(), type))
+            .collect(toImmutableList());
+
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "changeset=true", produces = {})
@@ -77,7 +84,6 @@ public class NodeChangesetController {
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
-    changeset.getDelete().forEach(id -> id.setType(new TypeId(id.getTypeId(), graphId)));
     changeset.getSave().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
     changeset.getPatch().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
 
@@ -85,7 +91,12 @@ public class NodeChangesetController {
     changeset.getPatch().forEach(p -> saves.add(
         merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
 
-    saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
+    ImmutableList<NodeId> deletes =
+        changeset.getDelete().stream()
+            .map(node -> new NodeId(node.getId(), new TypeId(node.getTypeId(), graphId)))
+            .collect(toImmutableList());
+
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
   }
 
   @PostJsonMapping(path = "/nodes", params = "changeset=true", produces = {})

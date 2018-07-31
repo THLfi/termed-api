@@ -1,18 +1,17 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class NodeId implements Serializable {
 
-  private UUID id;
+  private final UUID id;
 
-  private TypeId type;
+  private final TypeId type;
 
   public NodeId(Node node) {
     this(node.getId(), node.getTypeId(), node.getTypeGraphId());
@@ -29,10 +28,6 @@ public class NodeId implements Serializable {
 
   public UUID getId() {
     return id;
-  }
-
-  public void setType(TypeId type) {
-    this.type = type;
   }
 
   public TypeId getType() {
