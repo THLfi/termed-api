@@ -1,14 +1,13 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-public class UserGraphRole implements Serializable {
+public final class UserGraphRole implements Serializable {
 
   private final String username;
   private final GraphId graph;
@@ -46,8 +45,8 @@ public class UserGraphRole implements Serializable {
     }
     UserGraphRole that = (UserGraphRole) o;
     return Objects.equals(username, that.username) &&
-           Objects.equals(graph, that.graph) &&
-           Objects.equals(role, that.role);
+        Objects.equals(graph, that.graph) &&
+        Objects.equals(role, that.role);
   }
 
   @Override

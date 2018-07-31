@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class Graph implements Identifiable<GraphId> {
+public final class Graph implements Identifiable<GraphId> {
 
   private final UUID id;
   private final String code;

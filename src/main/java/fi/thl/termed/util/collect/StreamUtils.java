@@ -94,4 +94,8 @@ public final class StreamUtils {
     return zip(l, IntStream.iterate(0, i -> i + 1).boxed(), zipper);
   }
 
+  public static <T> Stream<T> nullToEmpty(Stream<T> stream) {
+    return stream != null ? stream : Stream.empty();
+  }
+
 }

@@ -3,7 +3,7 @@ package fi.thl.termed.domain;
 import java.util.Date;
 import java.util.Objects;
 
-public class ObjectRevision<E> {
+public final class ObjectRevision<E> {
 
   private final Long number;
   private final String author;

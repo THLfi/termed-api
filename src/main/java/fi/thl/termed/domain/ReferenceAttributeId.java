@@ -1,6 +1,6 @@
 package fi.thl.termed.domain;
 
-public class ReferenceAttributeId extends AttributeId {
+public final class ReferenceAttributeId extends AttributeId {
 
   public ReferenceAttributeId(ReferenceAttribute attribute) {
     super(attribute);

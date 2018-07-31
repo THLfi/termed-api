@@ -9,7 +9,8 @@ import fi.thl.termed.util.collect.Identifiable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ReferenceAttribute extends Attribute implements Identifiable<ReferenceAttributeId> {
+public final class ReferenceAttribute extends Attribute implements
+    Identifiable<ReferenceAttributeId> {
 
   private final TypeId range;
 

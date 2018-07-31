@@ -15,7 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class User implements UserDetails, Identifiable<String> {
+public final class User implements UserDetails, Identifiable<String> {
 
   private final String username;
   private final String password;

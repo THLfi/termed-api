@@ -21,11 +21,11 @@ public abstract class AttributeId implements Serializable {
     this.id = checkNotNull(id, "id can't be null in %s", getClass());
   }
 
-  public TypeId getDomainId() {
+  public final TypeId getDomainId() {
     return domainId;
   }
 
-  public String getId() {
+  public final String getId() {
     return id;
   }
 

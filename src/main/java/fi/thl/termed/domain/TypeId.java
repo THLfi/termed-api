@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class TypeId implements Serializable {
+public final class TypeId implements Serializable {
 
   private final String id;
 

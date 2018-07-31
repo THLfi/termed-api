@@ -6,7 +6,7 @@ import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class RevisionId<K> implements Serializable {
+public final class RevisionId<K> implements Serializable {
 
   private final K id;
   private final Long revision;

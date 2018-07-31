@@ -9,7 +9,7 @@ import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.collect.Identifiable;
 import java.util.Objects;
 
-public class TextAttribute extends Attribute implements Identifiable<TextAttributeId> {
+public final class TextAttribute extends Attribute implements Identifiable<TextAttributeId> {
 
   private final String regex;
 

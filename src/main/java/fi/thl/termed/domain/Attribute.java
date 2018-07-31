@@ -34,35 +34,35 @@ public abstract class Attribute {
     this.properties = nullableImmutableCopyOf(properties);
   }
 
-  public String getId() {
+  public final String getId() {
     return id;
   }
 
-  public TypeId getDomain() {
+  public final TypeId getDomain() {
     return domain;
   }
 
-  public String getDomainId() {
+  public final String getDomainId() {
     return domain != null ? domain.getId() : null;
   }
 
-  public UUID getDomainGraphId() {
+  public final UUID getDomainGraphId() {
     return domain != null ? domain.getGraphId() : null;
   }
 
-  public Optional<String> getUri() {
+  public final Optional<String> getUri() {
     return ofNullable(uri);
   }
 
-  public Optional<Integer> getIndex() {
+  public final Optional<Integer> getIndex() {
     return ofNullable(index);
   }
 
-  public ImmutableMultimap<String, Permission> getPermissions() {
+  public final ImmutableMultimap<String, Permission> getPermissions() {
     return nullToEmpty(permissions);
   }
 
-  public ImmutableMultimap<String, LangValue> getProperties() {
+  public final ImmutableMultimap<String, LangValue> getProperties() {
     return nullToEmpty(properties);
   }
 

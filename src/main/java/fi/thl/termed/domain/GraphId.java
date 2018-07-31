@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class GraphId implements Serializable {
+public final class GraphId implements Serializable {
 
   private final UUID id;
 

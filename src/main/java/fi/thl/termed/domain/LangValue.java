@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Class to represent localized string.
  */
-public class LangValue {
+public final class LangValue {
 
   private final String lang;
 

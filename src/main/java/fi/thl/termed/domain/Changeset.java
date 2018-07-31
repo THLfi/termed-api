@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-public class Changeset<K extends Serializable, V> {
+public final class Changeset<K extends Serializable, V> {
 
   private final ImmutableList<K> delete;
   private final ImmutableList<V> save;

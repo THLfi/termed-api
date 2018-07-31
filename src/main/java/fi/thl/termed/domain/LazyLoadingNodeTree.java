@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class LazyLoadingNodeTree implements NodeTree {
+public final class LazyLoadingNodeTree implements NodeTree {
 
   private final Node source;
 

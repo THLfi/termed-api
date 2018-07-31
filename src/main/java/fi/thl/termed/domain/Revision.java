@@ -7,7 +7,7 @@ import fi.thl.termed.util.collect.Identifiable;
 import java.util.Date;
 import java.util.Objects;
 
-public class Revision implements Identifiable<Long> {
+public final class Revision implements Identifiable<Long> {
 
   private final Long number;
   private final String author;

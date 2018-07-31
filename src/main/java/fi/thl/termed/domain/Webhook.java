@@ -6,7 +6,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Webhook implements Identifiable<UUID> {
+public final class Webhook implements Identifiable<UUID> {
 
   private UUID id;
   private URI url;

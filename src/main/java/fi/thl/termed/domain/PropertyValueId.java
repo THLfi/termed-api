@@ -1,13 +1,12 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
-import java.util.Objects;
-
-import java.io.Serializable;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class PropertyValueId<K extends Serializable> implements Serializable {
+import com.google.common.base.MoreObjects;
+import java.io.Serializable;
+import java.util.Objects;
+
+public final class PropertyValueId<K extends Serializable> implements Serializable {
 
   private final K subjectId;
 
@@ -43,8 +42,8 @@ public class PropertyValueId<K extends Serializable> implements Serializable {
     }
     PropertyValueId<?> that = (PropertyValueId<?>) o;
     return Objects.equals(subjectId, that.subjectId) &&
-           Objects.equals(propertyId, that.propertyId) &&
-           Objects.equals(index, that.index);
+        Objects.equals(propertyId, that.propertyId) &&
+        Objects.equals(index, that.index);
   }
 
   @Override

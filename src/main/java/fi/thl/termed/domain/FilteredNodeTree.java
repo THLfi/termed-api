@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-public class FilteredNodeTree implements NodeTree {
+public final class FilteredNodeTree implements NodeTree {
 
   private final NodeTree source;
   private final ImmutableSet<Select> s;

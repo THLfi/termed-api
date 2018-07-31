@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class Type implements Identifiable<TypeId> {
+public final class Type implements Identifiable<TypeId> {
 
   private final String id;
   private final GraphId graph;

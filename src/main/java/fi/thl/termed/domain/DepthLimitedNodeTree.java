@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-public class DepthLimitedNodeTree implements NodeTree {
+public final class DepthLimitedNodeTree implements NodeTree {
 
   private final NodeTree source;
 

@@ -1,14 +1,14 @@
 package fi.thl.termed.domain;
 
 import static fi.thl.termed.util.collect.SetUtils.toImmutableSet;
+import static fi.thl.termed.util.collect.StreamUtils.nullToEmpty;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
-import static java.util.stream.Stream.empty;
 
 import fi.thl.termed.util.collect.Identifiable;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class Dump implements Identifiable<DumpId> {
+public final class Dump implements Identifiable<DumpId> {
 
   private final DumpId identifier;
 
@@ -34,15 +34,15 @@ public class Dump implements Identifiable<DumpId> {
   }
 
   public Stream<Graph> getGraphs() {
-    return graphs != null ? graphs : empty();
+    return nullToEmpty(graphs);
   }
 
   public Stream<Type> getTypes() {
-    return types != null ? types : empty();
+    return nullToEmpty(types);
   }
 
   public Stream<Node> getNodes() {
-    return nodes != null ? nodes : empty();
+    return nullToEmpty(nodes);
   }
 
 }

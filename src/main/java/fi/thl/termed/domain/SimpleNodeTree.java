@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SimpleNodeTree implements NodeTree {
+public final class SimpleNodeTree implements NodeTree {
 
   private final UUID id;
   private final String code;

@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class DumpId implements Serializable {
+public final class DumpId implements Serializable {
 
   private final ImmutableSet<GraphId> graphIds;
 

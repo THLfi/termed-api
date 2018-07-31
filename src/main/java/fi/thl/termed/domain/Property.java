@@ -12,7 +12,7 @@ import fi.thl.termed.util.collect.Identifiable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Property implements Identifiable<String> {
+public final class Property implements Identifiable<String> {
 
   private final String id;
   private final String uri;

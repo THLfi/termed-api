@@ -1,13 +1,12 @@
 package fi.thl.termed.domain;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-public class NodeAttributeValueId implements Serializable {
+public final class NodeAttributeValueId implements Serializable {
 
   private final NodeId nodeId;
 
@@ -16,8 +15,8 @@ public class NodeAttributeValueId implements Serializable {
   private final Integer index;
 
   public NodeAttributeValueId(NodeId nodeId,
-                              String attributeId,
-                              Integer index) {
+      String attributeId,
+      Integer index) {
     this.nodeId = checkNotNull(nodeId, "nodeId can't be null in %s", getClass());
     this.attributeId = checkNotNull(attributeId, "attributeId can't be null in s%", getClass());
     this.index = checkNotNull(index, "index can't be null in s%", getClass());
@@ -45,8 +44,8 @@ public class NodeAttributeValueId implements Serializable {
     }
     NodeAttributeValueId that = (NodeAttributeValueId) o;
     return Objects.equals(nodeId, that.nodeId) &&
-           Objects.equals(attributeId, that.attributeId) &&
-           Objects.equals(index, that.index);
+        Objects.equals(attributeId, that.attributeId) &&
+        Objects.equals(index, that.index);
   }
 
   @Override

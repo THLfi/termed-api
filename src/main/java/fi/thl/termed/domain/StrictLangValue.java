@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Class to represent localized string with pattern.
  */
-public class StrictLangValue {
+public final class StrictLangValue {
 
   private final String lang;
 

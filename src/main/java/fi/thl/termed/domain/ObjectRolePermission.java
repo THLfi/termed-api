@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ObjectRolePermission<K extends Serializable> implements Serializable {
+public final class ObjectRolePermission<K extends Serializable> implements Serializable {
 
   private final K objectId;
   private final GraphRole graphRole;

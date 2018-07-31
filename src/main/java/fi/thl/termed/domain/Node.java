@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Node implements Identifiable<NodeId> {
+public final class Node implements Identifiable<NodeId> {
 
   private UUID id;
   private String code;

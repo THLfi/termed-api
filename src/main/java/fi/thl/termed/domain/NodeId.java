@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class NodeId implements Serializable {
+public final class NodeId implements Serializable {
 
   private final UUID id;
 
