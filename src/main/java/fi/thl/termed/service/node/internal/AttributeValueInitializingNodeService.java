@@ -1,9 +1,14 @@
 package fi.thl.termed.service.node.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Multimaps;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
@@ -14,15 +19,13 @@ import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.exception.BadRequestException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class AttributeValueInitializingNodeService
-    extends ForwardingService<NodeId, Node> {
+public class AttributeValueInitializingNodeService extends ForwardingService<NodeId, Node> {
 
   private BiFunction<TypeId, User, Optional<Type>> typeSource;
 
@@ -34,49 +37,71 @@ public class AttributeValueInitializingNodeService
 
   @Override
   public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    Map<TextAttributeId, TextAttribute> textAttributeCache = new HashMap<>();
-    Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache = new HashMap<>();
+    LoadingCache<TextAttributeId, TextAttribute> textAttributeCache = initTextAttrCache(user);
+    LoadingCache<ReferenceAttributeId, ReferenceAttribute> refAttributeCache = initRefAttrCache(
+        user);
     return super.save(
-        nodes.map(node -> resolveAttributes(node, user, textAttributeCache, refAttributeCache)),
+        nodes.map(node -> resolveAttributes(node, textAttributeCache, refAttributeCache)),
         mode, opts, user);
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    Map<TextAttributeId, TextAttribute> textAttributeCache = new HashMap<>();
-    Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache = new HashMap<>();
+    LoadingCache<TextAttributeId, TextAttribute> textAttributeCache = initTextAttrCache(user);
+    LoadingCache<ReferenceAttributeId, ReferenceAttribute> refAttributeCache = initRefAttrCache(
+        user);
     return super.save(
-        resolveAttributes(node, user, textAttributeCache, refAttributeCache), mode, opts, user);
+        resolveAttributes(node, textAttributeCache, refAttributeCache), mode, opts, user);
   }
 
-  private Node resolveAttributes(Node node, User user,
-      Map<TextAttributeId, TextAttribute> textAttributeCache,
-      Map<ReferenceAttributeId, ReferenceAttribute> refAttributeCache) {
+  private LoadingCache<TextAttributeId, TextAttribute> initTextAttrCache(User user) {
+    Function<TextAttributeId, TextAttribute> loader = attr -> {
+      Type domain = typeSource.apply(attr.getDomainId(), user)
+          .orElseThrow(() -> new BadRequestException(
+              "Type '" + attr.getDomainId().getId() + "' not found"));
+      return domain.getTextAttributes().stream()
+          .filter(typeAttr -> Objects.equals(typeAttr.getId(), attr.getId()))
+          .findAny()
+          .orElseThrow(() -> new BadRequestException(
+              "Unknown text attribute '" + attr.getId() + "' for " + attr.getDomainId().getId()));
+    };
 
-    Type type = typeSource.apply(node.getType(), user).orElseThrow(
-        () -> new BadRequestException("Type '" + node.getType().getId() + "' not found"));
+    return CacheBuilder.newBuilder().build(CacheLoader.from(loader::apply));
+  }
 
-    node.getProperties().forEach((attributeId, value) -> {
-      TextAttribute textAttribute = textAttributeCache.computeIfAbsent(
-          new TextAttributeId(node.getType(), attributeId),
-          textAttributeId -> type.getTextAttributes().stream()
-              .filter(typeAttr -> Objects.equals(typeAttr.getId(), textAttributeId.getId()))
-              .findAny().orElseThrow(() -> new BadRequestException(
-                  "Unknown text attribute '" + attributeId + "' for " + type.getId())));
+  private LoadingCache<ReferenceAttributeId, ReferenceAttribute> initRefAttrCache(User user) {
+    Function<ReferenceAttributeId, ReferenceAttribute> loader = attr -> {
+      Type domain = typeSource.apply(attr.getDomainId(), user)
+          .orElseThrow(() -> new BadRequestException(
+              "Type '" + attr.getDomainId().getId() + "' not found"));
+      return domain.getReferenceAttributes().stream()
+          .filter(typeAttr -> Objects.equals(typeAttr.getId(), attr.getId()))
+          .findAny()
+          .orElseThrow(() -> new BadRequestException(
+              "Unknown reference attribute '" + attr.getId() + "' for " + attr.getDomainId()
+                  .getId()));
+    };
 
-      value.setRegex(textAttribute.getRegex());
-    });
+    return CacheBuilder.newBuilder().build(CacheLoader.from(loader::apply));
+  }
 
-    node.getReferences().forEach((attributeId, value) -> {
-      ReferenceAttribute refAttribute = refAttributeCache.computeIfAbsent(
-          new ReferenceAttributeId(node.getType(), attributeId),
-          refAttributeId -> type.getReferenceAttributes().stream()
-              .filter(typeAttr -> Objects.equals(typeAttr.getId(), refAttributeId.getId()))
-              .findAny().orElseThrow(() -> new BadRequestException(
-                  "Unknown reference attribute '" + attributeId + "' for " + type.getId())));
+  private Node resolveAttributes(Node node,
+      LoadingCache<TextAttributeId, TextAttribute> textAttributeCache,
+      LoadingCache<ReferenceAttributeId, ReferenceAttribute> refAttributeCache) {
 
-      value.setType(refAttribute.getRange());
-    });
+    node.setProperties(
+        Multimaps.transformEntries(node.getProperties(), (attributeId, value) -> {
+          TextAttribute attribute = textAttributeCache.getUnchecked(
+              new TextAttributeId(node.getType(), attributeId));
+          return new StrictLangValue(value.getLang(), value.getValue(), attribute.getRegex());
+        }));
+
+    node.setReferences(
+        Multimaps.transformEntries(node.getReferences(), (attributeId, value) -> {
+          ReferenceAttribute attribute = refAttributeCache.getUnchecked(
+              new ReferenceAttributeId(node.getType(), attributeId));
+          return new NodeId(value.getId(), attribute.getRange());
+        }));
 
     return node;
   }

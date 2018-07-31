@@ -11,11 +11,11 @@ import java.util.Objects;
  */
 public class StrictLangValue {
 
-  private String lang;
+  private final String lang;
 
-  private String value;
+  private final String value;
 
-  private String regex;
+  private final String regex;
 
   public StrictLangValue(String value) {
     this("", value);
@@ -35,24 +35,12 @@ public class StrictLangValue {
     return nullToEmpty(lang);
   }
 
-  public void setLang(String lang) {
-    this.lang = lang;
-  }
-
   public String getValue() {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
-
   public String getRegex() {
     return regex;
-  }
-
-  public void setRegex(String regex) {
-    this.regex = regex;
   }
 
   @Override
