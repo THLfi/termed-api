@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class DepthLimitedNodeTree implements NodeTree {
@@ -40,12 +41,12 @@ public final class DepthLimitedNodeTree implements NodeTree {
   }
 
   @Override
-  public String getCode() {
+  public Optional<String> getCode() {
     return source.getCode();
   }
 
   @Override
-  public String getUri() {
+  public Optional<String> getUri() {
     return source.getUri();
   }
 

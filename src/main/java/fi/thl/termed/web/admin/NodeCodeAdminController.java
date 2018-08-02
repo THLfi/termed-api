@@ -2,7 +2,6 @@ package fi.thl.termed.web.admin;
 
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.service.WriteOptions.opts;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import fi.thl.termed.domain.AppRole;
@@ -14,7 +13,6 @@ import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +39,14 @@ public class NodeCodeAdminController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      try (Stream<Node> stream = nodeService.values(
-          new Query<>(new NodesByGraphId(graphId)), user)) {
-        List<Node> nodes = stream
-            .peek(node -> node.setCode(null))
-            .collect(toList());
+      try (Stream<Node> stream = nodeService
+          .values(new Query<>(new NodesByGraphId(graphId)), user)) {
 
-        nodeService.save(nodes.stream(), SaveMode.UPDATE, opts(sync), user);
+        Stream<Node> nodesWithoutCodes = stream
+            .filter(n -> n.getCode().isPresent())
+            .map(n -> Node.builderFromCopyOf(n).code(null).build());
+
+        nodeService.save(nodesWithoutCodes, SaveMode.UPDATE, opts(sync), user);
       }
     } else {
       throw new AccessDeniedException("");
@@ -65,11 +64,12 @@ public class NodeCodeAdminController {
       try (Stream<Node> stream = nodeService.values(new Query<>(
           and(new NodesByGraphId(graphId),
               new NodesByTypeId(typeId))), user)) {
-        List<Node> nodes = stream
-            .peek(node -> node.setCode(null))
-            .collect(toList());
 
-        nodeService.save(nodes.stream(), SaveMode.UPDATE, opts(sync), user);
+        Stream<Node> nodesWithoutCodes = stream
+            .filter(n -> n.getCode().isPresent())
+            .map(n -> Node.builderFromCopyOf(n).code(null).build());
+
+        nodeService.save(nodesWithoutCodes, SaveMode.UPDATE, opts(sync), user);
       }
     } else {
       throw new AccessDeniedException("");

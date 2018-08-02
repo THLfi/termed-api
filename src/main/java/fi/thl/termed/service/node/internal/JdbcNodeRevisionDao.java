@@ -3,12 +3,10 @@ package fi.thl.termed.service.node.internal;
 import static java.util.Optional.ofNullable;
 
 import com.google.common.base.Strings;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
@@ -36,8 +34,8 @@ public class JdbcNodeRevisionDao extends
         nodeId.getTypeId(),
         nodeId.getId(),
         revisionId.getRevision(),
-        node.map(Node::getCode).map(Strings::emptyToNull).orElse(null),
-        node.map(Node::getUri).map(Strings::emptyToNull).orElse(null),
+        node.flatMap(Node::getCode).map(Strings::emptyToNull).orElse(null),
+        node.flatMap(Node::getUri).map(Strings::emptyToNull).orElse(null),
         node.map(Node::getNumber).orElse(null),
         node.map(Node::getCreatedBy).orElse(null),
         node.map(Node::getCreatedDate).orElse(null),
@@ -103,22 +101,23 @@ public class JdbcNodeRevisionDao extends
   @Override
   protected RowMapper<Tuple2<RevisionType, Node>> buildValueMapper() {
     return (rs, rowNum) -> {
-      Node node = new Node(UUIDs.fromString(rs.getString("id")));
-      node.setType(TypeId.of(rs.getString("type_id"),
-          GraphId.fromUuidString(rs.getString("graph_id"))));
+      Node.Builder builder = Node.builder()
+          .id(UUIDs.fromString(rs.getString("id")),
+              rs.getString("type_id"),
+              UUIDs.fromString(rs.getString("graph_id")));
 
-      node.setCode(rs.getString("code"));
-      node.setUri(rs.getString("uri"));
+      builder.code(rs.getString("code"));
+      builder.uri(rs.getString("uri"));
 
       long number = rs.getLong("number");
-      node.setNumber(rs.wasNull() ? null : number);
+      builder.number(rs.wasNull() ? null : number);
 
-      node.setCreatedBy(rs.getString("created_by"));
-      node.setCreatedDate(rs.getTimestamp("created_date"));
-      node.setLastModifiedBy(rs.getString("last_modified_by"));
-      node.setLastModifiedDate(rs.getTimestamp("last_modified_date"));
+      builder.createdBy(rs.getString("created_by"));
+      builder.createdDate(rs.getTimestamp("created_date"));
+      builder.lastModifiedBy(rs.getString("last_modified_by"));
+      builder.lastModifiedDate(rs.getTimestamp("last_modified_date"));
 
-      return Tuple.of(RevisionType.valueOf(rs.getString("revision_type")), node);
+      return Tuple.of(RevisionType.valueOf(rs.getString("revision_type")), builder.build());
     };
   }
 

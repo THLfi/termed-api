@@ -1,12 +1,10 @@
 package fi.thl.termed.web.node;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
-import static java.util.Optional.ofNullable;
+import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Changeset;
 import fi.thl.termed.domain.GraphId;
@@ -21,8 +19,7 @@ import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,17 +57,22 @@ public class NodeChangesetController {
 
     TypeId type = new TypeId(typeId, new GraphId(graphId));
 
-    changeset.getSave().forEach(node -> node.setType(type));
-    changeset.getPatch().forEach(node -> node.setType(type));
+    Stream<Node> saves = Stream.concat(
+        changeset.getSave().stream()
+            .map(node -> Objects.equals(node.getType(), type) ? node : Node.builder()
+                .id(node.getId(), type)
+                .copyOptionalsFrom(node)
+                .build()),
+        changeset.getPatch().stream()
+            .map(patch -> {
+              NodeId id = new NodeId(requireNonNull(patch.getId()), type);
+              Node prev = nodeService.get(id, user).orElseThrow(NotFoundException::new);
+              return merge(prev, patch);
+            }));
 
-    List<Node> saves = new ArrayList<>(changeset.getSave());
-    changeset.getPatch().forEach(p -> saves.add(
-        merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
-
-    ImmutableList<NodeId> deletes =
+    Stream<NodeId> deletes =
         changeset.getDelete().stream()
-            .map(node -> new NodeId(node.getId(), type))
-            .collect(toImmutableList());
+            .map(node -> new NodeId(node.getId(), type));
 
     saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
   }
@@ -84,17 +86,24 @@ public class NodeChangesetController {
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
-    changeset.getSave().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
-    changeset.getPatch().forEach(node -> node.setType(new TypeId(node.getTypeId(), graphId)));
+    Stream<Node> saves = Stream.concat(
+        changeset.getSave().stream()
+            .map(node -> Objects.equals(node.getType(), TypeId.of(node.getTypeId(), graphId))
+                ? node
+                : Node.builder()
+                    .id(node.getId(), node.getTypeId(), graphId)
+                    .copyOptionalsFrom(node)
+                    .build()),
+        changeset.getPatch().stream()
+            .map(patch -> {
+              NodeId id = new NodeId(requireNonNull(patch.getId()), patch.getTypeId(), graphId);
+              Node prev = nodeService.get(id, user).orElseThrow(NotFoundException::new);
+              return merge(prev, patch);
+            }));
 
-    List<Node> saves = new ArrayList<>(changeset.getSave());
-    changeset.getPatch().forEach(p -> saves.add(
-        merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
-
-    ImmutableList<NodeId> deletes =
+    Stream<NodeId> deletes =
         changeset.getDelete().stream()
-            .map(node -> new NodeId(node.getId(), new TypeId(node.getTypeId(), graphId)))
-            .collect(toImmutableList());
+            .map(node -> new NodeId(node.getId(), node.getTypeId(), graphId));
 
     saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
   }
@@ -107,33 +116,42 @@ public class NodeChangesetController {
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
-    List<Node> saves = new ArrayList<>(changeset.getSave());
-    changeset.getPatch().forEach(p -> saves.add(
-        merge(nodeService.get(p.identifier(), user).orElseThrow(NotFoundException::new), p)));
+    Stream<Node> saves = Stream.concat(
+        changeset.getSave().stream(),
+        changeset.getPatch().stream()
+            .map(patch -> merge(
+                nodeService.get(patch.identifier(), user).orElseThrow(NotFoundException::new),
+                patch)));
 
-    saveAndDelete(saves, changeset.getDelete(), saveMode(mode), opts(sync), user);
+    Stream<NodeId> deletes =
+        changeset.getDelete().stream();
+
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
   }
 
   private Node merge(Node node, Node patch) {
-    ofNullable(patch.getCode()).ifPresent(node::setCode);
-    ofNullable(patch.getUri()).ifPresent(node::setUri);
-    patch.getProperties().entries().forEach(e -> node.addProperty(e.getKey(), e.getValue()));
-    patch.getReferences().entries().forEach(e -> node.addReference(e.getKey(), e.getValue()));
-    return node;
+    Node.Builder nodeBuilder = Node.builderFromCopyOf(node);
+
+    patch.getCode().ifPresent(nodeBuilder::code);
+    patch.getUri().ifPresent(nodeBuilder::uri);
+    patch.getProperties().entries()
+        .forEach(e -> nodeBuilder.properties(e.getKey(), e.getValue()));
+    patch.getReferences().entries()
+        .forEach(e -> nodeBuilder.references(e.getKey(), e.getValue()));
+
+    return nodeBuilder.build();
   }
 
-  private void saveAndDelete(List<Node> saves, List<NodeId> deletes,
+  private void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes,
       SaveMode mode, WriteOptions opts, User user) {
+
+    Stream.Builder<NodeId> processed = Stream.builder();
+
     TransactionUtils.runInTransaction(transactionManager, () -> {
-      nodeService.save(saves.stream(), mode, opts, user);
-      nodeService.delete(deletes.stream(), opts, user);
+      nodeService.save(saves.peek(n -> processed.add(n.identifier())), mode, opts, user);
+      nodeService.delete(deletes.peek(processed::add), opts, user);
       return null;
-    }, (error) -> {
-      Stream<NodeId> reindex = Stream.concat(
-          saves.stream().map(Node::identifier),
-          deletes.stream());
-      eventBus.post(new ReindexEvent<>(reindex));
-    });
+    }, (error) -> eventBus.post(new ReindexEvent<>(processed.build())));
   }
 
 }

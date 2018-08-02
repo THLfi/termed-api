@@ -14,12 +14,14 @@ import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
+import fi.thl.termed.util.collect.OptionalUtils;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -56,29 +58,60 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
     Optional<Node> cachedNode = findCachedNode(node.identifier(), user);
 
     if (cachedNode.isPresent()) {
-      node.setNumber(cachedNode.get().getNumber());
+      return updateExtIds(node, cachedNode.get());
     } else {
-      Long number = nodeSequenceService.getAndAdvance(node.getType(), user);
-      node.setNumber(number);
+      return insertExtIds(node, user);
+    }
+  }
 
-      if (node.getCode() == null) {
-        Type type = typeSource.apply(node.getType(), user);
-        String code = type.getNodeCodePrefixOrDefault() + number;
-        if (existsNodeWithCode(node.getType(), code, user)) {
-          node.setCode(code);
-        }
-      }
+  private Node updateExtIds(Node node, Node cachedNode) {
+    if (Objects.equals(cachedNode.getNumber(), node.getNumber())) {
+      // number is correct, simply return the node
+      return node;
+    } else {
+      return Node.builderFromCopyOf(node)
+          .number(cachedNode.getNumber())
+          .build();
+    }
+  }
 
-      if (node.getUri() == null) {
-        Graph graph = graphSource.apply(node.getTypeGraph(), user);
-        Optional<String> uri = graph.getUri().map(ns -> ns + node.getCode());
-        if (uri.isPresent() && !existsNodeWithUri(node.getType(), uri.get(), user)) {
-          node.setUri(uri.get());
-        }
-      }
+  private Node insertExtIds(Node node, User user) {
+    Long number = nodeSequenceService.getAndAdvance(node.getType(), user);
+
+    Node.Builder builder = Node.builderFromCopyOf(node);
+    builder.number(number);
+
+    Optional<String> code = OptionalUtils.lazyFindFirst(
+        node::getCode,
+        () -> buildDefaultCode(node.getType(), number, user));
+
+    Optional<String> uri = OptionalUtils.lazyFindFirst(
+        node::getUri,
+        () -> buildDefaultUri(node.getTypeGraph(), code, user));
+
+    code.ifPresent(builder::code);
+    uri.ifPresent(builder::uri);
+
+    return builder.build();
+  }
+
+  private Optional<String> buildDefaultCode(TypeId typeId, Long number, User user) {
+    Type type = typeSource.apply(typeId, user);
+    String defaultCode = type.getNodeCodePrefixOrDefault() + number;
+    return existsNodeWithCode(typeId, defaultCode, user) ?
+        Optional.of(defaultCode) : Optional.empty();
+  }
+
+  private Optional<String> buildDefaultUri(GraphId graphId, Optional<String> code, User user) {
+    Graph graph = graphSource.apply(graphId, user);
+
+    if (graph.getUri().isPresent() && code.isPresent()) {
+      String defaultUri = graph.getUri().get() + code.get();
+      return existsNodeWithUri(graphId, defaultUri, user) ?
+          Optional.of(defaultUri) : Optional.empty();
     }
 
-    return node;
+    return Optional.empty();
   }
 
   private Optional<Node> findCachedNode(NodeId nodeId, User user) {
@@ -97,10 +130,9 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
         new NodesByCode(code)), user) > 0;
   }
 
-  private boolean existsNodeWithUri(TypeId typeId, String uri, User user) {
+  private boolean existsNodeWithUri(GraphId graphId, String uri, User user) {
     return count(and(
-        new NodesByGraphId(typeId.getGraphId()),
-        new NodesByTypeId(typeId.getId()),
+        new NodesByGraphId(graphId.getId()),
         new NodesByUri(uri)), user) > 0;
   }
 

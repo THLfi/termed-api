@@ -44,7 +44,7 @@ import java.util.stream.Stream.Builder;
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs. Revision reads are typically done here.
  * Incremental revision updates are automatically made by NodeRepository. This repository can do
- * full revision saves which are useful in e.g. admin operations.
+ * full node revision saves which are useful in e.g. admin operations.
  */
 public class NodeRevisionRepository implements
     Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
@@ -184,10 +184,11 @@ public class NodeRevisionRepository implements
       return rev;
     }
 
-    Node node = new Node(rev._2);
-    node.setProperties(findPropertiesFor(id, user));
-    node.setReferences(findReferencesFor(id, user));
-    return Tuple.of(rev._1, node);
+    Node.Builder nodeBuilder = Node.builderFromCopyOf(rev._2)
+        .properties(findPropertiesFor(id, user))
+        .references(findReferencesFor(id, user));
+
+    return Tuple.of(rev._1, nodeBuilder.build());
   }
 
   private Multimap<String, StrictLangValue> findPropertiesFor(RevisionId<NodeId> revId, User user) {

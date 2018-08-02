@@ -4,6 +4,7 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
@@ -57,7 +58,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
     try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referenceValueMap = results.collect(toMap(Node::identifier, n -> n));
 
-      Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
+      Set<NodeId> referenceIds = ImmutableSet.copyOf(node.getReferences().get(attributeId));
 
       if (!referenceValueMap.keySet().equals(referenceIds)) {
         log.error("Index may be corrupted or outdated, requested: {}, found: {}",

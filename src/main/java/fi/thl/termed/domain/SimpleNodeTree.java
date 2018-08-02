@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class SimpleNodeTree implements NodeTree {
@@ -30,8 +31,8 @@ public final class SimpleNodeTree implements NodeTree {
 
   public SimpleNodeTree(NodeTree tree) {
     this.id = tree.getId();
-    this.code = tree.getCode();
-    this.uri = tree.getUri();
+    this.code = tree.getCode().orElse(null);
+    this.uri = tree.getUri().orElse(null);
     this.number = tree.getNumber();
     this.createdBy = tree.getCreatedBy();
     this.createdDate = tree.getCreatedDate();
@@ -50,13 +51,13 @@ public final class SimpleNodeTree implements NodeTree {
   }
 
   @Override
-  public String getCode() {
-    return code;
+  public Optional<String> getCode() {
+    return Optional.ofNullable(code);
   }
 
   @Override
-  public String getUri() {
-    return uri;
+  public Optional<String> getUri() {
+    return Optional.ofNullable(uri);
   }
 
   @Override

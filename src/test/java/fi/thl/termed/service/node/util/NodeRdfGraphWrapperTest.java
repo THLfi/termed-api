@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
@@ -54,16 +55,20 @@ public class NodeRdfGraphWrapperTest {
     types.add(concept);
 
     NodeId concept1Id = new NodeId(nameUUIDFromString("1"), conceptId);
-    Node concept1 = new Node(concept1Id);
-    concept1.setUri("http://example.org/Concept_1");
-    concept1.addProperty("prefLabel", "en", "Concept 1");
+    Node concept1 = Node.builder()
+        .id(concept1Id)
+        .uri("http://example.org/Concept_1")
+        .properties("prefLabel", new StrictLangValue("en", "Concept 1"))
+        .build();
     nodeDao.insert(concept1Id, concept1);
 
     NodeId concept2Id = new NodeId(nameUUIDFromString("2"), conceptId);
-    Node concept2 = new Node(concept2Id);
-    concept2.setUri("http://example.org/Concept_2");
-    concept2.addProperty("prefLabel", "en", "Concept 2");
-    concept2.addReference("broader", concept1Id);
+    Node concept2 = Node.builder()
+        .id(concept2Id)
+        .uri("http://example.org/Concept_2")
+        .properties("prefLabel", new StrictLangValue("en", "Concept 2"))
+        .references("broader", concept1Id)
+        .build();
     nodeDao.insert(concept2Id, concept2);
 
     GraphBase graphBase = new NodeRdfGraphWrapper(types, nodeDao::getValues);

@@ -2,15 +2,16 @@ package fi.thl.termed.domain;
 
 import com.google.common.collect.Multimap;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface NodeTree {
 
   UUID getId();
 
-  String getCode();
+  Optional<String> getCode();
 
-  String getUri();
+  Optional<String> getUri();
 
   Long getNumber();
 

@@ -4,6 +4,7 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
@@ -56,7 +57,7 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, List<Node
     try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referrerValueMap = results.collect(toMap(Node::identifier, n -> n));
 
-      Collection<NodeId> referrerIds = node.getReferrers().get(attributeId);
+      Collection<NodeId> referrerIds = ImmutableSet.copyOf(node.getReferrers().get(attributeId));
 
       if (!referrerValueMap.keySet().equals(referrerIds)) {
         log.error("Index may be corrupted or outdated, requested: {}, found: {}",

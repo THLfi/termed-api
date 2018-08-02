@@ -43,7 +43,7 @@ public final class UriResolvers {
 
   public static Function<NodeId, Optional<String>> nodeUriResolver(
       Function<NodeId, Optional<Node>> nodeProvider) {
-    return id -> nodeProvider.apply(id).map(Node::getUri);
+    return id -> nodeProvider.apply(id).flatMap(Node::getUri);
   }
 
 }

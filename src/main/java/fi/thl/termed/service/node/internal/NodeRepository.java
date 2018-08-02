@@ -235,21 +235,17 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
         Stream<Tuple2<NodeAttributeValueId, NodeId>> referrers = refAttrValueDao.getEntries(
             new NodeReferenceAttributeNodesByValueId(nodeId), user)) {
 
-      node = new Node(node);
-
-      node.setProperties(texts.collect(toImmutableMultimap(
-          e -> e._1.getAttributeId(),
-          e -> e._2)));
-
-      node.setReferences(references.collect(toImmutableMultimap(
-          e -> e._1.getAttributeId(),
-          e -> e._2)));
-
-      node.setReferrers(referrers.collect(toImmutableMultimap(
-          e -> e._1.getAttributeId(),
-          e -> e._1.getNodeId())));
-
-      return node;
+      return Node.builderFromCopyOf(node)
+          .properties(texts.collect(toImmutableMultimap(
+              e -> e._1.getAttributeId(),
+              e -> e._2)))
+          .references(references.collect(toImmutableMultimap(
+              e -> e._1.getAttributeId(),
+              e -> e._2)))
+          .referrers(referrers.collect(toImmutableMultimap(
+              e -> e._1.getAttributeId(),
+              e -> e._1.getNodeId())))
+          .build();
     }
   }
 

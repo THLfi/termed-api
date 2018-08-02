@@ -184,9 +184,11 @@ public class NodeDeleteController {
 
     return delete.getReferrers().values().stream().map(referrerId -> {
       Node referrer = nodeService.get(referrerId, user).orElseThrow(IllegalStateException::new);
-      referrer.setReferences(filterValues(referrer.getReferences(),
-          referrerReferenceId -> !Objects.equals(referrerReferenceId, deleteId)));
-      return referrer;
+
+      return Node.builderFromCopyOf(referrer)
+          .references(filterValues(referrer.getReferences(),
+              referrerReferenceId -> !Objects.equals(referrerReferenceId, deleteId)))
+          .build();
     }).collect(toList());
   }
 

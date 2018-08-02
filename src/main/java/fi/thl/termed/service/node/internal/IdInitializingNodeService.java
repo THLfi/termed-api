@@ -1,15 +1,17 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
+
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.ErrorCode;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -33,29 +35,37 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   private Node resolveId(Node node) {
+    if (node.getId() != null) {
+      return node;
+    }
+
     Preconditions.checkNotNull(node.getTypeGraphId(), ErrorCode.NODE_GRAPH_ID_MISSING);
     Preconditions.checkNotNull(node.getTypeId(), ErrorCode.NODE_TYPE_ID_MISSING);
 
     UUID graphId = node.getTypeGraphId();
     String typeId = node.getTypeId();
-    UUID id = node.getId();
 
-    String code = node.getCode();
-    String uri = node.getUri();
+    Optional<String> code = node.getCode();
+    Optional<String> uri = node.getUri();
 
-    if (id == null && code != null) {
-      id = UUIDs.nameUUIDFromString(graphId + "-" + typeId + "-" + code);
-    }
-    if (id == null && uri != null) {
-      id = UUIDs.nameUUIDFromString(graphId + "-" + uri);
-    }
-    if (id == null) {
-      id = UUID.randomUUID();
+    if (code.isPresent()) {
+      return Node.builder()
+          .id(nameUUIDFromString(graphId + "-" + typeId + "-" + code.get()), typeId, graphId)
+          .copyOptionalsFrom(node)
+          .build();
     }
 
-    node.setId(id);
+    if (uri.isPresent()) {
+      return Node.builder()
+          .id(nameUUIDFromString(graphId + "-" + uri.get()), typeId, graphId)
+          .copyOptionalsFrom(node)
+          .build();
+    }
 
-    return node;
+    return Node.builder()
+        .id(UUID.randomUUID(), typeId, graphId)
+        .copyOptionalsFrom(node)
+        .build();
   }
 
 }

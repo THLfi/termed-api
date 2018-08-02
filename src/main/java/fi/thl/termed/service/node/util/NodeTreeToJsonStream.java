@@ -33,13 +33,13 @@ public final class NodeTreeToJsonStream {
       writer.name("id");
       writer.value(tree.getId().toString());
     }
-    if (tree.getCode() != null) {
+    if (tree.getCode().isPresent()) {
       writer.name("code");
-      writer.value(tree.getCode());
+      writer.value(tree.getCode().get());
     }
-    if (tree.getUri() != null) {
+    if (tree.getUri().isPresent()) {
       writer.name("uri");
-      writer.value(tree.getUri());
+      writer.value(tree.getUri().get());
     }
     if (tree.getNumber() != null) {
       writer.name("number");

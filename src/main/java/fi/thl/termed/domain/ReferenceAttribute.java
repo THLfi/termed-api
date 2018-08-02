@@ -18,7 +18,7 @@ public final class ReferenceAttribute extends Attribute implements
       Multimap<String, Permission> permissions,
       Multimap<String, LangValue> properties) {
     super(id, domain, uri, index, permissions, properties);
-    this.range = range;
+    this.range = requireNonNull(range);
   }
 
   public static IdBuilder builder() {

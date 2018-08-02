@@ -58,7 +58,6 @@ public class IndexController {
     }
   }
 
-
   @DeleteMapping("/graphs/{graphId}/types/{id}/index")
   @ResponseStatus(NO_CONTENT)
   public void reindexType(

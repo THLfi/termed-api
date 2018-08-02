@@ -17,7 +17,7 @@ public final class TextAttribute extends Attribute implements Identifiable<TextA
       Multimap<String, Permission> permissions,
       Multimap<String, LangValue> properties) {
     super(id, domain, uri, index, permissions, properties);
-    this.regex = regex;
+    this.regex = requireNonNull(regex);
   }
 
   public static IdBuilder builder() {

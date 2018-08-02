@@ -41,16 +41,16 @@ public class NodeToDocument implements Function<Node, Document> {
   public Document apply(Node n) {
     Document doc = new Document();
 
-    Node cachedNode = new Node(n);
-    cachedNode.setReferrers(null);
-    doc.add(new StoredField(CACHED_RESULT_FIELD, gson.toJson(cachedNode)));
+    Node.Builder cachedNodeBuilder = Node.builderFromCopyOf(n);
+    cachedNodeBuilder.referrers(null);
+    doc.add(new StoredField(CACHED_RESULT_FIELD, gson.toJson(cachedNodeBuilder.build())));
     doc.add(new StoredField(CACHED_REFERRERS_FIELD, gson.toJson(n.getReferrers())));
 
     doc.add(stringField("type.graph.id", n.getTypeGraphId()));
     doc.add(stringField("type.id", n.getTypeId()));
     doc.add(stringField("id", n.getId()));
-    doc.add(stringField("code", n.getCode()));
-    doc.add(stringField("uri", n.getUri()));
+    doc.add(stringField("code", n.getCode().orElse("")));
+    doc.add(stringField("uri", n.getUri().orElse("")));
     doc.add(stringField("number", n.getNumber()));
 
     doc.add(stringField("createdDate", n.getCreatedDate()));

@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 
 import com.google.common.collect.Multimap;
@@ -35,12 +36,13 @@ public class DocumentToNode implements Function<Document, Node> {
   public Node apply(Document document) {
     Node cachedNode = loadCachedJsonField(document, CACHED_RESULT_FIELD, Node.class);
 
-    if (loadReferrers) {
-      cachedNode.setReferrers(
-          loadCachedJsonField(document, LuceneConstants.CACHED_REFERRERS_FIELD, referrersType));
+    if (!loadReferrers) {
+      return cachedNode;
+    } else {
+      return Node.builderFromCopyOf(cachedNode)
+          .referrers(loadCachedJsonField(document, CACHED_REFERRERS_FIELD, referrersType))
+          .build();
     }
-
-    return cachedNode;
   }
 
   private <T> T loadCachedJsonField(Document document, String field, Type type) {

@@ -1,17 +1,19 @@
 package fi.thl.termed.service.node.util;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.RegularExpressions.URN_UUID;
 import static fi.thl.termed.util.UUIDs.fromString;
 import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.base.Ascii;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import fi.thl.termed.domain.LangValue;
 import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.Node.Builder;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
+import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.util.StringUtils;
@@ -43,67 +45,71 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
 
   @Override
   public List<Node> apply(RdfModel rdfModel) {
-    Map<String, Node> nodes = Maps.newLinkedHashMap();
+    Map<String, Node.Builder> nodes = Maps.newLinkedHashMap();
 
     // init nodes
     for (Type type : types) {
       for (RdfResource r : rdfModel.find(RDF.type.getURI(), type.getUri().orElse(null))) {
         String uri = r.getUri();
 
-        Node node = new Node();
+        Node.Builder nodeBuilder;
 
         if (uri.matches(URN_UUID)) {
-          node.setId(fromString(uri.substring("urn:uuid:".length())));
+          nodeBuilder = Node.builder()
+              .id(fromString(uri.substring("urn:uuid:".length())), type.identifier());
         } else {
-          node.setId(nameUUIDFromString(uri));
-          node.setUri(uri);
-          node.setCode(importCodes ? StringUtils.normalize(URIs.localName(uri)) : null);
+          nodeBuilder = Node.builder()
+              .id(nameUUIDFromString(uri), type.identifier())
+              .uri(uri)
+              .code(importCodes ? StringUtils.normalize(URIs.localName(uri)) : null);
         }
 
-        node.setType(type.identifier());
-        nodes.put(r.getUri(), node);
+        nodes.put(r.getUri(), nodeBuilder);
       }
     }
 
     // populate attributes
     for (Type type : types) {
       for (RdfResource rdfResource : rdfModel.find(RDF.type.getURI(), type.getUri().orElse(null))) {
-        Node node = nodes.get(rdfResource.getUri());
-        setTextAttrValues(type, node, rdfResource);
+        Node.Builder nodeBuilder = nodes.get(rdfResource.getUri());
 
-        setRefAttrValues(type, node, rdfResource, nodes);
+        setTextAttrValues(type, nodeBuilder, rdfResource);
+        setRefAttrValues(type, nodeBuilder, rdfResource, nodes);
       }
     }
 
-    return Lists.newArrayList(nodes.values());
+    return nodes.values().stream()
+        .map(Builder::build)
+        .collect(toImmutableList());
   }
 
-  private void setTextAttrValues(Type type, Node node, RdfResource rdfResource) {
+  private void setTextAttrValues(Type type, Node.Builder node, RdfResource rdfResource) {
     for (TextAttribute textAttribute : type.getTextAttributes()) {
       for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri().orElse(null))) {
-        node.addProperty(textAttribute.getId(),
-            Ascii.truncate(langValues.getLang(), 2, ""),
-            langValues.getValue(),
-            textAttribute.getRegex());
+        node.properties(textAttribute.getId(),
+            new StrictLangValue(
+                Ascii.truncate(langValues.getLang(), 2, ""),
+                langValues.getValue(),
+                textAttribute.getRegex()));
       }
     }
   }
 
-  private void setRefAttrValues(Type type, Node node, RdfResource rdfResource,
-      Map<String, Node> nodes) {
+  private void setRefAttrValues(Type type, Node.Builder node, RdfResource rdfResource,
+      Map<String, Node.Builder> nodes) {
     for (ReferenceAttribute refAttribute : type.getReferenceAttributes()) {
       for (String objectUri : rdfResource.getObjects(refAttribute.getUri().orElse(null))) {
         if (nodes.containsKey(objectUri)) {
-          Node object = nodes.get(objectUri);
+          Node object = nodes.get(objectUri).build();
           if (object.getType().equals(refAttribute.getRange())) {
-            node.addReference(refAttribute.getId(), object.identifier());
+            node.references(refAttribute.getId(), object.identifier());
           }
         } else {
           UUID objectId = objectUri.matches(URN_UUID) ?
               fromString(objectUri.substring("urn:uuid:".length())) :
               nameUUIDFromString(objectUri);
           Optional<Node> object = nodeProvider.apply(new NodeId(objectId, refAttribute.getRange()));
-          object.ifPresent(o -> node.addReference(refAttribute.getId(), o.identifier()));
+          object.ifPresent(o -> node.references(refAttribute.getId(), o.identifier()));
         }
       }
     }

@@ -42,18 +42,20 @@ public class TimestampingNodeService extends ForwardingService<NodeId, Node> {
 
       Optional<Node> indexedNode = indexedNodes.findAny();
 
+      Node.Builder builder = Node.builderFromCopyOf(node);
+
       if (indexedNode.isPresent()) {
-        node.setCreatedDate(indexedNode.get().getCreatedDate());
-        node.setCreatedBy(indexedNode.get().getCreatedBy());
+        builder.createdDate(indexedNode.get().getCreatedDate());
+        builder.createdBy(indexedNode.get().getCreatedBy());
       } else {
-        node.setCreatedDate(now);
-        node.setCreatedBy(user.getUsername());
+        builder.createdDate(now);
+        builder.createdBy(user.getUsername());
       }
 
-      node.setLastModifiedDate(now);
-      node.setLastModifiedBy(user.getUsername());
+      builder.lastModifiedDate(now);
+      builder.lastModifiedBy(user.getUsername());
 
-      return node;
+      return builder.build();
     }
   }
 

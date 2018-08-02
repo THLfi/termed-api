@@ -1,7 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.base.Strings.emptyToNull;
-
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -27,8 +26,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
-        emptyToNull(node.getCode()),
-        emptyToNull(node.getUri()),
+        node.getCode().map(Strings::emptyToNull).orElse(null),
+        node.getUri().map(Strings::emptyToNull).orElse(null),
         node.getNumber(),
         node.getCreatedBy(),
         node.getCreatedDate(),
@@ -40,8 +39,8 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
   public void update(NodeId nodeId, Node node) {
     jdbcTemplate.update(
         "update node set code = ?, uri = ?, number = ?, created_by = ?, created_date = ?, last_modified_by = ?, last_modified_date = ? where graph_id = ? and type_id = ? and id = ?",
-        emptyToNull(node.getCode()),
-        emptyToNull(node.getUri()),
+        node.getCode().map(Strings::emptyToNull).orElse(null),
+        node.getUri().map(Strings::emptyToNull).orElse(null),
         node.getNumber(),
         node.getCreatedBy(),
         node.getCreatedDate(),
@@ -99,22 +98,17 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
   @Override
   protected RowMapper<Node> buildValueMapper() {
-    return (rs, rowNum) -> {
-      Node node = new Node(UUIDs.fromString(rs.getString("id")));
-      node.setType(TypeId.of(rs.getString("type_id"),
-          GraphId.fromUuidString(rs.getString("graph_id"))));
-
-      node.setCode(rs.getString("code"));
-      node.setUri(rs.getString("uri"));
-      node.setNumber(rs.getLong("number"));
-
-      node.setCreatedBy(rs.getString("created_by"));
-      node.setCreatedDate(rs.getTimestamp("created_date"));
-      node.setLastModifiedBy(rs.getString("last_modified_by"));
-      node.setLastModifiedDate(rs.getTimestamp("last_modified_date"));
-
-      return node;
-    };
+    return (rs, rowNum) -> Node.builder()
+        .id(UUIDs.fromString(rs.getString("id")),
+            TypeId.of(rs.getString("type_id"), GraphId.fromUuidString(rs.getString("graph_id"))))
+        .code(rs.getString("code"))
+        .uri(rs.getString("uri"))
+        .number(rs.getLong("number"))
+        .createdBy(rs.getString("created_by"))
+        .createdDate(rs.getTimestamp("created_date"))
+        .lastModifiedBy(rs.getString("last_modified_by"))
+        .lastModifiedDate(rs.getTimestamp("last_modified_date"))
+        .build();
   }
 
 }

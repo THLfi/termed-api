@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.LazyLoadingMultimap;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -29,12 +30,12 @@ public final class LazyLoadingNodeTree implements NodeTree {
   }
 
   @Override
-  public String getCode() {
+  public Optional<String> getCode() {
     return source.getCode();
   }
 
   @Override
-  public String getUri() {
+  public Optional<String> getUri() {
     return source.getUri();
   }
 

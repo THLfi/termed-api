@@ -145,6 +145,79 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
+  public void shouldRecoverFromPostingAnIllegalChangeset() {
+    String graphId = UUID.randomUUID().toString();
+    String typeId = "Concept";
+
+    String firstNodeId = UUID.randomUUID().toString();
+    String secondNodeId = UUID.randomUUID().toString();
+    String thirdNodeId = UUID.randomUUID().toString();
+
+    // save graph and type
+    given(adminAuthorizedJsonSaveRequest)
+        .body("{'id':'" + graphId + "'}")
+        .post("/api/graphs?mode=insert");
+    given(adminAuthorizedJsonSaveRequest)
+        .body("{'id':'" + typeId + "'}")
+        .post("/api/graphs/" + graphId + "/types");
+
+    // save only the first node
+    given(adminAuthorizedJsonSaveRequest)
+        .body("{'id':'" + firstNodeId + "'}")
+        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes")
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+
+    // check preconditions
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", equalTo(firstNodeId));
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + thirdNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+
+    // try posting a changeset with valid delete and broken insert
+    JsonObject changeset = object(
+        "delete", array(object("id", primitive(firstNodeId))),
+        "save", array(
+            object("id", primitive(thirdNodeId)),
+            object("id", primitive(secondNodeId),
+                "properties", object("badAttrId", array(object("value", primitive("foo")))))));
+    given(adminAuthorizedJsonSaveRequest)
+        .body(changeset.toString())
+        .post("/api/graphs/" + graphId + "/types/Concept/nodes?changeset=true")
+        .then()
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+    // verify that nothing is changed
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + firstNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", equalTo(firstNodeId));
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + secondNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + thirdNodeId)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+
+    // clean up
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
+  }
+
+  @Test
   public void shouldDeleteNodeBatch() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";

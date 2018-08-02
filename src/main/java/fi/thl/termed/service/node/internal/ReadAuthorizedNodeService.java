@@ -1,7 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimaps;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -117,17 +116,14 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
     @Override
     public Node apply(Node node) {
       TypeId typeId = node.getType();
-
-      node.setProperties(LinkedHashMultimap.create(Multimaps.filterKeys(
-          node.getProperties(), new AcceptPropertyPredicate(typeId))));
-
-      node.setReferences(LinkedHashMultimap.create(Multimaps.filterEntries(
-          node.getReferences(), new AcceptReferenceEntryPredicate(typeId))));
-
-      node.setReferrers(LinkedHashMultimap.create(Multimaps.filterEntries(
-          node.getReferrers(), new AcceptReferrerEntryPredicate())));
-
-      return node;
+      return Node.builderFromCopyOf(node)
+          .properties(Multimaps.filterKeys(
+              node.getProperties(), new AcceptPropertyPredicate(typeId)))
+          .references(Multimaps.filterEntries(
+              node.getReferences(), new AcceptReferenceEntryPredicate(typeId)))
+          .referrers(Multimaps.filterEntries(
+              node.getReferrers(), new AcceptReferrerEntryPredicate()))
+          .build();
     }
 
     /**

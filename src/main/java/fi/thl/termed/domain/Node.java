@@ -1,58 +1,65 @@
 package fi.thl.termed.domain;
 
+import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
+import static fi.thl.termed.util.collect.MultimapUtils.nullableImmutableCopyOf;
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Identifiable;
-import fi.thl.termed.util.collect.MultimapUtils;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class Node implements Identifiable<NodeId> {
 
-  private UUID id;
-  private String code;
-  private String uri;
-  private Long number;
+  private final UUID id;
+  private final TypeId type;
 
-  private String createdBy;
-  private Date createdDate;
-  private String lastModifiedBy;
-  private Date lastModifiedDate;
+  private final String code;
+  private final String uri;
+  private final Long number;
 
-  private TypeId type;
+  private final String createdBy;
+  private final Date createdDate;
+  private final String lastModifiedBy;
+  private final Date lastModifiedDate;
 
-  private Multimap<String, StrictLangValue> properties;
-  private Multimap<String, NodeId> references;
-  private Multimap<String, NodeId> referrers;
+  private final ImmutableMultimap<String, StrictLangValue> properties;
+  private final ImmutableMultimap<String, NodeId> references;
+  private final ImmutableMultimap<String, NodeId> referrers;
 
-  public Node() {
-  }
-
-  public Node(UUID id) {
+  public Node(UUID id, TypeId type, String code, String uri, Long number,
+      String createdBy, Date createdDate, String lastModifiedBy, Date lastModifiedDate,
+      Multimap<String, StrictLangValue> properties,
+      Multimap<String, NodeId> references,
+      Multimap<String, NodeId> referrers) {
     this.id = id;
+    this.type = requireNonNull(type);
+    this.code = code;
+    this.uri = uri;
+    this.number = number;
+    this.createdBy = createdBy;
+    this.createdDate = createdDate;
+    this.lastModifiedBy = lastModifiedBy;
+    this.lastModifiedDate = lastModifiedDate;
+    this.properties = nullableImmutableCopyOf(properties);
+    this.references = nullableImmutableCopyOf(references);
+    this.referrers = nullableImmutableCopyOf(referrers);
   }
 
-  public Node(NodeId nodeId) {
-    this.id = nodeId.getId();
-    this.type = nodeId.getType();
+  public static IdBuilder builder() {
+    return new IdBuilder();
   }
 
-  public Node(Node node) {
-    this.id = node.id;
-    this.code = node.code;
-    this.uri = node.uri;
-    this.number = node.number;
-    this.createdBy = node.createdBy;
-    this.createdDate = node.createdDate;
-    this.lastModifiedBy = node.lastModifiedBy;
-    this.lastModifiedDate = node.lastModifiedDate;
-    this.type = node.type;
-    this.properties = node.properties;
-    this.references = node.references;
-    this.referrers = node.referrers;
+  public static Builder builderFromCopyOf(Node node) {
+    Builder builder = new Builder(node.getId(), node.getType());
+    builder.copyOptionalsFrom(node);
+    return builder;
   }
 
   @Override
@@ -64,72 +71,36 @@ public final class Node implements Identifiable<NodeId> {
     return id;
   }
 
-  public void setId(UUID id) {
-    this.id = id;
+  public Optional<String> getCode() {
+    return ofNullable(code);
   }
 
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
+  public Optional<String> getUri() {
+    return ofNullable(uri);
   }
 
   public Long getNumber() {
     return number;
   }
 
-  public void setNumber(Long number) {
-    this.number = number;
-  }
-
-  public String getUri() {
-    return uri;
-  }
-
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
   public String getCreatedBy() {
     return createdBy;
-  }
-
-  public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
   }
 
   public Date getCreatedDate() {
     return createdDate;
   }
 
-  public void setCreatedDate(Date createdDate) {
-    this.createdDate = createdDate;
-  }
-
   public String getLastModifiedBy() {
     return lastModifiedBy;
-  }
-
-  public void setLastModifiedBy(String lastModifiedBy) {
-    this.lastModifiedBy = lastModifiedBy;
   }
 
   public Date getLastModifiedDate() {
     return lastModifiedDate;
   }
 
-  public void setLastModifiedDate(Date lastModifiedDate) {
-    this.lastModifiedDate = lastModifiedDate;
-  }
-
   public TypeId getType() {
     return type;
-  }
-
-  public void setType(TypeId type) {
-    this.type = type;
   }
 
   public GraphId getTypeGraph() {
@@ -144,58 +115,16 @@ public final class Node implements Identifiable<NodeId> {
     return type != null ? type.getId() : null;
   }
 
-  public Multimap<String, StrictLangValue> getProperties() {
-    return MultimapUtils.nullToEmpty(properties);
+  public ImmutableMultimap<String, StrictLangValue> getProperties() {
+    return nullToEmpty(properties);
   }
 
-  public void setProperties(Multimap<String, StrictLangValue> properties) {
-    this.properties = properties;
+  public ImmutableMultimap<String, NodeId> getReferences() {
+    return nullToEmpty(references);
   }
 
-  public void addProperty(String attributeId, String lang, String value) {
-    addProperty(attributeId, new StrictLangValue(lang, value));
-  }
-
-  public void addProperty(String attributeId, String lang, String value, String regex) {
-    addProperty(attributeId, new StrictLangValue(lang, value, regex));
-  }
-
-  public void addProperty(String attributeId, StrictLangValue langValue) {
-    if (properties == null) {
-      properties = LinkedHashMultimap.create();
-    }
-
-    properties.put(attributeId, langValue);
-  }
-
-  public Multimap<String, NodeId> getReferences() {
-    return MultimapUtils.nullToEmpty(references);
-  }
-
-  public void setReferences(Multimap<String, NodeId> references) {
-    this.references = references;
-  }
-
-  public void addReferences(String attributeId, List<NodeId> references) {
-    for (NodeId reference : references) {
-      addReference(attributeId, reference);
-    }
-  }
-
-  public void addReference(String attributeId, NodeId reference) {
-    if (references == null) {
-      references = LinkedHashMultimap.create();
-    }
-
-    references.put(attributeId, reference);
-  }
-
-  public Multimap<String, NodeId> getReferrers() {
-    return MultimapUtils.nullToEmpty(referrers);
-  }
-
-  public void setReferrers(Multimap<String, NodeId> referrers) {
-    this.referrers = referrers;
+  public ImmutableMultimap<String, NodeId> getReferrers() {
+    return nullToEmpty(referrers);
   }
 
   @Override
@@ -250,6 +179,167 @@ public final class Node implements Identifiable<NodeId> {
         type,
         properties,
         references);
+  }
+
+  public static final class IdBuilder {
+
+    IdBuilder() {
+    }
+
+    public Builder id(UUID id, String typeId, UUID graphId) {
+      return new Builder(id, TypeId.of(typeId, graphId));
+    }
+
+    public Builder id(UUID id, TypeId type) {
+      return new Builder(id, type);
+    }
+
+    public Builder id(NodeId nodeId) {
+      return new Builder(nodeId.getId(), nodeId.getType());
+    }
+
+  }
+
+  public static final class Builder {
+
+    private final UUID id;
+    private final TypeId type;
+
+    private String code;
+    private String uri;
+    private Long number;
+
+    private String createdBy;
+    private Date createdDate;
+    private String lastModifiedBy;
+    private Date lastModifiedDate;
+
+    private Multimap<String, StrictLangValue> properties;
+    private Multimap<String, NodeId> references;
+    private Multimap<String, NodeId> referrers;
+
+    Builder(UUID id, TypeId type) {
+      this.id = id;
+      this.type = requireNonNull(type);
+    }
+
+    public Builder copyOptionalsFrom(Node node) {
+      this.code = node.code;
+      this.uri = node.uri;
+      this.number = node.number;
+
+      this.createdBy = node.createdBy;
+      this.createdDate = node.createdDate;
+      this.lastModifiedBy = node.lastModifiedBy;
+      this.lastModifiedDate = node.lastModifiedDate;
+
+      this.properties = node.properties;
+      this.references = node.references;
+      this.referrers = node.referrers;
+
+      return this;
+    }
+
+    public Builder code(String code) {
+      this.code = code;
+      return this;
+    }
+
+    public Builder uri(String uri) {
+      this.uri = uri;
+      return this;
+    }
+
+    public Builder number(Long number) {
+      this.number = number;
+      return this;
+    }
+
+    public Builder createdBy(String createdBy) {
+      this.createdBy = createdBy;
+      return this;
+    }
+
+    public Builder createdDate(Date createdDate) {
+      this.createdDate = createdDate;
+      return this;
+    }
+
+    public Builder lastModifiedBy(String lastModifiedBy) {
+      this.lastModifiedBy = lastModifiedBy;
+      return this;
+    }
+
+    public Builder lastModifiedDate(Date lastModifiedDate) {
+      this.lastModifiedDate = lastModifiedDate;
+      return this;
+    }
+
+    public Builder properties(Multimap<String, StrictLangValue> properties) {
+      this.properties = properties;
+      return this;
+    }
+
+    public Builder properties(String k0, StrictLangValue v0) {
+      if (properties == null) {
+        properties = LinkedHashMultimap.create();
+      }
+      properties.put(k0, v0);
+      return this;
+    }
+
+    public Builder properties(String k0, StrictLangValue v0, String k1, StrictLangValue v1) {
+      if (properties == null) {
+        properties = LinkedHashMultimap.create();
+      }
+      properties.put(k0, v0);
+      properties.put(k1, v1);
+      return this;
+    }
+
+    public Builder properties(String k0, StrictLangValue v0, String k1, StrictLangValue v1,
+        String k2, StrictLangValue v2) {
+      if (properties == null) {
+        properties = LinkedHashMultimap.create();
+      }
+      properties.put(k0, v0);
+      properties.put(k1, v1);
+      properties.put(k2, v2);
+      return this;
+    }
+
+    public Builder references(Multimap<String, NodeId> references) {
+      this.references = references;
+      return this;
+    }
+
+    public Builder references(String k0, NodeId v0) {
+      if (references == null) {
+        references = LinkedHashMultimap.create();
+      }
+      references.put(k0, v0);
+      return this;
+    }
+
+    public Builder references(String k0, NodeId v0, String k1, NodeId v1) {
+      if (references == null) {
+        references = LinkedHashMultimap.create();
+      }
+      references.put(k0, v0);
+      references.put(k1, v1);
+      return this;
+    }
+
+    public Builder referrers(Multimap<String, NodeId> referrers) {
+      this.referrers = referrers;
+      return this;
+    }
+
+    public Node build() {
+      return new Node(id, type, code, uri, number, createdBy, createdDate, lastModifiedBy,
+          lastModifiedDate, properties, references, referrers);
+    }
+
   }
 
 }

@@ -14,6 +14,7 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.Node.Builder;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.StrictLangValue;
@@ -86,7 +87,7 @@ public class NodeServiceIntegrationTest {
   @Test
   public void shouldInsertNode() {
     NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node examplePerson = new Node(nodeId);
+    Node examplePerson = Node.builder().id(nodeId).build();
 
     assertFalse(nodeService.get(nodeId, testUser).isPresent());
 
@@ -98,10 +99,12 @@ public class NodeServiceIntegrationTest {
   @Test
   public void shouldInsertNodeWithProperties() {
     NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node examplePerson = new Node(nodeId);
-    examplePerson.setProperties(ImmutableMultimap.of(
-        "firstName", new StrictLangValue("John"),
-        "lastName", new StrictLangValue("Doe")));
+    Node examplePerson = Node.builder()
+        .id(nodeId)
+        .properties(ImmutableMultimap.of(
+            "firstName", new StrictLangValue("John"),
+            "lastName", new StrictLangValue("Doe")))
+        .build();
 
     assertFalse(nodeService.get(nodeId, testUser).isPresent());
 
@@ -117,9 +120,11 @@ public class NodeServiceIntegrationTest {
   @Test
   public void shouldUpdateNodeWithProperties() {
     NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node examplePerson = new Node(nodeId);
-    examplePerson.setProperties(ImmutableMultimap.of(
-        "firstName", new StrictLangValue("Jack")));
+    Node examplePerson = Node.builder()
+        .id(nodeId)
+        .properties(ImmutableMultimap.of(
+            "firstName", new StrictLangValue("Jack")))
+        .build();
     nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNodeOptional = nodeService.get(nodeId, testUser);
@@ -129,10 +134,12 @@ public class NodeServiceIntegrationTest {
     assertEquals("Jack", persistedNode.getProperties().get("firstName")
         .iterator().next().getValue());
 
-    persistedNode.setProperties(ImmutableMultimap.of(
-        "firstName", new StrictLangValue("John"),
-        "lastName", new StrictLangValue("Doe")));
-    nodeService.save(persistedNode, UPDATE, defaultOpts(), testUser);
+    Node modifiedFromPersistedNode = Node.builderFromCopyOf(persistedNode)
+        .properties(ImmutableMultimap.of(
+            "firstName", new StrictLangValue("John"),
+            "lastName", new StrictLangValue("Doe")))
+        .build();
+    nodeService.save(modifiedFromPersistedNode, UPDATE, defaultOpts(), testUser);
 
     persistedNodeOptional = nodeService.get(nodeId, testUser);
 
@@ -146,21 +153,22 @@ public class NodeServiceIntegrationTest {
   @Test
   public void shouldInsertNodeWithReferences() {
     NodeId johnId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node john = new Node(johnId);
-    john.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
+    Node.Builder john = Node.builder().id(johnId);
+    john.properties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
 
     NodeId jackId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node jack = new Node(jackId);
-    jack.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
+    Node.Builder jack = Node.builder().id(jackId);
+    jack.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
 
     NodeId maryId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node mary = new Node(maryId);
-    mary.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
+    Node.Builder mary = Node.builder().id(maryId);
+    mary.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
 
-    john.addReference("knows", jackId);
-    jack.addReference("knows", maryId);
+    john.references("knows", jackId);
+    jack.references("knows", maryId);
 
-    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
+    nodeService
+        .save(Stream.of(john, jack, mary).map(Builder::build), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedNode = nodeService.get(jackId, testUser);
 
@@ -177,21 +185,22 @@ public class NodeServiceIntegrationTest {
   @Test
   public void shouldUpdateNodeWithReferences() {
     NodeId johnId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node john = new Node(johnId);
-    john.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
+    Node.Builder john = Node.builder().id(johnId);
+    john.properties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
 
     NodeId jackId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node jack = new Node(jackId);
-    jack.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
+    Node.Builder jack = Node.builder().id(jackId);
+    jack.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
 
     NodeId maryId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node mary = new Node(maryId);
-    mary.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
+    Node.Builder mary = Node.builder().id(maryId);
+    mary.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
 
-    john.addReference("knows", jackId);
-    jack.addReference("knows", maryId);
+    john.references("knows", jackId);
+    jack.references("knows", maryId);
 
-    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
+    nodeService
+        .save(Stream.of(john, jack, mary).map(Builder::build), INSERT, defaultOpts(), testUser);
 
     Optional<Node> persistedOptionalNode = nodeService.get(jackId, testUser);
 
@@ -202,8 +211,9 @@ public class NodeServiceIntegrationTest {
     assertEquals(johnId, persistedNode.getReferrers().get("knows").iterator().next());
     assertEquals(maryId, persistedNode.getReferences().get("knows").iterator().next());
 
-    persistedNode.setReferences(ImmutableMultimap.of());
-    nodeService.save(persistedNode, UPDATE, defaultOpts(), testUser);
+    Node updatedPersistedNode = Node.builderFromCopyOf(persistedNode)
+        .references(ImmutableMultimap.of()).build();
+    nodeService.save(updatedPersistedNode, UPDATE, defaultOpts(), testUser);
 
     persistedOptionalNode = nodeService.get(jackId, testUser);
     assertTrue(persistedOptionalNode.isPresent());

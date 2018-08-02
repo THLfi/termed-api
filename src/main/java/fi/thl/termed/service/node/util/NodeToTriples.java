@@ -51,12 +51,10 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
     triples.add(createTermedLiteral(subject, "id", node.getId().toString()));
     triples.add(createTermedLiteral(subject, "type", node.getTypeId()));
     triples.add(createTermedLiteral(subject, "graph", node.getTypeGraphId().toString()));
+    node.getUri().ifPresent(s -> triples.add(createTermedLiteral(subject, "uri", s)));
+    node.getCode().ifPresent(s -> triples.add(createTermedLiteral(subject, "code", s)));
     ofNullable(node.getNumber()).ifPresent(l ->
         triples.add(createTermedLiteral(subject, "number", l.toString())));
-    ofNullable(node.getUri()).ifPresent(s ->
-        triples.add(createTermedLiteral(subject, "uri", s)));
-    ofNullable(node.getCode()).ifPresent(s ->
-        triples.add(createTermedLiteral(subject, "code", s)));
     ofNullable(node.getCreatedBy()).ifPresent(s ->
         triples.add(createTermedLiteral(subject, "createdBy", s)));
     ofNullable(node.getCreatedDate()).ifPresent(d ->

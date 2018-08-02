@@ -15,6 +15,7 @@ import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.Node.Builder;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.RevisionId;
@@ -87,20 +88,20 @@ public class NodeRevisionServiceIntegrationTest {
   public void shouldSaveRevisionsForNodesWithProperties() {
     NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
 
-    Node examplePerson = new Node(nodeId);
-    examplePerson.setProperties(ImmutableMultimap.of(
-        "firstName", new StrictLangValue("John"),
-        "lastName", new StrictLangValue("Doe")));
+    Node.Builder examplePersonBuilder = Node.builder().id(nodeId)
+        .properties(ImmutableMultimap.of(
+            "firstName", new StrictLangValue("John"),
+            "lastName", new StrictLangValue("Doe")));
 
     assertFalse(nodeService.get(nodeId, testUser).isPresent());
 
-    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
+    nodeService.save(examplePersonBuilder.build(), INSERT, defaultOpts(), testUser);
     assertTrue(nodeService.get(nodeId, testUser).isPresent());
 
-    examplePerson.setProperties(ImmutableMultimap.of(
+    examplePersonBuilder.properties(ImmutableMultimap.of(
         "firstName", new StrictLangValue("Jane"),
         "lastName", new StrictLangValue("Doe")));
-    nodeService.save(examplePerson, UPDATE, defaultOpts(), testUser);
+    nodeService.save(examplePersonBuilder.build(), UPDATE, defaultOpts(), testUser);
 
     nodeService.delete(nodeId, defaultOpts(), testUser);
 
@@ -129,25 +130,29 @@ public class NodeRevisionServiceIntegrationTest {
   @Test
   public void shouldSaveRevisionsForNodesWithReferences() {
     NodeId johnId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node john = new Node(johnId);
-    john.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
+    Node.Builder john = Node.builder()
+        .id(johnId)
+        .properties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
 
     NodeId jackId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node jack = new Node(jackId);
-    jack.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
+    Node.Builder jack = Node.builder()
+        .id(jackId)
+        .properties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
 
     NodeId maryId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node mary = new Node(maryId);
-    mary.setProperties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
+    Node.Builder mary = Node.builder()
+        .id(maryId)
+        .properties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
 
-    jack.setReferences(ImmutableMultimap.of("knows", maryId));
-    nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), testUser);
+    jack.references(ImmutableMultimap.of("knows", maryId));
+    nodeService
+        .save(Stream.of(john, jack, mary).map(Builder::build), INSERT, defaultOpts(), testUser);
 
-    jack.setReferences(ImmutableMultimap.of());
-    nodeService.save(jack, UPDATE, defaultOpts(), testUser);
+    jack.references(ImmutableMultimap.of());
+    nodeService.save(jack.build(), UPDATE, defaultOpts(), testUser);
 
-    jack.setReferences(ImmutableMultimap.of("knows", johnId));
-    nodeService.save(jack, UPDATE, defaultOpts(), testUser);
+    jack.references(ImmutableMultimap.of("knows", johnId));
+    nodeService.save(jack.build(), UPDATE, defaultOpts(), testUser);
 
     List<Tuple2<RevisionType, Node>> jackRevisions = toListAndClose(
         nodeRevisionService.values(new Query<>(new NodeRevisionsByNodeId(jackId)), testUser));

@@ -1,6 +1,5 @@
 package fi.thl.termed.web.dump;
 
-import static com.google.common.collect.ImmutableSet.of;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static fi.thl.termed.util.spring.SpEL.RANDOM_UUID;
@@ -109,8 +108,10 @@ public class DumpWriteCopyController {
   }
 
   private Node mapNodeToGraph(Node node, UUID graphId) {
-    node.setType(TypeId.of(node.getTypeId(), graphId));
-    return node;
+    return Node.builder()
+        .id(node.getId(), node.getTypeId(), graphId)
+        .copyOptionalsFrom(node)
+        .build();
   }
 
 }

@@ -2,7 +2,6 @@ package fi.thl.termed.web.node;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.nullToEmpty;
 import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -126,7 +125,7 @@ public class NodeJsTreeReadController {
               .collect(Collectors.toList()))));
       jsTree.setIcon(false);
       jsTree.setText(htmlEscape(getLocalizedLabel(node)) +
-          smallMuted(htmlEscape(getCode(node)), htmlEscape(nullToEmpty(node.getUri()))));
+          smallMuted(htmlEscape(getCode(node)), htmlEscape(node.getUri().orElse(""))));
 
       jsTree.setState(ImmutableMap.of("opened", addChildrenPredicate.test(nodeId),
           "selected", selectedPredicate.test(nodeId)));
@@ -178,13 +177,7 @@ public class NodeJsTreeReadController {
     }
 
     private String getCode(Node node) {
-      if (node.getUri() != null) {
-        return getLocalName(node.getUri());
-      }
-      if (node.getCode() != null) {
-        return node.getCode();
-      }
-      return "";
+      return node.getUri().map(this::getLocalName).orElseGet(() -> node.getCode().orElse(""));
     }
 
     private String getLocalName(String uri) {

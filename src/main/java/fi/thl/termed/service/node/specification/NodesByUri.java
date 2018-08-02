@@ -24,7 +24,7 @@ public class NodesByUri
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return Objects.equals(node.getUri(), uri);
+    return Objects.equals(node.getUri().orElse(null), uri);
   }
 
   @Override

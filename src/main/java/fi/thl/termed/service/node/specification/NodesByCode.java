@@ -26,7 +26,7 @@ public class NodesByCode
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return Objects.equals(node.getCode(), code);
+    return Objects.equals(node.getCode().orElse(null), code);
   }
 
   @Override

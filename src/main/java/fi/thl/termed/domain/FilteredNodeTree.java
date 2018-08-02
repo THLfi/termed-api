@@ -23,6 +23,7 @@ import fi.thl.termed.service.node.select.SelectUri;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,13 +43,15 @@ public final class FilteredNodeTree implements NodeTree {
   }
 
   @Override
-  public String getCode() {
-    return s.contains(new SelectAll()) || s.contains(new SelectCode()) ? source.getCode() : null;
+  public Optional<String> getCode() {
+    return s.contains(new SelectAll()) || s.contains(new SelectCode()) ?
+        source.getCode() : Optional.empty();
   }
 
   @Override
-  public String getUri() {
-    return s.contains(new SelectAll()) || s.contains(new SelectUri()) ? source.getUri() : null;
+  public Optional<String> getUri() {
+    return s.contains(new SelectAll()) || s.contains(new SelectUri()) ?
+        source.getUri() : Optional.empty();
   }
 
   @Override

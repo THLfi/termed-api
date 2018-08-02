@@ -213,24 +213,18 @@ public class NodeRdfTreeReadController {
   }
 
   private Node toNode(NodeTree t) {
-    Node n = new Node(t.getId());
-
-    n.setType(t.getType());
-
-    n.setUri(t.getUri());
-    n.setCode(t.getCode());
-    n.setNumber(t.getNumber());
-
-    n.setCreatedBy(t.getCreatedBy());
-    n.setCreatedDate(t.getCreatedDate());
-    n.setLastModifiedBy(t.getLastModifiedBy());
-    n.setLastModifiedDate(t.getLastModifiedDate());
-
-    n.setProperties(t.getProperties());
-    n.setReferences(transformValues(t.getReferences(),
-        r -> new NodeId(r.getId(), r.getType())));
-
-    return n;
+    return Node.builder()
+        .id(t.getId(), t.getType())
+        .uri(t.getUri().orElse(null))
+        .code(t.getCode().orElse(null))
+        .number(t.getNumber())
+        .createdBy(t.getCreatedBy())
+        .createdDate(t.getCreatedDate())
+        .lastModifiedBy(t.getLastModifiedBy())
+        .lastModifiedDate(t.getLastModifiedDate())
+        .properties(t.getProperties())
+        .references(transformValues(t.getReferences(), r -> new NodeId(r.getId(), r.getType())))
+        .build();
   }
 
   private Function<Node, List<Triple>> toTriples(User user) {

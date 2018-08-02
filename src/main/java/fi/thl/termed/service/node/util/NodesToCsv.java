@@ -40,7 +40,8 @@ import org.joda.time.DateTime;
 
 /**
  * Write stream of nodes to OuputStream or Writer as CSV. This operation is not actually streaming
- * as all nodes are first transformed to maps and then to table and finally written in one operation.
+ * as all nodes are first transformed to maps and then to table and finally written in one
+ * operation.
  */
 public final class NodesToCsv {
 
@@ -59,10 +60,10 @@ public final class NodesToCsv {
       map.put("id", node.getId().toString());
     }
     if (s.contains(new SelectAll()) || s.contains(new SelectCode())) {
-      map.put("code", node.getCode());
+      map.put("code", node.getCode().orElse(null));
     }
     if (s.contains(new SelectAll()) || s.contains(new SelectUri())) {
-      map.put("uri", node.getUri());
+      map.put("uri", node.getUri().orElse(null));
     }
     if (s.contains(new SelectAll()) || s.contains(new SelectNumber())) {
       map.put("number", node.getNumber().toString());
@@ -81,7 +82,7 @@ public final class NodesToCsv {
     }
     if (s.contains(new SelectAll()) || s.contains(new SelectType())) {
       map.put("type.id", node.getType().getId());
-      map.put("type.graph.id", node.getType().getGraphId().toString());
+      map.put("type.graph.id", node.getTypeGraphId().toString());
     }
 
     Multimap<String, StrictLangValue> properties =
