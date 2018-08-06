@@ -4,6 +4,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterators.partition;
 import static fi.thl.termed.domain.AppRole.SUPERUSER;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Identifiable;
@@ -17,6 +18,9 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Abstract service that implements batched processing for save and delete.
+ */
 public abstract class AbstractRepository<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
 
@@ -30,7 +34,14 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
     this(1);
   }
 
+  /**
+   * @param batchSize batch size 1 means that values are processed iteratively one at a time (i.e.
+   * not in batches), batch size > 1 means that values are processed in batches of given size (e.g.
+   * batch could be 1000), negative size means that all values are processed in one big "batch"
+   * containing all values.
+   */
   public AbstractRepository(int batchSize) {
+    Preconditions.checkArgument(batchSize != 0, "Illegal batch size: " + batchSize);
     this.batchSize = batchSize;
   }
 
