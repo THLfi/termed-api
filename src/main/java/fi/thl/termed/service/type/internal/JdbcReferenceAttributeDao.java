@@ -91,12 +91,12 @@ public class JdbcReferenceAttributeDao
       RowMapper<E> mapper) {
     TypeId domainId = referenceAttributeId.getDomainId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from reference_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getGraphId(),
         domainId.getId(),
-        referenceAttributeId.getId()).stream().findFirst();
+        referenceAttributeId.getId());
   }
 
   @Override

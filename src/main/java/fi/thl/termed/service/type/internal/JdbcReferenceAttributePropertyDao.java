@@ -96,14 +96,14 @@ public class JdbcReferenceAttributePropertyDao
     ReferenceAttributeId referenceAttributeId = id.getSubjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from reference_attribute_property where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         referenceAttributeDomainId.getGraphId(),
         referenceAttributeDomainId.getId(),
         referenceAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

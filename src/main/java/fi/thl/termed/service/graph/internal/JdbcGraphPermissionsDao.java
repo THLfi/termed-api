@@ -68,13 +68,13 @@ public class JdbcGraphPermissionsDao
 
   @Override
   protected <E> Optional<E> get(ObjectRolePermission<GraphId> id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from graph_permission where graph_id = ? and graph_id = ? and role = ? and permission = ?",
         mapper,
         id.getObjectId().getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()).stream().findFirst();
+        id.getPermission().toString());
   }
 
   @Override

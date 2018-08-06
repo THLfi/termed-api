@@ -12,14 +12,21 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
-public class StreamingJdbcTemplate extends JdbcTemplate {
+public class StreamingJdbcTemplate {
+
+  private JdbcTemplate jdbcTemplate;
 
   public StreamingJdbcTemplate(DataSource dataSource) {
-    super(dataSource);
+    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  }
+
+  public void update(String sql, Object... args) {
+    jdbcTemplate.update(sql, args);
   }
 
   public <T> Stream<T> queryForStream(String sql, RowMapper<T> rowMapper, Object... args)
@@ -30,14 +37,14 @@ public class StreamingJdbcTemplate extends JdbcTemplate {
   public <T> Stream<T> queryForStream(String sql, Object[] args, RowMapper<T> rowMapper)
       throws DataAccessException {
 
-    DataSource dataSource = requireNonNull(getDataSource());
+    DataSource dataSource = requireNonNull(jdbcTemplate.getDataSource());
 
     Connection connection = DataSourceUtils.getConnection(dataSource);
     ResultSet resultSet;
 
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      newArgPreparedStatementSetter(args).setValues(preparedStatement);
+      new ArgumentPreparedStatementSetter(args).setValues(preparedStatement);
       resultSet = preparedStatement.executeQuery();
     } catch (SQLException | RuntimeException | Error e) {
       DataSourceUtils.releaseConnection(connection, dataSource);
@@ -49,7 +56,11 @@ public class StreamingJdbcTemplate extends JdbcTemplate {
   }
 
   public <T> Optional<T> queryForOptional(String sql, Class<T> requiredType, Object... args) {
-    return Optional.ofNullable(queryForObject(sql, requiredType, args));
+    return Optional.ofNullable(jdbcTemplate.queryForObject(sql, requiredType, args));
+  }
+
+  public <T> Optional<T> queryForFirst(String sql, RowMapper<T> rowMapper, Object... args) {
+    return jdbcTemplate.query(sql, rowMapper, args).stream().findFirst();
   }
 
 }

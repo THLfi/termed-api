@@ -81,12 +81,12 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
 
   @Override
   protected <E> Optional<E> get(NodeId nodeId, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from node where graph_id = ? and type_id = ? and id = ?",
         mapper,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
-        nodeId.getId()).stream().findFirst();
+        nodeId.getId());
   }
 
   @Override

@@ -91,7 +91,7 @@ public class JdbcTextAttributePermissionsDao
   protected <E> Optional<E> get(ObjectRolePermission<TextAttributeId> id, RowMapper<E> mapper) {
     TextAttributeId textAttributeId = id.getObjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from text_attribute_permission where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and text_attribute_domain_graph_id = ? and role = ? and permission = ?",
         mapper,
         textAttributeDomainId.getGraphId(),
@@ -99,7 +99,7 @@ public class JdbcTextAttributePermissionsDao
         textAttributeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()).stream().findFirst();
+        id.getPermission().toString());
   }
 
   @Override

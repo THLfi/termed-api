@@ -82,12 +82,12 @@ public class JdbcTextAttributeDao extends AbstractJdbcDao<TextAttributeId, TextA
   protected <E> Optional<E> get(TextAttributeId textAttributeId, RowMapper<E> mapper) {
     TypeId domainId = textAttributeId.getDomainId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from text_attribute where domain_graph_id = ? and domain_id = ? and id = ?",
         mapper,
         domainId.getGraphId(),
         domainId.getId(),
-        textAttributeId.getId()).stream().findFirst();
+        textAttributeId.getId());
   }
 
   @Override

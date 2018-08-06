@@ -83,13 +83,13 @@ public class JdbcTypePropertyDao extends AbstractJdbcDao<PropertyValueId<TypeId>
   protected <E> Optional<E> get(PropertyValueId<TypeId> id, RowMapper<E> mapper) {
     TypeId typeId = id.getSubjectId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from type_property where type_graph_id = ? and type_id = ? and property_id = ? and index = ?",
         mapper,
         typeId.getGraphId(),
         typeId.getId(),
         id.getPropertyId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

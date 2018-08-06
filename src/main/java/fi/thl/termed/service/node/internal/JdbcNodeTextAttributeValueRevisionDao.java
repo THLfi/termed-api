@@ -91,7 +91,7 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
     NodeAttributeValueId nodeAttributeValueId = revisionId.getId();
     NodeId nodeId = nodeAttributeValueId.getNodeId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from node_text_attribute_value_aud where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ? and revision = ?",
         mapper,
         nodeId.getTypeGraphId(),
@@ -99,7 +99,7 @@ public class JdbcNodeTextAttributeValueRevisionDao extends
         nodeId.getId(),
         nodeAttributeValueId.getAttributeId(),
         nodeAttributeValueId.getIndex(),
-        revisionId.getRevision()).stream().findFirst();
+        revisionId.getRevision());
   }
 
   @Override

@@ -67,12 +67,12 @@ public class JdbcGraphPropertyDao extends AbstractJdbcDao<PropertyValueId<GraphI
 
   @Override
   protected <E> Optional<E> get(PropertyValueId<GraphId> id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from graph_property where graph_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId().getId(),
         id.getPropertyId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

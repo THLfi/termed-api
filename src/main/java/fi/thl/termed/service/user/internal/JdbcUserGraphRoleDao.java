@@ -57,12 +57,12 @@ public class JdbcUserGraphRoleDao extends AbstractJdbcDao<UserGraphRole, Empty> 
 
   @Override
   protected <E> Optional<E> get(UserGraphRole id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from user_graph_role where username = ? and graph_id = ? and role = ?",
         mapper,
         id.getUsername(),
         id.getGraphId(),
-        id.getRole()).stream().findFirst();
+        id.getRole());
   }
 
   @Override

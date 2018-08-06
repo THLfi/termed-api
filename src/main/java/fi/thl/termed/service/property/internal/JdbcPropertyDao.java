@@ -55,8 +55,8 @@ public class JdbcPropertyDao extends AbstractJdbcDao<String, Property> {
 
   @Override
   protected <E> Optional<E> get(String id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
-        "select * from property where id = ?", mapper, id).stream().findFirst();
+    return jdbcTemplate.queryForFirst(
+        "select * from property where id = ?", mapper, id);
   }
 
   @Override

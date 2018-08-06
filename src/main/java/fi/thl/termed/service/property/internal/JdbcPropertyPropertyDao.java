@@ -66,12 +66,12 @@ public class JdbcPropertyPropertyDao extends AbstractJdbcDao<PropertyValueId<Str
 
   @Override
   protected <E> Optional<E> get(PropertyValueId<String> id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from property_property where subject_id = ? and property_id = ? and index = ?",
         mapper,
         id.getSubjectId(),
         id.getPropertyId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

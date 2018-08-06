@@ -97,14 +97,14 @@ public class JdbcTextAttributePropertyDao
     TextAttributeId textAttributeId = id.getSubjectId();
     TypeId textAttributeDomainId = textAttributeId.getDomainId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from text_attribute_property where text_attribute_domain_graph_id = ? and text_attribute_domain_id = ? and text_attribute_id = ? and property_id = ? and index = ?",
         mapper,
         textAttributeDomainId.getGraphId(),
         textAttributeDomainId.getId(),
         textAttributeId.getId(),
         id.getPropertyId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

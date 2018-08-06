@@ -80,13 +80,13 @@ public class JdbcNodeRevisionDao extends
   @Override
   protected <E> Optional<E> get(RevisionId<NodeId> revisionIdId, RowMapper<E> mapper) {
     NodeId nodeId = revisionIdId.getId();
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from node_aud where graph_id = ? and type_id = ? and id = ? and revision = ?",
         mapper,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
-        revisionIdId.getRevision()).stream().findFirst();
+        revisionIdId.getRevision());
   }
 
   @Override

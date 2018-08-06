@@ -90,14 +90,14 @@ public class JdbcNodeReferenceAttributeValueDao
   protected <E> Optional<E> get(NodeAttributeValueId id, RowMapper<E> mapper) {
     NodeId nodeId = id.getNodeId();
 
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from node_reference_attribute_value where node_graph_id = ? and node_type_id = ? and node_id = ? and attribute_id = ? and index = ?",
         mapper,
         nodeId.getTypeGraphId(),
         nodeId.getTypeId(),
         nodeId.getId(),
         id.getAttributeId(),
-        id.getIndex()).stream().findFirst();
+        id.getIndex());
   }
 
   @Override

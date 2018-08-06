@@ -61,11 +61,11 @@ public class JdbcGraphRoleDao extends AbstractJdbcDao<GraphRole, Empty> {
 
   @Override
   protected <E> Optional<E> get(GraphRole id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from graph_role where graph_id = ? and role = ?",
         mapper,
         id.getGraphId(),
-        id.getRole()).stream().findFirst();
+        id.getRole());
   }
 
   @Override

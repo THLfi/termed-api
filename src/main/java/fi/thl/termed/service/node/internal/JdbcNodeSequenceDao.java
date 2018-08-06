@@ -60,11 +60,11 @@ public class JdbcNodeSequenceDao extends AbstractJdbcDao<TypeId, Long> {
 
   @Override
   protected <E> Optional<E> get(TypeId typeId, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from node_sequence where graph_id = ? and type_id = ?",
         mapper,
         typeId.getGraphId(),
-        typeId.getId()).stream().findFirst();
+        typeId.getId());
   }
 
   @Override

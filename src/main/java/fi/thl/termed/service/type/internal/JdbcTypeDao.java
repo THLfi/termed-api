@@ -60,16 +60,18 @@ public class JdbcTypeDao extends AbstractJdbcDao<TypeId, Type> {
 
   @Override
   public boolean exists(TypeId typeId) {
-    return jdbcTemplate.queryForObject("select count(*) from type where graph_id = ? and id = ?",
-        Long.class, typeId.getGraphId(), typeId.getId())
-         > 0;
+    return jdbcTemplate.queryForOptional(
+        "select count(*) from type where graph_id = ? and id = ?",
+        Long.class,
+        typeId.getGraphId(),
+        typeId.getId()).orElseThrow(IllegalStateException::new) > 0;
   }
 
   @Override
   protected <E> Optional<E> get(TypeId typeId, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from type where graph_id = ? and id = ?",
-        mapper, typeId.getGraphId(), typeId.getId()).stream().findFirst();
+        mapper, typeId.getGraphId(), typeId.getId());
   }
 
   @Override

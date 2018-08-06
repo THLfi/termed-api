@@ -91,7 +91,7 @@ public class JdbcReferenceAttributePermissionsDao
       RowMapper<E> mapper) {
     ReferenceAttributeId referenceAttributeId = id.getObjectId();
     TypeId referenceAttributeDomainId = referenceAttributeId.getDomainId();
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from reference_attribute_permission where reference_attribute_domain_graph_id = ? and reference_attribute_domain_id = ? and reference_attribute_id = ? and reference_attribute_domain_graph_id = ? and role = ? and permission = ?",
         mapper,
         referenceAttributeDomainId.getGraphId(),
@@ -99,7 +99,7 @@ public class JdbcReferenceAttributePermissionsDao
         referenceAttributeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()).stream().findFirst();
+        id.getPermission().toString());
   }
 
   @Override

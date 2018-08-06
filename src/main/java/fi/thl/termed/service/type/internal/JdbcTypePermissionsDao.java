@@ -78,14 +78,14 @@ public class JdbcTypePermissionsDao
   @Override
   protected <E> Optional<E> get(ObjectRolePermission<TypeId> id, RowMapper<E> mapper) {
     TypeId typeId = id.getObjectId();
-    return jdbcTemplate.query(
+    return jdbcTemplate.queryForFirst(
         "select * from type_permission where type_graph_id = ? and type_id = ? and type_graph_id = ? and role = ? and permission = ?",
         mapper,
         typeId.getGraphId(),
         typeId.getId(),
         id.getGraphId(),
         id.getRole(),
-        id.getPermission().toString()).stream().findFirst();
+        id.getPermission().toString());
   }
 
   @Override

@@ -49,8 +49,8 @@ public class JdbcUserDao extends AbstractJdbcDao<String, User> {
 
   @Override
   protected <E> Optional<E> get(String username, RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from users where username = ?",
-        mapper, username).stream().findFirst();
+    return jdbcTemplate.queryForFirst("select * from users where username = ?",
+        mapper, username);
   }
 
   @Override

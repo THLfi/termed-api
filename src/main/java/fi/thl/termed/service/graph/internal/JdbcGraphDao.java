@@ -54,8 +54,7 @@ public class JdbcGraphDao extends AbstractJdbcDao<GraphId, Graph> {
 
   @Override
   protected <E> Optional<E> get(GraphId id, RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from graph where id = ?", mapper, id.getId()).stream()
-        .findFirst();
+    return jdbcTemplate.queryForFirst("select * from graph where id = ?", mapper, id.getId());
   }
 
   @Override

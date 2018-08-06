@@ -51,8 +51,7 @@ public class JdbcWebhookDao extends AbstractJdbcDao<UUID, Webhook> {
 
   @Override
   protected <E> Optional<E> get(UUID id, RowMapper<E> mapper) {
-    return jdbcTemplate.query("select * from webhook where id = ?",
-        mapper, id).stream().findFirst();
+    return jdbcTemplate.queryForFirst("select * from webhook where id = ?", mapper, id);
   }
 
   @Override

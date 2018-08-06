@@ -46,8 +46,8 @@ public class JdbcRevisionDao extends AbstractJdbcDao<Long, Revision> {
 
   @Override
   protected <E> Optional<E> get(Long id, RowMapper<E> mapper) {
-    return jdbcTemplate.query(
-        "select * from revision where number = ?", mapper, id).stream().findFirst();
+    return jdbcTemplate.queryForFirst(
+        "select * from revision where number = ?", mapper, id);
   }
 
   @Override
