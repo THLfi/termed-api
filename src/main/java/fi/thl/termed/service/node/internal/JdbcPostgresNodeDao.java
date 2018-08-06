@@ -10,7 +10,7 @@ import org.joda.time.DateTime;
 public class JdbcPostgresNodeDao extends AbstractJdbcPostgresDao<NodeId, Node> {
 
   public JdbcPostgresNodeDao(SystemDao<NodeId, Node> delegate, DataSource dataSource) {
-    super(delegate, dataSource, "node");
+    super(delegate, dataSource, "node", true);
   }
 
   @Override

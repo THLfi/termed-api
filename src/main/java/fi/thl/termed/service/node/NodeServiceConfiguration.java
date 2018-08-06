@@ -155,7 +155,7 @@ public class NodeServiceConfiguration {
         new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
         new AuthorizedDao<>(textAttributeValueRevSysDao(), textAttributeValueRevEvaluator()),
         new AuthorizedDao<>(referenceAttributeValueRevSysDao(), refAttributeValueRevEvaluator()),
-        getDatabaseProductName(dataSource).equals("postgresql") ? 5000 : -1);
+        getDatabaseProductName(dataSource).equalsIgnoreCase("postgresql") ? 5000 : -1);
   }
 
   private NamedSequenceService<TypeId> nodeSequenceService() {

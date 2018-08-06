@@ -37,12 +37,19 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
   private final String table;
   private final int batchSize;
 
+  private final boolean analyze;
+
   public AbstractJdbcPostgresDao(SystemDao<K, V> delegate, DataSource dataSource, String table) {
-    this(delegate, dataSource, table, DEFAULT_BATCH_SIZE);
+    this(delegate, dataSource, table, DEFAULT_BATCH_SIZE, false);
   }
 
   public AbstractJdbcPostgresDao(SystemDao<K, V> delegate, DataSource dataSource, String table,
-      int batchSize) {
+      boolean analyze) {
+    this(delegate, dataSource, table, DEFAULT_BATCH_SIZE, analyze);
+  }
+
+  public AbstractJdbcPostgresDao(SystemDao<K, V> delegate, DataSource dataSource, String table,
+      int batchSize, boolean analyze) {
     super(delegate);
 
     requireNonNull(dataSource);
@@ -53,6 +60,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
     this.dataSource = dataSource;
     this.table = table;
     this.batchSize = batchSize;
+    this.analyze = analyze;
   }
 
   @Override
@@ -84,7 +92,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
       });
     }
 
-    if (insertCount.get() > ANALYZE_LIMIT) {
+    if (analyze && insertCount.get() > ANALYZE_LIMIT) {
       analyzeTable(connection);
     }
   }
