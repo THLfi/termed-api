@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.Spliterator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -27,6 +29,31 @@ public final class StreamUtils {
   private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
   private StreamUtils() {
+  }
+
+  /**
+   * When consuming a given stream, peeks the stream and collects values into buffer of given size.
+   * When buffer fills, calls consumer for that partition.
+   */
+  public static <T> Stream<T> partitionedPeek(Stream<T> stream, int partitionSize,
+      Consumer<Stream<T>> consumer) {
+
+    AtomicInteger counter = new AtomicInteger();
+    List<T> partition = new ArrayList<>();
+
+    return stream
+        .peek(t -> {
+          partition.add(t);
+          if (counter.incrementAndGet() % partitionSize == 0) {
+            consumer.accept(partition.stream());
+            partition.clear();
+          }
+        })
+        .onClose(() -> {
+          if (!partition.isEmpty()) {
+            consumer.accept(partition.stream());
+          }
+        });
   }
 
   public static <T> Stream<T> toStreamWithTimeout(Stream<T> stream,

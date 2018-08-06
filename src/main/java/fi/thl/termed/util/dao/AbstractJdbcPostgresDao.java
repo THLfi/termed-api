@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.postgresql.core.BaseConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
@@ -28,6 +30,8 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
 
   private static final int DEFAULT_BATCH_SIZE = 10_000;
   private static final int ANALYZE_LIMIT = 1000;
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final DataSource dataSource;
   private final String table;
@@ -74,6 +78,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
 
     try (Stream<Tuple2<K, V>> closeable = entries) {
       Iterators.partition(closeable.iterator(), batchSize).forEachRemaining(batch -> {
+        log.debug("Copying {} rows into {}", batch.size(), table);
         copyInAsCsv(connection, format("COPY %s FROM STDIN CSV", table), toRows(batch));
         insertCount.getAndAdd(batch.size());
       });
@@ -92,6 +97,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
 
   private void analyzeTable(BaseConnection c) {
     try (Statement s = c.createStatement()) {
+      log.debug("Analyzing {}", table);
       s.executeUpdate(format("ANALYZE %s", table));
     } catch (SQLException e) {
       throw new RuntimeException(e);

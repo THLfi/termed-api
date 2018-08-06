@@ -68,6 +68,8 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   protected Stream<NodeId> insertBatch(List<Tuple2<NodeId, Node>> nodes, WriteOptions opts,
       User user) {
 
+    log.debug("Inserting {} nodes", nodes.size());
+
     ImmutableList<Tuple2<NodeAttributeValueId, StrictLangValue>> textValues = nodes.stream()
         .flatMap(idNode -> nodePropertiesToRows(idNode._1, idNode._2.getProperties()))
         .collect(toImmutableList());
