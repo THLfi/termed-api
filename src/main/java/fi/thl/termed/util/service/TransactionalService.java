@@ -23,7 +23,6 @@ public class TransactionalService<K extends Serializable, V> implements Service<
 
   private PlatformTransactionManager manager;
   private TransactionDefinition definition;
-  private TransactionDefinition readOnlyDefinition;
 
   public TransactionalService(Service<K, V> delegate, PlatformTransactionManager manager) {
     this(delegate, manager, new DefaultTransactionDefinition());
@@ -34,11 +33,6 @@ public class TransactionalService<K extends Serializable, V> implements Service<
     this.delegate = delegate;
     this.manager = manager;
     this.definition = definition;
-
-    DefaultTransactionDefinition readOnlyDefinition = new DefaultTransactionDefinition(definition);
-    readOnlyDefinition.setReadOnly(true);
-
-    this.readOnlyDefinition = readOnlyDefinition;
   }
 
   @Override
@@ -93,14 +87,19 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   private <E> E runInTransaction(Supplier<E> supplier) {
+    log.trace("Opening transaction");
     TransactionStatus tx = manager.getTransaction(definition);
     E results;
+
     try {
       results = supplier.get();
     } catch (RuntimeException | Error e) {
+      log.trace("Rolling back transaction");
       manager.rollback(tx);
       throw e;
     }
+
+    log.trace("Committing transaction");
     manager.commit(tx);
     return results;
   }
@@ -108,11 +107,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   private <E> Stream<E> readStreamInTransaction(Supplier<Stream<E>> supplier) {
     Stream<E> stream = supplier.get();
 
-    log.trace("Opening read only transaction");
-    TransactionStatus tx = manager.getTransaction(readOnlyDefinition);
+    log.trace("Opening stream read transaction");
+    TransactionStatus tx = manager.getTransaction(definition);
 
     return stream.onClose(() -> {
-      log.trace("Closing read only transaction");
+      log.trace("Committing stream read transaction");
       manager.commit(tx);
     });
   }
