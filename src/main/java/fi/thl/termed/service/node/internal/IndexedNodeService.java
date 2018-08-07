@@ -37,7 +37,9 @@ import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -159,17 +161,13 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   @Override
   public void delete(Stream<NodeId> idStream, WriteOptions opts, User user) {
-    ImmutableList<NodeId> idList;
+    List<NodeId> deleted = new ArrayList<>();
 
-    try (Stream<NodeId> closeable = idStream) {
-      idList = closeable.collect(toImmutableList());
-    }
+    super.delete(idStream.peek(deleted::add), opts, user);
 
-    super.delete(idList.stream(), opts, user);
+    Set<NodeId> reindexingRequired = new HashSet<>(deleted);
 
-    Set<NodeId> reindexingRequired = new HashSet<>(idList);
-
-    idList.forEach(nodeId -> getFromIndex(nodeId, user).ifPresent(n -> {
+    deleted.forEach(nodeId -> getFromIndex(nodeId, user).ifPresent(n -> {
       reindexingRequired.addAll(n.getReferences().values());
       reindexingRequired.addAll(n.getReferrers().values());
     }));
