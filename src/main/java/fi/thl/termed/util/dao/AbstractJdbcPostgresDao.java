@@ -86,7 +86,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
 
     try (Stream<Tuple2<K, V>> closeable = entries) {
       Iterators.partition(closeable.iterator(), batchSize).forEachRemaining(batch -> {
-        log.debug("Copying {} rows into {}", batch.size(), table);
+        log.trace("Copying {} rows into {}", batch.size(), table);
         copyInAsCsv(connection, format("COPY %s FROM STDIN CSV", table), toRows(batch));
         insertCount.getAndAdd(batch.size());
       });
@@ -105,7 +105,7 @@ public abstract class AbstractJdbcPostgresDao<K extends Serializable, V> extends
 
   private void analyzeTable(BaseConnection c) {
     try (Statement s = c.createStatement()) {
-      log.debug("Analyzing {}", table);
+      log.trace("Analyzing {}", table);
       s.executeUpdate(format("ANALYZE %s", table));
     } catch (SQLException e) {
       throw new RuntimeException(e);
