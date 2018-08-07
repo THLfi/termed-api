@@ -58,7 +58,7 @@ import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.CachedNamedSequenceService;
 import fi.thl.termed.util.service.DaoNamedSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
-import fi.thl.termed.util.service.QueryProfilingService;
+import fi.thl.termed.util.service.ProfilingService;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.SynchronizedNamedSequenceService;
@@ -120,17 +120,18 @@ public class NodeServiceConfiguration {
     service = new ReadAuthorizedNodeService(
         service, typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
-    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".WriteLoggingService");
     service = new NodeWriteEventPostingService(service, eventBus);
 
     service = new TimestampingNodeService(service);
     service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),
         typeService::get, graphService::get);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
-    service = new IdInitializingNodeService(service);
+    service = new ProfilingService<>(service,
+        getClass().getPackage().getName() + ".ProfilingService", 500);
 
-    service = new QueryProfilingService<>(service,
-        getClass().getPackage().getName() + ".Service", 500);
+    service = new IdInitializingNodeService(service);
 
     return service;
   }
@@ -138,11 +139,7 @@ public class NodeServiceConfiguration {
   @Bean
   public Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService() {
     Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
-
     service = new TransactionalService<>(service, transactionManager);
-    service = new QueryProfilingService<>(service,
-        getClass().getPackage().getName() + ".NodeRevisionService", 500);
-
     return service;
   }
 

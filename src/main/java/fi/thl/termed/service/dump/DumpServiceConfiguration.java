@@ -13,6 +13,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.event.InvalidateCachesEvent;
+import fi.thl.termed.util.service.ProfilingService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteErrorHandlingService;
@@ -52,7 +53,10 @@ public class DumpServiceConfiguration {
     service = new WritePreAuthorizingService<>(service,
         (user) -> user.getAppRole() == SUPERUSER || user.getAppRole() == ADMIN,
         (user) -> false);
-    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".WriteLoggingService");
+    service = new ProfilingService<>(service,
+        getClass().getPackage().getName() + ".ProfilingService", 0);
 
     return service;
   }

@@ -49,7 +49,8 @@ public class PropertyServiceConfiguration {
             new AuthorizedDao<>(propertyDao, propertyEvaluator),
             new AuthorizedDao<>(propertyPropertyDao, propertyPropertyEvaluator));
 
-    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".WriteLoggingService");
 
     return new TransactionalService<>(service, transactionManager);
   }

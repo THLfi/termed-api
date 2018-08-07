@@ -48,7 +48,8 @@ public class UserServiceConfiguration {
             new AuthorizedDao<>(userDao, userPermissionEvaluator),
             new AuthorizedDao<>(userGraphRoleDao, userGraphRolePermissionEvaluator));
 
-    service = new WriteLoggingService<>(service, getClass().getPackage().getName() + ".Service");
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".WriteLoggingService");
 
     return new TransactionalService<>(service, transactionManager);
   }

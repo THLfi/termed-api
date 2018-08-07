@@ -1,5 +1,6 @@
 package fi.thl.termed.util.query;
 
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 
 // In this generic class, we don't implement LuceneSpecification as semantics of
@@ -24,6 +25,11 @@ public class MatchAll<K extends Serializable, V> implements SqlSpecification<K, 
   @Override
   public boolean equals(Object that) {
     return this == that || that instanceof MatchAll;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).toString();
   }
 
 }
