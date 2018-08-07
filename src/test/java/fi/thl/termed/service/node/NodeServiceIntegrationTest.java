@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node;
 
+import static fi.thl.termed.domain.User.newSuperuser;
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
@@ -8,9 +9,9 @@ import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableMultimap;
-import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -24,7 +25,6 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.service.Service;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.Before;
@@ -32,6 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -56,20 +58,20 @@ public class NodeServiceIntegrationTest {
   @Before
   public void setUp() {
     testGraphId = UUIDs.nameUUIDFromString("testGraph");
-    testUser = new User("testUser", passwordEncoder.encode(randomUUIDString()), AppRole.ADMIN);
+    testUser = User.newAdmin("testUser", passwordEncoder.encode(randomUUIDString()));
 
-    userService.save(testUser, UPSERT, defaultOpts(),
-        new User("testInitializer", "", AppRole.SUPERUSER));
+    userService.save(testUser, UPSERT, defaultOpts(), newSuperuser("testInitializer"));
     graphService.save(Graph.builder().id(testGraphId).build(), UPSERT, defaultOpts(), testUser);
 
-    GraphId graphId = new GraphId(testGraphId);
-    TypeId personId = new TypeId("Person", graphId);
-    TypeId groupId = new TypeId("Group", graphId);
+    GraphId graphId = GraphId.of(testGraphId);
+    TypeId personId = TypeId.of("Person", graphId);
+    TypeId groupId = TypeId.of("Group", graphId);
 
     Type person = Type.builder().id(personId)
         .textAttributes(
             TextAttribute.builder().id("firstName", personId).regexAll().build(),
-            TextAttribute.builder().id("lastName", personId).regexAll().build())
+            TextAttribute.builder().id("lastName", personId).regexAll().build(),
+            TextAttribute.builder().id("email", personId).regex("^.*@.*$").build())
         .referenceAttributes(
             ReferenceAttribute.builder().id("knows", personId).range(personId).build())
         .build();
@@ -86,19 +88,49 @@ public class NodeServiceIntegrationTest {
 
   @Test
   public void shouldInsertNode() {
-    NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
+    NodeId nodeId = NodeId.random("Person", testGraphId);
     Node examplePerson = Node.builder().id(nodeId).build();
 
-    assertFalse(nodeService.get(nodeId, testUser).isPresent());
+    assertFalse(nodeService.exists(nodeId, testUser));
 
     nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
-    assertTrue(nodeService.get(nodeId, testUser).isPresent());
+    assertTrue(nodeService.exists(nodeId, testUser));
+  }
+
+  @Test(expected = DuplicateKeyException.class)
+  public void shouldNotInsertNodeTwice() {
+    NodeId nodeId = NodeId.random("Person", testGraphId);
+    Node examplePerson = Node.builder().id(nodeId).build();
+
+    assertFalse(nodeService.exists(nodeId, testUser));
+
+    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
+
+    assertTrue(nodeService.exists(nodeId, testUser));
+
+    nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
+  }
+
+  @Test
+  public void shouldUpsertNodeTwice() {
+    NodeId nodeId = NodeId.random("Person", testGraphId);
+    Node examplePerson = Node.builder().id(nodeId).build();
+
+    assertFalse(nodeService.exists(nodeId, testUser));
+
+    nodeService.save(examplePerson, UPSERT, defaultOpts(), testUser);
+
+    assertTrue(nodeService.exists(nodeId, testUser));
+
+    nodeService.save(examplePerson, UPSERT, defaultOpts(), testUser);
+
+    assertTrue(nodeService.exists(nodeId, testUser));
   }
 
   @Test
   public void shouldInsertNodeWithProperties() {
-    NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
+    NodeId nodeId = NodeId.random("Person", testGraphId);
     Node examplePerson = Node.builder()
         .id(nodeId)
         .properties(ImmutableMultimap.of(
@@ -106,63 +138,84 @@ public class NodeServiceIntegrationTest {
             "lastName", new StrictLangValue("Doe")))
         .build();
 
-    assertFalse(nodeService.get(nodeId, testUser).isPresent());
+    assertFalse(nodeService.exists(nodeId, testUser));
 
     nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
-    Optional<Node> persistedNode = nodeService.get(nodeId, testUser);
+    Node saved = nodeService.get(nodeId, testUser)
+        .orElseThrow(AssertionError::new);
 
-    assertTrue(persistedNode.isPresent());
-    assertEquals("John", persistedNode.get().getProperties().get("firstName")
-        .iterator().next().getValue());
+    assertEquals("John", saved.getProperties().get("firstName").iterator().next().getValue());
+  }
+
+  @Test
+  public void shouldNotInsertNodeWithIllegalProperties() {
+    NodeId nodeId = NodeId.random("Person", testGraphId);
+    Node examplePerson = Node.builder()
+        .id(nodeId)
+        .properties(ImmutableMultimap.of(
+            "firstName", new StrictLangValue("John"),
+            "lastName", new StrictLangValue("Doe"),
+            "email", new StrictLangValue("at-symbol-is-required-but-missing")))
+        .build();
+
+    assertFalse(nodeService.exists(nodeId, testUser));
+
+    try {
+      nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException e) {
+      assertFalse(nodeService.exists(nodeId, testUser));
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
   }
 
   @Test
   public void shouldUpdateNodeWithProperties() {
-    NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
+    NodeId nodeId = NodeId.random("Person", testGraphId);
     Node examplePerson = Node.builder()
         .id(nodeId)
-        .properties(ImmutableMultimap.of(
-            "firstName", new StrictLangValue("Jack")))
+        .properties("firstName", new StrictLangValue("Jack"))
         .build();
     nodeService.save(examplePerson, INSERT, defaultOpts(), testUser);
 
-    Optional<Node> persistedNodeOptional = nodeService.get(nodeId, testUser);
+    Node saved = nodeService.get(nodeId, testUser)
+        .orElseThrow(AssertionError::new);
 
-    assertTrue(persistedNodeOptional.isPresent());
-    Node persistedNode = persistedNodeOptional.get();
-    assertEquals("Jack", persistedNode.getProperties().get("firstName")
+    assertEquals("Jack", saved.getProperties().get("firstName")
         .iterator().next().getValue());
 
-    Node modifiedFromPersistedNode = Node.builderFromCopyOf(persistedNode)
+    Node lastNameAdded = Node.builderFromCopyOf(saved)
         .properties(ImmutableMultimap.of(
             "firstName", new StrictLangValue("John"),
             "lastName", new StrictLangValue("Doe")))
         .build();
-    nodeService.save(modifiedFromPersistedNode, UPDATE, defaultOpts(), testUser);
+    nodeService.save(lastNameAdded, UPDATE, defaultOpts(), testUser);
 
-    persistedNodeOptional = nodeService.get(nodeId, testUser);
+    Node reSaved = nodeService.get(nodeId, testUser)
+        .orElseThrow(AssertionError::new);
 
-    assertTrue(persistedNodeOptional.isPresent());
-    assertEquals("John", persistedNodeOptional.get().getProperties().get("firstName")
-        .iterator().next().getValue());
-    assertEquals("Doe", persistedNodeOptional.get().getProperties().get("lastName")
-        .iterator().next().getValue());
+    assertEquals("John", reSaved.getProperties().get("firstName").iterator().next().getValue());
+    assertEquals("Doe", reSaved.getProperties().get("lastName").iterator().next().getValue());
   }
 
   @Test
   public void shouldInsertNodeWithReferences() {
-    NodeId johnId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder john = Node.builder().id(johnId);
-    john.properties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
+    NodeId johnId = NodeId.random("Person", testGraphId);
+    Node.Builder john = Node.builder()
+        .id(johnId)
+        .properties("firstName", new StrictLangValue("John"));
 
-    NodeId jackId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder jack = Node.builder().id(jackId);
-    jack.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
+    NodeId jackId = NodeId.random("Person", testGraphId);
+    Node.Builder jack = Node.builder()
+        .id(jackId)
+        .properties("firstName", new StrictLangValue("Jack"));
 
-    NodeId maryId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder mary = Node.builder().id(maryId);
-    mary.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
+    NodeId maryId = NodeId.random("Person", testGraphId);
+    Node.Builder mary = Node.builder()
+        .id(maryId)
+        .properties("firstName", new StrictLangValue("Mary"));
 
     john.references("knows", jackId);
     jack.references("knows", maryId);
@@ -170,31 +223,30 @@ public class NodeServiceIntegrationTest {
     nodeService
         .save(Stream.of(john, jack, mary).map(Builder::build), INSERT, defaultOpts(), testUser);
 
-    Optional<Node> persistedNode = nodeService.get(jackId, testUser);
+    Node saved = nodeService.get(jackId, testUser)
+        .orElseThrow(AssertionError::new);
 
-    assertTrue(persistedNode.isPresent());
-    assertEquals("Jack", persistedNode.get().getProperties().get("firstName")
-        .iterator().next().getValue());
-    assertEquals(johnId, persistedNode.get().getReferrers().get("knows")
-        .iterator().next());
-    assertEquals(maryId, persistedNode.get().getReferences().get("knows")
-        .iterator().next());
+    assertEquals("Jack", saved.getProperties().get("firstName").iterator().next().getValue());
+    assertEquals(johnId, saved.getReferrers().get("knows").iterator().next());
+    assertEquals(maryId, saved.getReferences().get("knows").iterator().next());
   }
-
 
   @Test
   public void shouldUpdateNodeWithReferences() {
-    NodeId johnId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder john = Node.builder().id(johnId);
-    john.properties(ImmutableMultimap.of("firstName", new StrictLangValue("John")));
+    NodeId johnId = NodeId.random("Person", testGraphId);
+    Node.Builder john = Node.builder()
+        .id(johnId)
+        .properties("firstName", new StrictLangValue("John"));
 
-    NodeId jackId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder jack = Node.builder().id(jackId);
-    jack.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Jack")));
+    NodeId jackId = NodeId.random("Person", testGraphId);
+    Node.Builder jack = Node.builder()
+        .id(jackId)
+        .properties("firstName", new StrictLangValue("Jack"));
 
-    NodeId maryId = new NodeId(UUID.randomUUID(), "Person", testGraphId);
-    Node.Builder mary = Node.builder().id(maryId);
-    mary.properties(ImmutableMultimap.of("firstName", new StrictLangValue("Mary")));
+    NodeId maryId = NodeId.random("Person", testGraphId);
+    Node.Builder mary = Node.builder()
+        .id(maryId)
+        .properties("firstName", new StrictLangValue("Mary"));
 
     john.references("knows", jackId);
     jack.references("knows", maryId);
@@ -202,23 +254,20 @@ public class NodeServiceIntegrationTest {
     nodeService
         .save(Stream.of(john, jack, mary).map(Builder::build), INSERT, defaultOpts(), testUser);
 
-    Optional<Node> persistedOptionalNode = nodeService.get(jackId, testUser);
+    Node saved = nodeService.get(jackId, testUser)
+        .orElseThrow(AssertionError::new);
 
-    assertTrue(persistedOptionalNode.isPresent());
-    Node persistedNode = persistedOptionalNode.get();
-    assertEquals("Jack", persistedNode.getProperties().get("firstName")
-        .iterator().next().getValue());
-    assertEquals(johnId, persistedNode.getReferrers().get("knows").iterator().next());
-    assertEquals(maryId, persistedNode.getReferences().get("knows").iterator().next());
+    assertEquals("Jack", saved.getProperties().get("firstName").iterator().next().getValue());
+    assertEquals(johnId, saved.getReferrers().get("knows").iterator().next());
+    assertEquals(maryId, saved.getReferences().get("knows").iterator().next());
 
-    Node updatedPersistedNode = Node.builderFromCopyOf(persistedNode)
+    Node savedWithoutReferences = Node.builderFromCopyOf(saved)
         .references(ImmutableMultimap.of()).build();
-    nodeService.save(updatedPersistedNode, UPDATE, defaultOpts(), testUser);
+    nodeService.save(savedWithoutReferences, UPDATE, defaultOpts(), testUser);
 
-    persistedOptionalNode = nodeService.get(jackId, testUser);
-    assertTrue(persistedOptionalNode.isPresent());
-    persistedNode = persistedOptionalNode.get();
-    assertTrue(persistedNode.getReferences().get("knows").isEmpty());
+    Node reSaved = nodeService.get(jackId, testUser)
+        .orElseThrow(AssertionError::new);
+    assertTrue(reSaved.getReferences().get("knows").isEmpty());
   }
 
 }

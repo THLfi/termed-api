@@ -26,6 +26,22 @@ public final class NodeId implements Serializable {
     this.type = checkNotNull(type, "type can't be null in %s", getClass());
   }
 
+  public static NodeId of(UUID id, String typeId, UUID graphId) {
+    return new NodeId(id, typeId, graphId);
+  }
+
+  public static NodeId of(UUID id, TypeId type) {
+    return new NodeId(id, type);
+  }
+
+  public static NodeId random(String typeId, UUID graphId) {
+    return new NodeId(UUID.randomUUID(), typeId, graphId);
+  }
+
+  public static NodeId random(TypeId type) {
+    return new NodeId(UUID.randomUUID(), type);
+  }
+
   public UUID getId() {
     return id;
   }
