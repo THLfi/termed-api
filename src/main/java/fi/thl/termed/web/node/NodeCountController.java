@@ -19,7 +19,6 @@ import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
 import java.util.UUID;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,8 +52,7 @@ public class NodeCountController {
   public long get(
       @PathVariable("graphId") UUID graphId,
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
-      @AuthenticationPrincipal User user,
-      HttpServletResponse response) {
+      @AuthenticationPrincipal User user) {
 
     if (!graphService.exists(new GraphId(graphId), user)) {
       throw new NotFoundException();
