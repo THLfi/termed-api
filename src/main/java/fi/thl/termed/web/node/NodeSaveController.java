@@ -125,7 +125,7 @@ public class NodeSaveController {
     nodeService.save(nodes, saveMode(mode), opts(sync), user);
   }
 
-  @PostJsonMapping(path = "/nodes", produces = {})
+  @PostJsonMapping(path = "/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node saveOne(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
