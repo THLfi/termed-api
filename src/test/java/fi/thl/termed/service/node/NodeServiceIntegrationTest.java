@@ -216,8 +216,6 @@ public class NodeServiceIntegrationTest {
       nodeService.save(examplePerson, INSERT, defaultOpts(), user);
       fail("Expected DataIntegrityViolationException");
     } catch (DataIntegrityViolationException e) {
-      System.out.println(e);
-      System.out.println(nodeService.exists(nodeId, user));
       assertFalse(nodeService.exists(nodeId, user));
     } catch (Throwable t) {
       fail("Unexpected error: " + t);
