@@ -134,10 +134,8 @@ public class NodeChangesetController {
 
     patch.getCode().ifPresent(nodeBuilder::code);
     patch.getUri().ifPresent(nodeBuilder::uri);
-    patch.getProperties().entries()
-        .forEach(e -> nodeBuilder.addProperties(e.getKey(), e.getValue()));
-    patch.getReferences().entries()
-        .forEach(e -> nodeBuilder.addReferences(e.getKey(), e.getValue()));
+    patch.getProperties().forEach(nodeBuilder::addProperties);
+    patch.getReferences().forEach(nodeBuilder::addReferences);
 
     return nodeBuilder.build();
   }
