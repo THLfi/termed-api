@@ -3,7 +3,7 @@ package fi.thl.termed.service.node.internal;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -20,7 +20,7 @@ public class DocumentToNode implements Function<Document, Node> {
   private Gson gson;
 
   private boolean loadReferrers;
-  private Type referrersType = new TypeToken<Multimap<String, NodeId>>() {
+  private Type referrersType = new TypeToken<ImmutableMultimap<String, NodeId>>() {
   }.getType();
 
   public DocumentToNode(Gson gson) {
