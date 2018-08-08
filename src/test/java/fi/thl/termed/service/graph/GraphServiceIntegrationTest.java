@@ -1,7 +1,5 @@
 package fi.thl.termed.service.graph;
 
-import static fi.thl.termed.domain.AppRole.ADMIN;
-import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
@@ -45,7 +43,7 @@ public class GraphServiceIntegrationTest {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
-  private User testDataLoader = new User("TestDataLoader", "", SUPERUSER);
+  private User testLoader = User.newSuperuser("TestLoader");
   private boolean labelPropertyInsertedByTest = false;
 
   private GraphId graphId;
@@ -55,22 +53,23 @@ public class GraphServiceIntegrationTest {
   public void setUp() {
     graphId = GraphId.of(randomUUID());
 
-    user = new User("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()), ADMIN);
-    userService.save(user, INSERT, defaultOpts(), testDataLoader);
+    user = User.newAdmin("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()));
+    userService.save(user, INSERT, defaultOpts(), testLoader);
 
-    if (!propertyService.exists("label", testDataLoader)) {
+    if (!propertyService.exists("label", testLoader)) {
       propertyService.save(Property.builder().id("label").build(),
-          INSERT, defaultOpts(), testDataLoader);
+          INSERT, defaultOpts(), testLoader);
       labelPropertyInsertedByTest = true;
     }
   }
 
   @After
   public void tearDown() {
-    userService.delete(user.identifier(), defaultOpts(), testDataLoader);
+    graphService.delete(graphId, defaultOpts(), user);
+    userService.delete(user.identifier(), defaultOpts(), testLoader);
 
     if (labelPropertyInsertedByTest) {
-      propertyService.delete("label", defaultOpts(), testDataLoader);
+      propertyService.delete("label", defaultOpts(), testLoader);
     }
   }
 

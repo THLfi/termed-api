@@ -86,7 +86,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
   private void setTextAttrValues(Type type, Node.Builder node, RdfResource rdfResource) {
     for (TextAttribute textAttribute : type.getTextAttributes()) {
       for (LangValue langValues : rdfResource.getLiterals(textAttribute.getUri().orElse(null))) {
-        node.properties(textAttribute.getId(),
+        node.addProperties(textAttribute.getId(),
             new StrictLangValue(
                 Ascii.truncate(langValues.getLang(), 2, ""),
                 langValues.getValue(),
@@ -102,14 +102,14 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
         if (nodes.containsKey(objectUri)) {
           Node object = nodes.get(objectUri).build();
           if (object.getType().equals(refAttribute.getRange())) {
-            node.references(refAttribute.getId(), object.identifier());
+            node.addReferences(refAttribute.getId(), object.identifier());
           }
         } else {
           UUID objectId = objectUri.matches(URN_UUID) ?
               fromString(objectUri.substring("urn:uuid:".length())) :
               nameUUIDFromString(objectUri);
           Optional<Node> object = nodeProvider.apply(new NodeId(objectId, refAttribute.getRange()));
-          object.ifPresent(o -> node.references(refAttribute.getId(), o.identifier()));
+          object.ifPresent(o -> node.addReferences(refAttribute.getId(), o.identifier()));
         }
       }
     }

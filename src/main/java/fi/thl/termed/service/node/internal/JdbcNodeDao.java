@@ -8,6 +8,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.dao.AbstractJdbcDao;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -105,9 +106,9 @@ public class JdbcNodeDao extends AbstractJdbcDao<NodeId, Node> {
         .uri(rs.getString("uri"))
         .number(rs.getLong("number"))
         .createdBy(rs.getString("created_by"))
-        .createdDate(rs.getTimestamp("created_date"))
+        .createdDate(new Date(rs.getTimestamp("created_date").getTime()))
         .lastModifiedBy(rs.getString("last_modified_by"))
-        .lastModifiedDate(rs.getTimestamp("last_modified_date"))
+        .lastModifiedDate(new Date(rs.getTimestamp("last_modified_date").getTime()))
         .build();
   }
 

@@ -169,8 +169,8 @@ public class NodeSaveController {
 
     node.getCode().ifPresent(baseNode::code);
     node.getUri().ifPresent(baseNode::uri);
-    node.getProperties().entries().forEach(e -> baseNode.properties(e.getKey(), e.getValue()));
-    node.getReferences().entries().forEach(e -> baseNode.references(e.getKey(), e.getValue()));
+    node.getProperties().entries().forEach(e -> baseNode.addProperties(e.getKey(), e.getValue()));
+    node.getReferences().entries().forEach(e -> baseNode.addReferences(e.getKey(), e.getValue()));
 
     NodeId nodeId = nodeService.save(baseNode.build(), saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);

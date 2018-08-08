@@ -58,7 +58,7 @@ public class NodeRdfGraphWrapperTest {
     Node concept1 = Node.builder()
         .id(concept1Id)
         .uri("http://example.org/Concept_1")
-        .properties("prefLabel", new StrictLangValue("en", "Concept 1"))
+        .addProperties("prefLabel", new StrictLangValue("en", "Concept 1"))
         .build();
     nodeDao.insert(concept1Id, concept1);
 
@@ -66,8 +66,8 @@ public class NodeRdfGraphWrapperTest {
     Node concept2 = Node.builder()
         .id(concept2Id)
         .uri("http://example.org/Concept_2")
-        .properties("prefLabel", new StrictLangValue("en", "Concept 2"))
-        .references("broader", concept1Id)
+        .addProperties("prefLabel", new StrictLangValue("en", "Concept 2"))
+        .addReferences("broader", concept1Id)
         .build();
     nodeDao.insert(concept2Id, concept2);
 
