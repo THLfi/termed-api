@@ -15,8 +15,9 @@ public final class DumpId implements Serializable {
     this(ImmutableSet.copyOf(graphIds));
   }
 
-  public DumpId(ImmutableSet<GraphId> graphIds) {
-    this.graphIds = requireNonNull(graphIds, () -> "id can't be null in " + getClass());
+  public DumpId(Iterable<GraphId> graphIds) {
+    this.graphIds = ImmutableSet.copyOf(
+        requireNonNull(graphIds, () -> "id can't be null in " + getClass()));
   }
 
   public ImmutableSet<GraphId> getGraphIds() {
