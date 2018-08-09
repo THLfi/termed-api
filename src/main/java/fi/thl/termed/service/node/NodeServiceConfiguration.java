@@ -3,7 +3,6 @@ package fi.thl.termed.service.node;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.util.Converter.newConverter;
-import static fi.thl.termed.util.EventBusUtils.register;
 import static fi.thl.termed.util.spring.jdbc.SpringJdbcUtils.getDatabaseProductName;
 
 import com.google.common.eventbus.EventBus;
@@ -110,23 +109,20 @@ public class NodeServiceConfiguration {
     service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
     service = new TransactionalService<>(service, transactionManager);
 
-    Index<NodeId, Node> nodeIndex = new LuceneIndex<>(
-        indexPath, new JsonStringConverter<>(NodeId.class),
-        newConverter(new NodeToDocument(gson), new DocumentToNode(gson)));
-    service = register(eventBus, new IndexedNodeService(service, nodeIndex, gson));
+    service = new IndexedNodeService(service, nodeIndex(), gson);
+    eventBus.register(service);
 
-    // Although database backed repository is secured, lucene backed indexed service is not.
-    // That's why we again filter any read requests.
-    service = new ReadAuthorizedNodeService(
-        service, typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
+    service = new ReadAuthorizedNodeService(service,
+        typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
     service = new WriteLoggingService<>(service,
         getClass().getPackage().getName() + ".WriteLoggingService");
-    service = new NodeWriteEventPostingService(service, eventBus);
+    service = new NodeWriteEventPostingService(service,
+        eventBus);
 
     service = new TimestampingNodeService(service);
-    service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),
-        typeService::get, graphService::get);
+    service = new ExtIdsInitializingNodeService(service,
+        nodeSequenceService(), typeService::get, graphService::get);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new ProfilingService<>(service,
         getClass().getPackage().getName() + ".ProfilingService", 500);
@@ -141,6 +137,12 @@ public class NodeServiceConfiguration {
     Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> service = nodeRevisionRepository();
     service = new TransactionalService<>(service, transactionManager);
     return service;
+  }
+
+  private Index<NodeId, Node> nodeIndex() {
+    return new LuceneIndex<>(
+        indexPath, new JsonStringConverter<>(NodeId.class),
+        newConverter(new NodeToDocument(gson), new DocumentToNode(gson)));
   }
 
   private Service<NodeId, Node> nodeRepository() {
