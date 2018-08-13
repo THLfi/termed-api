@@ -1,11 +1,9 @@
 package fi.thl.termed.service.node;
 
-import static fi.thl.termed.util.UUIDs.randomUUIDString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toCollection;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -13,8 +11,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableMultimap;
-import fi.thl.termed.domain.Graph;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.ReferenceAttribute;
@@ -22,58 +18,53 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.ForwardingLuceneSpecification;
 import fi.thl.termed.util.query.ForwardingSqlSpecification;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.Service;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class NodeServiceIntegrationTest {
-
-  @Autowired
-  private Service<NodeId, Node> nodeService;
-  @Autowired
-  private Service<GraphId, Graph> graphService;
-  @Autowired
-  private Service<TypeId, Type> typeService;
-  @Autowired
-  private Service<String, User> userService;
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
-  private User testLoader = User.newSuperuser("TestLoader");
-  private User user;
-
-  private UUID graphId;
+public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Before
-  public void setUp() {
-    graphId = randomUUID();
-    user = User.newAdmin("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()));
+  public void verifyGraphNodeDbAndIndexAreEmpty() {
+    assertEquals(0,
+        nodeService.count(new ForwardingSqlSpecification<>(new NodesByGraphId(graphId)), user));
+    assertEquals(0,
+        nodeService.count(new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId)), user));
+  }
 
-    userService.save(user, UPSERT, defaultOpts(), testLoader);
-    graphService.save(Graph.builder().id(graphId).build(), UPSERT, defaultOpts(), user);
+  @After
+  public void verifyGraphNodeIndexIntegrity() {
+    try (
+        Stream<Node> dbNodeStream = nodeService.values(new Query<>(
+            new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user);
+        Stream<Node> indexNodeStream = nodeService.values(new Query<>(
+            new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId))), user)) {
 
+      Supplier<TreeSet<Node>> nodeTreeSetSupplier =
+          () -> new TreeSet<>(Comparator.comparing(Node::getId));
+
+      Set<Node> dbNodes = dbNodeStream.collect(toCollection(nodeTreeSetSupplier));
+      Set<Node> indexNodes = indexNodeStream.collect(toCollection(nodeTreeSetSupplier));
+
+      assertEquals(dbNodes, indexNodes);
+    }
+  }
+
+  @Override
+  protected List<Type> buildTestTypes() {
     TypeId personId = TypeId.of("Person", graphId);
     TypeId groupId = TypeId.of("Group", graphId);
 
@@ -92,51 +83,7 @@ public class NodeServiceIntegrationTest {
             ReferenceAttribute.builder().id("member", groupId).range(personId).build())
         .build();
 
-    typeService.save(Stream.of(person, group), UPSERT, defaultOpts(), user);
-
-    verifyGraphNodeDbAndIndexAreEmpty();
-  }
-
-  private void verifyGraphNodeDbAndIndexAreEmpty() {
-    assertEquals(0,
-        nodeService.count(new ForwardingSqlSpecification<>(new NodesByGraphId(graphId)), user));
-    assertEquals(0,
-        nodeService.count(new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId)), user));
-  }
-
-  @After
-  public void tearDown() {
-    verifyGraphNodeIndexIntegrity();
-
-    nodeService.delete(
-        nodeService.keys(new Query<>(new NodesByGraphId(graphId)), user), defaultOpts(),
-        user);
-    typeService.delete(
-        typeService.keys(new Query<>(new TypesByGraphId(graphId)), user), defaultOpts(),
-        user);
-    graphService.delete(
-        new GraphId(graphId), defaultOpts(),
-        user);
-    userService.delete(
-        user.identifier(), defaultOpts(),
-        testLoader);
-  }
-
-  private void verifyGraphNodeIndexIntegrity() {
-    try (
-        Stream<Node> dbNodeStream = nodeService.values(new Query<>(
-            new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user);
-        Stream<Node> indexNodeStream = nodeService.values(new Query<>(
-            new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId))), user)) {
-
-      Supplier<TreeSet<Node>> nodeTreeSetSupplier =
-          () -> new TreeSet<>(Comparator.comparing(Node::getId));
-
-      Set<Node> dbNodes = dbNodeStream.collect(toCollection(nodeTreeSetSupplier));
-      Set<Node> indexNodes = indexNodeStream.collect(toCollection(nodeTreeSetSupplier));
-
-      assertEquals(dbNodes, indexNodes);
-    }
+    return Arrays.asList(person, group);
   }
 
   @Test
