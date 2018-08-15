@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node;
 
+import static fi.thl.termed.domain.User.newSuperuser;
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
@@ -32,23 +33,16 @@ public abstract class BaseNodeServiceIntegrationTest {
 
   protected User user;
   protected UUID graphId;
-
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
-  @Autowired
-  private Service<String, User> userService;
-
   @Autowired
   protected Service<GraphId, Graph> graphService;
-
   @Autowired
   protected Service<TypeId, Type> typeService;
-
   @Autowired
   protected Service<NodeId, Node> nodeService;
-
-  private User testLoader = User.newSuperuser("TestLoader");
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+  @Autowired
+  private Service<String, User> userService;
 
   @Before
   public void setUp() {
@@ -59,7 +53,7 @@ public abstract class BaseNodeServiceIntegrationTest {
 
   private void insertTestUser() {
     user = User.newAdmin("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()));
-    userService.save(user, INSERT, defaultOpts(), testLoader);
+    userService.save(user, INSERT, defaultOpts(), newSuperuser("test-initializer"));
   }
 
   private void insertTestGraph() {
@@ -96,7 +90,7 @@ public abstract class BaseNodeServiceIntegrationTest {
   }
 
   private void deleteTestUser() {
-    userService.delete(user.identifier(), defaultOpts(), testLoader);
+    userService.delete(user.identifier(), defaultOpts(), newSuperuser("test-cleaner"));
   }
 
 }
