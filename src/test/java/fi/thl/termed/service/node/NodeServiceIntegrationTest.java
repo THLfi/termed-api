@@ -129,6 +129,47 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
+  public void shouldGenerateNodeNumbers() {
+    NodeId node0Id = NodeId.random("Person", graphId);
+    Node node0 = Node.builder().id(node0Id).build();
+
+    NodeId node1Id = NodeId.random("Person", graphId);
+    Node node1 = Node.builder().id(node1Id).build();
+
+    nodeService.save(node0, INSERT, defaultOpts(), user);
+    nodeService.save(node1, INSERT, defaultOpts(), user);
+
+    assertEquals(0, (long) nodeService.get(node0Id, user)
+        .map(Node::getNumber)
+        .orElseThrow(AssertionError::new));
+
+    assertEquals(1, (long) nodeService.get(node1Id, user)
+        .map(Node::getNumber)
+        .orElseThrow(AssertionError::new));
+  }
+
+  @Test
+  public void shouldOnlyUseGeneratedNumbers() {
+    NodeId nodeId = NodeId.random("Person", graphId);
+    Node node = Node.builder()
+        .id(nodeId)
+        .number(23L)
+        .build();
+
+    nodeService.save(node, INSERT, defaultOpts(), user);
+
+    assertEquals(0, (long) nodeService.get(nodeId, user)
+        .map(Node::getNumber)
+        .orElseThrow(AssertionError::new));
+
+    nodeService.save(node, UPDATE, defaultOpts(), user);
+
+    assertEquals(0, (long) nodeService.get(nodeId, user)
+        .map(Node::getNumber)
+        .orElseThrow(AssertionError::new));
+  }
+
+  @Test
   public void shouldInsertNodeWithProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder()
