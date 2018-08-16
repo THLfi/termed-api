@@ -11,6 +11,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.util.query.ForwardingSqlSpecification;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
@@ -52,7 +53,8 @@ public class IndexController {
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(
-          nodeService.keys(new Query<>(new NodesByGraphId(graphId)), user)));
+          nodeService.keys(new Query<>(
+              new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user)));
     } else {
       throw new AccessDeniedException("");
     }
@@ -66,7 +68,8 @@ public class IndexController {
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(nodeService.keys(
-          new Query<>(and(new NodesByGraphId(graphId), new NodesByTypeId(id))), user)));
+          new Query<>(new ForwardingSqlSpecification<>(
+              and(new NodesByGraphId(graphId), new NodesByTypeId(id)))), user)));
     } else {
       throw new AccessDeniedException("");
     }
