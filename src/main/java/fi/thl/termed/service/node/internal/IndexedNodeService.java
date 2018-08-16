@@ -28,7 +28,7 @@ import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.query.CompositeSpecification;
 import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
-import fi.thl.termed.util.query.MatchNone;
+import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.SelectAll;
@@ -65,7 +65,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     if (index.isEmpty()) {
       // async reindex all
       index.index(
-          () -> super.keys(new Query<>(new MatchNone<>()), indexer),
+          () -> super.keys(new Query<>(new MatchAll<>()), indexer),
           key -> super.get(key, indexer));
     }
   }
