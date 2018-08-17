@@ -1,10 +1,10 @@
 package fi.thl.termed.web;
 
 import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
-import static fi.thl.termed.web.TestExampleData.exampleGraph;
-import static fi.thl.termed.web.TestExampleData.exampleGraphId;
-import static fi.thl.termed.web.TestExampleData.exampleUser;
-import static fi.thl.termed.web.TestExampleData.exampleUserName;
+import static fi.thl.termed.web.ExampleData.exampleGraph;
+import static fi.thl.termed.web.ExampleData.exampleGraphId;
+import static fi.thl.termed.web.ExampleData.exampleUser;
+import static fi.thl.termed.web.ExampleData.exampleUserName;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.cli.CliDocumentation.curlRequest;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;

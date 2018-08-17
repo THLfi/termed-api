@@ -4,7 +4,6 @@ import static fi.thl.termed.domain.Permission.DELETE;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
-import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableList;
@@ -15,6 +14,8 @@ import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.GraphRole;
 import fi.thl.termed.domain.LangValue;
+import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.TextAttribute;
@@ -23,13 +24,13 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import org.apache.jena.sparql.vocabulary.FOAF;
 
-class TestExampleData {
+class ExampleData {
 
   static Multimap<String, Permission> testPermissions = ImmutableMultimap.<String, Permission>builder()
       .putAll("guest", READ)
       .putAll("admin", READ, INSERT, UPDATE, DELETE).build();
 
-  static GraphId exampleGraphId = GraphId.of(nameUUIDFromString("example-graph"));
+  static GraphId exampleGraphId = GraphId.random();
   static Graph exampleGraph = Graph.builder()
       .id(exampleGraphId)
       .code("example-graph")
@@ -39,7 +40,7 @@ class TestExampleData {
       .properties("prefLabel", LangValue.of("en", "Example Graph"))
       .build();
 
-  static GraphId anotherGraphId = GraphId.of(nameUUIDFromString("another-graph"));
+  static GraphId anotherGraphId = GraphId.random();
   static Graph anotherGraph = Graph.builder()
       .id(anotherGraphId)
       .code("another-graph")
@@ -109,5 +110,23 @@ class TestExampleData {
   static String exampleUserName = "exampleUsername";
   static User exampleUser = new User(exampleUserName, "examplePassword", AppRole.USER,
       ImmutableList.of(new GraphRole(exampleGraphId, "guest")));
+
+  static NodeId exampleNode0Id = NodeId.random(personTypeId);
+  static NodeId exampleNode1Id = NodeId.random(personTypeId);
+
+  static Node exampleNode0 = Node.builder().id(exampleNode0Id)
+      .code("example-node-0")
+      .uri("http://example.org/example-node-0")
+      .addProperties("name", "John")
+      .addProperties("email", "john@example.org")
+      .addReferences("knows", exampleNode1Id)
+      .build();
+
+  static Node exampleNode1 = Node.builder().id(exampleNode1Id)
+      .code("example-node-1")
+      .uri("http://example.org/example-node-1")
+      .addProperties("name", "Jane")
+      .addProperties("email", "jane@example.org")
+      .build();
 
 }

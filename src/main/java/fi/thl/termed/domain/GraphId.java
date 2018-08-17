@@ -32,6 +32,10 @@ public final class GraphId implements Serializable {
     return new GraphId(id);
   }
 
+  public static GraphId random() {
+    return new GraphId(UUID.randomUUID());
+  }
+
   public UUID getId() {
     return id;
   }
