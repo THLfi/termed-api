@@ -12,17 +12,44 @@
 :operation-request-fields-title: Request body
 :operation-response-fields-title: Response body
 
+
 [[overview]]
 = Overview
 
 Termed API is service for storing data in graph structure.
 
-[[resources-nodes]]
-== Nodes
 
-Applications operate mostly on Node APIs. There are two main APIs for nodes. CRUD API and
-Tree API. The former is simple create-read-update-delete API for nodes. The latter is read-only
-API that supports complex queries and tree serializations.
+[[resources-graphs]]
+== Graphs
+
+=== Get a Graph
+
+include::{snippets}/get-a-graph/operation-intro.adoc[]
+
+operation::get-a-graph[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get all Graphs
+
+include::{snippets}/get-all-graphs/operation-intro.adoc[]
+
+operation::get-all-graphs[snippets='curl-request,response-body']
+
+=== Save a Graph
+
+include::{snippets}/save-a-graph/operation-intro.adoc[]
+
+operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
+
+==== Saving using PUT
+
+include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
+
+=== Delete a Graph
+
+include::{snippets}/delete-a-graph/operation-intro.adoc[]
+
+operation::delete-a-graph[snippets='path-parameters,curl-request']
+
 
 [[resources-types]]
 == Types
@@ -86,36 +113,54 @@ include::{snippets}/delete-a-type/operation-intro.adoc[]
 
 operation::delete-a-type[snippets='path-parameters,curl-request']
 
-[[resources-graphs]]
-== Graphs
 
-=== Get a Graph
+[[resources-nodes]]
+== Nodes (CRUD API)
 
-include::{snippets}/get-a-graph/operation-intro.adoc[]
+Applications typically operate mostly on Node API. There are two main APIs for nodes. CRUD API and
+Tree API. The former is simple create-read-update-delete API for nodes. The latter is read-only
+API that supports complex queries and tree serializations.
 
-operation::get-a-graph[snippets='path-parameters,response-fields,curl-request,response-body']
+=== Get a Node
 
-=== Get all Graphs
+include::{snippets}/get-a-node/operation-intro.adoc[]
 
-include::{snippets}/get-all-graphs/operation-intro.adoc[]
+operation::get-a-node[snippets='path-parameters,response-fields,curl-request,response-body']
 
-operation::get-all-graphs[snippets='curl-request,response-body']
+=== Get Nodes of Type
 
-=== Save a Graph
+include::{snippets}/get-type-nodes/operation-intro.adoc[]
 
-include::{snippets}/save-a-graph/operation-intro.adoc[]
+operation::get-type-nodes[snippets='curl-request']
 
-operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
+=== Get Nodes in Graph
+
+include::{snippets}/get-graph-nodes/operation-intro.adoc[]
+
+operation::get-graph-nodes[snippets='curl-request']
+
+=== Get all Nodes
+
+include::{snippets}/get-all-nodes/operation-intro.adoc[]
+
+operation::get-all-node[snippets='curl-request']
+
+=== Save a Node
+
+include::{snippets}/save-a-node/operation-intro.adoc[]
+
+operation::save-a-node[snippets='path-parameters,request-parameters,request-fields,curl-request']
 
 ==== Saving using PUT
 
-include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
+include::{snippets}/save-a-node-using-put/operation-intro.adoc[]
 
-=== Delete a Graph
+=== Delete a Node
 
-include::{snippets}/delete-a-graph/operation-intro.adoc[]
+include::{snippets}/delete-a-node/operation-intro.adoc[]
 
-operation::delete-a-graph[snippets='path-parameters,curl-request']
+operation::delete-a-node[snippets='path-parameters,curl-request']
+
 
 [[resources-users]]
 == Users
