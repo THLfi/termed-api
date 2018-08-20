@@ -192,43 +192,51 @@ public class NodeRevisionRepository implements
   }
 
   private Multimap<String, StrictLangValue> findPropertiesFor(RevisionId<NodeId> revId, User user) {
-    Map<NodeAttributeValueId, List<Tuple2<Long, StrictLangValue>>> attrValueRevs =
-        textAttributeValueRevDao
-            .getEntries(new NodeRevisionTextAttributeValuesLessOrEqualToRevision(revId), user)
-            .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
-                mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
+    try (Stream<Tuple2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>>>
+        textAttributeValueRevisions = textAttributeValueRevDao.getEntries(
+        new NodeRevisionTextAttributeValuesLessOrEqualToRevision(revId), user)) {
 
-    Multimap<String, StrictLangValue> properties = LinkedHashMultimap.create();
+      Map<NodeAttributeValueId, List<Tuple2<Long, StrictLangValue>>> idMappedValueRevisions =
+          textAttributeValueRevisions
+              .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
+                  mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
-    attrValueRevs.forEach((attrId, valueRevs) -> {
-      Optional<StrictLangValue> lastRevValue = valueRevs.stream()
-          .max(comparing(t -> t._1))
-          .map(t -> t._2);
+      Multimap<String, StrictLangValue> properties = LinkedHashMultimap.create();
 
-      lastRevValue.ifPresent(value -> properties.put(attrId.getAttributeId(), value));
-    });
+      idMappedValueRevisions.forEach((attrId, valueRevs) -> {
+        Optional<StrictLangValue> lastRevValue = valueRevs.stream()
+            .max(comparing(t -> t._1))
+            .map(t -> t._2);
 
-    return properties;
+        lastRevValue.ifPresent(value -> properties.put(attrId.getAttributeId(), value));
+      });
+
+      return properties;
+    }
   }
 
   private Multimap<String, NodeId> findReferencesFor(RevisionId<NodeId> revId, User user) {
-    Map<NodeAttributeValueId, List<Tuple2<Long, NodeId>>> attrValueRevs =
-        referenceAttributeValueRevDao
-            .getEntries(new NodeRevisionReferenceAttributeValuesLessOrEqualToRevision(revId), user)
-            .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
-                mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
+    try (Stream<Tuple2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>>>
+        referenceAttributeValueRevisions = referenceAttributeValueRevDao.getEntries(
+        new NodeRevisionReferenceAttributeValuesLessOrEqualToRevision(revId), user)) {
 
-    Multimap<String, NodeId> references = LinkedHashMultimap.create();
+      Map<NodeAttributeValueId, List<Tuple2<Long, NodeId>>> idMappedValueRevisions =
+          referenceAttributeValueRevisions
+              .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
+                  mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
-    attrValueRevs.forEach((attrId, valueRevs) -> {
-      Optional<NodeId> lastRevValue = valueRevs.stream()
-          .max(comparing(t -> t._1))
-          .map(t -> t._2);
+      Multimap<String, NodeId> references = LinkedHashMultimap.create();
 
-      lastRevValue.ifPresent(value -> references.put(attrId.getAttributeId(), value));
-    });
+      idMappedValueRevisions.forEach((attrId, valueRevs) -> {
+        Optional<NodeId> lastRevValue = valueRevs.stream()
+            .max(comparing(t -> t._1))
+            .map(t -> t._2);
 
-    return references;
+        lastRevValue.ifPresent(value -> references.put(attrId.getAttributeId(), value));
+      });
+
+      return references;
+    }
   }
 
 }
