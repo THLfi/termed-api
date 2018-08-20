@@ -23,6 +23,8 @@ import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.ProgressReporter;
+import fi.thl.termed.util.collect.StreamUtils;
+import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.query.CompositeSpecification;
@@ -192,17 +194,27 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   private void reindex(Stream<NodeId> ids) {
-    ids.forEach(id -> {
-      Optional<Node> node = super.get(id, indexer);
+    try (Stream<NodeId> closeable = ids) {
 
-      if (node.isPresent()) {
-        index.index(id, node.get());
-      } else {
-        index.delete(id);
-      }
-    });
+      StreamUtils.zipIndex(closeable, Tuple::of).forEach(t -> {
+        NodeId id = t._1;
+        int i = t._2;
 
-    waitLuceneIndexRefresh();
+        Optional<Node> node = super.get(id, indexer);
+
+        if (node.isPresent()) {
+          index.index(id, node.get());
+        } else {
+          index.delete(id);
+        }
+
+        if (i % 1000 == 0) {
+          log.debug("Indexed {} values", i);
+        }
+      });
+
+      waitLuceneIndexRefresh();
+    }
   }
 
   // wait for searcher to reflect updates to make sure that all updates are done and visible

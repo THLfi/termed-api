@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +15,6 @@ import java.util.Spliterator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -32,30 +30,23 @@ public final class StreamUtils {
   }
 
   /**
-   * When consuming a given stream, peeks the stream and collects values into buffer of given size.
-   * When buffer fills, calls consumer for that partition.
+   * Attach repeatedly called {@link Runnable} to Stream until the Stream is closed. Can be used
+   * e.g. to log warnings of unclosed streams.
    */
-  public static <T> Stream<T> partitionedPeek(Stream<T> stream, int partitionSize,
-      Consumer<Stream<T>> consumer) {
+  public static <T> Stream<T> toStreamWithScheduledRepeatingAction(Stream<T> stream,
+      ScheduledExecutorService scheduledExecutorService, int delay, TimeUnit timeUnit,
+      Runnable action) {
 
-    AtomicInteger counter = new AtomicInteger();
-    List<T> partition = new ArrayList<>();
+    ScheduledFuture<?> scheduledFuture = scheduledExecutorService
+        .scheduleWithFixedDelay(action, delay, delay, timeUnit);
 
-    return stream
-        .peek(t -> {
-          partition.add(t);
-          if (counter.incrementAndGet() % partitionSize == 0) {
-            consumer.accept(partition.stream());
-            partition.clear();
-          }
-        })
-        .onClose(() -> {
-          if (!partition.isEmpty()) {
-            consumer.accept(partition.stream());
-          }
-        });
+    // cancel scheduledFuture if stream is properly closed on time
+    return stream.onClose(() -> scheduledFuture.cancel(false));
   }
 
+  /**
+   * Set timeout to Stream, i.e. Stream is automatically closed after given time.
+   */
   public static <T> Stream<T> toStreamWithTimeout(Stream<T> stream,
       ScheduledExecutorService scheduledExecutorService, int delay, TimeUnit timeUnit) {
     ScheduledFuture<Void> closeOnTimeout = scheduledExecutorService.schedule(() -> {

@@ -103,6 +103,8 @@ public class NodeServiceConfiguration {
   @Autowired
   private EventBus eventBus;
 
+  private String packageName = getClass().getPackage().getName();
+
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service = nodeRepository();
@@ -115,17 +117,14 @@ public class NodeServiceConfiguration {
     service = new ReadAuthorizedNodeService(service,
         typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
-    service = new WriteLoggingService<>(service,
-        getClass().getPackage().getName() + ".WriteLoggingService");
-    service = new NodeWriteEventPostingService(service,
-        eventBus);
+    service = new WriteLoggingService<>(service, packageName + ".WriteLoggingService");
+    service = new NodeWriteEventPostingService(service, eventBus);
 
     service = new TimestampingNodeService(service);
-    service = new ExtIdsInitializingNodeService(service,
-        nodeSequenceService(), typeService::get, graphService::get);
+    service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),
+        typeService::get, graphService::get);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
-    service = new ProfilingService<>(service,
-        getClass().getPackage().getName() + ".ProfilingService", 500);
+    service = new ProfilingService<>(service, packageName + ".ProfilingService", 500);
 
     service = new IdInitializingNodeService(service);
 

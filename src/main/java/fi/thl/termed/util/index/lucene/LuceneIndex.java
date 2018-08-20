@@ -16,6 +16,8 @@ import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.FutureUtils;
 import fi.thl.termed.util.collect.ListUtils;
+import fi.thl.termed.util.collect.StreamUtils;
+import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.Specification;
@@ -326,13 +328,23 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       log.info("Indexing");
 
       try (Stream<K> keyStream = keyStreamProvider.get()) {
-        keyStream.forEach(key -> {
-          Optional<V> value = valueProvider.apply(key);
+        StreamUtils.zipIndex(keyStream, Tuple::of).forEach(t -> {
 
-          if (value.isPresent()) {
-            index(key, value.get());
-          } else {
-            delete(key);
+          try {
+            Optional<V> value = valueProvider.apply(t._1);
+
+            if (value.isPresent()) {
+              index(t._1, value.get());
+            } else {
+              delete(t._1);
+            }
+          } catch (Throwable ex) {
+            log.error("", ex);
+            throw ex;
+          }
+
+          if (t._2 % 1000 == 0) {
+            log.debug("Indexed {} values", t._2);
           }
         });
       }
