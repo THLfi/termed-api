@@ -63,27 +63,27 @@ public class TransactionalService<K extends Serializable, V> implements Service<
 
   @Override
   public Stream<V> values(Query<K, V> query, User user) {
-    return readStreamInTransaction(() -> delegate.values(query, user));
+    return delegate.values(query, user);
   }
 
   @Override
   public Stream<K> keys(Query<K, V> query, User user) {
-    return readStreamInTransaction(() -> delegate.keys(query, user));
+    return delegate.keys(query, user);
   }
 
   @Override
   public long count(Specification<K, V> spec, User user) {
-    return runInTransaction(() -> delegate.count(spec, user));
+    return delegate.count(spec, user);
   }
 
   @Override
   public boolean exists(K id, User user) {
-    return runInTransaction(() -> delegate.exists(id, user));
+    return delegate.exists(id, user);
   }
 
   @Override
   public Optional<V> get(K id, User user, Select... selects) {
-    return runInTransaction(() -> delegate.get(id, user, selects));
+    return delegate.get(id, user, selects);
   }
 
   private <E> E runInTransaction(Supplier<E> supplier) {
@@ -102,18 +102,6 @@ public class TransactionalService<K extends Serializable, V> implements Service<
     log.trace("Committing transaction");
     manager.commit(tx);
     return results;
-  }
-
-  private <E> Stream<E> readStreamInTransaction(Supplier<Stream<E>> supplier) {
-    Stream<E> stream = supplier.get();
-
-    log.trace("Opening stream read transaction");
-    TransactionStatus tx = manager.getTransaction(definition);
-
-    return stream.onClose(() -> {
-      log.trace("Committing stream read transaction");
-      manager.commit(tx);
-    });
   }
 
 }
