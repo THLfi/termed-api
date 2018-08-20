@@ -65,15 +65,15 @@ public class StreamingJdbcTemplate {
       new ArgumentPreparedStatementSetter(args).setValues(preparedStatement);
 
       resultSet = preparedStatement.executeQuery();
+
+      Stream<T> results = stream(resultSetToMappingIterator(resultSet, rowMapper))
+          .onClose(() -> DataSourceUtils.releaseConnection(connection, dataSource));
+
+      return withRecurringWarningIfKeptOpen(withTimeout(results), sql, nanoTime());
     } catch (SQLException | RuntimeException | Error e) {
       DataSourceUtils.releaseConnection(connection, dataSource);
       throw new RuntimeException(e);
     }
-
-    Stream<T> results = stream(resultSetToMappingIterator(resultSet, rowMapper))
-        .onClose(() -> DataSourceUtils.releaseConnection(connection, dataSource));
-
-    return withRecurringWarningIfKeptOpen(withTimeout(results), sql, nanoTime());
   }
 
   private <T> Stream<T> withTimeout(Stream<T> stream) {
