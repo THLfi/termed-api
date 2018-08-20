@@ -3,6 +3,7 @@ package fi.thl.termed.service.node;
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
+import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,20 +53,39 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   }
 
   @Test
-  public void shouldSaveRevisionsForNodesWithProperties() {
-    NodeId nodeId = new NodeId(UUID.randomUUID(), "Person", graphId);
-
-    Node person = Node.builder().id(nodeId)
+  public void shouldSaveNewRevisionForEachNodeSave() {
+    NodeId nodeId = NodeId.random("Person", graphId);
+    Node node = Node.builder().id(nodeId)
         .addProperties("firstName", "John")
         .addProperties("lastName", "Doe")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
 
-    nodeService.save(person, INSERT, defaultOpts(), user);
+    int numberOfRevisions = 100;
+
+    for (int i = 0; i < numberOfRevisions; i++) {
+      nodeService.save(node, UPSERT, defaultOpts(), user);
+    }
+
+    assertEquals(numberOfRevisions,
+        nodeRevisionService.count(new NodeRevisionsByNodeId(nodeId), user));
+  }
+
+  @Test
+  public void shouldSaveRevisionsForNodesWithProperties() {
+    NodeId nodeId = NodeId.random("Person", graphId);
+    Node node = Node.builder().id(nodeId)
+        .addProperties("firstName", "John")
+        .addProperties("lastName", "Doe")
+        .build();
+
+    assertFalse(nodeService.exists(nodeId, user));
+
+    nodeService.save(node, INSERT, defaultOpts(), user);
     assertTrue(nodeService.exists(nodeId, user));
 
-    Node personUpdated = Node.builderFromCopyOf(person)
+    Node personUpdated = Node.builderFromCopyOf(node)
         .properties(ImmutableMultimap.of(
             "firstName", new StrictLangValue("Jane"),
             "lastName", new StrictLangValue("Doe")))
