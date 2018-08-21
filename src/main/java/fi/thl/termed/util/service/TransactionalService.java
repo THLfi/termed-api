@@ -63,12 +63,12 @@ public class TransactionalService<K extends Serializable, V> implements Service<
 
   @Override
   public Stream<V> values(Query<K, V> query, User user) {
-    return readStreamInTransaction(() -> delegate.values(query, user));
+    return delegate.values(query, user);
   }
 
   @Override
   public Stream<K> keys(Query<K, V> query, User user) {
-    return readStreamInTransaction(() -> delegate.keys(query, user));
+    return delegate.keys(query, user);
   }
 
   @Override
@@ -102,26 +102,6 @@ public class TransactionalService<K extends Serializable, V> implements Service<
     log.trace("Committing transaction");
     manager.commit(tx);
     return results;
-  }
-
-  private <E> Stream<E> readStreamInTransaction(Supplier<Stream<E>> supplier) {
-    Stream<E> stream;
-
-    log.trace("Opening stream read transaction");
-    TransactionStatus tx = manager.getTransaction(definition);
-
-    try {
-      stream = supplier.get();
-    } catch (RuntimeException | Error e) {
-      log.trace("Stream initialization failed, rolling back transaction");
-      manager.rollback(tx);
-      throw e;
-    }
-
-    return stream.onClose(() -> {
-      log.trace("Committing stream read transaction");
-      manager.commit(tx);
-    });
   }
 
 }

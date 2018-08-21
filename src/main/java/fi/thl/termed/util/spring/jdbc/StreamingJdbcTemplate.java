@@ -56,8 +56,6 @@ public class StreamingJdbcTemplate {
     Connection connection = DataSourceUtils.getConnection(dataSource);
 
     try {
-      connection.setAutoCommit(false);
-
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setFetchSize(500);
 
