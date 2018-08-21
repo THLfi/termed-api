@@ -54,7 +54,6 @@ public class StreamingJdbcTemplate {
     DataSource dataSource = requireNonNull(jdbcTemplate.getDataSource());
 
     Connection connection = DataSourceUtils.getConnection(dataSource);
-    ResultSet resultSet;
 
     try {
       connection.setAutoCommit(false);
@@ -64,7 +63,7 @@ public class StreamingJdbcTemplate {
 
       new ArgumentPreparedStatementSetter(args).setValues(preparedStatement);
 
-      resultSet = preparedStatement.executeQuery();
+      ResultSet resultSet = preparedStatement.executeQuery();
 
       Stream<T> results = stream(resultSetToMappingIterator(resultSet, rowMapper))
           .onClose(() -> DataSourceUtils.releaseConnection(connection, dataSource));
