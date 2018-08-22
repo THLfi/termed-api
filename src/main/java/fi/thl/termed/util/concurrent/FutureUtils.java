@@ -1,4 +1,4 @@
-package fi.thl.termed.util;
+package fi.thl.termed.util.concurrent;
 
 import com.google.common.util.concurrent.FutureCallback;
 import java.util.concurrent.ExecutionException;

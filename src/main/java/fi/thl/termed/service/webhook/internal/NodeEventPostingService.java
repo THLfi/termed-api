@@ -9,7 +9,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.domain.event.NodeEvent;
 import fi.thl.termed.domain.event.WebEvent;
-import fi.thl.termed.util.FutureUtils;
+import fi.thl.termed.util.concurrent.FutureUtils;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;

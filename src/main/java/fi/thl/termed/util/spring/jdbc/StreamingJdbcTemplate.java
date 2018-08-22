@@ -8,12 +8,12 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import fi.thl.termed.util.collect.StreamUtils;
+import fi.thl.termed.util.concurrent.ExecutorUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 
 public class StreamingJdbcTemplate {
 
@@ -36,7 +37,7 @@ public class StreamingJdbcTemplate {
 
   public StreamingJdbcTemplate(DataSource dataSource) {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
-    this.executor = Executors.newSingleThreadScheduledExecutor();
+    this.executor = ExecutorUtils.newScheduledThreadPool(5);
   }
 
   public void update(String sql, Object... args) {
@@ -64,7 +65,11 @@ public class StreamingJdbcTemplate {
       ResultSet resultSet = preparedStatement.executeQuery();
 
       Stream<T> results = stream(resultSetToMappingIterator(resultSet, rowMapper))
-          .onClose(() -> DataSourceUtils.releaseConnection(connection, dataSource));
+          .onClose(() -> {
+            JdbcUtils.closeStatement(preparedStatement);
+            JdbcUtils.closeResultSet(resultSet);
+            DataSourceUtils.releaseConnection(connection, dataSource);
+          });
 
       return withRecurringWarningIfKeptOpen(withTimeout(results), sql, nanoTime());
     } catch (SQLException | RuntimeException | Error e) {

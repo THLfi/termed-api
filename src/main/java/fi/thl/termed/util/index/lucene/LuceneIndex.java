@@ -14,10 +14,11 @@ import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEN
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 import fi.thl.termed.util.Converter;
-import fi.thl.termed.util.FutureUtils;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.concurrent.ExecutorUtils;
+import fi.thl.termed.util.concurrent.FutureUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.Specification;
@@ -30,7 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -93,8 +93,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       throw new LuceneException(e);
     }
 
-    this.indexingExecutor = Executors.newSingleThreadExecutor();
-    this.scheduledExecutorService = Executors.newScheduledThreadPool(5);
+    this.indexingExecutor = ExecutorUtils.newScheduledThreadPool(1);
+    this.scheduledExecutorService = ExecutorUtils.newScheduledThreadPool(5);
 
     this.scheduledExecutorService.scheduleAtFixedRate(this::refresh, 0, 1, TimeUnit.SECONDS);
     this.scheduledExecutorService.scheduleAtFixedRate(this::commit, 0, 10, TimeUnit.SECONDS);
