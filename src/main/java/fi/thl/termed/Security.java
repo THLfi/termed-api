@@ -2,7 +2,6 @@ package fi.thl.termed;
 
 import static fi.thl.termed.domain.AppRole.SUPERUSER;
 import static fi.thl.termed.domain.User.newSuperuser;
-import static org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest.toAnyEndpoint;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -38,7 +38,8 @@ public class Security extends WebSecurityConfigurerAdapter {
     http.csrf().disable();
 
     http.authorizeRequests()
-        .requestMatchers(toAnyEndpoint()).hasAuthority(SUPERUSER.toString())
+        // secure actuator endpoints
+        .requestMatchers(EndpointRequest.toAnyEndpoint()).hasAuthority(SUPERUSER.toString())
         .anyRequest().authenticated();
 
     http.httpBasic();
