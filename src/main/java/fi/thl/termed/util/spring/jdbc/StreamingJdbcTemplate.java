@@ -1,9 +1,9 @@
 package fi.thl.termed.util.spring.jdbc;
 
 import static com.google.common.collect.Streams.stream;
-import static fi.thl.termed.util.DurationUtils.prettyPrint;
+import static fi.thl.termed.util.DurationUtils.prettyPrintMillis;
 import static fi.thl.termed.util.spring.jdbc.SpringJdbcUtils.resultSetToMappingIterator;
-import static java.lang.System.nanoTime;
+import static java.lang.System.currentTimeMillis;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -71,7 +71,7 @@ public class StreamingJdbcTemplate {
             DataSourceUtils.releaseConnection(connection, dataSource);
           });
 
-      return withRecurringWarningIfKeptOpen(withTimeout(results), sql, nanoTime());
+      return withRecurringWarningIfKeptOpen(withTimeout(results), sql, currentTimeMillis());
     } catch (SQLException | RuntimeException | Error e) {
       DataSourceUtils.releaseConnection(connection, dataSource);
       throw new RuntimeException(e);
@@ -85,7 +85,7 @@ public class StreamingJdbcTemplate {
   private <T> Stream<T> withRecurringWarningIfKeptOpen(Stream<T> stream, String sql, Long start) {
     return StreamUtils.toStreamWithScheduledRepeatingAction(stream, executor, 1, MINUTES,
         () -> log.debug("Result stream for {} kept open for {}",
-            sql, prettyPrint(nanoTime() - start)));
+            sql, prettyPrintMillis(currentTimeMillis() - start)));
   }
 
   public <T> Optional<T> queryForOptional(String sql, Class<T> requiredType, Object... args) {

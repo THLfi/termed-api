@@ -1,7 +1,7 @@
 package fi.thl.termed.util.service;
 
-import static fi.thl.termed.util.DurationUtils.prettyPrint;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static fi.thl.termed.util.DurationUtils.prettyPrintMillis;
+import static java.lang.System.currentTimeMillis;
 
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.collect.Identifiable;
@@ -19,20 +19,20 @@ public class ProfilingService<K extends Serializable, V extends Identifiable<K>>
     implements Service<K, V> {
 
   private final Logger log;
-  private final long limitInNanos;
+  private final long limitInMillis;
 
   private final Service<K, V> delegate;
 
   public ProfilingService(Service<K, V> delegate, String loggerName, int limitInMillis) {
     this.delegate = delegate;
     this.log = LoggerFactory.getLogger(loggerName);
-    this.limitInNanos = MILLISECONDS.toNanos(limitInMillis);
+    this.limitInMillis = limitInMillis;
   }
 
   public ProfilingService(Service<K, V> delegate, Class<?> loggerName, int limitInMillis) {
     this.delegate = delegate;
     this.log = LoggerFactory.getLogger(loggerName);
-    this.limitInNanos = MILLISECONDS.toNanos(limitInMillis);
+    this.limitInMillis = limitInMillis;
   }
 
   @Override
@@ -98,22 +98,22 @@ public class ProfilingService<K extends Serializable, V extends Identifiable<K>>
   }
 
   private <E> E profile(Supplier<E> supplier, String format, Object... args) {
-    long start = System.nanoTime();
+    long start = currentTimeMillis();
     E result = supplier.get();
-    logDuration(System.nanoTime() - start, format, args);
+    logDuration(currentTimeMillis() - start, format, args);
     return result;
   }
 
   private <E> Stream<E> profileStream(Supplier<Stream<E>> supplier, String format, Object... args) {
-    long start = System.nanoTime();
-    return supplier.get().onClose(() -> logDuration(System.nanoTime() - start, format, args));
+    long start = System.currentTimeMillis();
+    return supplier.get().onClose(() -> logDuration(currentTimeMillis() - start, format, args));
   }
 
-  private void logDuration(long durationInNanos, String msgFormat, Object[] args) {
-    if (durationInNanos >= limitInNanos) {
-      log.debug("{} in {}", String.format(msgFormat, args), prettyPrint(durationInNanos));
+  private void logDuration(long durationInMillis, String msgFormat, Object[] args) {
+    if (durationInMillis >= limitInMillis) {
+      log.debug("{} in {}", String.format(msgFormat, args), prettyPrintMillis(durationInMillis));
     } else if (log.isTraceEnabled()) {
-      log.trace("{} in {}", String.format(msgFormat, args), prettyPrint(durationInNanos));
+      log.trace("{} in {}", String.format(msgFormat, args), prettyPrintMillis(durationInMillis));
     }
   }
 

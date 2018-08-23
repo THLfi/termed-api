@@ -22,8 +22,9 @@ public class ProgressReporter {
     this.reportInterval = reportInterval;
     this.total = total;
 
-    this.startTime = System.nanoTime();
+    this.startTime = System.currentTimeMillis();
     this.lastUpdateTime = startTime;
+
     this.processed = 0;
     this.lastUpdateProcessed = 0;
   }
@@ -43,7 +44,7 @@ public class ProgressReporter {
         totalTimeInSeconds());
 
     lastUpdateProcessed = processed;
-    lastUpdateTime = System.nanoTime();
+    lastUpdateTime = System.currentTimeMillis();
   }
 
   private int percentageDone() {
@@ -55,11 +56,11 @@ public class ProgressReporter {
   }
 
   private long timeSinceLastUpdate() {
-    return (System.nanoTime() - lastUpdateTime) / 1000000;
+    return System.currentTimeMillis() - lastUpdateTime;
   }
 
   private long totalTimeInSeconds() {
-    return (System.nanoTime() - startTime) / 1000000000;
+    return (System.currentTimeMillis() - startTime) / 1000;
   }
 
 }
