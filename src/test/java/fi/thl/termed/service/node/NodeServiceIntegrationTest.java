@@ -162,11 +162,40 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
         .map(Node::getNumber)
         .orElseThrow(AssertionError::new));
 
+    // try again with update
     nodeService.save(node, UPDATE, defaultOpts(), user);
 
     assertEquals(0, (long) nodeService.get(nodeId, user)
         .map(Node::getNumber)
         .orElseThrow(AssertionError::new));
+  }
+
+  @Test
+  public void shouldNotAllowDuplicateCodes() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .code("example-code")
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .code("example-code")
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    try {
+      nodeService.save(Stream.of(node0, node1), INSERT, defaultOpts(), user);
+      fail("Expected DataIntegrityViolationException");
+    } catch (DataIntegrityViolationException e) {
+      assertFalse(nodeService.exists(nodeId0, user));
+      assertFalse(nodeService.exists(nodeId1, user));
+    } catch (Throwable t) {
+      fail("Unexpected error: " + t);
+    }
   }
 
   @Test
