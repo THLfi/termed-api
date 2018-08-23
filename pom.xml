@@ -126,6 +126,11 @@
             <artifactId>jparsercombinator</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.eatthepath</groupId>
+            <artifactId>fast-uuid</artifactId>
+            <version>0.1</version>
+        </dependency>
 
         <!-- Serialization -->
         <dependency>

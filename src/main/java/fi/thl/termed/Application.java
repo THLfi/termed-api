@@ -9,7 +9,9 @@ import fi.thl.termed.util.json.ImmutableListDeserializer;
 import fi.thl.termed.util.json.ImmutableMultimapTypeAdapterFactory;
 import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
 import fi.thl.termed.util.json.StreamTypeAdapterFactory;
+import fi.thl.termed.util.json.FastUUIDTypeAdapter;
 import java.util.Date;
+import java.util.UUID;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -32,6 +34,7 @@ public class Application extends SpringBootServletInitializer {
   @Bean
   public Gson gson() {
     return new GsonBuilder().setPrettyPrinting()
+        .registerTypeAdapter(UUID.class, new FastUUIDTypeAdapter().nullSafe())
         .registerTypeAdapter(Date.class, new DateTypeAdapter().nullSafe())
         .registerTypeAdapter(ImmutableList.class, new ImmutableListDeserializer())
         .registerTypeAdapterFactory(new StreamTypeAdapterFactory())

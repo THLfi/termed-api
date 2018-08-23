@@ -1,5 +1,6 @@
 package fi.thl.termed.util;
 
+import com.eatthepath.uuid.FastUUID;
 import com.google.common.base.Charsets;
 
 import java.util.UUID;
@@ -10,7 +11,7 @@ public final class UUIDs {
   }
 
   public static UUID fromString(String uuidString) {
-    return uuidString != null ? UUID.fromString(uuidString) : null;
+    return uuidString != null ? FastUUID.parseUUID(uuidString) : null;
   }
 
   public static UUID nameUUIDFromString(String uuidString) {
