@@ -1,11 +1,11 @@
 package fi.thl.termed.web;
 
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static fi.thl.termed.web.ExampleData.anotherGraph;
 import static fi.thl.termed.web.ExampleData.anotherGraphId;
 import static fi.thl.termed.web.ExampleData.exampleGraph;
 import static fi.thl.termed.web.ExampleData.exampleGraphId;
+import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -28,7 +28,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Before
   public void insertExampleGraph() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
@@ -79,7 +79,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentGetAllGraphs() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(anotherGraph))
+        .body(anotherGraph)
         .post("/api/graphs?mode=insert");
 
     given(adminAuthorizedJsonGetRequest).filter(
@@ -139,7 +139,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
                         + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
                         + "`{ \"lang\": \"en\", \"value\": \"Example Graph\" }`)"))))
         .when()
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs")
         .then()
         .statusCode(HttpStatus.SC_OK);
@@ -154,7 +154,7 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
                     + "On success, operation will return the saved graph."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))
         .when()
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .put("/api/graphs/{id}", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_OK);

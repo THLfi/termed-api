@@ -1,10 +1,10 @@
 package fi.thl.termed.web;
 
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static fi.thl.termed.web.ExampleData.exampleGraph;
 import static fi.thl.termed.web.ExampleData.exampleGraphId;
 import static fi.thl.termed.web.ExampleData.exampleUser;
 import static fi.thl.termed.web.ExampleData.exampleUserName;
+import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.cli.CliDocumentation.curlRequest;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -29,14 +29,14 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Before
   public void insertExampleGraphAndUser() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(superuserAuthorizedRequest)
         .contentType("application/json")
-        .body(gson.toJson(exampleUser))
+        .body(exampleUser)
         .post("/api/users?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -135,7 +135,7 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
                 subsectionWithPath("graphRoles")
                     .description("Optional list of graph roles."))))
         .when()
-        .body(gson.toJson(exampleUser))
+        .body(exampleUser)
         .post("/api/users")
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);

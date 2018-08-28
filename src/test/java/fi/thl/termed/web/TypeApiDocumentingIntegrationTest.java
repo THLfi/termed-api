@@ -2,12 +2,12 @@ package fi.thl.termed.web;
 
 import static fi.thl.termed.util.RegularExpressions.ALL;
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static fi.thl.termed.web.ExampleData.exampleGraph;
 import static fi.thl.termed.web.ExampleData.exampleGraphId;
 import static fi.thl.termed.web.ExampleData.groupType;
 import static fi.thl.termed.web.ExampleData.personType;
 import static fi.thl.termed.web.ExampleData.personTypeId;
+import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -34,13 +34,13 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Before
   public void insertExampleGraphWithTypes() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(asList(personType, groupType)))
+        .body(asList(personType, groupType))
         .post("/api/graphs/{graphId}/types?batch=true&mode=insert", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -284,7 +284,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
                         + "`GET /api/properties`). Values are lists of lang value objects (e.g. "
                         + "`{ \"lang\": \"en\", \"value\": \"Example Reference Attribute\" }`)"))))
         .when()
-        .body(gson.toJson(personType))
+        .body(personType)
         .post("/api/graphs/{graphId}/types", personTypeId.getGraphId())
         .then()
         .statusCode(HttpStatus.SC_OK);
@@ -302,7 +302,7 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
                 parameterWithName("id")
                     .description("Type identifier (matches `" + CODE + "`)"))))
         .when()
-        .body(gson.toJson(personType))
+        .body(personType)
         .put("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
         .then()
         .statusCode(HttpStatus.SC_OK);

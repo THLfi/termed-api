@@ -33,19 +33,19 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Before
   public void insertExampleGraphAndTypes() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(asList(personType, groupType)))
+        .body(asList(personType, groupType))
         .post("/api/graphs/{graphId}/types?batch=true&mode=insert", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(asList(exampleNode0, exampleNode1)))
+        .body(asList(exampleNode0, exampleNode1))
         .post("/api/graphs/{graphId}/nodes?batch=true&mode=insert", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -212,7 +212,7 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
                         + "   \"type\": { \"id\": \"Person\","
                         + "               \"graph\": { \"id\": \"...\" } } }`)"))))
         .when()
-        .body(gson.toJson(exampleNode0))
+        .body(exampleNode0)
         .post("/api/graphs/{graphId}/types/{typeId}/nodes",
             exampleNode0.getTypeGraphId(),
             exampleNode0.getTypeId())
@@ -234,7 +234,7 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
                 parameterWithName("id")
                     .description("Node identifier (UUID)"))))
         .when()
-        .body(gson.toJson(exampleNode0))
+        .body(exampleNode0)
         .put("/api/graphs/{graphId}/types/{typeId}/nodes/{id}",
             exampleNode0.getTypeGraphId(),
             exampleNode0.getTypeId(),

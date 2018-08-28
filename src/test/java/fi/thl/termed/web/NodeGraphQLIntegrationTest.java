@@ -24,19 +24,19 @@ public class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
   @Before
   public void insertExampleData() {
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(exampleGraph))
+        .body(exampleGraph)
         .post("/api/graphs?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(personType))
+        .body(personType)
         .post("/api/graphs/" + exampleGraphId.getId() + "/types?mode=insert")
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(adminAuthorizedJsonSaveRequest)
-        .body(gson.toJson(asList(exampleNode0, exampleNode1)))
+        .body(asList(exampleNode0, exampleNode1))
         .post("/api/graphs/" + exampleGraphId.getId() + "/types/" + personType.getId()
             + "/nodes?batch=true&mode=insert")
         .then()

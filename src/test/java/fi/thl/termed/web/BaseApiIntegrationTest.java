@@ -35,6 +35,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
+  RequestSpecification userAuthorizedRequest;
+  RequestSpecification adminAuthorizedRequest;
+  RequestSpecification superuserAuthorizedRequest;
+
+  RequestSpecification adminAuthorizedJsonGetRequest;
+  RequestSpecification adminAuthorizedJsonSaveRequest;
+
   @Autowired
   private Service<String, User> users;
 
@@ -42,7 +49,7 @@ public abstract class BaseApiIntegrationTest {
   private PasswordEncoder encoder;
 
   @Autowired
-  Gson gson;
+  private Gson gson;
 
   @LocalServerPort
   private int serverPort;
@@ -54,18 +61,12 @@ public abstract class BaseApiIntegrationTest {
   private String testAdminPassword = randomAlphanumericString(20);
   private String testSuperuserPassword = randomAlphanumericString(20);
 
-  RequestSpecification userAuthorizedRequest;
-  RequestSpecification adminAuthorizedRequest;
-  RequestSpecification superuserAuthorizedRequest;
-
-  RequestSpecification adminAuthorizedJsonGetRequest;
-  RequestSpecification adminAuthorizedJsonSaveRequest;
-
   @Before
   public void configRestAssured() {
     RestAssured.port = serverPort;
     RestAssured.config = config()
-        .objectMapperConfig(new ObjectMapperConfig(GSON))
+        .objectMapperConfig(new ObjectMapperConfig(GSON)
+            .gsonObjectMapperFactory((cls, charset) -> gson))
         .encoderConfig(encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML));
   }
 
