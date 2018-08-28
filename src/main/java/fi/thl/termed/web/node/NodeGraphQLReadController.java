@@ -227,7 +227,7 @@ public class NodeGraphQLReadController {
 
     return newFieldDefinition()
         .name("referrers")
-        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_ReferrersMultimap")
+        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_Referrers")
             .fields(referringAttributes
                 .map(attr -> buildReferrerField(attr, user))
                 .collect(toImmutableList())))
