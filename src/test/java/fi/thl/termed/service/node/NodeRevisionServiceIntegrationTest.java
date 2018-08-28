@@ -56,8 +56,8 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   public void shouldSaveNewRevisionForEachNodeSave() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
-        .addProperties("firstName", "John")
-        .addProperties("lastName", "Doe")
+        .addProperty("firstName", "John")
+        .addProperty("lastName", "Doe")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -76,8 +76,8 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   public void shouldSaveRevisionsForNodesWithProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
-        .addProperties("firstName", "John")
-        .addProperties("lastName", "Doe")
+        .addProperty("firstName", "John")
+        .addProperty("lastName", "Doe")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -127,16 +127,16 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
     NodeId maryId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperties("firstName", "John")
+        .addProperty("firstName", "John")
         .build();
 
     Node jack = Node.builder().id(jackId)
-        .addProperties("firstName", "Jack")
-        .addReferences("knows", maryId)
+        .addProperty("firstName", "Jack")
+        .addReference("knows", maryId)
         .build();
 
     Node mary = Node.builder().id(maryId)
-        .addProperties("firstName", "Mary")
+        .addProperty("firstName", "Mary")
         .build();
 
     nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), user);

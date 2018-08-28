@@ -117,16 +117,16 @@ class ExampleData {
   static Node exampleNode0 = Node.builder().id(exampleNode0Id)
       .code("example-node-0")
       .uri("http://example.org/example-node-0")
-      .addProperties("name", "John")
-      .addProperties("email", "john@example.org")
-      .addReferences("knows", exampleNode1Id)
+      .addProperty("name", "John")
+      .addProperty("email", "john@example.org")
+      .addReference("knows", exampleNode1Id)
       .build();
 
   static Node exampleNode1 = Node.builder().id(exampleNode1Id)
       .code("example-node-1")
       .uri("http://example.org/example-node-1")
-      .addProperties("name", "Jane")
-      .addProperties("email", "jane@example.org")
+      .addProperty("name", "Jane")
+      .addProperty("email", "jane@example.org")
       .build();
 
 }

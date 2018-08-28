@@ -203,8 +203,8 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder()
         .id(nodeId)
-        .addProperties("name", "John")
-        .addProperties("email", "john@example.org")
+        .addProperty("name", "John")
+        .addProperty("email", "john@example.org")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -223,8 +223,8 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   public void shouldNotInsertNodeWithIllegalProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder().id(nodeId)
-        .addProperties("name", "John")
-        .addProperties("email", "at-symbol-is-required-but-missing")
+        .addProperty("name", "John")
+        .addProperty("email", "at-symbol-is-required-but-missing")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -244,7 +244,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId jackId = NodeId.random("Person", graphId);
 
     Node jack = Node.builder().id(jackId)
-        .addProperties("name", "Jack")
+        .addProperty("name", "Jack")
         .build();
 
     nodeService.save(jack, INSERT, defaultOpts(), user);
@@ -281,15 +281,15 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId maryId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperties("name", "John")
-        .addReferences("knows", jackId)
+        .addProperty("name", "John")
+        .addReference("knows", jackId)
         .build();
     Node jack = Node.builder().id(jackId)
-        .addProperties("name", "Jack")
-        .addReferences("knows", maryId)
+        .addProperty("name", "Jack")
+        .addReference("knows", maryId)
         .build();
     Node mary = Node.builder().id(maryId)
-        .addProperties("name", "Mary")
+        .addProperty("name", "Mary")
         .build();
 
     nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), user);
@@ -311,15 +311,15 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId maryId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperties("name", "John")
-        .addReferences("knows", jackId)
+        .addProperty("name", "John")
+        .addReference("knows", jackId)
         .build();
     Node jack = Node.builder().id(jackId)
-        .addProperties("name", "Jack")
-        .addReferences("knows", maryId)
+        .addProperty("name", "Jack")
+        .addReference("knows", maryId)
         .build();
     Node mary = Node.builder().id(maryId)
-        .addProperties("name", "Mary")
+        .addProperty("name", "Mary")
         .build();
 
     nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), user);
@@ -348,12 +348,12 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId jackId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperties("name", "John")
-        .addReferences("knows", jackId)
+        .addProperty("name", "John")
+        .addReference("knows", jackId)
         .build();
     Node jack = Node.builder().id(jackId)
-        .addProperties("name", "Jack")
-        .addReferences("knows", johnId)
+        .addProperty("name", "Jack")
+        .addReference("knows", johnId)
         .build();
 
     nodeService.save(Stream.of(john, jack), INSERT, defaultOpts(), user);
@@ -373,11 +373,11 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     NodeId jackId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperties("name", "John")
+        .addProperty("name", "John")
         .build();
     Node jack = Node.builder().id(jackId)
-        .addProperties("name", "Jack")
-        .addReferences("knows", johnId)
+        .addProperty("name", "Jack")
+        .addReference("knows", johnId)
         .build();
 
     nodeService.save(Stream.of(john, jack), INSERT, defaultOpts(), user);

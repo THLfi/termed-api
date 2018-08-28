@@ -14,6 +14,10 @@ public final class UUIDs {
     return uuidString != null ? FastUUID.parseUUID(uuidString) : null;
   }
 
+  public static String toString(UUID  uuid) {
+    return uuid != null ? FastUUID.toString(uuid) : null;
+  }
+
   public static UUID nameUUIDFromString(String uuidString) {
     return uuidString != null ? UUID.nameUUIDFromBytes(uuidString.getBytes(Charsets.UTF_8)) : null;
   }

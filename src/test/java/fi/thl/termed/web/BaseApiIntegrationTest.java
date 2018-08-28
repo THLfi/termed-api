@@ -12,6 +12,7 @@ import static io.restassured.config.RestAssuredConfig.config;
 import static io.restassured.mapper.ObjectMapperType.GSON;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.google.gson.Gson;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import io.restassured.RestAssured;
@@ -39,6 +40,9 @@ public abstract class BaseApiIntegrationTest {
 
   @Autowired
   private PasswordEncoder encoder;
+
+  @Autowired
+  Gson gson;
 
   @LocalServerPort
   private int serverPort;

@@ -295,35 +295,12 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
-    public Builder addProperties(String k0, String v0) {
-      return addProperties(
-          k0, new StrictLangValue(v0));
+    public Builder addProperty(String k0, String v0) {
+      return addProperty(k0, new StrictLangValue(v0));
     }
 
-    public Builder addProperties(String k0, String v0, String k1, String v1) {
-      return addProperties(
-          k0, new StrictLangValue(v0),
-          k1, new StrictLangValue(v1));
-    }
-
-    public Builder addProperties(String k0, String v0, String k1, String v1, String k2, String v2) {
-      return addProperties(
-          k0, new StrictLangValue(v0),
-          k1, new StrictLangValue(v1),
-          k2, new StrictLangValue(v2));
-    }
-
-    public Builder addProperties(String k0, StrictLangValue v0) {
+    public Builder addProperty(String k0, StrictLangValue v0) {
       return addProperties(entry(k0, v0));
-    }
-
-    public Builder addProperties(String k0, StrictLangValue v0, String k1, StrictLangValue v1) {
-      return addProperties(entry(k0, v0), entry(k1, v1));
-    }
-
-    public Builder addProperties(String k0, StrictLangValue v0, String k1, StrictLangValue v1,
-        String k2, StrictLangValue v2) {
-      return addProperties(entry(k0, v0), entry(k1, v1), entry(k2, v2));
     }
 
     @SafeVarargs
@@ -344,16 +321,8 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
-    public Builder addReferences(String k0, NodeId v0) {
+    public Builder addReference(String k0, NodeId v0) {
       return addReferences(entry(k0, v0));
-    }
-
-    public Builder addReferences(String k0, NodeId v0, String k1, NodeId v1) {
-      return addReferences(entry(k0, v0), entry(k1, v1));
-    }
-
-    public Builder addReferences(String k0, NodeId v0, String k1, NodeId v1, String k2, NodeId v2) {
-      return addReferences(entry(k0, v0), entry(k1, v1), entry(k2, v2));
     }
 
     @SafeVarargs

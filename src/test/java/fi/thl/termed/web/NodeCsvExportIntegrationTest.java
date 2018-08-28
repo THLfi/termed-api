@@ -20,13 +20,13 @@ public class NodeCsvExportIntegrationTest extends BaseApiIntegrationTest {
     // save test data
     given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + graphId + "'}")
-        .post("/api/graphs?insert=true");
+        .post("/api/graphs?mode=insert");
     given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + typeId + "'}")
-        .post("/api/graphs/" + graphId + "/types");
+        .post("/api/graphs/" + graphId + "/types?mode=insert");
     given(adminAuthorizedJsonSaveRequest)
         .body("{'id':'" + nodeId + "'}")
-        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes");
+        .post("/api/graphs/" + graphId + "/types/" + typeId + "/nodes?mode=insert");
 
     // get node data in csv
     given(adminAuthorizedRequest)
