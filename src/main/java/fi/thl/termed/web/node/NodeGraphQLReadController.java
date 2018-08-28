@@ -180,7 +180,7 @@ public class NodeGraphQLReadController {
   private GraphQLFieldDefinition buildPropertiesField(Type type) {
     return newFieldDefinition()
         .name("properties")
-        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_PropertyMultimap")
+        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_Properties")
             .fields(type.getTextAttributes().stream()
                 .map(this::buildPropertyField)
                 .collect(toImmutableList())))
@@ -200,7 +200,7 @@ public class NodeGraphQLReadController {
   private GraphQLFieldDefinition buildReferencesField(Type type, User user) {
     return newFieldDefinition()
         .name("references")
-        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_ReferencesMultimap")
+        .type(newObject().name(toGraphQlTypeName(type.identifier()) + "_References")
             .fields(type.getReferenceAttributes().stream()
                 .map(attr -> buildReferenceField(attr, user))
                 .collect(toImmutableList())))
