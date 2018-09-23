@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.internal;
 
+import com.google.common.base.Strings;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
@@ -19,8 +20,8 @@ public class JdbcPostgresNodeDao extends AbstractJdbcPostgresDao<NodeId, Node> {
         k.getTypeGraphId().toString(),
         k.getTypeId(),
         k.getId().toString(),
-        v.getCode().orElse(null),
-        v.getUri().orElse(null),
+        v.getCode().map(Strings::emptyToNull).orElse(null),
+        v.getUri().map(Strings::emptyToNull).orElse(null),
         v.getNumber().toString(),
         v.getCreatedBy(),
         new DateTime(v.getCreatedDate()).toString(),
