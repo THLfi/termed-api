@@ -6,6 +6,7 @@ import static fi.thl.termed.util.Converter.newConverter;
 import static fi.thl.termed.util.spring.jdbc.SpringJdbcUtils.getDatabaseProductName;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Graph;
@@ -21,6 +22,7 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService;
 import fi.thl.termed.service.node.internal.DocumentToNode;
 import fi.thl.termed.service.node.internal.ExtIdsInitializingNodeService;
@@ -56,6 +58,7 @@ import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.CachedNamedSequenceService;
 import fi.thl.termed.util.service.DaoNamedSequenceService;
+import fi.thl.termed.util.service.ForwardingNamedSequenceService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.ProfilingService;
 import fi.thl.termed.util.service.SequenceService;
@@ -162,6 +165,13 @@ public class NodeServiceConfiguration {
             new AuthorizedDao<>(nodeSequenceSystemDao(), nodeSequenceEvaluator()));
 
     sequenceService = new CachedNamedSequenceService<>(sequenceService);
+    sequenceService = new ForwardingNamedSequenceService<TypeId>(sequenceService) {
+      @Subscribe
+      public void discardCachesOn(ApplicationShutdownEvent e) {
+        close();
+      }
+    };
+    eventBus.register(sequenceService);
     sequenceService = new TransactionalNamedSequenceService<>(sequenceService, transactionManager);
     sequenceService = new SynchronizedNamedSequenceService<>(sequenceService);
 

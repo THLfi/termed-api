@@ -37,7 +37,7 @@ public class DaoNamedSequenceService<K extends Serializable> implements NamedSeq
       nameSequenceDao.update(sequenceId, optionalValue.get() + count, user);
     }
 
-    return optionalValue.orElse(0L) + 1;
+    return optionalValue.orElse(0L);
   }
 
   @Override

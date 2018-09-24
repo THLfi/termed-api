@@ -5,6 +5,7 @@ import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
@@ -96,6 +98,27 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     nodeService.save(examplePerson, INSERT, defaultOpts(), user);
 
     assertTrue(nodeService.exists(nodeId, user));
+  }
+
+  @Test
+  public void shouldInsertManyNodesWithCorrectNumbers() {
+    int testNodeCount = 2500;
+
+    assertEquals(0, nodeService.count(new NodesByGraphId(graphId), user));
+
+    nodeService.save(
+        Stream.generate(() -> Node.builder().id(NodeId.random("Person", graphId)).build())
+            .limit(testNodeCount),
+        INSERT, defaultOpts(), user);
+
+    assertEquals(testNodeCount, nodeService.count(new NodesByGraphId(graphId), user));
+
+    try (Stream<Node> nodes = nodeService.values(
+        new Query<>(new NodesByGraphId(graphId)), user)) {
+      assertEquals(
+          LongStream.range(0, testNodeCount).boxed().collect(toSet()),
+          nodes.map(Node::getNumber).collect(toSet()));
+    }
   }
 
   @Test(expected = DuplicateKeyException.class)
