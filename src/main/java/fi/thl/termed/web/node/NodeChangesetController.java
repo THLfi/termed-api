@@ -149,7 +149,7 @@ public class NodeChangesetController {
       nodeService.save(saves.peek(n -> processed.add(n.identifier())), mode, opts, user);
       nodeService.delete(deletes.peek(processed::add), opts, user);
       return null;
-    }, (error) -> eventBus.post(new ReindexEvent<>(processed.build())));
+    }, (error) -> eventBus.post(new ReindexEvent<>(processed::build)));
   }
 
 }

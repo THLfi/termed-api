@@ -40,7 +40,7 @@ public class IndexController {
   public void reindex(@AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(
-          nodeService.keys(new Query<>(new MatchAll<>()), user)));
+          () -> nodeService.keys(new Query<>(new MatchAll<>()), user)));
     } else {
       throw new AccessDeniedException("");
     }
@@ -53,7 +53,7 @@ public class IndexController {
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
       eventBus.post(new ReindexEvent<>(
-          nodeService.keys(new Query<>(
+          () -> nodeService.keys(new Query<>(
               new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user)));
     } else {
       throw new AccessDeniedException("");
@@ -67,8 +67,8 @@ public class IndexController {
       @PathVariable("id") String id,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(nodeService.keys(
-          new Query<>(new ForwardingSqlSpecification<>(
+      eventBus.post(new ReindexEvent<>(
+          () -> nodeService.keys(new Query<>(new ForwardingSqlSpecification<>(
               and(new NodesByGraphId(graphId), new NodesByTypeId(id)))), user)));
     } else {
       throw new AccessDeniedException("");

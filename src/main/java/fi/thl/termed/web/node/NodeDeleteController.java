@@ -202,7 +202,7 @@ public class NodeDeleteController {
       Stream<NodeId> reindex = Stream.concat(
           saves.stream().map(Node::identifier),
           deletes.stream());
-      eventBus.post(new ReindexEvent<>(reindex));
+      eventBus.post(new ReindexEvent<>(() -> reindex));
     });
   }
 
