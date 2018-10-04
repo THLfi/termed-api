@@ -2,6 +2,7 @@ package fi.thl.termed.util.collect;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import java.util.Map;
 import java.util.function.Function;
@@ -10,6 +11,19 @@ import java.util.stream.Collector;
 public final class MultimapUtils {
 
   private MultimapUtils() {
+  }
+
+  public static <K, V> ImmutableMultimap<K, V> renameKey(ImmutableMultimap<K, V> multimap,
+      K oldKey, K newKey) {
+    if (multimap.containsKey(oldKey)) {
+      return multimap.entries().stream()
+          .map(e -> e.getKey().equals(oldKey)
+              ? Maps.immutableEntry(newKey, e.getValue())
+              : e)
+          .collect(toImmutableMultimap());
+    } else {
+      return multimap;
+    }
   }
 
   public static <K, V> Multimap<K, V> nullToEmpty(Multimap<K, V> map) {
