@@ -1,17 +1,31 @@
 package fi.thl.termed.service.node.util;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Multimaps.filterKeys;
+import static fi.thl.termed.util.RegularExpressions.CODE;
+import static fi.thl.termed.util.TableUtils.toMapped;
 import static fi.thl.termed.util.TableUtils.toTable;
+import static fi.thl.termed.util.UUIDs.fromString;
+import static fi.thl.termed.util.UUIDs.nilUuid;
+import static fi.thl.termed.util.csv.CsvUtils.readCsv;
 import static fi.thl.termed.util.csv.CsvUtils.writeCsv;
+import static java.util.Collections.emptyList;
+import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Multimap;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.select.SelectAllProperties;
 import fi.thl.termed.service.node.select.SelectAllReferences;
 import fi.thl.termed.service.node.select.SelectCode;
@@ -25,17 +39,25 @@ import fi.thl.termed.service.node.select.SelectProperty;
 import fi.thl.termed.service.node.select.SelectReference;
 import fi.thl.termed.service.node.select.SelectType;
 import fi.thl.termed.service.node.select.SelectUri;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.apache.jena.atlas.RuntimeIOException;
 import org.joda.time.DateTime;
 
 /**
@@ -45,7 +67,66 @@ import org.joda.time.DateTime;
  */
 public final class NodesToCsv {
 
+  private static final Pattern PROPERTY_KEY = Pattern.compile(
+      "^(properties|p)\\.(" + CODE + ")(\\.(" + CODE + "))?$");
+  private static final Pattern REFERENCE_KEY = Pattern.compile(
+      "^(references|r)\\.(" + CODE + ")(\\.id)?$");
+  private static final TypeId unknownTypeId = TypeId.of("", nilUuid());
+
   private NodesToCsv() {
+  }
+
+  public static Stream<Node> readAsCsv(CsvOptions csvOpts, InputStream in) {
+    return toMapped(readCsv(csvOpts, in)).stream().map(NodesToCsv::mapToNode);
+  }
+
+  private static Node mapToNode(Map<String, String> map) {
+    UUID graphId = firstNonNull(UUIDs.fromString(map.get("type.graph.id")), nilUuid());
+    String typeId = firstNonNull(map.get("type.id"), "");
+    UUID nodeId = firstNonNull(UUIDs.fromString(map.get("id")), randomUUID());
+
+    Node.Builder builder = Node.builder()
+        .id(nodeId, typeId, graphId)
+        .code(emptyToNull(map.get("code")))
+        .uri(emptyToNull(map.get("uri")))
+        .number(map.containsKey("number") ? Long.valueOf(map.get("number")) : null);
+
+    map.forEach((k, vs) -> {
+      Matcher m = PROPERTY_KEY.matcher(k);
+      if (m.matches()) {
+        fromInlineCsv(vs).forEach(
+            v -> builder.addProperty(m.group(2), new StrictLangValue(nullToEmpty(m.group(4)), v)));
+      }
+    });
+
+    map.forEach((k, vs) -> {
+      Matcher m = REFERENCE_KEY.matcher(k);
+      if (m.matches()) {
+        fromInlineCsv(vs).forEach(
+            v -> builder.addReference(m.group(2), NodeId.of(fromString(v), unknownTypeId)));
+      }
+    });
+
+    return builder.build();
+  }
+
+  private static List<String> fromInlineCsv(String csvRow) {
+    StringReader reader = new StringReader(csvRow);
+    CSVReader csvReader = new CSVReaderBuilder(reader)
+        .withCSVParser(
+            new CSVParserBuilder()
+                .withSeparator('|')
+                .withQuoteChar('\'')
+                .withEscapeChar('\\')
+                .withStrictQuotes(false)
+                .build())
+        .build();
+
+    try {
+      return csvReader.peek() != null ? Arrays.asList(csvReader.readNext()) : emptyList();
+    } catch (IOException e) {
+      throw new RuntimeIOException(e);
+    }
   }
 
   public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, CsvOptions csvOpts,
@@ -58,6 +139,10 @@ public final class NodesToCsv {
 
     if (s.contains(new SelectAll()) || s.contains(new SelectId())) {
       map.put("id", node.getId().toString());
+    }
+    if (s.contains(new SelectAll()) || s.contains(new SelectType())) {
+      map.put("type.id", node.getType().getId());
+      map.put("type.graph.id", node.getTypeGraphId().toString());
     }
     if (s.contains(new SelectAll()) || s.contains(new SelectCode())) {
       map.put("code", node.getCode().orElse(null));
@@ -80,30 +165,29 @@ public final class NodesToCsv {
     if (s.contains(new SelectAll()) || s.contains(new SelectLastModifiedDate())) {
       map.put("lastModifiedDate", new DateTime(node.getLastModifiedDate()).toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectType())) {
-      map.put("type.id", node.getType().getId());
-      map.put("type.graph.id", node.getTypeGraphId().toString());
-    }
 
     Multimap<String, StrictLangValue> properties =
         s.contains(new SelectAll()) || s.contains(new SelectAllProperties()) ?
             node.getProperties() :
             filterKeys(node.getProperties(), key -> s.contains(new SelectProperty(key)));
 
-    properties.asMap().forEach((propertyId, strictLangValues) -> {
-      Map<String, List<String>> valuesByLang = strictLangValues.stream().collect(
-          groupingBy(StrictLangValue::getLang, mapping(StrictLangValue::getValue, toList())));
-      valuesByLang.forEach((lang, values) ->
-          map.put(propertyId + (lang.isEmpty() ? "" : "." + lang), toInlineCsv(values)));
-    });
+    properties.asMap().forEach((attrId, langValues) ->
+        langValues.stream()
+            .collect(groupingBy(
+                StrictLangValue::getLang,
+                LinkedHashMap::new,
+                mapping(StrictLangValue::getValue, toList())))
+            .forEach((lang, values) ->
+                map.put("properties." + attrId + (lang.isEmpty() ? "" : "." + lang),
+                    toInlineCsv(values))));
 
     Multimap<String, NodeId> references =
         s.contains(new SelectAll()) || s.contains(new SelectAllReferences()) ?
             node.getReferences() :
             filterKeys(node.getReferences(), key -> s.contains(new SelectReference(key)));
 
-    references.asMap().forEach((propertyId, referenceIds) ->
-        map.put(propertyId + ".id", toInlineCsv(referenceIds.stream()
+    references.asMap().forEach((attrId, referenceIds) ->
+        map.put("references." + attrId + ".id", toInlineCsv(referenceIds.stream()
             .map(NodeId::getId)
             .map(UUID::toString)
             .collect(toList()))));

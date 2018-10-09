@@ -201,6 +201,10 @@ public final class Node implements Identifiable<NodeId> {
     IdBuilder() {
     }
 
+    public Builder random(TypeId type) {
+      return new Builder(UUID.randomUUID(), type);
+    }
+
     public Builder id(UUID id, String typeId, UUID graphId) {
       return new Builder(id, TypeId.of(typeId, graphId));
     }
@@ -295,12 +299,16 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
-    public Builder addProperty(String k0, String v0) {
-      return addProperty(k0, new StrictLangValue(v0));
+    public Builder addProperty(String attributeId, String value) {
+      return addProperty(attributeId, new StrictLangValue(value));
     }
 
-    public Builder addProperty(String k0, StrictLangValue v0) {
-      return addProperties(entry(k0, v0));
+    public Builder addProperty(String attributeId, String lang, String value) {
+      return addProperty(attributeId, new StrictLangValue(lang, value));
+    }
+
+    public Builder addProperty(String attributeId, StrictLangValue strictLangValue) {
+      return addProperties(entry(attributeId, strictLangValue));
     }
 
     @SafeVarargs
