@@ -51,7 +51,7 @@ public class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldSaveAndGetNodeWithGraphQL() {
+  public void shouldGetNodeWithGraphQL() {
     String exampleGraphQLQuery = "{"
         + " node(id: \"" + exampleNode0Id.getId() + "\") {"
         + "   id, properties { name { value } }, references { knows { id, uri } }"
