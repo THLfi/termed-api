@@ -119,7 +119,7 @@ public class NodeCsvSaveController {
     }
   }
 
-  @PostCsvMapping(path = "/graphs/{graphId}/types/{typeId}/nodes",produces = {})
+  @PostCsvMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = {})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void post(
       @PathVariable("graphId") UUID graphId,

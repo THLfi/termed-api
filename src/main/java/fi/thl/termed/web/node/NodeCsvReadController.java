@@ -86,22 +86,19 @@ public class NodeCsvReadController {
     Set<Select> selects = Selects.parse(join(",", select));
     List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
     List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    Specification<NodeId, Node> spec = specifyByQuery(
-        graphs, types, types, where);
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+        OutputStream out = response.getOutputStream()) {
+      CsvOptions csvOptions = CsvOptions.builder()
+          .delimiter(delimiter)
+          .quoteChar(quoteChar)
+          .escapeChar(quoteChar.value())
+          .recordSeparator(lineBreak)
+          .quoteAll(quoteAll)
+          .charset(charset).build();
 
-      try (OutputStream out = response.getOutputStream()) {
-        CsvOptions csvOptions = CsvOptions.builder()
-            .delimiter(delimiter)
-            .quoteChar(quoteChar)
-            .escapeChar(quoteChar.value())
-            .recordSeparator(lineBreak)
-            .quoteAll(quoteAll)
-            .charset(charset).build();
-
-        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
-      }
+      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 
@@ -140,22 +137,19 @@ public class NodeCsvReadController {
     List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
     List<Type> graphTypes = toListAndClose(
         typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
-    Specification<NodeId, Node> spec = specifyByQuery(
-        graphs, types, graphTypes, where);
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, graphTypes, where);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+        OutputStream out = response.getOutputStream()) {
+      CsvOptions csvOptions = CsvOptions.builder()
+          .delimiter(delimiter)
+          .quoteChar(quoteChar)
+          .escapeChar(quoteChar.value())
+          .recordSeparator(lineBreak)
+          .quoteAll(quoteAll)
+          .charset(charset).build();
 
-      try (OutputStream out = response.getOutputStream()) {
-        CsvOptions csvOptions = CsvOptions.builder()
-            .delimiter(delimiter)
-            .quoteChar(quoteChar)
-            .escapeChar(quoteChar.value())
-            .recordSeparator(lineBreak)
-            .quoteAll(quoteAll)
-            .charset(charset).build();
-
-        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
-      }
+      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 
@@ -197,18 +191,17 @@ public class NodeCsvReadController {
     List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
-      try (OutputStream out = response.getOutputStream()) {
-        CsvOptions csvOptions = CsvOptions.builder()
-            .delimiter(delimiter)
-            .quoteChar(quoteChar)
-            .escapeChar(quoteChar.value())
-            .recordSeparator(lineBreak)
-            .quoteAll(quoteAll)
-            .charset(charset).build();
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+        OutputStream out = response.getOutputStream()) {
+      CsvOptions csvOptions = CsvOptions.builder()
+          .delimiter(delimiter)
+          .quoteChar(quoteChar)
+          .escapeChar(quoteChar.value())
+          .recordSeparator(lineBreak)
+          .quoteAll(quoteAll)
+          .charset(charset).build();
 
-        NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
-      }
+      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 

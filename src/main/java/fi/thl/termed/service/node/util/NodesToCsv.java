@@ -77,7 +77,7 @@ public final class NodesToCsv {
   }
 
   public static Stream<Node> readAsCsv(CsvOptions csvOpts, InputStream in) {
-    return toMapped(readCsv(csvOpts, in)).stream().map(NodesToCsv::mapToNode);
+    return toMapped(readCsv(csvOpts, in)).map(NodesToCsv::mapToNode);
   }
 
   private static Node mapToNode(Map<String, String> map) {
@@ -131,7 +131,8 @@ public final class NodesToCsv {
 
   public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, CsvOptions csvOpts,
       OutputStream out) {
-    writeCsv(out, csvOpts, toTable(nodes.map(n -> nodeToMap(n, selects)).collect(toList())));
+    writeCsv(out, csvOpts,
+        toTable(nodes.map(n -> nodeToMap(n, selects)).collect(toList())).stream());
   }
 
   private static Map<String, String> nodeToMap(Node node, Set<Select> s) {
