@@ -1,10 +1,9 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
-import static fi.thl.termed.web.ExampleData.exampleGraph;
-import static fi.thl.termed.web.ExampleData.exampleGraphId;
-import static fi.thl.termed.web.ExampleData.exampleUser;
-import static fi.thl.termed.web.ExampleData.exampleUserName;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraph;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleUser;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleUserName;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.cli.CliDocumentation.curlRequest;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -16,13 +15,13 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
 
 public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
@@ -59,8 +58,8 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   public void documentGetUserByUsername() {
     given(superuserAuthorizedRequest)
         .accept("application/json")
-        .filter(document("get-a-user",
-            operationIntro("Get a user by username.\n\n"
+        .filter(RestAssuredRestDocumentation.document("get-a-user",
+            OperationIntroSnippet.operationIntro("Get a user by username.\n\n"
                 + "Request parameter based `GET /api/users?username=<username>` is also supported."),
             pathParameters(
                 parameterWithName("username")
@@ -93,8 +92,8 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .accept("application/json")
         .filter(documentationConfiguration(this.restDocumentation)
             .snippets().withDefaults(curlRequest()))
-        .filter(document("get-all-users",
-            operationIntro(
+        .filter(RestAssuredRestDocumentation.document("get-all-users",
+            OperationIntroSnippet.operationIntro(
                 "Returns an array containing all users.")))
         .when()
         .get("/api/users")
@@ -106,8 +105,8 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   public void documentSaveUser() {
     given(superuserAuthorizedRequest)
         .contentType("application/json")
-        .filter(document("save-a-user",
-            operationIntro("On success, operation returns `204`."),
+        .filter(RestAssuredRestDocumentation.document("save-a-user",
+            OperationIntroSnippet.operationIntro("On success, operation returns `204`."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -144,13 +143,14 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentDeleteUser() {
     given(superuserAuthorizedRequest)
-        .filter(document("delete-a-user", operationIntro(
-            "Request parameter based `DELETE /api/users?username=<username>` is also supported.\n\n"
-                + "On success, operation will return `204` with an empty body.\n\n"
-                + "User can't be deleted if it referenced from some node."),
-            pathParameters(
-                parameterWithName("username")
-                    .description("Username identifying the user"))))
+        .filter(RestAssuredRestDocumentation
+            .document("delete-a-user", OperationIntroSnippet.operationIntro(
+                "Request parameter based `DELETE /api/users?username=<username>` is also supported.\n\n"
+                    + "On success, operation will return `204` with an empty body.\n\n"
+                    + "User can't be deleted if it referenced from some node."),
+                pathParameters(
+                    parameterWithName("username")
+                        .description("Username identifying the user"))))
         .when()
         .delete("/api/users/{username}", exampleUserName)
         .then()

@@ -1,8 +1,9 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.restassured3.operation.preprocess.RestAssuredPreprocessors.modifyUris;
 
+import fi.thl.termed.web.BaseApiIntegrationTest;
 import io.restassured.filter.Filter;
 import org.junit.Before;
 import org.junit.Rule;

@@ -35,12 +35,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
-  RequestSpecification userAuthorizedRequest;
-  RequestSpecification adminAuthorizedRequest;
-  RequestSpecification superuserAuthorizedRequest;
+  protected RequestSpecification userAuthorizedRequest;
+  protected RequestSpecification adminAuthorizedRequest;
+  protected RequestSpecification superuserAuthorizedRequest;
 
-  RequestSpecification adminAuthorizedJsonGetRequest;
-  RequestSpecification adminAuthorizedJsonSaveRequest;
+  protected RequestSpecification adminAuthorizedJsonGetRequest;
+  protected RequestSpecification adminAuthorizedJsonSaveRequest;
 
   @Autowired
   private Service<String, User> users;

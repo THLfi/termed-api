@@ -1,15 +1,14 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.web.ExampleData.exampleGraph;
-import static fi.thl.termed.web.ExampleData.exampleGraphId;
-import static fi.thl.termed.web.ExampleData.exampleNode0;
-import static fi.thl.termed.web.ExampleData.exampleNode0Id;
-import static fi.thl.termed.web.ExampleData.exampleNode1;
-import static fi.thl.termed.web.ExampleData.groupType;
-import static fi.thl.termed.web.ExampleData.personType;
-import static fi.thl.termed.web.ExampleData.personTypeId;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraph;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleNode0;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleNode0Id;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleNode1;
+import static fi.thl.termed.web.docs.DocsExampleData.groupType;
+import static fi.thl.termed.web.docs.DocsExampleData.personType;
+import static fi.thl.termed.web.docs.DocsExampleData.personTypeId;
 import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -21,12 +20,12 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
 
 public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
@@ -72,8 +71,8 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentGetNodeById() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(document("get-a-node",
-            operationIntro("Get a node by id in given graph."),
+        .filter(RestAssuredRestDocumentation.document("get-a-node",
+            OperationIntroSnippet.operationIntro("Get a node by id in given graph."),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
@@ -124,8 +123,8 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentGetTypeNodes() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(document("get-type-nodes",
-            operationIntro(
+        .filter(RestAssuredRestDocumentation.document("get-type-nodes",
+            OperationIntroSnippet.operationIntro(
                 "Returns an array containing all nodes in given graph of given type."),
             pathParameters(
                 parameterWithName("graphId").description("Graph identifier (UUID)"),
@@ -142,8 +141,8 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentGetGraphNodes() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(document("get-graph-nodes",
-            operationIntro(
+        .filter(RestAssuredRestDocumentation.document("get-graph-nodes",
+            OperationIntroSnippet.operationIntro(
                 "Returns an array containing all nodes in given graph."),
             pathParameters(
                 parameterWithName("graphId")
@@ -157,8 +156,8 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentGetAllNodes() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(document("get-all-nodes",
-            operationIntro(
+        .filter(RestAssuredRestDocumentation.document("get-all-nodes",
+            OperationIntroSnippet.operationIntro(
                 "Returns an array containing all nodes visible to the user.")))
         .when()
         .get("/api/nodes")
@@ -169,8 +168,8 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentSaveNode() {
     given(adminAuthorizedJsonSaveRequest)
-        .filter(document("save-a-node",
-            operationIntro("On success, operation returns the saved node."),
+        .filter(RestAssuredRestDocumentation.document("save-a-node",
+            OperationIntroSnippet.operationIntro("On success, operation returns the saved node."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -223,16 +222,17 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentSaveNodeUsingPut() {
     given(adminAuthorizedJsonSaveRequest)
-        .filter(document("save-a-node-using-put", operationIntro(
-            "Saving using `PUT` is also supported. Node id is given as a path parameter.\n"
-                + "On success, operation will return the saved node."),
-            pathParameters(
-                parameterWithName("graphId")
-                    .description("Graph identifier (UUID)"),
-                parameterWithName("typeId")
-                    .description("Type identifier (matches `" + CODE + "`)"),
-                parameterWithName("id")
-                    .description("Node identifier (UUID)"))))
+        .filter(RestAssuredRestDocumentation
+            .document("save-a-node-using-put", OperationIntroSnippet.operationIntro(
+                "Saving using `PUT` is also supported. Node id is given as a path parameter.\n"
+                    + "On success, operation will return the saved node."),
+                pathParameters(
+                    parameterWithName("graphId")
+                        .description("Graph identifier (UUID)"),
+                    parameterWithName("typeId")
+                        .description("Type identifier (matches `" + CODE + "`)"),
+                    parameterWithName("id")
+                        .description("Node identifier (UUID)"))))
         .when()
         .body(exampleNode0)
         .put("/api/graphs/{graphId}/types/{typeId}/nodes/{id}",
@@ -246,16 +246,17 @@ public class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   @Test
   public void documentDeleteNode() {
     given(adminAuthorizedRequest)
-        .filter(document("delete-a-node", operationIntro(
-            "On success, operation will return `204` with an empty body.\n\n"
-                + "A node can't be deleted if it's referred by another node."),
-            pathParameters(
-                parameterWithName("graphId")
-                    .description("Graph identifier (UUID)"),
-                parameterWithName("typeId")
-                    .description("Type identifier (matches `" + CODE + "`)"),
-                parameterWithName("id")
-                    .description("Node identifier"))))
+        .filter(RestAssuredRestDocumentation
+            .document("delete-a-node", OperationIntroSnippet.operationIntro(
+                "On success, operation will return `204` with an empty body.\n\n"
+                    + "A node can't be deleted if it's referred by another node."),
+                pathParameters(
+                    parameterWithName("graphId")
+                        .description("Graph identifier (UUID)"),
+                    parameterWithName("typeId")
+                        .description("Type identifier (matches `" + CODE + "`)"),
+                    parameterWithName("id")
+                        .description("Node identifier"))))
         .when()
         .delete("/api/graphs/{graphId}/types/{typeId}/nodes/{id}",
             exampleNode0Id.getTypeGraphId(),

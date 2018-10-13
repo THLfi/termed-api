@@ -1,11 +1,10 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.web.ExampleData.anotherGraph;
-import static fi.thl.termed.web.ExampleData.anotherGraphId;
-import static fi.thl.termed.web.ExampleData.exampleGraph;
-import static fi.thl.termed.web.ExampleData.exampleGraphId;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
+import static fi.thl.termed.web.docs.DocsExampleData.anotherGraph;
+import static fi.thl.termed.web.docs.DocsExampleData.anotherGraphId;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraph;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -16,12 +15,12 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
 
 public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
@@ -45,8 +44,8 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentGetGraphById() {
     given(adminAuthorizedJsonGetRequest).filter(
-        document("get-a-graph",
-            operationIntro(),
+        RestAssuredRestDocumentation.document("get-a-graph",
+            OperationIntroSnippet.operationIntro(),
             pathParameters(
                 parameterWithName("id")
                     .description("Graph identifier (UUID)")),
@@ -83,9 +82,10 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .post("/api/graphs?mode=insert");
 
     given(adminAuthorizedJsonGetRequest).filter(
-        document("get-all-graphs",
-            operationIntro("Returns an array containing all graphs visible to the user. "
-                + "Roles and permissions are visible for admin users only.")))
+        RestAssuredRestDocumentation.document("get-all-graphs",
+            OperationIntroSnippet
+                .operationIntro("Returns an array containing all graphs visible to the user. "
+                    + "Roles and permissions are visible for admin users only.")))
         .when()
         .get("/api/graphs")
         .then()
@@ -98,10 +98,11 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentSaveGraph() {
     given(adminAuthorizedJsonSaveRequest).filter(
-        document("save-a-graph",
-            operationIntro("If posted object contains an id, a graph is either updated "
-                + "or inserted with the given id. If id is not present, graph is saved with "
-                + "new random id.\n\nOn success, operation returns the saved graph."),
+        RestAssuredRestDocumentation.document("save-a-graph",
+            OperationIntroSnippet
+                .operationIntro("If posted object contains an id, a graph is either updated "
+                    + "or inserted with the given id. If id is not present, graph is saved with "
+                    + "new random id.\n\nOn success, operation returns the saved graph."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -148,8 +149,8 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentSaveGraphUsingPut() {
     given(adminAuthorizedJsonSaveRequest).filter(
-        document("save-a-graph-using-put",
-            operationIntro(
+        RestAssuredRestDocumentation.document("save-a-graph-using-put",
+            OperationIntroSnippet.operationIntro(
                 "Saving using `PUT` is also supported. Graph id is given as a path parameter.\n"
                     + "On success, operation will return the saved graph."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))
@@ -163,8 +164,8 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentDeleteGraph() {
     given(adminAuthorizedRequest).filter(
-        document("delete-a-graph",
-            operationIntro(
+        RestAssuredRestDocumentation.document("delete-a-graph",
+            OperationIntroSnippet.operationIntro(
                 "On success, operation will return `204` with an empty body.\n\n"
                     + "A graph can't be deleted if it contains any data (types or nodes)."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))

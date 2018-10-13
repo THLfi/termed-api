@@ -1,10 +1,10 @@
 package fi.thl.termed.web;
 
-import static fi.thl.termed.web.ExampleData.exampleGraph;
-import static fi.thl.termed.web.ExampleData.exampleGraphId;
-import static fi.thl.termed.web.ExampleData.exampleNode0;
-import static fi.thl.termed.web.ExampleData.exampleNode1;
-import static fi.thl.termed.web.ExampleData.personType;
+import static fi.thl.termed.web.ApiExampleData.exampleGraph;
+import static fi.thl.termed.web.ApiExampleData.exampleGraphId;
+import static fi.thl.termed.web.ApiExampleData.exampleNode0;
+import static fi.thl.termed.web.ApiExampleData.exampleNode1;
+import static fi.thl.termed.web.ApiExampleData.personType;
 import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.hamcrest.core.IsEqual.equalTo;

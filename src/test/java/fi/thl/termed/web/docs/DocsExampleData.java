@@ -1,4 +1,4 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import static fi.thl.termed.domain.Permission.DELETE;
 import static fi.thl.termed.domain.Permission.INSERT;
@@ -24,7 +24,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import org.apache.jena.sparql.vocabulary.FOAF;
 
-class ExampleData {
+class DocsExampleData {
 
   static Multimap<String, Permission> testPermissions = ImmutableMultimap.<String, Permission>builder()
       .putAll("guest", READ)

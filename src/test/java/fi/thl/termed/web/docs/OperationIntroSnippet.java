@@ -1,4 +1,4 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;

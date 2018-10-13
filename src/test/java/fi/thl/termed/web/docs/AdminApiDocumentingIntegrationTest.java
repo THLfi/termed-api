@@ -1,26 +1,26 @@
-package fi.thl.termed.web;
+package fi.thl.termed.web.docs;
 
 import static fi.thl.termed.util.RegularExpressions.CODE;
-import static fi.thl.termed.web.OperationIntroSnippet.operationIntro;
-import static fi.thl.termed.web.ExampleData.exampleGraphId;
-import static fi.thl.termed.web.ExampleData.personTypeId;
+import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
+import static fi.thl.termed.web.docs.DocsExampleData.personTypeId;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
 import org.junit.Test;
+import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
 
 public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
   @Test
   public void documentDeleteIndex() {
     given(adminAuthorizedRequest).filter(
-        document("delete-index",
-            operationIntro("Delete request to index triggers full re-indexing."),
+        RestAssuredRestDocumentation.document("delete-index",
+            OperationIntroSnippet
+                .operationIntro("Delete request to index triggers full re-indexing."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials"))))
@@ -30,8 +30,8 @@ public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
     given(adminAuthorizedRequest).filter(
-        document("delete-graph-index",
-            operationIntro(
+        RestAssuredRestDocumentation.document("delete-graph-index",
+            OperationIntroSnippet.operationIntro(
                 "Delete request to graph index triggers re-indexing of given graph."),
             pathParameters(
                 parameterWithName("id")
@@ -45,8 +45,8 @@ public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .statusCode(HttpStatus.SC_FORBIDDEN);
 
     given(adminAuthorizedRequest).filter(
-        document("delete-type-index",
-            operationIntro(
+        RestAssuredRestDocumentation.document("delete-type-index",
+            OperationIntroSnippet.operationIntro(
                 "Delete request to graph type index triggers re-indexing of given type."),
             pathParameters(
                 parameterWithName("graphId")
@@ -66,8 +66,9 @@ public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentDeleteCaches() {
     given(adminAuthorizedRequest).filter(
-        document("delete-caches",
-            operationIntro("Delete request to caches triggers cache invalidation")))
+        RestAssuredRestDocumentation.document("delete-caches",
+            OperationIntroSnippet
+                .operationIntro("Delete request to caches triggers cache invalidation")))
         .when()
         .delete("/api/caches")
         .then()
@@ -77,8 +78,9 @@ public class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   @Test
   public void documentDeleteRevisions() {
     given(adminAuthorizedRequest).filter(
-        document("delete-revisions",
-            operationIntro("Delete request to revisions purges all revision history entries")))
+        RestAssuredRestDocumentation.document("delete-revisions",
+            OperationIntroSnippet
+                .operationIntro("Delete request to revisions purges all revision history entries")))
         .when()
         .delete("/api/revisions")
         .then()
