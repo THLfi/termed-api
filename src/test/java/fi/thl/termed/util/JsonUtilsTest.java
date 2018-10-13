@@ -1,5 +1,8 @@
 package fi.thl.termed.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
@@ -7,19 +10,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-
-import org.junit.Test;
-
-import java.util.Map;
-
 import fi.thl.termed.util.json.JsonObjectEntryTransformer;
 import fi.thl.termed.util.json.JsonPredicates;
 import fi.thl.termed.util.json.JsonUtils;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-public class JsonUtilsTest {
+class JsonUtilsTest {
 
   private JsonParser p = new JsonParser();
 
@@ -38,14 +35,14 @@ public class JsonUtilsTest {
   }
 
   private static JsonObject newObject(String k1, String v1,
-                                      String k2, String v2) {
+      String k2, String v2) {
     JsonObject object = newObject(k1, v1);
     object.addProperty(k2, v2);
     return object;
   }
 
   @Test
-  public void shouldTransformEntries() {
+  void shouldTransformEntries() {
     JsonElement element = p.parse("{'id':1,'name':{'fi':'Testi','en':'Test'}}");
 
     JsonElement transformed = JsonUtils.transformEntries(element, new JsonObjectEntryTransformer() {
@@ -61,20 +58,21 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldTransformKeys() {
+  void shouldTransformKeys() {
     JsonElement element = p.parse("{'id':1,'name':{'fi':'Testi','en':'Test'}}");
 
-    JsonElement transformed = JsonUtils.transformKeys(element, new java.util.function.Function<String, String>() {
-      public String apply(String key) {
-        return key.toUpperCase();
-      }
-    });
+    JsonElement transformed = JsonUtils
+        .transformKeys(element, new java.util.function.Function<String, String>() {
+          public String apply(String key) {
+            return key.toUpperCase();
+          }
+        });
 
     assertEquals(p.parse("{'ID':1,'NAME':{'FI':'Testi','EN':'Test'}}"), transformed);
   }
 
   @Test
-  public void shouldFilterMatchingKeys() {
+  void shouldFilterMatchingKeys() {
     JsonElement element = p.parse("{'id':1,'name':{'fi':'Testi','en':'Test'}}");
 
     JsonElement filtered = JsonUtils.filterKeys(element.getAsJsonObject(), new Predicate<String>() {
@@ -87,52 +85,52 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldFilterNullValues() {
+  void shouldFilterNullValues() {
     JsonElement element =
         p.parse("{'id':'1','name':{'fi':'Testi','en':null}," +
-                "'data':[0,null,1,2,null]}");
+            "'data':[0,null,1,2,null]}");
 
     JsonElement filtered =
         JsonUtils.filterValues(element, JsonPredicates.notNull());
 
     assertEquals(p.parse("{'id':'1','name':{'fi':'Testi'},'data':[0,1,2]}"),
-                 filtered);
+        filtered);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldFilterNullsAndEmptyValues() {
+  void shouldFilterNullsAndEmptyValues() {
     JsonElement element =
         p.parse("{'id':'1','name':{'fi':'Testi','en':null, 'sv': ''}," +
-                "'data':[0,null,1,2,null,'']}");
+            "'data':[0,null,1,2,null,'']}");
 
     JsonElement filtered = JsonUtils
         .filterValues(element, JsonPredicates.notNull(),
-                      JsonPredicates.stringNotEmpty());
+            JsonPredicates.stringNotEmpty());
 
     assertEquals(p.parse("{'id':'1','name':{'fi':'Testi'},'data':[0,1,2]}"),
-                 filtered);
+        filtered);
   }
 
   @Test
-  public void shouldFilterMatchingValues() {
+  void shouldFilterMatchingValues() {
     JsonElement element =
         p.parse("{'id':'1','name':{'fi':'    ','en':'Test','sv':'\t \n'}," +
-                "'data':[0,null,1,2,null,'']}");
+            "'data':[0,null,1,2,null,'']}");
 
     JsonElement filtered = JsonUtils.filterValues(element,
-                                                  JsonPredicates.stringDoesNotMatch("\\s*"));
+        JsonPredicates.stringDoesNotMatch("\\s*"));
 
     assertEquals(p.parse("{'id':'1','name':{'en':'Test'}," +
-                         "'data':[0,null,1,2,null]}"), filtered);
+        "'data':[0,null,1,2,null]}"), filtered);
   }
 
   @Test
-  public void shouldFilterEmptyTrees() {
+  void shouldFilterEmptyTrees() {
     JsonElement element =
         p.parse("{'id':'1','name':{'fi':'','en':'Test','sv':''}," +
-                "'data':[],'matrix':[[],[],[]]," +
-                "'nested':{'hello':{'world':{'array':[]}}}}");
+            "'data':[],'matrix':[[],[],[]]," +
+            "'nested':{'hello':{'world':{'array':[]}}}}");
 
     JsonElement filtered =
         JsonUtils.filterValues(element, JsonPredicates.notEmpty());
@@ -141,7 +139,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldParseJsonObjectFromFlatMap() {
+  void shouldParseJsonObjectFromFlatMap() {
     Map<String, String> map = Maps.newHashMap();
     map.put("id", "123123");
     map.put("name.fi", "Testi");
@@ -155,7 +153,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldParseJsonObjectFromFlatMapWithEmptyKeys() {
+  void shouldParseJsonObjectFromFlatMapWithEmptyKeys() {
     Map<String, String> map = Maps.newHashMap();
     map.put("[\"\"][\"1\"][0][a].b.['c']['']", "Test1");
     map.put("[\"\"][\"1\"][1][a].b.['c']['']", "Test2");
@@ -168,7 +166,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldParseJsonFromFlatMap() {
+  void shouldParseJsonFromFlatMap() {
     Map<String, String> map = Maps.newHashMap();
     map.put("id", "123123");
     map.put("greeting[0]", "Hello");
@@ -177,11 +175,11 @@ public class JsonUtilsTest {
     JsonElement object = JsonUtils.unflatten(map);
 
     assertEquals(p.parse("{'id':'123123','greeting':['Hello','Hi']}"),
-                 object);
+        object);
   }
 
   @Test
-  public void shouldParseComplexObjectFromMap() {
+  void shouldParseComplexObjectFromMap() {
     Map<String, String> map = Maps.newHashMap();
     map.put("key", "value");
     map.put("array[0]", "array_value_0");
@@ -194,27 +192,27 @@ public class JsonUtilsTest {
     map.put("super.extra[0].nested[0][1].value", "Hello, world!");
 
     assertEquals(p.parse("{'super':{'extra':[{'nested':[[null,{'value':" +
-                         "'Hello, world!'}]]}]},'test':[['01','01']," +
-                         "['10','11','12']],'key':'value','array':" +
-                         "['array_value_0','array_value_1']}"),
-                 JsonUtils.unflatten(map));
+            "'Hello, world!'}]]}]},'test':[['01','01']," +
+            "['10','11','12']],'key':'value','array':" +
+            "['array_value_0','array_value_1']}"),
+        JsonUtils.unflatten(map));
   }
 
   @Test
-  public void shouldBeAbleToUnflattenFlattened() {
+  void shouldBeAbleToUnflattenFlattened() {
     JsonObject object = newObject("id", "1");
     object.add("label", newObject("fi", "Testi", "en", "Test"));
     object.add("altLabels",
-               newArray(newObject("fi", "Testiolio", "en", "Test Object"),
-                        newObject("fi", "Testattava olio", "en",
-                                  "Testable Object")));
+        newArray(newObject("fi", "Testiolio", "en", "Test Object"),
+            newObject("fi", "Testattava olio", "en",
+                "Testable Object")));
     assertEquals(object, JsonUtils.unflatten(JsonUtils.flatten(object)));
   }
 
   @Test
-  public void shouldFlattenJsonObjectWithNestedObjects() {
+  void shouldFlattenJsonObjectWithNestedObjects() {
     JsonElement object = p.parse("{'id':'123123','name':{'fi':'Testi'}," +
-                                 "'altNames':{'fi':['Testing','Testing some more']}}");
+        "'altNames':{'fi':['Testing','Testing some more']}}");
 
     Map<String, String> flat = JsonUtils.flatten(object);
 
@@ -225,7 +223,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldFlattenJsonObjectWithNestedArrays() {
+  void shouldFlattenJsonObjectWithNestedArrays() {
     JsonElement object = p.parse("{'a':[{'b':{'c':[1,2,3],'d':[4,5,6]}}]}");
 
     Map<String, String> flat = JsonUtils.flatten(object);
@@ -239,7 +237,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldFlattenNestedArrays() {
+  void shouldFlattenNestedArrays() {
     JsonElement object = p.parse("[[1,2,3],[4,5,6]]");
 
     Map<String, String> flat = JsonUtils.flatten(object);
@@ -253,7 +251,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void shouldFlattenAndUnflattenJsonObjectWithWeirdKeys() {
+  void shouldFlattenAndUnflattenJsonObjectWithWeirdKeys() {
     JsonElement object = p.parse("{'a b':{'':{'hello':{'.':{'123':['A','B']}}}}}");
 
     Map<String, String> flat = JsonUtils.flatten(object);

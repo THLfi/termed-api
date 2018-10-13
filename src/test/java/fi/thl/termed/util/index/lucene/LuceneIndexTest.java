@@ -1,26 +1,23 @@
 package fi.thl.termed.util.index.lucene;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.gson.Gson;
-
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.TermQuery;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.Serializable;
-
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.Specification;
+import java.io.Serializable;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.TermQuery;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-public class LuceneIndexTest {
+class LuceneIndexTest {
 
   private LuceneIndex<Integer, TestObject> index;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     this.index = new LuceneIndex<>(
         "",
         new JsonStringConverter<>(Integer.class),
@@ -32,19 +29,19 @@ public class LuceneIndexTest {
   }
 
   @Test
-  public void shouldFindById() {
+  void shouldFindById() {
     assertEquals("This is an example body about cats",
-                 index.get(term("id", "2"), null, -1).findFirst().get().body);
+        index.get(term("id", "2"), null, -1).findFirst().get().body);
   }
 
   @Test
-  public void shouldFindByContents() {
+  void shouldFindByContents() {
     assertEquals("First", index.get(term("title", "First"), null, -1).findFirst().get().title);
     assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).findFirst().get().id);
   }
 
   @Test
-  public void shouldNotFindDeleted() {
+  void shouldNotFindDeleted() {
     assertEquals(new Integer(3), index.get(term("body", "horses"), null, -1).findFirst().get().id);
     index.delete(3);
     index.refreshBlocking();
@@ -61,7 +58,7 @@ public class LuceneIndexTest {
     private String title;
     private String body;
 
-    public TestObject(Integer id, String title, String body) {
+    TestObject(Integer id, String title, String body) {
       this.id = id;
       this.title = title;
       this.body = body;
@@ -74,7 +71,7 @@ public class LuceneIndexTest {
 
     private org.apache.lucene.search.Query query;
 
-    public RawLuceneSpecification(org.apache.lucene.search.Query query) {
+    RawLuceneSpecification(org.apache.lucene.search.Query query) {
       this.query = query;
     }
 

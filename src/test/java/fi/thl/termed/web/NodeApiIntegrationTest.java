@@ -11,12 +11,12 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import com.google.gson.JsonObject;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
+class NodeApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldSaveAndGetTrivialResource() {
+  void shouldSaveAndGetTrivialResource() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
     String nodeId = UUID.randomUUID().toString();
@@ -51,7 +51,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldSaveAndGetSimpleVocabulary() {
+  void shouldSaveAndGetSimpleVocabulary() {
     String graphId = UUID.randomUUID().toString();
 
     // save graph and types
@@ -85,7 +85,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldPostNodeChangeset() {
+  void shouldPostNodeChangeset() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
 
@@ -145,7 +145,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldRecoverFromPostingAnIllegalChangeset() {
+  void shouldRecoverFromPostingAnIllegalChangeset() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
 
@@ -218,7 +218,7 @@ public class NodeApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldDeleteNodeBatch() {
+  void shouldDeleteNodeBatch() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
 

@@ -3,21 +3,21 @@ package fi.thl.termed.util.json;
 import static com.google.common.base.Charsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class JsonStreamTest {
+class JsonStreamTest {
 
   private Gson gson = new Gson();
 
   @Test
-  public void shouldParseJsonFromInputStreamToJavaStream() {
+  void shouldParseJsonFromInputStreamToJavaStream() {
     String exampleJson = "[{'value':'A'},{'value':'B'},{'value':'C'}]";
     InputStream in = new ByteArrayInputStream(exampleJson.getBytes(UTF_8));
 

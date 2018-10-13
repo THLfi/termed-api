@@ -5,8 +5,9 @@ import static fi.thl.termed.util.json.JsonElementFactory.array;
 import static fi.thl.termed.util.json.JsonElementFactory.primitive;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,9 +15,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class StreamTypeAdapterFactoryTest {
+class StreamTypeAdapterFactoryTest {
 
   private Type streamOfIntegersType = new TypeToken<Stream<Integer>>() {
   }.getType();
@@ -28,20 +29,20 @@ public class StreamTypeAdapterFactoryTest {
       .registerTypeAdapterFactory(new StreamTypeAdapterFactory())
       .create();
 
-  @Test(expected = RuntimeException.class)
-  public void plainGsonShouldNotDeserializeStreams() {
-    gsonPlain.fromJson("[1,2,3]", streamOfIntegersType);
+  @Test
+  void plainGsonShouldNotDeserializeStreams() {
+    assertThrows(RuntimeException.class, () -> gsonPlain.fromJson("[1,2,3]", streamOfIntegersType));
   }
 
   @Test
-  public void shouldDeserializeToStream() {
+  void shouldDeserializeToStream() {
     Stream<Integer> actual = gson.fromJson("[1,2,3]", streamOfIntegersType);
 
     assertTrue(elementsEqual(asList(1, 2, 3), actual.collect(toList())));
   }
 
   @Test
-  public void shouldSerializeStreams() {
+  void shouldSerializeStreams() {
     JsonElement expected = array(primitive(1), primitive(2), primitive(3));
 
     Stream<Integer> values = Stream.of(1, 2, 3);

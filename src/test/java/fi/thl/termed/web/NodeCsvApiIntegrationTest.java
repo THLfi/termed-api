@@ -20,12 +20,12 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NodeCsvApiIntegrationTest extends BaseApiIntegrationTest {
+class NodeCsvApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldGetTrivialNodeInCsv() {
+  void shouldGetTrivialNodeInCsv() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
     String nodeId = UUID.randomUUID().toString();
@@ -56,7 +56,7 @@ public class NodeCsvApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldSaveNodesFromCsv() {
+  void shouldSaveNodesFromCsv() {
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)
         .post("/api/graphs?mode=insert")

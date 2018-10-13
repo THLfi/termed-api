@@ -9,12 +9,12 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
+class GraphApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldSaveTrivialGraph() {
+  void shouldSaveTrivialGraph() {
     String graphId = UUID.randomUUID().toString();
 
     given(adminAuthorizedJsonSaveRequest)
@@ -31,7 +31,7 @@ public class GraphApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldSaveAndGetGraph() throws IOException {
+  void shouldSaveAndGetGraph() throws IOException {
     String graphId = UUID.randomUUID().toString();
 
     JsonObject skosGraph = getJsonResource("examples/skos/example-skos-graph.json")

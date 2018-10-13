@@ -4,8 +4,8 @@ import static fi.thl.termed.web.docs.DocsExampleData.exampleGraph;
 import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
 import static fi.thl.termed.web.docs.DocsExampleData.exampleUser;
 import static fi.thl.termed.web.docs.DocsExampleData.exampleUserName;
+import static fi.thl.termed.web.docs.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
-import static org.springframework.restdocs.cli.CliDocumentation.curlRequest;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -15,18 +15,17 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
+class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
-  @Before
-  public void insertExampleGraphAndUser() {
+  @BeforeEach
+  void insertExampleGraphAndUser() {
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)
         .post("/api/graphs?mode=insert")
@@ -41,8 +40,8 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
-  @After
-  public void deleteExampleGraphAndUser() {
+  @AfterEach
+  void deleteExampleGraphAndUser() {
     given(superuserAuthorizedRequest)
         .delete("/api/users/{id}", exampleUserName)
         .then()
@@ -55,11 +54,11 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentGetUserByUsername() {
+  void documentGetUserByUsername() {
     given(superuserAuthorizedRequest)
         .accept("application/json")
-        .filter(RestAssuredRestDocumentation.document("get-a-user",
-            OperationIntroSnippet.operationIntro("Get a user by username.\n\n"
+        .filter(document("get-a-user",
+            operationIntro("Get a user by username.\n\n"
                 + "Request parameter based `GET /api/users?username=<username>` is also supported."),
             pathParameters(
                 parameterWithName("username")
@@ -87,13 +86,11 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentGetAllUsers() {
-    given(superuserAuthorizedRequest)
+  void documentGetAllUsers() {
+    given(adminAuthorizedRequest)
         .accept("application/json")
-        .filter(documentationConfiguration(this.restDocumentation)
-            .snippets().withDefaults(curlRequest()))
-        .filter(RestAssuredRestDocumentation.document("get-all-users",
-            OperationIntroSnippet.operationIntro(
+        .filter(document("get-all-users",
+            operationIntro(
                 "Returns an array containing all users.")))
         .when()
         .get("/api/users")
@@ -102,11 +99,11 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentSaveUser() {
+  void documentSaveUser() {
     given(superuserAuthorizedRequest)
         .contentType("application/json")
-        .filter(RestAssuredRestDocumentation.document("save-a-user",
-            OperationIntroSnippet.operationIntro("On success, operation returns `204`."),
+        .filter(document("save-a-user",
+            operationIntro("On success, operation returns `204`."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -141,16 +138,15 @@ public class UsersApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentDeleteUser() {
+  void documentDeleteUser() {
     given(superuserAuthorizedRequest)
-        .filter(RestAssuredRestDocumentation
-            .document("delete-a-user", OperationIntroSnippet.operationIntro(
-                "Request parameter based `DELETE /api/users?username=<username>` is also supported.\n\n"
-                    + "On success, operation will return `204` with an empty body.\n\n"
-                    + "User can't be deleted if it referenced from some node."),
-                pathParameters(
-                    parameterWithName("username")
-                        .description("Username identifying the user"))))
+        .filter(document("delete-a-user", operationIntro(
+            "Request parameter based `DELETE /api/users?username=<username>` is also supported.\n\n"
+                + "On success, operation will return `204` with an empty body.\n\n"
+                + "User can't be deleted if it referenced from some node."),
+            pathParameters(
+                parameterWithName("username")
+                    .description("Username identifying the user"))))
         .when()
         .delete("/api/users/{username}", exampleUserName)
         .then()

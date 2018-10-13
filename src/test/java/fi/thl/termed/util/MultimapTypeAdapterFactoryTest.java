@@ -1,5 +1,7 @@
 package fi.thl.termed.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
@@ -7,14 +9,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-
-import org.junit.Test;
-
 import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public class MultimapTypeAdapterFactoryTest {
+class MultimapTypeAdapterFactoryTest {
 
   private Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new MultimapTypeAdapterFactory())
@@ -22,7 +20,7 @@ public class MultimapTypeAdapterFactoryTest {
       .create();
 
   @Test
-  public void shouldSerializeAndDeserializeMultimap() {
+  void shouldSerializeAndDeserializeMultimap() {
     Multimap<String, Integer> multimap = ArrayListMultimap.create();
     multimap.put("firstKey", 1);
     multimap.put("firstKey", 2);

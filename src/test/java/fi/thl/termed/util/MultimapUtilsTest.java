@@ -1,17 +1,15 @@
 package fi.thl.termed.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.collect.ArrayListMultimap;
-
-import org.junit.Test;
-
 import fi.thl.termed.util.collect.MultimapUtils;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public class MultimapUtilsTest {
+class MultimapUtilsTest {
 
   @Test
-  public void shouldTransformNullToEmptyMultimap() {
+  void shouldTransformNullToEmptyMultimap() {
     assertEquals(ArrayListMultimap.create(), MultimapUtils.nullToEmpty(null));
   }
 

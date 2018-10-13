@@ -6,9 +6,9 @@ import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMultimap;
 import fi.thl.termed.domain.Node;
@@ -26,15 +26,10 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Autowired
   private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
@@ -53,7 +48,7 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   }
 
   @Test
-  public void shouldSaveNewRevisionForEachNodeSave() {
+  void shouldSaveNewRevisionForEachNodeSave() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
         .addProperty("firstName", "John")
@@ -73,7 +68,7 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   }
 
   @Test
-  public void shouldSaveRevisionsForNodesWithProperties() {
+  void shouldSaveRevisionsForNodesWithProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
         .addProperty("firstName", "John")
@@ -121,7 +116,7 @@ public class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrati
   }
 
   @Test
-  public void shouldSaveRevisionsForNodesWithReferences() {
+  void shouldSaveRevisionsForNodesWithReferences() {
     NodeId johnId = NodeId.random("Person", graphId);
     NodeId jackId = NodeId.random("Person", graphId);
     NodeId maryId = NodeId.random("Person", graphId);

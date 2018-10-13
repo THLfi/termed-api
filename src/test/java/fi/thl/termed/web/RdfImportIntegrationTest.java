@@ -17,12 +17,12 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.SKOS;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
+class RdfImportIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldSaveRdfVocabulary() {
+  void shouldSaveRdfVocabulary() {
     String graphId = UUID.randomUUID().toString();
 
     // save graph and types
@@ -54,7 +54,7 @@ public class RdfImportIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void shouldPickNodeIdFromUuidUrn() throws IOException {
+  void shouldPickNodeIdFromUuidUrn() throws IOException {
     String graphId = UUID.randomUUID().toString();
 
     // save test graph and types

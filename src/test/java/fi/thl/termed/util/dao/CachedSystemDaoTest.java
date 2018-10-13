@@ -1,7 +1,7 @@
 package fi.thl.termed.util.dao;
 
 import static fi.thl.termed.util.dao.CachedSystemDao.cache;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -10,12 +10,12 @@ import static org.mockito.Mockito.when;
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CachedSystemDaoTest {
+class CachedSystemDaoTest {
 
   @Test
-  public void shouldCacheGet() {
+  void shouldCacheGet() {
     @SuppressWarnings("unchecked")
     SystemDao<String, String> dao = mock(SystemDao.class);
 
@@ -36,7 +36,7 @@ public class CachedSystemDaoTest {
   }
 
   @Test
-  public void shouldInvalidateCacheOnEvent() {
+  void shouldInvalidateCacheOnEvent() {
     @SuppressWarnings("unchecked")
     SystemDao<String, String> dao = mock(SystemDao.class);
 

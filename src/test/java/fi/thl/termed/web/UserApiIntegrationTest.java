@@ -6,9 +6,9 @@ import static org.hamcrest.core.IsEqual.equalTo;
 
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class UserApiIntegrationTest extends BaseApiIntegrationTest {
+class UserApiIntegrationTest extends BaseApiIntegrationTest {
 
   private String exampleUserUsername = "test-user-" + randomAlphanumericString(4);
   private String exampleUserPassword = randomAlphanumericString(8);
@@ -17,7 +17,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
       exampleUserUsername, exampleUserPassword);
 
   @Test
-  public void regularUserShouldNotBeAbleToAccessUserApi() {
+  void regularUserShouldNotBeAbleToAccessUserApi() {
     given(userAuthorizedRequest)
         .contentType("application/json")
         .body(exampleUserJson)
@@ -45,7 +45,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void adminShouldNotBeAbleToAccessUserApi() {
+  void adminShouldNotBeAbleToAccessUserApi() {
     given(adminAuthorizedRequest)
         .contentType("application/json")
         .body(exampleUserJson)
@@ -73,7 +73,7 @@ public class UserApiIntegrationTest extends BaseApiIntegrationTest {
   }
 
   @Test
-  public void superuserShouldBeAbleToAccessUserApi() {
+  void superuserShouldBeAbleToAccessUserApi() {
     given(superuserAuthorizedRequest)
         .contentType("application/json")
         .body(exampleUserJson)

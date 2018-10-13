@@ -1,14 +1,14 @@
 package fi.thl.termed.util.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import fi.thl.termed.domain.User;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CachedNamedSequenceServiceTest {
+class CachedNamedSequenceServiceTest {
 
   @Test
-  public void shouldCacheSequence() {
+  void shouldCacheSequence() {
     String seqName = "A";
     User user = User.newUser("example");
 

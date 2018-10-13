@@ -14,15 +14,15 @@ import static java.util.Arrays.asList;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
-public class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
+class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
 
-  @Before
-  public void insertExampleData() {
+  @BeforeEach
+  void insertExampleData() {
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)
         .post("/api/graphs?mode=insert")
@@ -43,15 +43,15 @@ public class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
-  @After
-  public void deleteExampleData() {
+  @AfterEach
+  void deleteExampleData() {
     given(adminAuthorizedRequest).delete("/api/graphs/" + exampleGraphId.getId() + "/nodes");
     given(adminAuthorizedRequest).delete("/api/graphs/" + exampleGraphId.getId() + "/types");
     given(adminAuthorizedRequest).delete("/api/graphs/" + exampleGraphId.getId());
   }
 
   @Test
-  public void shouldGetNodeWithGraphQL() {
+  void shouldGetNodeWithGraphQL() {
     String exampleGraphQLQuery = "{"
         + " node(id: \"" + exampleNode0Id.getId() + "\") {"
         + "   id, properties { name { value } }, references { knows { id, uri } }"

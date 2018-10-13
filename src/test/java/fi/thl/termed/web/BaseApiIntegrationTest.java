@@ -22,16 +22,20 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import java.util.Base64;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
+@TestInstance(Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public abstract class BaseApiIntegrationTest {
 
@@ -61,17 +65,15 @@ public abstract class BaseApiIntegrationTest {
   private String testAdminPassword = randomAlphanumericString(20);
   private String testSuperuserPassword = randomAlphanumericString(20);
 
-  @Before
+  @BeforeEach
   public void configRestAssured() {
     RestAssured.port = serverPort;
     RestAssured.config = config()
-        .objectMapperConfig(new ObjectMapperConfig(GSON)
-            .gsonObjectMapperFactory((cls, charset) -> gson))
-        .encoderConfig(encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML));
-  }
+        .objectMapperConfig(
+            new ObjectMapperConfig(GSON).gsonObjectMapperFactory((cls, charset) -> gson))
+        .encoderConfig(
+            encoderConfig().encodeContentTypeAs("application/rdf+xml", ContentType.XML));
 
-  @Before
-  public void buildBaseRequestSpecifications() {
     userAuthorizedRequest = new RequestSpecBuilder()
         .addHeader("Authorization", basicAuth(testUserUsername, testUserPassword))
         .build();
@@ -92,7 +94,7 @@ public abstract class BaseApiIntegrationTest {
         .build();
   }
 
-  @Before
+  @BeforeAll
   public void insertTestUsers() {
     users.save(Stream.of(
         newUser(testUserUsername, encoder.encode(testUserPassword)),
@@ -103,7 +105,7 @@ public abstract class BaseApiIntegrationTest {
         newSuperuser("test-initializer"));
   }
 
-  @After
+  @AfterAll
   public void deleteTestUsers() {
     users.delete(
         Stream.of(testUserUsername, testAdminUsername, testSuperuserUsername),

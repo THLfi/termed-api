@@ -13,10 +13,10 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fi.thl.termed.domain.Attribute;
 import fi.thl.termed.domain.Graph;
@@ -31,20 +31,23 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class TypeServiceIntegrationTest {
+class TypeServiceIntegrationTest {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
@@ -63,8 +66,8 @@ public class TypeServiceIntegrationTest {
   private Graph[] graphs;
   private User user;
 
-  @Before
-  public void setUp() {
+  @BeforeAll
+  void setUp() {
     graphs = new Graph[]{
         Graph.builder().id(randomUUID()).build(),
         Graph.builder().id(randomUUID()).build(),
@@ -82,8 +85,8 @@ public class TypeServiceIntegrationTest {
     }
   }
 
-  @After
-  public void tearDown() {
+  @AfterAll
+  void tearDown() {
     graphService.delete(stream(graphs).map(Graph::identifier), defaultOpts(), testDataLoader);
     userService.delete(user.identifier(), defaultOpts(), testDataLoader);
     if (labelPropertyInsertedByTest) {
@@ -92,7 +95,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertAndDeleteNewType() {
+  void shouldInsertAndDeleteNewType() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId).build();
 
@@ -106,24 +109,20 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotInsertTypeWithIllegalId() {
+  void shouldNotInsertTypeWithIllegalId() {
     TypeId typeId = TypeId.of("Te$tType", graphs[0].identifier());
     Type type = Type.builder().id(typeId).build();
 
     assertFalse(typeService.exists(typeId, user));
 
-    try {
-      typeService.save(type, INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(typeService.exists(typeId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> typeService.save(type, INSERT, defaultOpts(), user));
+
+    assertFalse(typeService.exists(typeId, user));
   }
 
   @Test
-  public void shouldInsertAndDeleteMultipleNewTypes() {
+  void shouldInsertAndDeleteMultipleNewTypes() {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     Type type0 = Type.builder().id(typeId0).build();
 
@@ -143,7 +142,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldAllowRepeatedUpsertOfType() {
+  void shouldAllowRepeatedUpsertOfType() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId).build();
 
@@ -160,7 +159,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotUpdateNonExistentType() {
+  void shouldNotUpdateNonExistentType() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId).build();
 
@@ -172,7 +171,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotInsertExistingType() {
+  void shouldNotInsertExistingType() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId).build();
 
@@ -181,21 +180,18 @@ public class TypeServiceIntegrationTest {
     typeService.save(type, INSERT, defaultOpts(), user);
     assertTrue(typeService.get(typeId, user).isPresent());
 
-    try {
-      typeService.save(type, INSERT, defaultOpts(), user);
-      fail("Expected DuplicateKeyException");
-    } catch (DuplicateKeyException e) {
-      assertTrue(typeService.exists(typeId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DuplicateKeyException.class,
+        () -> typeService.save(type, INSERT, defaultOpts(), user));
+
+    assertTrue(typeService.exists(typeId, user));
 
     typeService.delete(typeId, defaultOpts(), user);
+
     assertFalse(typeService.get(typeId, user).isPresent());
   }
 
   @Test
-  public void shouldSaveTypeWithProperties() {
+  void shouldSaveTypeWithProperties() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .properties("label", LangValue.of("TestType label")).build();
@@ -213,7 +209,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldUpdateTypeWithProperties() {
+  void shouldUpdateTypeWithProperties() {
     TypeId typeId = TypeId.of("Concept", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .properties("label", LangValue.of("TestType label")).build();
@@ -241,7 +237,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldSaveTypeWithAttributes() {
+  void shouldSaveTypeWithAttributes() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .textAttributes(
@@ -270,7 +266,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotSaveTypeWithIllegalAttributeIds() {
+  void shouldNotSaveTypeWithIllegalAttributeIds() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .textAttributes(
@@ -282,18 +278,14 @@ public class TypeServiceIntegrationTest {
 
     assertFalse(typeService.exists(typeId, user));
 
-    try {
-      typeService.save(type, INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(typeService.exists(typeId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> typeService.save(type, INSERT, defaultOpts(), user));
+
+    assertFalse(typeService.exists(typeId, user));
   }
 
   @Test
-  public void shouldSaveTypesWithCrossReferencingAttributes() {
+  void shouldSaveTypesWithCrossReferencingAttributes() {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 
@@ -317,7 +309,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotSaveTypeWithReferencingAttributePointingNonExistentType()
+  void shouldNotSaveTypeWithReferencingAttributePointingNonExistentType()
       throws InterruptedException {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
@@ -330,18 +322,14 @@ public class TypeServiceIntegrationTest {
     assertFalse(typeService.get(typeId0, user).isPresent());
     assertFalse(typeService.get(typeId1, user).isPresent());
 
-    try {
-      typeService.save(type0, INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(typeService.exists(typeId0, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> typeService.save(type0, INSERT, defaultOpts(), user));
+
+    assertFalse(typeService.exists(typeId0, user));
   }
 
   @Test
-  public void shouldSaveAndDeleteAndSaveTypesWithCrossReferencingAttributes() {
+  void shouldSaveAndDeleteAndSaveTypesWithCrossReferencingAttributes() {
     TypeId typeId0 = TypeId.of("TestType0", graphs[0].identifier());
     TypeId typeId1 = TypeId.of("TestType1", graphs[0].identifier());
 
@@ -372,7 +360,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldSaveTypesWithCrossReferencingAttributesOverDifferentGraphs() {
+  void shouldSaveTypesWithCrossReferencingAttributesOverDifferentGraphs() {
     TypeId graph0TypeId = TypeId.of("TestType", graphs[0].identifier());
     TypeId graph1TypeId = TypeId.of("TestType", graphs[1].identifier());
 
@@ -396,7 +384,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldUpdateTypeWithAttributes() {
+  void shouldUpdateTypeWithAttributes() {
     TypeId typeId = TypeId.of("TestType", graphs[0].identifier());
     Type type = Type.builder().id(typeId)
         .textAttributes(
@@ -442,7 +430,7 @@ public class TypeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldCascadeCrossReferencingAttributes() {
+  void shouldCascadeCrossReferencingAttributes() {
     TypeId graph0TypeId = TypeId.of("TestType", graphs[0].identifier());
     TypeId graph1TypeId = TypeId.of("TestType", graphs[1].identifier());
 

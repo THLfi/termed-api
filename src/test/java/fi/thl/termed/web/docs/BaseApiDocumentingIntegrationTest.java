@@ -1,26 +1,27 @@
 package fi.thl.termed.web.docs;
 
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.restassured3.operation.preprocess.RestAssuredPreprocessors.modifyUris;
 
 import fi.thl.termed.web.BaseApiIntegrationTest;
 import io.restassured.filter.Filter;
-import org.junit.Before;
-import org.junit.Rule;
-import org.springframework.restdocs.JUnitRestDocumentation;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.operation.preprocess.Preprocessors;
 
+@ExtendWith(RestDocumentationExtension.class)
 public abstract class BaseApiDocumentingIntegrationTest extends BaseApiIntegrationTest {
 
-  @Rule
-  public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
+  @BeforeEach
+  public void addDocumentationFilterToBaseRequestSpecifications(
+      RestDocumentationContextProvider restDocumentation) {
 
-  @Before
-  public void addDocumentationFilterToBaseRequestSpecifications() {
     Filter documentationConfiguration =
-        documentationConfiguration(this.restDocumentation)
+        documentationConfiguration(restDocumentation)
             .operationPreprocessors()
-            .withRequestDefaults(modifyUris().port(8080))
-            .withResponseDefaults(modifyUris().port(8080));
+            .withRequestDefaults(Preprocessors.modifyUris().port(8080))
+            .withResponseDefaults(Preprocessors.modifyUris().port(8080));
 
     userAuthorizedRequest.filter(documentationConfiguration);
     adminAuthorizedRequest.filter(documentationConfiguration);

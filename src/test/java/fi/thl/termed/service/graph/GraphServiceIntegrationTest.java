@@ -7,10 +7,10 @@ import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -19,20 +19,23 @@ import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class GraphServiceIntegrationTest {
+class GraphServiceIntegrationTest {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
@@ -49,8 +52,8 @@ public class GraphServiceIntegrationTest {
   private GraphId graphId;
   private User user;
 
-  @Before
-  public void setUp() {
+  @BeforeAll
+  void setUp() {
     graphId = GraphId.of(randomUUID());
 
     user = User.newAdmin("TestUser-" + randomUUID(), passwordEncoder.encode(randomUUIDString()));
@@ -63,8 +66,8 @@ public class GraphServiceIntegrationTest {
     }
   }
 
-  @After
-  public void tearDown() {
+  @AfterAll
+  void tearDown() {
     graphService.delete(graphId, defaultOpts(), user);
     userService.delete(user.identifier(), defaultOpts(), testLoader);
 
@@ -74,7 +77,7 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertAndDeleteNewGraph() {
+  void shouldInsertAndDeleteNewGraph() {
     Graph graph = Graph.builder().id(graphId).build();
 
     assertFalse(graphService.exists(graphId, user));
@@ -87,7 +90,7 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertAndDeleteMultipleNewGraphs() {
+  void shouldInsertAndDeleteMultipleNewGraphs() {
     GraphId graphId0 = GraphId.of(randomUUID());
     Graph graph0 = Graph.builder().id(graphId0).build();
 
@@ -107,7 +110,7 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldAllowRepeatedUpsertOfGraph() {
+  void shouldAllowRepeatedUpsertOfGraph() {
     Graph graph = Graph.builder().id(graphId).build();
 
     assertFalse(graphService.exists(graphId, user));
@@ -123,7 +126,7 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotUpdateNonExistentGraph() {
+  void shouldNotUpdateNonExistentGraph() {
     Graph graph = Graph.builder().id(graphId).build();
 
     assertFalse(graphService.exists(graphId, user));
@@ -134,7 +137,7 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotInsertExistingGraph() {
+  void shouldNotInsertExistingGraph() {
     Graph graph = Graph.builder().id(graphId).build();
 
     assertFalse(graphService.exists(graphId, user));
@@ -142,21 +145,17 @@ public class GraphServiceIntegrationTest {
     graphService.save(graph, INSERT, defaultOpts(), user);
     assertTrue(graphService.get(graphId, user).isPresent());
 
-    try {
-      graphService.save(graph, INSERT, defaultOpts(), user);
-      fail("Expected DuplicateKeyException");
-    } catch (DuplicateKeyException e) {
-      assertTrue(graphService.exists(graphId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DuplicateKeyException.class,
+        () -> graphService.save(graph, INSERT, defaultOpts(), user));
+
+    assertTrue(graphService.exists(graphId, user));
 
     graphService.delete(graphId, defaultOpts(), user);
     assertFalse(graphService.get(graphId, user).isPresent());
   }
 
   @Test
-  public void shouldSaveGraphWithProperties() {
+  void shouldSaveGraphWithProperties() {
     Graph graph = Graph.builder().id(graphId)
         .properties("label", LangValue.of("TestGraph label")).build();
 
@@ -173,24 +172,20 @@ public class GraphServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotSaveGraphWitIllegalProperties() {
+  void shouldNotSaveGraphWitIllegalProperties() {
     Graph graph = Graph.builder().id(graphId)
         .properties("label!", LangValue.of("TestGraph label")).build();
 
     assertFalse(graphService.exists(graphId, user));
 
-    try {
-      graphService.save(graph, INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(graphService.exists(graphId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> graphService.save(graph, INSERT, defaultOpts(), user));
+
+    assertFalse(graphService.exists(graphId, user));
   }
 
   @Test
-  public void shouldUpdateGraphWithProperties() {
+  void shouldUpdateGraphWithProperties() {
     Graph graph = Graph.builder().id(graphId)
         .properties("label", LangValue.of("TestGraph label")).build();
 

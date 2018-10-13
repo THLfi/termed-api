@@ -7,6 +7,7 @@ import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
 import static fi.thl.termed.web.docs.DocsExampleData.groupType;
 import static fi.thl.termed.web.docs.DocsExampleData.personType;
 import static fi.thl.termed.web.docs.DocsExampleData.personTypeId;
+import static fi.thl.termed.web.docs.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -24,15 +25,14 @@ import static org.springframework.restdocs.restassured3.RestAssuredRestDocumenta
 import static org.springframework.restdocs.snippet.Attributes.key;
 
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
+class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
-  @Before
-  public void insertExampleGraphWithTypes() {
+  @BeforeEach
+  void insertExampleGraphWithTypes() {
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)
         .post("/api/graphs?mode=insert")
@@ -46,8 +46,8 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
         .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
-  @After
-  public void deleteExampleGraphWithTypes() {
+  @AfterEach
+  void deleteExampleGraphWithTypes() {
     given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}/types", exampleGraphId.getId())
         .then()
@@ -60,10 +60,10 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentGetTypeById() {
+  void documentGetTypeById() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(RestAssuredRestDocumentation.document("get-a-type",
-            OperationIntroSnippet.operationIntro("Get a type by id in given graph."),
+        .filter(document("get-a-type",
+            operationIntro("Get a type by id in given graph."),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
@@ -149,10 +149,10 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentGetGraphTypes() {
+  void documentGetGraphTypes() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(RestAssuredRestDocumentation.document("get-graph-types",
-            OperationIntroSnippet.operationIntro(
+        .filter(document("get-graph-types",
+            operationIntro(
                 "Returns an array containing all types in given graph. Roles and permissions "
                     + "are visible for admin users only."),
             pathParameters(
@@ -165,10 +165,10 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentGetAllTypes() {
+  void documentGetAllTypes() {
     given(adminAuthorizedJsonGetRequest)
-        .filter(RestAssuredRestDocumentation.document("get-all-types",
-            OperationIntroSnippet.operationIntro(
+        .filter(document("get-all-types",
+            operationIntro(
                 "Returns an array containing all types visible to the user. Roles and permissions "
                     + "are visible for admin users only.")))
         .when()
@@ -178,10 +178,10 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentSaveType() {
+  void documentSaveType() {
     given(adminAuthorizedJsonSaveRequest)
-        .filter(RestAssuredRestDocumentation.document("save-a-type",
-            OperationIntroSnippet.operationIntro("On success, operation returns the saved type."),
+        .filter(document("save-a-type",
+            operationIntro("On success, operation returns the saved type."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -291,17 +291,16 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentSaveTypeUsingPut() {
+  void documentSaveTypeUsingPut() {
     given(adminAuthorizedJsonSaveRequest)
-        .filter(RestAssuredRestDocumentation
-            .document("save-a-type-using-put", OperationIntroSnippet.operationIntro(
-                "Saving using `PUT` is also supported. Type id is given as a path parameter.\n"
-                    + "On success, operation will return the saved type."),
-                pathParameters(
-                    parameterWithName("graphId")
-                        .description("Graph identifier (UUID)"),
-                    parameterWithName("id")
-                        .description("Type identifier (matches `" + CODE + "`)"))))
+        .filter(document("save-a-type-using-put", operationIntro(
+            "Saving using `PUT` is also supported. Type id is given as a path parameter.\n"
+                + "On success, operation will return the saved type."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("id")
+                    .description("Type identifier (matches `" + CODE + "`)"))))
         .when()
         .body(personType)
         .put("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
@@ -310,17 +309,16 @@ public class TypeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegra
   }
 
   @Test
-  public void documentDeleteType() {
+  void documentDeleteType() {
     given(adminAuthorizedRequest)
-        .filter(RestAssuredRestDocumentation
-            .document("delete-a-type", OperationIntroSnippet.operationIntro(
-                "On success, operation will return `204` with an empty body.\n\n"
-                    + "A type can't be deleted if it contains any data (nodes)."),
-                pathParameters(
-                    parameterWithName("graphId")
-                        .description("Graph identifier (UUID)"),
-                    parameterWithName("id")
-                        .description("Type identifier (matches `" + CODE + "`)"))))
+        .filter(document("delete-a-type", operationIntro(
+            "On success, operation will return `204` with an empty body.\n\n"
+                + "A type can't be deleted if it contains any data (nodes)."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("id")
+                    .description("Type identifier (matches `" + CODE + "`)"))))
         .when()
         .delete("/api/graphs/{graphId}/types/{id}", personTypeId.getGraphId(), personTypeId.getId())
         .then()

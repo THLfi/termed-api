@@ -10,12 +10,12 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import com.google.gson.JsonObject;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class DumpApiIntegrationTest extends BaseApiIntegrationTest {
+class DumpApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldPostAndGetTrivialDump() {
+  void shouldPostAndGetTrivialDump() {
     String graphId = UUID.randomUUID().toString();
     String typeId = "Concept";
     String nodeId = UUID.randomUUID().toString();

@@ -5,6 +5,7 @@ import static fi.thl.termed.web.docs.DocsExampleData.anotherGraph;
 import static fi.thl.termed.web.docs.DocsExampleData.anotherGraphId;
 import static fi.thl.termed.web.docs.DocsExampleData.exampleGraph;
 import static fi.thl.termed.web.docs.DocsExampleData.exampleGraphId;
+import static fi.thl.termed.web.docs.OperationIntroSnippet.operationIntro;
 import static io.restassured.RestAssured.given;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -15,17 +16,17 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.restdocs.restassured3.RestAssuredRestDocumentation;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
+class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTest {
 
-  @Before
-  public void insertExampleGraph() {
+  @BeforeEach
+  void insertExampleGraph() {
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)
         .post("/api/graphs?mode=insert")
@@ -33,8 +34,8 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
         .statusCode(HttpStatus.SC_OK);
   }
 
-  @After
-  public void deleteExampleGraph() {
+  @AfterEach
+  void deleteExampleGraph() {
     given(adminAuthorizedRequest)
         .delete("/api/graphs/{id}", exampleGraphId.getId())
         .then()
@@ -42,10 +43,10 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentGetGraphById() {
+  void documentGetGraphById() {
     given(adminAuthorizedJsonGetRequest).filter(
-        RestAssuredRestDocumentation.document("get-a-graph",
-            OperationIntroSnippet.operationIntro(),
+        document("get-a-graph",
+            operationIntro(),
             pathParameters(
                 parameterWithName("id")
                     .description("Graph identifier (UUID)")),
@@ -76,16 +77,15 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentGetAllGraphs() {
+  void documentGetAllGraphs() {
     given(adminAuthorizedJsonSaveRequest)
         .body(anotherGraph)
         .post("/api/graphs?mode=insert");
 
     given(adminAuthorizedJsonGetRequest).filter(
-        RestAssuredRestDocumentation.document("get-all-graphs",
-            OperationIntroSnippet
-                .operationIntro("Returns an array containing all graphs visible to the user. "
-                    + "Roles and permissions are visible for admin users only.")))
+        document("get-all-graphs",
+            operationIntro("Returns an array containing all graphs visible to the user. "
+                + "Roles and permissions are visible for admin users only.")))
         .when()
         .get("/api/graphs")
         .then()
@@ -96,13 +96,12 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentSaveGraph() {
+  void documentSaveGraph() {
     given(adminAuthorizedJsonSaveRequest).filter(
-        RestAssuredRestDocumentation.document("save-a-graph",
-            OperationIntroSnippet
-                .operationIntro("If posted object contains an id, a graph is either updated "
-                    + "or inserted with the given id. If id is not present, graph is saved with "
-                    + "new random id.\n\nOn success, operation returns the saved graph."),
+        document("save-a-graph",
+            operationIntro("If posted object contains an id, a graph is either updated "
+                + "or inserted with the given id. If id is not present, graph is saved with "
+                + "new random id.\n\nOn success, operation returns the saved graph."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -147,10 +146,10 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentSaveGraphUsingPut() {
+  void documentSaveGraphUsingPut() {
     given(adminAuthorizedJsonSaveRequest).filter(
-        RestAssuredRestDocumentation.document("save-a-graph-using-put",
-            OperationIntroSnippet.operationIntro(
+        document("save-a-graph-using-put",
+            operationIntro(
                 "Saving using `PUT` is also supported. Graph id is given as a path parameter.\n"
                     + "On success, operation will return the saved graph."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))
@@ -162,10 +161,10 @@ public class GraphApiDocumentingIntegrationTest extends BaseApiDocumentingIntegr
   }
 
   @Test
-  public void documentDeleteGraph() {
+  void documentDeleteGraph() {
     given(adminAuthorizedRequest).filter(
-        RestAssuredRestDocumentation.document("delete-a-graph",
-            OperationIntroSnippet.operationIntro(
+        document("delete-a-graph",
+            operationIntro(
                 "On success, operation will return `204` with an empty body.\n\n"
                     + "A graph can't be deleted if it contains any data (types or nodes)."),
             pathParameters(parameterWithName("id").description("Graph identifier (UUID)"))))

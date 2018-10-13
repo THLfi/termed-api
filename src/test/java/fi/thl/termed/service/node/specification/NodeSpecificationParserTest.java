@@ -4,23 +4,23 @@ import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.BoostSpecification.boost;
 import static fi.thl.termed.util.query.NotSpecification.not;
 import static fi.thl.termed.util.query.OrSpecification.or;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NodeSpecificationParserTest {
+class NodeSpecificationParserTest {
 
   private NodeSpecificationParser parser = new NodeSpecificationParser();
 
   @Test
-  public void shouldParsePrefixQuery() {
+  void shouldParsePrefixQuery() {
     assertEquals(or(and(
         new NodesByPropertyPrefix("label", "", "ab"))),
         parser.apply("properties.label:ab*"));
   }
 
   @Test
-  public void shouldParseBooleanQueries() {
+  void shouldParseBooleanQueries() {
     assertEquals(or(and(
         new NodesByPropertyPrefix("label", "", "ab"),
         new NodesByPropertyPrefix("note", "", "ab"))),
@@ -46,7 +46,7 @@ public class NodeSpecificationParserTest {
   }
 
   @Test
-  public void shouldParseBoostQueries() {
+  void shouldParseBoostQueries() {
     assertEquals(or(and(
         boost(new NodesByPropertyPrefix("label", "", "ab"), 2),
         new NodesByPropertyPrefix("note", "", "ab"))),

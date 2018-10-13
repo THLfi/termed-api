@@ -13,12 +13,12 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import java.util.Objects;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TypeAdminApiIntegrationTest extends BaseApiIntegrationTest {
+class TypeAdminApiIntegrationTest extends BaseApiIntegrationTest {
 
   @Test
-  public void shouldSaveAndGetTrivialResource() {
+  void shouldSaveAndGetTrivialResource() {
     // set up
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleGraph)

@@ -4,9 +4,9 @@ import static fi.thl.termed.util.UUIDs.nameUUIDFromString;
 import static org.apache.jena.rdf.model.ResourceFactory.createLangLiteral;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 import static org.apache.jena.rdf.model.ResourceFactory.createStatement;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Node;
@@ -29,15 +29,15 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.SKOS;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class NodeRdfGraphWrapperTest {
+class NodeRdfGraphWrapperTest {
 
   private Model model;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     List<Type> types = new ArrayList<>();
     SystemDao<NodeId, Node> nodeDao = new MemoryBasedSystemDao<>();
 
@@ -77,7 +77,7 @@ public class NodeRdfGraphWrapperTest {
   }
 
   @Test
-  public void wrappedGraphShouldListAllTriples() {
+  void wrappedGraphShouldListAllTriples() {
     Set<Statement> expected = ImmutableSet.of(
         createStatement(createResource("http://example.org/Concept_1"), RDF.type, SKOS.Concept),
         createStatement(createResource("http://example.org/Concept_1"), SKOS.prefLabel,
@@ -92,7 +92,7 @@ public class NodeRdfGraphWrapperTest {
   }
 
   @Test
-  public void wrappedGraphShouldListTriplesByLiteralValue() {
+  void wrappedGraphShouldListTriplesByLiteralValue() {
     Statement expected = createStatement(createResource("http://example.org/Concept_1"),
         SKOS.prefLabel, createLangLiteral("Concept 1", "en"));
 
@@ -104,7 +104,7 @@ public class NodeRdfGraphWrapperTest {
   }
 
   @Test
-  public void wrappedGraphShouldListTriplesByReferenceValue() {
+  void wrappedGraphShouldListTriplesByReferenceValue() {
     Statement expected = createStatement(createResource("http://example.org/Concept_2"),
         SKOS.broader, createResource("http://example.org/Concept_1"));
 

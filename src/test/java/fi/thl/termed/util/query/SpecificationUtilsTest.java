@@ -5,8 +5,8 @@ import static fi.thl.termed.util.query.NotSpecification.not;
 import static fi.thl.termed.util.query.OrSpecification.or;
 import static fi.thl.termed.util.query.SpecificationUtils.simplify;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -17,12 +17,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class SpecificationUtilsTest {
+class SpecificationUtilsTest {
 
   @Test
-  public void shouldRemoveDuplicates() {
+  void shouldRemoveDuplicates() {
     assertEquals("(A ∧ B)",
         prettyPrint(simplify(
             and(SimpleSpec.of("A"), SimpleSpec.of("A"), SimpleSpec.of("B")))));
@@ -33,7 +33,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldFlattenSingletonCompositeSpecs() {
+  void shouldFlattenSingletonCompositeSpecs() {
     assertEquals("A",
         prettyPrint(simplify(
             and(and(and(SimpleSpec.of("A")))))));
@@ -48,7 +48,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldSimplifyConjunctiveSpecContainingMatchNodeToMatchNone() {
+  void shouldSimplifyConjunctiveSpecContainingMatchNodeToMatchNone() {
     assertEquals(new MatchNone<>(),
         simplify(
             and(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
@@ -69,7 +69,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldSimplifyDoubleNegation() {
+  void shouldSimplifyDoubleNegation() {
     assertEquals(SimpleSpec.of("A"),
         simplify(not(not(SimpleSpec.of("A")))));
 
@@ -81,7 +81,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldSimplifyNestedNotSpecifications() {
+  void shouldSimplifyNestedNotSpecifications() {
     assertEquals(
         or(not(SimpleSpec.of("B")), SimpleSpec.of("A")),
         simplify(not(and(SimpleSpec.of("B"), not(SimpleSpec.of("A"))))));
@@ -92,7 +92,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldSimplifyNestedSpecifications() {
+  void shouldSimplifyNestedSpecifications() {
     assertEquals(
         or(SimpleSpec.of("A"), SimpleSpec.of("B"), SimpleSpec.of("C")),
         simplify(or(SimpleSpec.of("A"), or(SimpleSpec.of("B"), SimpleSpec.of("C")))));
@@ -111,7 +111,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldSimplifyNestedSpecificationsWithNot() {
+  void shouldSimplifyNestedSpecificationsWithNot() {
     assertEquals(or(
         SimpleSpec.of("A"),
         SimpleSpec.of("B"),
@@ -127,19 +127,19 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldNotSimplifyDisjunctiveSpecContainingMatchNoneToMatchNone() {
+  void shouldNotSimplifyDisjunctiveSpecContainingMatchNoneToMatchNone() {
     assertNotEquals(new MatchNone<>(), simplify(
         or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
   }
 
   @Test
-  public void shouldRemoveRedundantMatchNoneFromDisjunction() {
+  void shouldRemoveRedundantMatchNoneFromDisjunction() {
     assertEquals(or(SimpleSpec.of("A"), SimpleSpec.of("B")),
         simplify(or(SimpleSpec.of("A"), new MatchNone<>(), SimpleSpec.of("B"))));
   }
 
   @Test
-  public void shouldConvertToDnf() {
+  void shouldConvertToDnf() {
     assertEquals("((A ∧ X) ∨ (A ∧ Y) ∨ (B ∧ X) ∨ (B ∧ Y))",
         prettyPrint(SpecificationUtils.toDnf(
             and(or(SimpleSpec.of("A"), SimpleSpec.of("B")),
@@ -161,7 +161,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldConvertToCnf() {
+  void shouldConvertToCnf() {
     assertEquals("((A ∨ X) ∧ (A ∨ Y) ∧ (B ∨ X) ∧ (B ∨ Y))",
         prettyPrint(SpecificationUtils.toCnf(
             or(and(SimpleSpec.of("A"), SimpleSpec.of("B")),
@@ -169,7 +169,7 @@ public class SpecificationUtilsTest {
   }
 
   @Test
-  public void shouldConvertNodeSpecToDnf() {
+  void shouldConvertNodeSpecToDnf() {
     UUID graphId = UUID.randomUUID();
     String typeId = "Concept";
     String query = "cat";

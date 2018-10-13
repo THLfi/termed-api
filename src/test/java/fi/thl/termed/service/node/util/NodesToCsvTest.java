@@ -1,7 +1,7 @@
 package fi.thl.termed.service.node.util;
 
 import static fi.thl.termed.util.UUIDs.nilUuid;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -17,9 +17,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NodesToCsvTest {
+class NodesToCsvTest {
 
   private GraphId graphId = GraphId.random();
   private TypeId typeId = TypeId.of("Type", graphId);
@@ -40,7 +40,7 @@ public class NodesToCsvTest {
   }
 
   @Test
-  public void shouldConvertSimpleNodesToCsvAndBack() {
+  void shouldConvertSimpleNodesToCsvAndBack() {
     List<Node> nodes = ImmutableList.of(
         Node.builder()
             .random(typeId)
@@ -59,7 +59,7 @@ public class NodesToCsvTest {
   }
 
   @Test
-  public void shouldConvertComplexNodesToCsvAndBack() {
+  void shouldConvertComplexNodesToCsvAndBack() {
     List<Node> nodes = ImmutableList.of(
         Node.builder()
             .random(typeId)

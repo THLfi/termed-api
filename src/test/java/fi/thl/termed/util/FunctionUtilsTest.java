@@ -1,19 +1,18 @@
 package fi.thl.termed.util;
 
 
-import fi.thl.termed.util.collect.FunctionUtils;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import fi.thl.termed.util.collect.FunctionUtils;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public class FunctionUtilsTest {
+class FunctionUtilsTest {
 
   @Test
-  public void shouldPartialApply() {
+  void shouldPartialApply() {
     BiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;
 
     Function<Integer, Integer> addOne = FunctionUtils.partialApply(add, 1);
@@ -23,7 +22,7 @@ public class FunctionUtilsTest {
   }
 
   @Test
-  public void shouldPartialApplySecond() {
+  void shouldPartialApplySecond() {
     BiFunction<String, String, String> concatenate = (a, b) -> a + b;
 
     Function<String, String> append = FunctionUtils.partialApply(concatenate, "|");
@@ -34,7 +33,7 @@ public class FunctionUtilsTest {
   }
 
   @Test
-  public void shouldMemoizeFunction() {
+  void shouldMemoizeFunction() {
     final AtomicInteger counter = new AtomicInteger();
 
     Function<String, Integer> toIntFunction = str -> {
@@ -66,7 +65,7 @@ public class FunctionUtilsTest {
   }
 
   @Test
-  public void shouldMemoizeFunctionWithLimitedCache() {
+  void shouldMemoizeFunctionWithLimitedCache() {
     final AtomicInteger counter = new AtomicInteger();
 
     Function<String, Integer> toIntFunction = str -> {

@@ -1,23 +1,24 @@
 package fi.thl.termed.util.collect;
 
 import static com.google.common.collect.ImmutableList.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class LazyLoadingMultimapTest {
+class LazyLoadingMultimapTest {
 
   private Multimap<String, Integer> map;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     map = new LazyLoadingMultimap<>(ImmutableSet.of("a", "b"), key -> {
       switch (key) {
         case "a":
@@ -31,29 +32,29 @@ public class LazyLoadingMultimapTest {
   }
 
   @Test
-  public void shouldNotBeEmpty() {
+  void shouldNotBeEmpty() {
     assertFalse(map.isEmpty());
   }
 
   @Test
-  public void shouldGetSize() {
+  void shouldGetSize() {
     assertEquals(3, map.size());
   }
 
   @Test
-  public void shouldGetValuesForKey() {
+  void shouldGetValuesForKey() {
     assertEquals(of(1, 2), map.get("a"));
     assertEquals(of(), map.get("does not exists"));
   }
 
   @Test
-  public void shouldContainKey() {
+  void shouldContainKey() {
     assertTrue(map.containsKey("a"));
     assertFalse(map.containsKey("does not exist"));
   }
 
   @Test
-  public void shouldContainEntry() {
+  void shouldContainEntry() {
     assertTrue(map.containsEntry("a", 1));
     assertTrue(map.containsEntry("a", 2));
     assertFalse(map.containsEntry("a", 3));
@@ -63,7 +64,7 @@ public class LazyLoadingMultimapTest {
   }
 
   @Test
-  public void shouldContainValue() {
+  void shouldContainValue() {
     assertTrue(map.containsValue(1));
     assertTrue(map.containsValue(2));
     assertTrue(map.containsValue(3));
@@ -71,33 +72,33 @@ public class LazyLoadingMultimapTest {
   }
 
   @Test
-  public void shouldGetAllValues() {
+  void shouldGetAllValues() {
     assertEquals(of(1, 2, 3), map.values());
   }
 
   @Test
-  public void shouldGetAllKeys() {
+  void shouldGetAllKeys() {
     assertEquals(ImmutableMultiset.of("a", "a", "b"), map.keys());
   }
 
   @Test
-  public void shouldGetKeySet() {
+  void shouldGetKeySet() {
     assertEquals(ImmutableSet.of("a", "b"), map.keySet());
   }
 
   @Test
-  public void shouldGetAsMap() {
+  void shouldGetAsMap() {
     assertEquals(ImmutableMap.of("a", of(1, 2), "b", of(3)), map.asMap());
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void shouldFailOnPut() {
-    map.put("foo", 1);
+  @Test
+  void shouldFailOnPut() {
+    assertThrows(UnsupportedOperationException.class, () -> map.put("foo", 1));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void shouldFailOnRemove() {
-    map.remove("foo", 1);
+  @Test
+  void shouldFailOnRemove() {
+    assertThrows(UnsupportedOperationException.class, () -> map.remove("foo", 1));
   }
 
 }

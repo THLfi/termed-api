@@ -19,17 +19,20 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.util.List;
 import java.util.UUID;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
+@TestInstance(Lifecycle.PER_CLASS)
 @SpringBootTest
-public abstract class BaseNodeServiceIntegrationTest {
+abstract class BaseNodeServiceIntegrationTest {
 
   protected User user;
   protected UUID graphId;
@@ -44,7 +47,7 @@ public abstract class BaseNodeServiceIntegrationTest {
   @Autowired
   private Service<String, User> userService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     insertTestUser();
     insertTestGraph();
@@ -67,7 +70,7 @@ public abstract class BaseNodeServiceIntegrationTest {
 
   protected abstract List<Type> buildTestTypes();
 
-  @After
+  @AfterEach
   public void tearDown() {
     deleteTestNodes();
     deleteTestTypes();

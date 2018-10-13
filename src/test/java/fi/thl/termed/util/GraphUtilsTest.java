@@ -1,26 +1,23 @@
 package fi.thl.termed.util;
 
-import java.util.Objects;
-import java.util.function.Function;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
-
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public class GraphUtilsTest {
+class GraphUtilsTest {
 
   @Test
-  public void shouldFindAllPathsFromTree() {
+  void shouldFindAllPathsFromTree() {
     Node tree = new Node("1",
-                         new Node("1.1",
-                                  new Node("1.1.1")),
-                         new Node("1.2",
-                                  new Node("1.2.1"), new Node("1.2.2"), new Node("1.2.3")));
+        new Node("1.1",
+            new Node("1.1.1")),
+        new Node("1.2",
+            new Node("1.2.1"), new Node("1.2.2"), new Node("1.2.3")));
 
     List<List<Node>> paths = GraphUtils.collectPaths(tree, new NodeNeighbourFunction());
 
@@ -32,7 +29,7 @@ public class GraphUtilsTest {
   }
 
   @Test
-  public void shouldFindAllPathsFromDAG() {
+  void shouldFindAllPathsFromDAG() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -50,7 +47,7 @@ public class GraphUtilsTest {
   }
 
   @Test
-  public void shouldFindAllPathsFromGraph() {
+  void shouldFindAllPathsFromGraph() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -69,7 +66,7 @@ public class GraphUtilsTest {
   }
 
   @Test
-  public void shouldFindAllReachableNodes() {
+  void shouldFindAllReachableNodes() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -80,15 +77,15 @@ public class GraphUtilsTest {
     c.neigbours = Lists.newArrayList(a, d);
 
     assertEquals("[a, b, d, c]",
-                 GraphUtils.collectNodes(a, new NodeNeighbourFunction()).toString());
+        GraphUtils.collectNodes(a, new NodeNeighbourFunction()).toString());
     assertEquals("[b, d]",
-                 GraphUtils.collectNodes(b, new NodeNeighbourFunction()).toString());
+        GraphUtils.collectNodes(b, new NodeNeighbourFunction()).toString());
     assertEquals("[c, a, b, d]",
-                 GraphUtils.collectNodes(c, new NodeNeighbourFunction()).toString());
+        GraphUtils.collectNodes(c, new NodeNeighbourFunction()).toString());
   }
 
   @Test
-  public void shouldPrettyPrintDAG() {
+  void shouldPrettyPrintDAG() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -101,14 +98,14 @@ public class GraphUtilsTest {
     String tree = GraphUtils.prettyPrintTree(GraphUtils.toTree(a, new NodeNeighbourFunction()));
 
     assertEquals(" - a\n"
-                 + "\t - b\n"
-                 + "\t\t - d\n"
-                 + "\t - c\n"
-                 + "\t\t - d\n", tree);
+        + "\t - b\n"
+        + "\t\t - d\n"
+        + "\t - c\n"
+        + "\t\t - d\n", tree);
   }
 
   @Test
-  public void shouldPrettyPrintGraph() {
+  void shouldPrettyPrintGraph() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -121,14 +118,14 @@ public class GraphUtilsTest {
     String tree = GraphUtils.prettyPrintTree(GraphUtils.toTree(a, new NodeNeighbourFunction()));
 
     assertEquals(" - a\n"
-                 + "\t - b\n"
-                 + "\t\t - d\n"
-                 + "\t - c\n"
-                 + "\t\t - d\n", tree);
+        + "\t - b\n"
+        + "\t\t - d\n"
+        + "\t - c\n"
+        + "\t\t - d\n", tree);
   }
 
   @Test
-  public void shouldPrettyPrintAnotherGraph() {
+  void shouldPrettyPrintAnotherGraph() {
     Node a = new Node("a");
     Node b = new Node("b");
     Node c = new Node("c");
@@ -146,18 +143,18 @@ public class GraphUtilsTest {
     String tree = GraphUtils.prettyPrintTree(GraphUtils.toTree(a, new NodeNeighbourFunction()));
 
     assertEquals(" - a\n"
-                 + "\t - b\n"
-                 + "\t\t - d\n"
-                 + "\t\t - e\n"
-                 + "\t\t\t - d\n"
-                 + "\t\t - c\n"
-                 + "\t\t\t - d\n"
-                 + "\t - c\n"
-                 + "\t\t - d\n"
-                 + "\t - e\n"
-                 + "\t\t - d\n"
-                 + "\t - f\n"
-                 + "\t\t - d\n", tree);
+        + "\t - b\n"
+        + "\t\t - d\n"
+        + "\t\t - e\n"
+        + "\t\t\t - d\n"
+        + "\t\t - c\n"
+        + "\t\t\t - d\n"
+        + "\t - c\n"
+        + "\t\t - d\n"
+        + "\t - e\n"
+        + "\t\t - d\n"
+        + "\t - f\n"
+        + "\t\t - d\n", tree);
   }
 
   private class NodeNeighbourFunction implements Function<Node, List<Node>> {

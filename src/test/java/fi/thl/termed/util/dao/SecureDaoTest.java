@@ -1,10 +1,9 @@
 package fi.thl.termed.util.dao;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Maps;
 import fi.thl.termed.domain.AppRole;
@@ -12,15 +11,15 @@ import fi.thl.termed.domain.Permission;
 import fi.thl.termed.domain.User;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
-public class SecureDaoTest {
+class SecureDaoTest {
 
   private User dummyUser = new User("testUser", "testUser", AppRole.USER);
 
   @Test
-  public void shouldTreatSecretReadDataAsNonexistent() {
+  void shouldTreatSecretReadDataAsNonexistent() {
     Map<String, String> data = Maps.newHashMap();
 
     data.put("greeting", "Hello");
@@ -40,7 +39,7 @@ public class SecureDaoTest {
   }
 
   @Test
-  public void shouldIgnoreModificationsOnWriteProtectedData() {
+  void shouldIgnoreModificationsOnWriteProtectedData() {
     Map<String, String> data = Maps.newHashMap();
 
     data.put("greeting", "Hello");
@@ -59,28 +58,20 @@ public class SecureDaoTest {
     secureDao.update("greeting", "Hello updated", dummyUser);
     assertEquals("Hello updated", secureDao.get("greeting", dummyUser).get());
 
-    try {
-      secureDao.update("locked_greeting", "Good day updated", dummyUser);
-      fail("Expected AccessDeniedException");
-    } catch (AccessDeniedException e) {
-      assertNotEquals("Good day updated", secureDao.get("locked_greeting", dummyUser));
-      assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(AccessDeniedException.class,
+        () -> secureDao.update("locked_greeting", "Good day updated", dummyUser));
+
+    assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
 
     secureDao.delete("greeting", dummyUser);
+
     assertFalse(secureDao.exists("greeting", dummyUser));
 
-    try {
-      secureDao.delete("locked_greeting", dummyUser);
-      fail("Expected AccessDeniedException");
-    } catch (AccessDeniedException e) {
-      assertTrue(secureDao.exists("locked_greeting", dummyUser));
-      assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(AccessDeniedException.class,
+        () -> secureDao.delete("locked_greeting", dummyUser));
+
+    assertTrue(secureDao.exists("locked_greeting", dummyUser));
+    assertEquals("Good day", secureDao.get("locked_greeting", dummyUser).get());
   }
 
 }

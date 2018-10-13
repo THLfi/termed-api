@@ -6,10 +6,10 @@ import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMultimap;
 import fi.thl.termed.domain.Node;
@@ -31,24 +31,24 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
-public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
-  @Before
-  public void verifyGraphNodeDbAndIndexAreEmpty() {
+  @BeforeEach
+  void verifyGraphNodeDbAndIndexAreEmpty() {
     assertEquals(0,
         nodeService.count(new ForwardingSqlSpecification<>(new NodesByGraphId(graphId)), user));
     assertEquals(0,
         nodeService.count(new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId)), user));
   }
 
-  @After
-  public void verifyGraphNodeIndexIntegrity() {
+  @AfterEach
+  void verifyGraphNodeIndexIntegrity() {
     try (
         Stream<Node> dbNodeStream = nodeService.values(new Query<>(
             new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user);
@@ -89,7 +89,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertNode() {
+  void shouldInsertNode() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder().id(nodeId).build();
 
@@ -101,7 +101,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertManyNodesWithCorrectNumbers() {
+  void shouldInsertManyNodesWithCorrectNumbers() {
     int testNodeCount = 2500;
 
     assertEquals(0, nodeService.count(new NodesByGraphId(graphId), user));
@@ -121,8 +121,8 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     }
   }
 
-  @Test(expected = DuplicateKeyException.class)
-  public void shouldNotInsertNodeTwice() {
+  @Test
+  void shouldNotInsertNodeTwice() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder().id(nodeId).build();
 
@@ -132,11 +132,12 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
     assertTrue(nodeService.exists(nodeId, user));
 
-    nodeService.save(examplePerson, INSERT, defaultOpts(), user);
+    assertThrows(DuplicateKeyException.class,
+        () -> nodeService.save(examplePerson, INSERT, defaultOpts(), user));
   }
 
   @Test
-  public void shouldUpsertNodeTwice() {
+  void shouldUpsertNodeTwice() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder().id(nodeId).build();
 
@@ -152,7 +153,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldGenerateNodeNumbers() {
+  void shouldGenerateNodeNumbers() {
     NodeId node0Id = NodeId.random("Person", graphId);
     Node node0 = Node.builder().id(node0Id).build();
 
@@ -172,7 +173,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldOnlyUseGeneratedNumbers() {
+  void shouldOnlyUseGeneratedNumbers() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder()
         .id(nodeId)
@@ -194,7 +195,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotAllowDuplicateCodes() {
+  void shouldNotAllowDuplicateCodes() {
     NodeId nodeId0 = NodeId.random("Person", graphId);
     Node node0 = Node.builder()
         .id(nodeId0)
@@ -210,19 +211,15 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     assertFalse(nodeService.exists(nodeId0, user));
     assertFalse(nodeService.exists(nodeId1, user));
 
-    try {
-      nodeService.save(Stream.of(node0, node1), INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(nodeService.exists(nodeId0, user));
-      assertFalse(nodeService.exists(nodeId1, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.save(Stream.of(node0, node1), INSERT, defaultOpts(), user));
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
   }
 
   @Test
-  public void shouldInsertNodeWithProperties() {
+  void shouldInsertNodeWithProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder()
         .id(nodeId)
@@ -243,7 +240,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldNotInsertNodeWithIllegalProperties() {
+  void shouldNotInsertNodeWithIllegalProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node examplePerson = Node.builder().id(nodeId)
         .addProperty("name", "John")
@@ -252,18 +249,14 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
     assertFalse(nodeService.exists(nodeId, user));
 
-    try {
-      nodeService.save(examplePerson, INSERT, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertFalse(nodeService.exists(nodeId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.save(examplePerson, INSERT, defaultOpts(), user));
+
+    assertFalse(nodeService.exists(nodeId, user));
   }
 
   @Test
-  public void shouldUpdateNodeWithProperties() {
+  void shouldUpdateNodeWithProperties() {
     NodeId jackId = NodeId.random("Person", graphId);
 
     Node jack = Node.builder().id(jackId)
@@ -298,7 +291,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldInsertNodeWithReferences() {
+  void shouldInsertNodeWithReferences() {
     NodeId johnId = NodeId.random("Person", graphId);
     NodeId jackId = NodeId.random("Person", graphId);
     NodeId maryId = NodeId.random("Person", graphId);
@@ -328,7 +321,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldUpdateNodeWithReferences() {
+  void shouldUpdateNodeWithReferences() {
     NodeId johnId = NodeId.random("Person", graphId);
     NodeId jackId = NodeId.random("Person", graphId);
     NodeId maryId = NodeId.random("Person", graphId);
@@ -366,7 +359,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldDeleteNodesWithCircularReferences() {
+  void shouldDeleteNodesWithCircularReferences() {
     NodeId johnId = NodeId.random("Person", graphId);
     NodeId jackId = NodeId.random("Person", graphId);
 
@@ -391,7 +384,7 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
-  public void shouldFailToDeleteReferencedNode() {
+  void shouldFailToDeleteReferencedNode() {
     NodeId johnId = NodeId.random("Person", graphId);
     NodeId jackId = NodeId.random("Person", graphId);
 
@@ -408,14 +401,10 @@ public class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     assertTrue(nodeService.exists(johnId, user));
     assertTrue(nodeService.exists(jackId, user));
 
-    try {
-      nodeService.delete(johnId, defaultOpts(), user);
-      fail("Expected DataIntegrityViolationException");
-    } catch (DataIntegrityViolationException e) {
-      assertTrue(nodeService.exists(jackId, user));
-    } catch (Throwable t) {
-      fail("Unexpected error: " + t);
-    }
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.delete(johnId, defaultOpts(), user));
+
+    assertTrue(nodeService.exists(jackId, user));
   }
 
 }
