@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -216,6 +217,37 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
     assertFalse(nodeService.exists(nodeId0, user));
     assertFalse(nodeService.exists(nodeId1, user));
+  }
+
+  @Test
+  void shouldNotGenerateDefaultCodeIfIsAlreadyInUse() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        // give code that would be default for the next node
+        .code("person-2")
+        .build();
+
+    NodeId nodeId2 = NodeId.random("Person", graphId);
+    Node node2 = Node.builder()
+        .id(nodeId2)
+        .build();
+
+    nodeService.save(node0, INSERT, defaultOpts(), user);
+    nodeService.save(node1, INSERT, defaultOpts(), user);
+    nodeService.save(node2, INSERT, defaultOpts(), user);
+
+    assertEquals("person-0", nodeService.get(nodeId0, user)
+        .flatMap(Node::getCode).orElse(null));
+    assertEquals("person-2", nodeService.get(nodeId1, user)
+        .flatMap(Node::getCode).orElse(null));
+    assertNull(nodeService.get(nodeId2, user)
+        .flatMap(Node::getCode).orElse(null));
   }
 
   @Test

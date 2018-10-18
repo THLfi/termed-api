@@ -98,7 +98,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
   private Optional<String> buildDefaultCode(TypeId typeId, Long number, User user) {
     Type type = typeSource.apply(typeId, user);
     String defaultCode = type.getNodeCodePrefixOrDefault() + number;
-    return existsNodeWithCode(typeId, defaultCode, user) ?
+    return !existsNodeWithCode(typeId, defaultCode, user) ?
         Optional.of(defaultCode) : Optional.empty();
   }
 
@@ -107,7 +107,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
 
     if (graph.getUri().isPresent() && code.isPresent()) {
       String defaultUri = graph.getUri().get() + code.get();
-      return existsNodeWithUri(graphId, defaultUri, user) ?
+      return !existsNodeWithUri(graphId, defaultUri, user) ?
           Optional.of(defaultUri) : Optional.empty();
     }
 
