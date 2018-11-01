@@ -1,29 +1,28 @@
 package fi.thl.termed.util.collect;
 
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
 
-  private final Set<K> keys;
-  private final Function<K, List<V>> valueLoader;
+  private final ImmutableSet<K> keys;
+  private final Function<K, ImmutableList<V>> valueLoader;
 
-  public LazyLoadingMultimap(Set<K> keys, Function<K, List<V>> valueLoader) {
+  public LazyLoadingMultimap(ImmutableSet<K> keys,
+      Function<K, ImmutableList<V>> valueLoader) {
     this.keys = requireNonNull(keys);
     this.valueLoader = requireNonNull(valueLoader);
   }
@@ -39,12 +38,12 @@ public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
   }
 
   @Override
-  public List<V> get(K key) {
-    return keys.contains(key) ? valueLoader.apply(key) : emptyList();
+  public ImmutableList<V> get(K key) {
+    return keys.contains(key) ? valueLoader.apply(key) : ImmutableList.of();
   }
 
   @Override
-  public Set<K> keySet() {
+  public ImmutableSet<K> keySet() {
     return keys;
   }
 
@@ -66,32 +65,32 @@ public class LazyLoadingMultimap<K, V> implements ListMultimap<K, V> {
   }
 
   @Override
-  public Multiset<K> keys() {
-    Multiset<K> keys = LinkedHashMultiset.create();
+  public ImmutableMultiset<K> keys() {
+    ImmutableMultiset.Builder<K> keys = ImmutableMultiset.builder();
     entries().forEach(e -> keys.add(e.getKey()));
-    return keys;
+    return keys.build();
   }
 
   @Override
-  public Collection<V> values() {
-    Collection<V> values = new ArrayList<>();
+  public ImmutableCollection<V> values() {
+    ImmutableList.Builder<V> values = ImmutableList.builder();
     keys.forEach(key -> values.addAll(get(key)));
-    return values;
+    return values.build();
   }
 
   @Override
-  public Collection<Entry<K, V>> entries() {
-    Collection<Entry<K, V>> entries = new ArrayList<>();
+  public ImmutableCollection<Entry<K, V>> entries() {
+    ImmutableList.Builder<Entry<K, V>> entries = ImmutableList.builder();
     keys.forEach(key -> get(key)
-        .forEach(value -> entries.add(new SimpleEntry<>(key, value))));
-    return entries;
+        .forEach(value -> entries.add(new SimpleImmutableEntry<>(key, value))));
+    return entries.build();
   }
 
   @Override
-  public Map<K, Collection<V>> asMap() {
-    Map<K, Collection<V>> map = new LinkedHashMap<>();
+  public ImmutableMap<K, Collection<V>> asMap() {
+    ImmutableMap.Builder<K, Collection<V>> map = ImmutableMap.builder();
     keys.forEach(key -> map.put(key, get(key)));
-    return map;
+    return map.build();
   }
 
   // modifications are not supported

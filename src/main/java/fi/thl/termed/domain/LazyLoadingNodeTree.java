@@ -1,5 +1,7 @@
 package fi.thl.termed.domain;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.LazyLoadingMultimap;
 import java.util.Date;
@@ -7,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 public final class LazyLoadingNodeTree implements NodeTree {
 
@@ -79,7 +80,7 @@ public final class LazyLoadingNodeTree implements NodeTree {
     return new LazyLoadingMultimap<>(source.getReferences().keySet(),
         attrId -> referenceProvider.apply(source, attrId).stream()
             .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
-            .collect(Collectors.toList()));
+            .collect(toImmutableList()));
   }
 
   @Override
@@ -87,7 +88,7 @@ public final class LazyLoadingNodeTree implements NodeTree {
     return new LazyLoadingMultimap<>(source.getReferrers().keySet(),
         attrId -> referrerProvider.apply(source, attrId).stream()
             .map(value -> new LazyLoadingNodeTree(value, referenceProvider, referrerProvider))
-            .collect(Collectors.toList()));
+            .collect(toImmutableList()));
   }
 
 }
