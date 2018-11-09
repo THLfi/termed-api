@@ -2,10 +2,10 @@ package fi.thl.termed.domain;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.LazyLoadingMultimap;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -14,12 +14,12 @@ public final class LazyLoadingNodeTree implements NodeTree {
 
   private final Node source;
 
-  private final BiFunction<Node, String, List<Node>> referenceProvider;
-  private final BiFunction<Node, String, List<Node>> referrerProvider;
+  private final BiFunction<Node, String, ImmutableList<Node>> referenceProvider;
+  private final BiFunction<Node, String, ImmutableList<Node>> referrerProvider;
 
   public LazyLoadingNodeTree(Node source,
-      BiFunction<Node, String, List<Node>> referenceProvider,
-      BiFunction<Node, String, List<Node>> referrerProvider) {
+      BiFunction<Node, String, ImmutableList<Node>> referenceProvider,
+      BiFunction<Node, String, ImmutableList<Node>> referrerProvider) {
     this.source = source;
     this.referenceProvider = referenceProvider;
     this.referrerProvider = referrerProvider;

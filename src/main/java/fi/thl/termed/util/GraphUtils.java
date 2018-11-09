@@ -59,14 +59,14 @@ public final class GraphUtils {
    * Enumerate all paths leading to a node using neighbour function.
    */
   public static <T> List<List<T>> collectPaths(T node,
-                                               Function<T, List<T>> neighbourFunction) {
+                                               Function<T, ? extends List<T>> neighbourFunction) {
     List<List<T>> paths = Lists.newArrayList();
     collectPaths(node, neighbourFunction, Sets.newLinkedHashSet(), paths);
     return paths;
   }
 
   private static <T> void collectPaths(T node,
-                                       Function<T, List<T>> neighbourFunction,
+                                       Function<T, ? extends List<T>> neighbourFunction,
                                        Set<T> path,
                                        List<List<T>> results) {
 
@@ -121,9 +121,9 @@ public final class GraphUtils {
    */
   public static class ToTreeFunction<T> implements Function<T, Tree<T>> {
 
-    private Function<T, List<T>> neighbourFunction;
+    private Function<T, ? extends List<T>> neighbourFunction;
 
-    public ToTreeFunction(Function<T, List<T>> neighbourFunction) {
+    public ToTreeFunction(Function<T, ? extends List<T>> neighbourFunction) {
       this.neighbourFunction = neighbourFunction;
     }
 

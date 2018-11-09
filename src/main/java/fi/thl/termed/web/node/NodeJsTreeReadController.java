@@ -6,6 +6,7 @@ import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -62,9 +63,9 @@ public class NodeJsTreeReadController {
     Node node = nodeService.get(new NodeId(nodeId, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Function<Node, List<Node>> referenceLoadingFunction =
+    Function<Node, ImmutableList<Node>> referenceLoadingFunction =
         partialApplySecond(new IndexedReferenceLoader(nodeService, user), attributeId);
-    Function<Node, List<Node>> referrerLoadingFunction =
+    Function<Node, ImmutableList<Node>> referrerLoadingFunction =
         partialApplySecond(new IndexedReferrerLoader(nodeService, user), attributeId);
 
     Set<Node> roots = Sets.newLinkedHashSet();

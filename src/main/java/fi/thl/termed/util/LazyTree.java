@@ -1,15 +1,13 @@
 package fi.thl.termed.util;
 
-import java.util.function.Function;
 import com.google.common.base.MoreObjects;
-import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import java.util.List;
-import java.util.Set;
-
 import fi.thl.termed.util.collect.ListUtils;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Lazy loading implementation of a Tree. Checks for loops against the current path to avoid
@@ -18,7 +16,7 @@ import fi.thl.termed.util.collect.ListUtils;
 public class LazyTree<T> implements Tree<T> {
 
   private T data;
-  private Function<T, List<T>> neighbourFunction;
+  private Function<T, ? extends List<T>> neighbourFunction;
 
   private Set<T> path;
   private List<Tree<T>> children;
@@ -27,11 +25,11 @@ public class LazyTree<T> implements Tree<T> {
    * Construct a new tree based root data and a function for loading children.
    */
   @SuppressWarnings("unchecked")
-  public LazyTree(T data, java.util.function.Function<T, List<T>> neighbourFunction) {
+  public LazyTree(T data, Function<T, ? extends List<T>> neighbourFunction) {
     this(data, Sets.newLinkedHashSet(Lists.newArrayList(data)), neighbourFunction);
   }
 
-  private LazyTree(T data, Set<T> path, java.util.function.Function<T, List<T>> neighbourFunction) {
+  private LazyTree(T data, Set<T> path, Function<T, ? extends List<T>> neighbourFunction) {
     this.data = data;
     this.path = path;
     this.neighbourFunction = neighbourFunction;
@@ -92,7 +90,7 @@ public class LazyTree<T> implements Tree<T> {
     }
     LazyTree<?> lazyTree = (LazyTree<?>) o;
     return Objects.equals(path, lazyTree.path) &&
-           Objects.equals(data, lazyTree.data);
+        Objects.equals(data, lazyTree.data);
   }
 
   @Override

@@ -1,9 +1,11 @@
 package fi.thl.termed.service.node.util;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -14,12 +16,9 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.service.Service;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Load node references from index.
  */
-public class IndexedReferenceLoader implements BiFunction<Node, String, List<Node>> {
+public class IndexedReferenceLoader implements BiFunction<Node, String, ImmutableList<Node>> {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -49,7 +48,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
   }
 
   @Override
-  public List<Node> apply(Node node, String attributeId) {
+  public ImmutableList<Node> apply(Node node, String attributeId) {
     Preconditions.checkArgument(attributeId.matches(RegularExpressions.CODE));
 
     Query<NodeId, Node> query = new Query<>(selects,
@@ -68,7 +67,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, List<Nod
       return referenceIds.stream()
           .filter(referenceValueMap::containsKey)
           .map(referenceValueMap::get)
-          .collect(Collectors.toList());
+          .collect(toImmutableList());
     }
   }
 

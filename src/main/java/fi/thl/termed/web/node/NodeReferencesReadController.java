@@ -2,6 +2,7 @@ package fi.thl.termed.web.node;
 
 import static fi.thl.termed.util.collect.FunctionUtils.partialApplySecond;
 
+import com.google.common.collect.ImmutableList;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
@@ -72,7 +73,7 @@ public class NodeReferencesReadController {
     Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Function<Node, List<Node>> loadReferences =
+    Function<Node, ImmutableList<Node>> loadReferences =
         partialApplySecond(new IndexedReferenceLoader(nodeService, user), attributeId);
 
     Set<Node> results = new LinkedHashSet<>();
@@ -125,7 +126,7 @@ public class NodeReferencesReadController {
     Node root = nodeService.get(new NodeId(id, typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Function<Node, List<Node>> loadReferrers =
+    Function<Node, ImmutableList<Node>> loadReferrers =
         partialApplySecond(new IndexedReferrerLoader(nodeService, user), attributeId);
 
     Set<Node> results = new LinkedHashSet<>();
@@ -135,7 +136,8 @@ public class NodeReferencesReadController {
     return results;
   }
 
-  private <T> void collectNeighbours(Set<T> results, T node, Function<T, List<T>> getNeighbours) {
+  private <T> void collectNeighbours(Set<T> results, T node,
+      Function<T, ImmutableList<T>> getNeighbours) {
     if (!results.contains(node)) {
       results.add(node);
       for (T neighbour : getNeighbours.apply(node)) {
