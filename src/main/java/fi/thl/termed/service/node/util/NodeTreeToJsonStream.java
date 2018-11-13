@@ -3,8 +3,10 @@ package fi.thl.termed.service.node.util;
 import com.google.gson.stream.JsonWriter;
 import fi.thl.termed.domain.NodeTree;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.UUIDs;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Set;
 import org.joda.time.DateTime;
 
 public final class NodeTreeToJsonStream {
@@ -31,7 +33,7 @@ public final class NodeTreeToJsonStream {
 
     if (tree.getId() != null) {
       writer.name("id");
-      writer.value(tree.getId().toString());
+      writer.value(UUIDs.toString(tree.getId()));
     }
     if (tree.getCode().isPresent()) {
       writer.name("code");
@@ -71,64 +73,78 @@ public final class NodeTreeToJsonStream {
       writer.name("graph");
       writer.beginObject();
       writer.name("id");
-      writer.value(tree.getType().getGraphId().toString());
+      writer.value(UUIDs.toString(tree.getType().getGraphId()));
       writer.endObject();
       writer.endObject();
     }
 
     if (tree.getProperties() != null) {
-      writer.name("properties");
-      writer.beginObject();
+      Set<String> keys = tree.getProperties().keySet();
 
-      for (String key : tree.getProperties().keySet()) {
-        writer.name(key);
-        writer.beginArray();
-        for (StrictLangValue value : tree.getProperties().get(key)) {
-          writer.beginObject();
-          writer.name("lang");
-          writer.value(value.getLang());
-          writer.name("value");
-          writer.value(value.getValue());
-          writer.name("regex");
-          writer.value(value.getRegex());
-          writer.endObject();
+      if (!keys.isEmpty()) {
+        writer.name("properties");
+        writer.beginObject();
+
+        for (String key : keys) {
+
+          writer.name(key);
+          writer.beginArray();
+          for (StrictLangValue value : tree.getProperties().get(key)) {
+            writer.beginObject();
+            writer.name("lang");
+            writer.value(value.getLang());
+            writer.name("value");
+            writer.value(value.getValue());
+            writer.name("regex");
+            writer.value(value.getRegex());
+            writer.endObject();
+          }
+          writer.endArray();
         }
-        writer.endArray();
-      }
 
-      writer.endObject();
+        writer.endObject();
+      }
     }
 
     if (tree.getReferences() != null) {
-      writer.name("references");
-      writer.beginObject();
+      Set<String> keys = tree.getReferences().keySet();
 
-      for (String key : tree.getReferences().keySet()) {
-        writer.name(key);
-        writer.beginArray();
-        for (NodeTree value : tree.getReferences().get(key)) {
-          toJson(value, writer);
+      if (!keys.isEmpty()) {
+        writer.name("references");
+        writer.beginObject();
+
+        for (String key : keys) {
+          writer.name(key);
+          writer.beginArray();
+          for (NodeTree value : tree.getReferences().get(key)) {
+            toJson(value, writer);
+          }
+          writer.endArray();
         }
-        writer.endArray();
-      }
 
-      writer.endObject();
+        writer.endObject();
+      }
     }
 
     if (tree.getReferrers() != null) {
-      writer.name("referrers");
-      writer.beginObject();
+      Set<String> keys = tree.getReferrers().keySet();
 
-      for (String key : tree.getReferrers().keySet()) {
-        writer.name(key);
-        writer.beginArray();
-        for (NodeTree value : tree.getReferrers().get(key)) {
-          toJson(value, writer);
+      if (!keys.isEmpty()) {
+
+        writer.name("referrers");
+        writer.beginObject();
+
+        for (String key : keys) {
+          writer.name(key);
+          writer.beginArray();
+          for (NodeTree value : tree.getReferrers().get(key)) {
+            toJson(value, writer);
+          }
+          writer.endArray();
         }
-        writer.endArray();
-      }
 
-      writer.endObject();
+        writer.endObject();
+      }
     }
 
     writer.endObject();
