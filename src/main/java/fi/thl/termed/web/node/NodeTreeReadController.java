@@ -64,6 +64,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
+      @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -80,7 +81,9 @@ public class NodeTreeReadController {
       response.setCharacterEncoding(UTF_8.toString());
       try (JsonWriter writer = new JsonWriter(
           new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
-        writer.setIndent("  ");
+        if (pretty) {
+          writer.setIndent("  ");
+        }
         NodeTreeToJsonStream.toJson(trees.iterator(), writer);
       }
     }
@@ -93,6 +96,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
+      @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -115,7 +119,9 @@ public class NodeTreeReadController {
       response.setCharacterEncoding(UTF_8.toString());
       try (JsonWriter writer = new JsonWriter(
           new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
-        writer.setIndent("  ");
+        if (pretty) {
+          writer.setIndent("  ");
+        }
         NodeTreeToJsonStream.toJson(trees.iterator(), writer);
       }
     }
@@ -129,6 +135,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
+      @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -147,7 +154,9 @@ public class NodeTreeReadController {
       response.setCharacterEncoding(UTF_8.toString());
       try (JsonWriter writer = new JsonWriter(
           new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
-        writer.setIndent("  ");
+        if (pretty) {
+          writer.setIndent("  ");
+        }
         NodeTreeToJsonStream.toJson(trees.iterator(), writer);
       }
     }
@@ -159,6 +168,7 @@ public class NodeTreeReadController {
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
       @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
+      @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -169,7 +179,9 @@ public class NodeTreeReadController {
     response.setCharacterEncoding(UTF_8.toString());
     try (JsonWriter writer = new JsonWriter(
         new OutputStreamWriter(response.getOutputStream(), UTF_8))) {
-      writer.setIndent("  ");
+      if (pretty) {
+        writer.setIndent("  ");
+      }
       NodeTreeToJsonStream.toJson(toTree(node, Selects.parse(join(",", select)), user), writer);
     }
   }
