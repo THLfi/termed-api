@@ -2,14 +2,15 @@ package fi.thl.termed.service.node.internal;
 
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
+import static fi.thl.termed.util.index.lucene.LuceneConstants.MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS;
 import static java.lang.Integer.min;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.UUIDs;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,8 +29,6 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.BytesRef;
 
 public class NodeToDocument implements Function<Node, Document> {
-
-  private static final int MAX_SORTABLE_FIELD_LENGTH = 1000;
 
   private Gson gson;
 
@@ -75,6 +74,8 @@ public class NodeToDocument implements Function<Node, Document> {
         String val = langValue.getValue();
 
         doc.add(textField("properties." + p, val));
+        doc.add(stringField("properties." + p + ".string", val));
+
         if (!sortFieldAdded) {
           doc.add(sortableField("properties." + p + ".sortable", val.toLowerCase()));
           sortFieldAdded = true;
@@ -82,6 +83,8 @@ public class NodeToDocument implements Function<Node, Document> {
 
         if (!lang.isEmpty()) {
           doc.add(textField("properties." + p + "." + lang, val));
+          doc.add(stringField("properties." + p + "." + lang + ".string", val));
+
           if (!sortFieldAddedForLang.contains(lang)) {
             doc.add(sortableField("properties." + p + "." + lang + ".sortable", val.toLowerCase()));
             sortFieldAddedForLang.add(lang);
@@ -118,15 +121,17 @@ public class NodeToDocument implements Function<Node, Document> {
   }
 
   private Field textField(String name, String value) {
-    return new TextField(name, Strings.nullToEmpty(value), Store.NO);
+    return new TextField(name, value, Store.NO);
   }
 
   private Field stringField(String name, String value) {
-    return new StringField(name, Strings.nullToEmpty(value), Store.NO);
+    return new StringField(name,
+        value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length())),
+        Store.NO);
   }
 
   private Field stringField(String name, UUID value) {
-    return new StringField(name, value != null ? value.toString() : "", Store.NO);
+    return new StringField(name, UUIDs.toString(value), Store.NO);
   }
 
   private Field stringField(String name, Date value) {
@@ -139,7 +144,8 @@ public class NodeToDocument implements Function<Node, Document> {
 
   private Field sortableField(String name, String value) {
     return new SortedDocValuesField(name,
-        new BytesRef(value.substring(0, min(MAX_SORTABLE_FIELD_LENGTH, value.length()))));
+        new BytesRef(
+            value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length()))));
   }
 
   private Field sortableField(String name, Date value) {

@@ -99,7 +99,13 @@ public class TypeBasedNodeSpecificationFilter implements
 
   private boolean isAcceptedTextAttributeSpecification(Specification<NodeId, Node> s,
       Set<String> acceptedTextAttrs) {
-    return (s instanceof NodesByProperty && acceptedTextAttrs
+    return (s instanceof NodesByPropertyString && acceptedTextAttrs
+        .contains(((NodesByPropertyString) s).getAttributeId()))
+        || (s instanceof NodesByPropertyStringPrefix && acceptedTextAttrs
+        .contains(((NodesByPropertyStringPrefix) s).getAttributeId()))
+        || (s instanceof NodesByPropertyStringPhrase && acceptedTextAttrs
+        .contains(((NodesByPropertyStringPhrase) s).getAttributeId()))
+        || (s instanceof NodesByProperty && acceptedTextAttrs
         .contains(((NodesByProperty) s).getAttributeId()))
         || (s instanceof NodesByPropertyPrefix && acceptedTextAttrs
         .contains(((NodesByPropertyPrefix) s).getAttributeId()))

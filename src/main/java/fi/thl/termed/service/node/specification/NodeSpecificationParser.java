@@ -49,6 +49,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> numberParser =
         regexMatchResult("(n|number):([0-9]*)")
             .map(m -> new NodesByNumber(Integer.parseInt(m.group(1))));
+
     ParserCombinator<Specification<NodeId, Node>> createdDateParser =
         regexMatchResult("createdDate:"
             + "\\[(\\*|" + ISO_8601_DATE + ") TO (\\*|" + ISO_8601_DATE + ")\\]")
@@ -57,6 +58,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult("lastModifiedDate:"
             + "\\[(\\*|" + ISO_8601_DATE + ") TO (\\*|" + ISO_8601_DATE + ")\\]")
             .map(m -> new NodesByLastModifiedDate(parseDate(m.group(1)), parseDate(m.group(9))));
+
     ParserCombinator<Specification<NodeId, Node>> graphIdParser =
         regexMatchResult("(type\\.graph\\.id|graph\\.id|graphId):(" + UUID + ")")
             .map(m -> new NodesByGraphId(UUIDs.fromString(m.group(2))));
@@ -72,6 +74,20 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> typeUriParser =
         regexMatchResult("(type\\.uri|typeUri):([^\\s]+)")
             .map(m -> new NodesByTypeUri(m.group(2)));
+
+    ParserCombinator<Specification<NodeId, Node>> propertyStringQuotedParser =
+        regexMatchResult(
+            "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:\"([^\"]*)\"")
+            .map(m -> new NodesByPropertyStringPhrase(m.group(2), m.group(4), m.group(5)));
+    ParserCombinator<Specification<NodeId, Node>> propertyStringPrefixParser =
+        regexMatchResult(
+            "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:([^\\s]*)\\*")
+            .map(m -> new NodesByPropertyStringPrefix(m.group(2), m.group(4), m.group(5)));
+    ParserCombinator<Specification<NodeId, Node>> propertyStringParser =
+        regexMatchResult(
+            "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:([^\\s\\)\\*\\^]*)")
+            .map(m -> new NodesByPropertyString(m.group(2), m.group(4), m.group(5)));
+
     ParserCombinator<Specification<NodeId, Node>> propertyQuotedParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:\"([^\"]*)\"")
             .map(m -> new NodesByPropertyPhrase(m.group(2), m.group(4), m.group(5)));
@@ -81,6 +97,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> propertyParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?:([^\\s\\)\\*\\^]*)")
             .map(m -> new NodesByProperty(m.group(2), m.group(4), m.group(5)));
+
     ParserCombinator<Specification<NodeId, Node>> referenceParser =
         regexMatchResult("(references|refs|r)\\.(" + CODE + ")\\.id:(" + UUID + ")")
             .map(m -> new NodesByReference(m.group(2), UUIDs.fromString(m.group(3))));
@@ -104,6 +121,9 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .or(graphUriParser)
             .or(typeIdParser)
             .or(typeUriParser)
+            .or(propertyStringQuotedParser)
+            .or(propertyStringPrefixParser)
+            .or(propertyStringParser)
             .or(propertyQuotedParser)
             .or(propertyPrefixParser)
             .or(propertyParser)
