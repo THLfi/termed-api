@@ -20,7 +20,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.node.specification.NodesByProperty;
+import fi.thl.termed.service.node.specification.NodesByPropertyString;
 import fi.thl.termed.service.node.specification.NodesByReference;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
@@ -188,7 +188,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
         .map(textAttr -> and(
             new NodesByGraphId(textAttr.getDomainGraphId()),
             new NodesByTypeId(textAttr.getDomainId()),
-            new NodesByProperty(textAttr.getId(), value)))
+            new NodesByPropertyString(textAttr.getId(), value)))
         .collect(toList()));
 
     return nodeStreamToTriples(nodeProvider.apply(nodeSpec));
