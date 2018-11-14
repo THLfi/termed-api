@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.LuceneSpecification;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,7 +37,8 @@ public class NodesByReference implements LuceneSpecification<NodeId, Node> {
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("references." + attributeId + ".id", valueNodeId.toString()));
+    return new TermQuery(
+        new Term("references." + attributeId + ".id", UUIDs.toString(valueNodeId)));
   }
 
   @Override
@@ -49,7 +51,7 @@ public class NodesByReference implements LuceneSpecification<NodeId, Node> {
     }
     NodesByReference that = (NodesByReference) o;
     return Objects.equals(attributeId, that.attributeId) &&
-           Objects.equals(valueNodeId, that.valueNodeId);
+        Objects.equals(valueNodeId, that.valueNodeId);
   }
 
   @Override

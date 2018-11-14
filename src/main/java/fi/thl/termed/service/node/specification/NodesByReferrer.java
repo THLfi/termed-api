@@ -2,18 +2,16 @@ package fi.thl.termed.service.node.specification;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-
-import java.util.Objects;
-import java.util.UUID;
-
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.LuceneSpecification;
+import java.util.Objects;
+import java.util.UUID;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 public class NodesByReferrer implements LuceneSpecification<NodeId, Node> {
 
@@ -35,7 +33,7 @@ public class NodesByReferrer implements LuceneSpecification<NodeId, Node> {
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("referrers." + attributeId + ".id", valueNodeId.toString()));
+    return new TermQuery(new Term("referrers." + attributeId + ".id", UUIDs.toString(valueNodeId)));
   }
 
   @Override
@@ -48,7 +46,7 @@ public class NodesByReferrer implements LuceneSpecification<NodeId, Node> {
     }
     NodesByReferrer that = (NodesByReferrer) o;
     return Objects.equals(attributeId, that.attributeId) &&
-           Objects.equals(valueNodeId, that.valueNodeId);
+        Objects.equals(valueNodeId, that.valueNodeId);
   }
 
   @Override

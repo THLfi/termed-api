@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
@@ -39,7 +40,7 @@ public class NodesByGraphId
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("type.graph.id", graphId.toString()));
+    return new TermQuery(new Term("type.graph.id", UUIDs.toString(graphId)));
   }
 
   @Override

@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
@@ -29,7 +30,7 @@ public class NodeById implements LuceneSpecification<NodeId, Node>, SqlSpecifica
 
   @Override
   public Query luceneQuery() {
-    return new TermQuery(new Term("id", id.toString()));
+    return new TermQuery(new Term("id", UUIDs.toString(id)));
   }
 
   @Override
