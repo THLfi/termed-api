@@ -40,8 +40,10 @@ public class NodesByPropertyStringPrefix implements LuceneSpecification<NodeId, 
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return node.getProperties().get(attributeId).stream().anyMatch(
-        v -> (lang.isEmpty() || v.getLang().equals(lang)) && v.getValue().startsWith(value));
+    return node.getProperties().get(attributeId)
+        .stream()
+        .filter(v -> lang.isEmpty() || v.getLang().equals(lang))
+        .anyMatch(v -> v.getValue().startsWith(value));
   }
 
   @Override

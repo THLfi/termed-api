@@ -9,9 +9,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.RegularExpressions;
 import fi.thl.termed.util.query.LuceneSpecification;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
@@ -41,8 +41,11 @@ public class NodesByProperty implements LuceneSpecification<NodeId, Node> {
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return node.getProperties().get(attributeId).stream().anyMatch(
-        v -> (lang.isEmpty() || v.getLang().equals(lang)) && v.getValue().equals(value));
+    return node.getProperties().get(attributeId)
+        .stream()
+        .filter(v -> lang.isEmpty() || v.getLang().equals(lang))
+        .flatMap(v -> Stream.of(v.getValue().split("\\s")))
+        .anyMatch(v -> v.equalsIgnoreCase(value));
   }
 
   @Override

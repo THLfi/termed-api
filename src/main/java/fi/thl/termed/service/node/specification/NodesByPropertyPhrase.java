@@ -3,6 +3,8 @@ package fi.thl.termed.service.node.specification;
 import static com.google.common.base.Strings.nullToEmpty;
 import static fi.thl.termed.util.RegularExpressions.CODE;
 import static fi.thl.termed.util.RegularExpressions.IETF_LANGUAGE_TAG;
+import static java.util.Arrays.asList;
+import static java.util.Collections.indexOfSubList;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.base.MoreObjects;
@@ -10,6 +12,7 @@ import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.LuceneSpecification;
+import java.util.List;
 import java.util.Objects;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.PhraseQuery;
@@ -36,8 +39,13 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return node.getProperties().get(attributeId).stream()
-        .anyMatch(v -> (lang.isEmpty() || v.getLang().equals(lang)) && v.getValue().equals(phrase));
+
+    List<String> phraseTerms = asList(phrase.split("\\s"));
+
+    return node.getProperties().get(attributeId)
+        .stream()
+        .filter(v -> lang.isEmpty() || v.getLang().equals(lang))
+        .anyMatch(v -> indexOfSubList(asList(v.getValue().split("\\s")), phraseTerms) >= 0);
   }
 
   @Override

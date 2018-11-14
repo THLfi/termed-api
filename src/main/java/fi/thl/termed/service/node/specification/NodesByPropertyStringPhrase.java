@@ -36,8 +36,10 @@ public class NodesByPropertyStringPhrase implements LuceneSpecification<NodeId, 
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
-    return node.getProperties().get(attributeId).stream()
-        .anyMatch(v -> (lang.isEmpty() || v.getLang().equals(lang)) && v.getValue().equals(phrase));
+    return node.getProperties().get(attributeId)
+        .stream()
+        .filter(v -> lang.isEmpty() || v.getLang().equals(lang))
+        .anyMatch(v -> v.getValue().equals(phrase));
   }
 
   @Override
