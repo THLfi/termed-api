@@ -48,7 +48,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .map(m -> new NodesByUri(m.group(1)));
     ParserCombinator<Specification<NodeId, Node>> numberParser =
         regexMatchResult("(n|number):([0-9]*)")
-            .map(m -> new NodesByNumber(Integer.parseInt(m.group(1))));
+            .map(m -> new NodesByNumber(Long.parseLong(m.group(2))));
 
     ParserCombinator<Specification<NodeId, Node>> createdDateParser =
         regexMatchResult("createdDate:"

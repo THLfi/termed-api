@@ -15,9 +15,9 @@ import org.apache.lucene.search.TermQuery;
 public class NodesByNumber
     implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
 
-  private Integer number;
+  private Long number;
 
-  public NodesByNumber(Integer number) {
+  public NodesByNumber(Long number) {
     this.number = number;
   }
 
