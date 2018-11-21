@@ -73,7 +73,6 @@ class NodeTreeApiIntegrationTest extends BaseApiIntegrationTest {
         .get("/api/graphs/{graphId}/types/Concept/node-trees", graphId)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .log().body()
         .body(sameJSONAs("["
             + "  {"
             + "    'code': 'animals',"
