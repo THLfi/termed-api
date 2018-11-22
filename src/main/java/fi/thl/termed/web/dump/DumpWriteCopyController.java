@@ -21,6 +21,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,9 @@ public class DumpWriteCopyController {
   private ReferenceAttribute mapReferenceAttributeTo(ReferenceAttribute a, TypeId typeId) {
     return ReferenceAttribute.builder()
         .id(a.getId(), typeId)
-        .range(a.getRange().equals(a.getDomain()) ? typeId : a.getRange())
+        .range(Objects.equals(a.getRangeGraphId(), a.getDomainGraphId())
+            ? TypeId.of(a.getRangeId(), typeId.getGraphId())
+            : a.getRange())
         .copyOptionalsFrom(a)
         .build();
   }
