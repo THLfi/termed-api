@@ -1,7 +1,11 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.base.Suppliers.memoize;
+import static fi.thl.termed.util.collect.OptionalUtils.lazyFindFirst;
 import static fi.thl.termed.util.query.AndSpecification.and;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -14,16 +18,17 @@ import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
-import fi.thl.termed.util.collect.OptionalUtils;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Node> {
@@ -46,21 +51,41 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
 
   @Override
   public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(nodes.map(n -> addExternalIdentifiers(n, user)), mode, opts, user);
+    Multimap<TypeId, String> generatedCodes = HashMultimap.create();
+    Multimap<GraphId, String> generatedUris = HashMultimap.create();
+    return super.save(
+        nodes.map(n -> addExternalIdentifiers(n, mode, opts, user, generatedCodes, generatedUris)),
+        mode, opts, user);
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(addExternalIdentifiers(node, user), mode, opts, user);
+    return super.save(
+        addExternalIdentifiers(node, mode, opts, user,
+            HashMultimap.create(), HashMultimap.create()),
+        mode, opts, user);
   }
 
-  private Node addExternalIdentifiers(Node node, User user) {
-    Optional<Node> cachedNode = findCachedNode(node.identifier(), user);
+  private Node addExternalIdentifiers(Node node,
+      SaveMode mode, WriteOptions opts, User user,
+      Multimap<TypeId, String> generatedCodes,
+      Multimap<GraphId, String> generatedUris) {
 
-    if (cachedNode.isPresent()) {
-      return updateExtIds(node, cachedNode.get());
-    } else {
-      return insertExtIds(node, user);
+    switch (mode) {
+      case INSERT:
+        return insertExtIds(node, opts, user, generatedCodes, generatedUris);
+      case UPDATE:
+        return updateExtIds(node,
+            findCachedNode(node.identifier(), user).orElseThrow(NotFoundException::new));
+      case UPSERT:
+        Optional<Node> cachedNode = findCachedNode(node.identifier(), user);
+        if (cachedNode.isPresent()) {
+          return updateExtIds(node, cachedNode.get());
+        } else {
+          return insertExtIds(node, opts, user, generatedCodes, generatedUris);
+        }
+      default:
+        throw new IllegalStateException("Unknown save mode: " + mode);
     }
   }
 
@@ -75,24 +100,45 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
     }
   }
 
-  private Node insertExtIds(Node node, User user) {
+  private Node insertExtIds(Node node,
+      WriteOptions opts, User user,
+      Multimap<TypeId, String> usedCodes,
+      Multimap<GraphId, String> usedUris) {
+
+    Node.Builder nodeBuilder = Node.builderFromCopyOf(node);
+
     Long number = nodeSequenceService.getAndAdvance(node.getType(), user);
+    nodeBuilder.number(number);
 
-    Node.Builder builder = Node.builderFromCopyOf(node);
-    builder.number(number);
+    if (opts.isGenerateCodes() || opts.isGenerateUris()) {
+      Supplier<Optional<String>> getOrGenerateCode = memoize(() -> lazyFindFirst(
+          node::getCode, () -> buildDefaultCode(node.getType(), number, user)));
+      Supplier<Optional<String>> getOrGenerateUri = memoize(() -> lazyFindFirst(
+          node::getUri, () -> buildDefaultUri(node.getTypeGraph(), getOrGenerateCode.get(), user)));
 
-    Optional<String> code = OptionalUtils.lazyFindFirst(
-        node::getCode,
-        () -> buildDefaultCode(node.getType(), number, user));
+      if (opts.isGenerateCodes()) {
+        getOrGenerateCode.get().ifPresent(code -> {
+          if (!usedCodes.containsEntry(node.getType(), code)) {
+            nodeBuilder.code(code);
+            usedCodes.put(node.getType(), code);
+          } else {
+            nodeBuilder.code(null);
+          }
+        });
+      }
+      if (opts.isGenerateUris()) {
+        getOrGenerateUri.get().ifPresent(uri -> {
+          if (!usedUris.containsEntry(node.getTypeGraph(), uri)) {
+            nodeBuilder.uri(uri);
+            usedUris.put(node.getTypeGraph(), uri);
+          } else {
+            nodeBuilder.uri(null);
+          }
+        });
+      }
+    }
 
-    Optional<String> uri = OptionalUtils.lazyFindFirst(
-        node::getUri,
-        () -> buildDefaultUri(node.getTypeGraph(), code, user));
-
-    code.ifPresent(builder::code);
-    uri.ifPresent(builder::uri);
-
-    return builder.build();
+    return nodeBuilder.build();
   }
 
   private Optional<String> buildDefaultCode(TypeId typeId, Long number, User user) {

@@ -4,6 +4,7 @@ import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
+import static fi.thl.termed.util.service.WriteOptions.opts;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -220,6 +221,38 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
   }
 
   @Test
+  void shouldNullifyDuplicateCodeIfOptsGenerateCodesIsTrue() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .code("example-code")
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .code("example-code")
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, null, true, true), user);
+
+    assertEquals("example-code",
+        nodeService.get(nodeId0, user)
+            .orElseThrow(AssertionError::new)
+            .getCode()
+            .orElseThrow(AssertionError::new));
+
+    assertFalse(
+        nodeService.get(nodeId1, user)
+            .orElseThrow(AssertionError::new)
+            .getCode()
+            .isPresent());
+  }
+
+  @Test
   void shouldNotGenerateDefaultCodeIfIsAlreadyInUse() {
     NodeId nodeId0 = NodeId.random("Person", graphId);
     Node node0 = Node.builder()
@@ -238,9 +271,9 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
         .id(nodeId2)
         .build();
 
-    nodeService.save(node0, INSERT, defaultOpts(), user);
-    nodeService.save(node1, INSERT, defaultOpts(), user);
-    nodeService.save(node2, INSERT, defaultOpts(), user);
+    nodeService.save(node0, INSERT, opts(false, null, true, true), user);
+    nodeService.save(node1, INSERT, opts(false, null, true, true), user);
+    nodeService.save(node2, INSERT, opts(false, null, true, true), user);
 
     assertEquals("person-0", nodeService.get(nodeId0, user)
         .flatMap(Node::getCode).orElse(null));

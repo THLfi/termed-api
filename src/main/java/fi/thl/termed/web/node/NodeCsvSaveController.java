@@ -53,6 +53,8 @@ public class NodeCsvSaveController {
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
@@ -71,7 +73,7 @@ public class NodeCsvSaveController {
       nodeService.save(
           nodes,
           SaveMode.saveMode(mode),
-          WriteOptions.opts(sync),
+          WriteOptions.opts(sync, generateCodes, generateUris),
           user);
     }
   }
@@ -87,6 +89,8 @@ public class NodeCsvSaveController {
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
@@ -114,7 +118,7 @@ public class NodeCsvSaveController {
                   .copyOptionalsFrom(node)
                   .build()),
           SaveMode.saveMode(mode),
-          WriteOptions.opts(sync),
+          WriteOptions.opts(sync, generateCodes, generateUris),
           user);
     }
   }
@@ -131,6 +135,8 @@ public class NodeCsvSaveController {
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
@@ -160,7 +166,7 @@ public class NodeCsvSaveController {
                   .copyOptionalsFrom(node)
                   .build()),
           SaveMode.saveMode(mode),
-          WriteOptions.opts(sync),
+          WriteOptions.opts(sync, generateCodes, generateUris),
           user);
     }
   }

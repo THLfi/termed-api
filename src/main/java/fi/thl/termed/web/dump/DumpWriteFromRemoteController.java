@@ -52,6 +52,8 @@ public class DumpWriteFromRemoteController {
   public void restoreRemote(@RequestBody UrlWithCredentials remote,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user) throws IOException {
 
     if (user.getAppRole() == AppRole.ADMIN || user.getAppRole() == AppRole.SUPERUSER) {
@@ -67,7 +69,7 @@ public class DumpWriteFromRemoteController {
 
         log.info("Restoring");
 
-        dumpService.save(dump, saveMode(mode), opts(sync), user);
+        dumpService.save(dump, saveMode(mode), opts(sync, generateCodes, generateUris), user);
       }
 
       log.info("Done");

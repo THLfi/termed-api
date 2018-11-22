@@ -57,6 +57,8 @@ public class NodeRdfWriteController {
       @RequestParam(value = "importCodes", defaultValue = "true") boolean importCodes,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @RequestBody Model model,
       @AuthenticationPrincipal User user) {
 
@@ -73,7 +75,7 @@ public class NodeRdfWriteController {
     List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
         .apply(new JenaRdfModel(model));
 
-    nodeService.save(nodes.stream(), saveMode(mode), opts(sync), user);
+    nodeService.save(nodes.stream(), saveMode(mode), opts(sync, generateCodes, generateUris), user);
   }
 
 }

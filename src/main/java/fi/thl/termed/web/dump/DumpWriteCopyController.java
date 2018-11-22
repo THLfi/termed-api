@@ -47,6 +47,8 @@ public class DumpWriteCopyController {
       @RequestParam(name = "targetGraphId", defaultValue = RANDOM_UUID) UUID targetGraphId,
       @RequestParam(name = "mode", defaultValue = "insert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user) {
 
     Graph sourceGraph = graphService.get(new GraphId(sourceGraphId), user)
@@ -62,7 +64,7 @@ public class DumpWriteCopyController {
               graphs.map(graph -> mapGraphToGraph(graph, targetGraphId)),
               types.map(type -> mapTypeToGraph(type, targetGraphId)),
               nodes.map(node -> mapNodeToGraph(node, targetGraphId))),
-          saveMode(mode), opts(sync), user);
+          saveMode(mode), opts(sync, generateCodes, generateUris), user);
     }
 
     return new GraphId(targetGraphId);

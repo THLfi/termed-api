@@ -10,10 +10,12 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.util.json.JsonStream;
+import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
+import fi.thl.termed.util.spring.exception.BadRequestException;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,11 +48,14 @@ public class NodeSaveController {
   public void saveAll(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
     try (InputStream input = request.getInputStream()) {
       nodeService.save(
-          JsonStream.readArray(gson, Node.class, input), saveMode(mode), opts(sync), user);
+          JsonStream.readArray(gson, Node.class, input), saveMode(mode),
+          opts(sync, generateCodes, generateUris), user);
     }
   }
 
@@ -60,6 +65,8 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
@@ -72,7 +79,8 @@ public class NodeSaveController {
                   .copyOptionalsFrom(node)
                   .build());
 
-      nodeService.save(nodesWithTypes, saveMode(mode), opts(sync), user);
+      nodeService.save(nodesWithTypes, saveMode(mode),
+          opts(sync, generateCodes, generateUris), user);
     }
   }
 
@@ -83,6 +91,8 @@ public class NodeSaveController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
@@ -97,7 +107,8 @@ public class NodeSaveController {
                   .copyOptionalsFrom(node)
                   .build());
 
-      nodeService.save(nodesWithTypes, saveMode(mode), opts(sync), user);
+      nodeService
+          .save(nodesWithTypes, saveMode(mode), opts(sync, generateCodes, generateUris), user);
     }
   }
 
@@ -105,9 +116,12 @@ public class NodeSaveController {
   public Node saveOne(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
-    NodeId nodeId = nodeService.save(node, saveMode(mode), opts(sync), user);
+    NodeId nodeId = nodeService
+        .save(node, saveMode(mode), opts(sync, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -116,6 +130,8 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
 
@@ -126,7 +142,8 @@ public class NodeSaveController {
             .copyOptionalsFrom(node)
             .build();
 
-    NodeId nodeId = nodeService.save(nodeWithType, saveMode(mode), opts(sync), user);
+    NodeId nodeId = nodeService
+        .save(nodeWithType, saveMode(mode), opts(sync, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -136,6 +153,8 @@ public class NodeSaveController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
     TypeId type = TypeId.of(typeId, graphId);
@@ -147,7 +166,8 @@ public class NodeSaveController {
             .copyOptionalsFrom(node)
             .build();
 
-    NodeId nodeId = nodeService.save(nodeWithType, saveMode(mode), opts(sync), user);
+    NodeId nodeId = nodeService
+        .save(nodeWithType, saveMode(mode), opts(sync, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -158,6 +178,8 @@ public class NodeSaveController {
       @PathVariable("id") UUID id,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
 
@@ -166,7 +188,8 @@ public class NodeSaveController {
         .copyOptionalsFrom(node)
         .build();
 
-    NodeId nodeId = nodeService.save(nodeWithId, saveMode(mode), opts(sync), user);
+    NodeId nodeId = nodeService
+        .save(nodeWithId, saveMode(mode), opts(sync, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -179,6 +202,10 @@ public class NodeSaveController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
+
+    if (saveMode(mode) == SaveMode.INSERT) {
+      throw new BadRequestException("Can't use mode \"insert\" when patching an existing node.");
+    }
 
     Node.Builder baseNode = Node.builderFromCopyOf(
         nodeService.get(new NodeId(id, typeId, graphId), user).orElseThrow(NotFoundException::new));

@@ -52,6 +52,8 @@ public class NodeChangesetController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
@@ -74,7 +76,7 @@ public class NodeChangesetController {
         changeset.getDelete().stream()
             .map(node -> new NodeId(node.getId(), type));
 
-    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync, generateCodes, generateUris), user);
   }
 
   @PostJsonMapping(path = "/graphs/{graphId}/nodes", params = "changeset=true", produces = {})
@@ -83,6 +85,8 @@ public class NodeChangesetController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
@@ -105,7 +109,7 @@ public class NodeChangesetController {
         changeset.getDelete().stream()
             .map(node -> new NodeId(node.getId(), node.getTypeId(), graphId));
 
-    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync, generateCodes, generateUris), user);
   }
 
   @PostJsonMapping(path = "/nodes", params = "changeset=true", produces = {})
@@ -113,6 +117,8 @@ public class NodeChangesetController {
   public void deleteAndSave(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Changeset<NodeId, Node> changeset,
       @AuthenticationPrincipal User user) {
 
@@ -126,7 +132,7 @@ public class NodeChangesetController {
     Stream<NodeId> deletes =
         changeset.getDelete().stream();
 
-    saveAndDelete(saves, deletes, saveMode(mode), opts(sync), user);
+    saveAndDelete(saves, deletes, saveMode(mode), opts(sync, generateCodes, generateUris), user);
   }
 
   private Node merge(Node node, Node patch) {

@@ -32,22 +32,30 @@ public class RevisionInitializingNodeService extends ForwardingService<NodeId, N
 
   @Override
   public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(nodes, mode, opts(opts.isSync(), newRevision(user)), user);
+    return super.save(nodes, mode,
+        opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
+        user);
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(node, mode, opts(opts.isSync(), newRevision(user)), user);
+    return super.save(node, mode,
+        opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
+        user);
   }
 
   @Override
   public void delete(NodeId id, WriteOptions opts, User user) {
-    super.delete(id, opts(opts.isSync(), newRevision(user)), user);
+    super.delete(id,
+        opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
+        user);
   }
 
   @Override
   public void delete(Stream<NodeId> ids, WriteOptions opts, User user) {
-    super.delete(ids, opts(opts.isSync(), newRevision(user)), user);
+    super.delete(ids,
+        opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
+        user);
   }
 
   private Long newRevision(User user) {

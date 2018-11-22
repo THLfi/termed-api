@@ -29,8 +29,10 @@ public class DumpWriteController {
   public void restore(@RequestBody Dump dump,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user) {
-    dumpService.save(dump, saveMode(mode), opts(sync), user);
+    dumpService.save(dump, saveMode(mode), opts(sync, generateCodes, generateUris), user);
   }
 
 }
