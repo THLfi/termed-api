@@ -95,6 +95,10 @@ public final class FilteredNodeTree implements NodeTree {
       return source.getProperties();
     }
 
+    if (s.stream().noneMatch(select -> select instanceof SelectProperty)) {
+      return null;
+    }
+
     return filterKeys(source.getProperties(), key -> s.contains(new SelectProperty(key)));
   }
 
@@ -102,6 +106,10 @@ public final class FilteredNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferences() {
     if (s.contains(new SelectAll()) || s.contains(new SelectAllReferences())) {
       return source.getReferences();
+    }
+
+    if (s.stream().noneMatch(select -> select instanceof SelectReference)) {
+      return null;
     }
 
     return transformValues(
@@ -113,6 +121,10 @@ public final class FilteredNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferrers() {
     if (s.contains(new SelectAll()) || s.contains(new SelectAllReferrers())) {
       return source.getReferrers();
+    }
+
+    if (s.stream().noneMatch(select -> select instanceof SelectReferrer)) {
+      return null;
     }
 
     return transformValues(
