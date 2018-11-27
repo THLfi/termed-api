@@ -82,7 +82,7 @@ public class ReferenceAttributeRepository
         tuplesToMap(
             new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> oldPermissionMap =
-        tuplesToMap(permissionDao.getEntries(
+        tuplesToMap(permissionDao.entries(
             new ReferenceAttributePermissionsByReferenceAttributeId(attrId), user));
 
     MapDifference<ObjectRolePermission<ReferenceAttributeId>, GrantedPermission> diff =
@@ -98,7 +98,7 @@ public class ReferenceAttributeRepository
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> newProperties =
         tuplesToMap(new PropertyValueDtoToModel<>(attributeId).apply(properties));
     Map<PropertyValueId<ReferenceAttributeId>, LangValue> oldProperties =
-        tuplesToMap(propertyDao.getEntries(
+        tuplesToMap(propertyDao.entries(
             new ReferenceAttributePropertiesByAttributeId(attributeId), user));
 
     MapDifference<PropertyValueId<ReferenceAttributeId>, LangValue> diff =
@@ -117,12 +117,12 @@ public class ReferenceAttributeRepository
   }
 
   private void deletePermissions(ReferenceAttributeId id, User user) {
-    permissionDao.delete(permissionDao.getKeys(
+    permissionDao.delete(permissionDao.keys(
         new ReferenceAttributePermissionsByReferenceAttributeId(id), user), user);
   }
 
   private void deleteProperties(ReferenceAttributeId id, User user) {
-    propertyDao.delete(propertyDao.getKeys(
+    propertyDao.delete(propertyDao.keys(
         new ReferenceAttributePropertiesByAttributeId(id), user), user);
   }
 
@@ -134,14 +134,14 @@ public class ReferenceAttributeRepository
   @Override
   public Stream<ReferenceAttribute> values(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
-    return referenceAttributeDao.getValues(spec.getWhere(), user)
+    return referenceAttributeDao.values(spec.getWhere(), user)
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
   public Stream<ReferenceAttributeId> keys(
       Query<ReferenceAttributeId, ReferenceAttribute> spec, User user) {
-    return referenceAttributeDao.getKeys(spec.getWhere(), user);
+    return referenceAttributeDao.keys(spec.getWhere(), user);
   }
 
   @Override
@@ -154,9 +154,9 @@ public class ReferenceAttributeRepository
 
     try (
         Stream<ObjectRolePermission<ReferenceAttributeId>> permissionStream = permissionDao
-            .getKeys(new ReferenceAttributePermissionsByReferenceAttributeId(id), user);
+            .keys(new ReferenceAttributePermissionsByReferenceAttributeId(id), user);
         Stream<Tuple2<PropertyValueId<ReferenceAttributeId>, LangValue>> propertyStream = propertyDao
-            .getEntries(new ReferenceAttributePropertiesByAttributeId(id), user)) {
+            .entries(new ReferenceAttributePropertiesByAttributeId(id), user)) {
 
       return ReferenceAttribute.builderFromCopyOf(attribute)
           .permissions(permissionStream.collect(toImmutableMultimap(

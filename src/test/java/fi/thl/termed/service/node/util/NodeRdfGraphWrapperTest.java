@@ -71,7 +71,7 @@ class NodeRdfGraphWrapperTest {
         .build();
     nodeDao.insert(concept2Id, concept2);
 
-    GraphBase graphBase = new NodeRdfGraphWrapper(types, nodeDao::getValues);
+    GraphBase graphBase = new NodeRdfGraphWrapper(types, nodeDao::values);
 
     model = ModelFactory.createModelForGraph(graphBase);
   }

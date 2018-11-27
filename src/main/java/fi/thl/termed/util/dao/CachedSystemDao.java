@@ -90,18 +90,18 @@ public class CachedSystemDao<K extends Serializable, V> implements SystemDao<K, 
   }
 
   @Override
-  public Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification) {
+  public Stream<Tuple2<K, V>> entries(Specification<K, V> specification) {
     Stream.Builder<Tuple2<K, V>> builder = Stream.builder();
-    forEachAndClose(getKeys(specification),
+    forEachAndClose(keys(specification),
         key -> builder.accept(Tuple.of(key, get(key).orElseThrow(IllegalStateException::new))));
     return builder.build();
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification) {
+  public Stream<K> keys(Specification<K, V> specification) {
     try {
       return specificationCache
-          .get(specification, () -> toListAndClose(delegate.getKeys(specification)))
+          .get(specification, () -> toListAndClose(delegate.keys(specification)))
           .stream();
     } catch (ExecutionException e) {
       throw new UncheckedExecutionException(e);
@@ -109,8 +109,8 @@ public class CachedSystemDao<K extends Serializable, V> implements SystemDao<K, 
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> specification) {
-    return getKeys(specification).map(key -> {
+  public Stream<V> values(Specification<K, V> specification) {
+    return keys(specification).map(key -> {
       Optional<V> value = get(key);
 
       if (!value.isPresent()) {

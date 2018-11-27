@@ -69,7 +69,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
     Map<PropertyValueId<String>, LangValue> newProperties = tuplesToMap(
         new PropertyValueDtoToModel<>(propertyId).apply(propertyMultimap));
     Map<PropertyValueId<String>, LangValue> oldProperties = tuplesToMap(
-        propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(propertyId), user));
+        propertyValueDao.entries(new PropertyPropertiesByPropertyId(propertyId), user));
 
     MapDifference<PropertyValueId<String>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -86,7 +86,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   private void deleteProperties(String id, User user) {
-    propertyValueDao.delete(propertyValueDao.getKeys(
+    propertyValueDao.delete(propertyValueDao.keys(
         new PropertyPropertiesByPropertyId(id), user), user);
   }
 
@@ -97,12 +97,12 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
 
   @Override
   public Stream<Property> values(Query<String, Property> query, User user) {
-    return propertyDao.getValues(query.getWhere(), user).map(p -> populateValue(p, user));
+    return propertyDao.values(query.getWhere(), user).map(p -> populateValue(p, user));
   }
 
   @Override
   public Stream<String> keys(Query<String, Property> query, User user) {
-    return propertyDao.getKeys(query.getWhere(), user);
+    return propertyDao.keys(query.getWhere(), user);
   }
 
   @Override
@@ -112,7 +112,7 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
 
   private Property populateValue(Property property, User user) {
     try (Stream<Tuple2<PropertyValueId<String>, LangValue>> propertyStream =
-        propertyValueDao.getEntries(new PropertyPropertiesByPropertyId(property.getId()), user)) {
+        propertyValueDao.entries(new PropertyPropertiesByPropertyId(property.getId()), user)) {
 
       return builderFromCopyOf(property)
           .properties(propertyStream.collect(toImmutableMultimap(

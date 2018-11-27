@@ -21,11 +21,11 @@ public interface Dao<K extends Serializable, V> {
 
   void delete(K key, User user);
 
-  Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification, User user);
+  Stream<Tuple2<K, V>> entries(Specification<K, V> specification, User user);
 
-  Stream<K> getKeys(Specification<K, V> specification, User user);
+  Stream<K> keys(Specification<K, V> specification, User user);
 
-  Stream<V> getValues(Specification<K, V> specification, User user);
+  Stream<V> values(Specification<K, V> specification, User user);
 
   boolean exists(K key, User user);
 

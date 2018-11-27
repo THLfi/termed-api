@@ -20,11 +20,11 @@ public interface SystemDao<K extends Serializable, V> {
 
   void delete(K key);
 
-  Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification);
+  Stream<Tuple2<K, V>> entries(Specification<K, V> specification);
 
-  Stream<K> getKeys(Specification<K, V> specification);
+  Stream<K> keys(Specification<K, V> specification);
 
-  Stream<V> getValues(Specification<K, V> specification);
+  Stream<V> values(Specification<K, V> specification);
 
   boolean exists(K key);
 

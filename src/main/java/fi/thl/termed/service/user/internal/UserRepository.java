@@ -45,7 +45,7 @@ public class UserRepository extends AbstractRepository<String, User> {
     userDao.update(username, newUser, auth);
 
     Set<GraphRole> newRoles = ImmutableSet.copyOf(newUser.getGraphRoles());
-    Set<GraphRole> oldRoles = toSetAndClose(userGraphRoleDao.getKeys(
+    Set<GraphRole> oldRoles = toSetAndClose(userGraphRoleDao.keys(
         new UserGraphRolesByUsername(username), auth)
         .filter(userGraphRole -> userGraphRole.getUsername().equals(username))
         .map(userGraphRole -> new GraphRole(userGraphRole.getGraph(), userGraphRole.getRole())));
@@ -62,7 +62,7 @@ public class UserRepository extends AbstractRepository<String, User> {
 
   @Override
   public void delete(String username, WriteOptions opts, User auth) {
-    userGraphRoleDao.delete(userGraphRoleDao.getKeys(
+    userGraphRoleDao.delete(userGraphRoleDao.keys(
         new UserGraphRolesByUsername(username), auth), auth);
     userDao.delete(username, auth);
   }
@@ -74,12 +74,12 @@ public class UserRepository extends AbstractRepository<String, User> {
 
   @Override
   public Stream<User> values(Query<String, User> query, User auth) {
-    return userDao.getValues(query.getWhere(), auth).map(user -> populateValue(user, auth));
+    return userDao.values(query.getWhere(), auth).map(user -> populateValue(user, auth));
   }
 
   @Override
   public Stream<String> keys(Query<String, User> query, User user) {
-    return userDao.getKeys(query.getWhere(), user);
+    return userDao.keys(query.getWhere(), user);
   }
 
   @Override
@@ -89,7 +89,7 @@ public class UserRepository extends AbstractRepository<String, User> {
 
   private User populateValue(User user, User auth) {
     List<GraphRole> graphRoles = toListAndClose(
-        userGraphRoleDao.getKeys(new UserGraphRolesByUsername(user.getUsername()), auth)
+        userGraphRoleDao.keys(new UserGraphRolesByUsername(user.getUsername()), auth)
             .filter(value -> Objects.equals(user.getUsername(), value.getUsername()))
             .map(value -> new GraphRole(value.getGraph(), value.getRole())));
 

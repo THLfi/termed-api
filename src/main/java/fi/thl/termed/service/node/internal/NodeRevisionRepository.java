@@ -155,7 +155,7 @@ public class NodeRevisionRepository implements
   @Override
   public Stream<Tuple2<RevisionType, Node>> values(
       Query<RevisionId<NodeId>, Tuple2<RevisionType, Node>> query, User user) {
-    return nodeRevisionDao.getEntries(query.getWhere(), user)
+    return nodeRevisionDao.entries(query.getWhere(), user)
         .map(e -> populate(e._1, e._2, user));
   }
 
@@ -169,7 +169,7 @@ public class NodeRevisionRepository implements
   @Override
   public Stream<RevisionId<NodeId>> keys(
       Query<RevisionId<NodeId>, Tuple2<RevisionType, Node>> query, User user) {
-    return nodeRevisionDao.getKeys(query.getWhere(), user);
+    return nodeRevisionDao.keys(query.getWhere(), user);
   }
 
   @Override
@@ -193,7 +193,7 @@ public class NodeRevisionRepository implements
 
   private Multimap<String, StrictLangValue> findPropertiesFor(RevisionId<NodeId> revId, User user) {
     try (Stream<Tuple2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, StrictLangValue>>>
-        textAttributeValueRevisions = textAttributeValueRevDao.getEntries(
+        textAttributeValueRevisions = textAttributeValueRevDao.entries(
         new NodeRevisionTextAttributeValuesLessOrEqualToRevision(revId), user)) {
 
       Map<NodeAttributeValueId, List<Tuple2<Long, StrictLangValue>>> idMappedValueRevisions =
@@ -217,7 +217,7 @@ public class NodeRevisionRepository implements
 
   private Multimap<String, NodeId> findReferencesFor(RevisionId<NodeId> revId, User user) {
     try (Stream<Tuple2<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>>>
-        referenceAttributeValueRevisions = referenceAttributeValueRevDao.getEntries(
+        referenceAttributeValueRevisions = referenceAttributeValueRevDao.entries(
         new NodeRevisionReferenceAttributeValuesLessOrEqualToRevision(revId), user)) {
 
       Map<NodeAttributeValueId, List<Tuple2<Long, NodeId>>> idMappedValueRevisions =

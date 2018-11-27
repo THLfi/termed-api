@@ -81,7 +81,7 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
             new RolePermissionsDtoToModel<>(domainId.getGraph(), attrId).apply(permissions));
     Map<ObjectRolePermission<TextAttributeId>, GrantedPermission> oldPermissionMap =
         tuplesToMap(
-            permissionDao.getEntries(new TextAttributePermissionsByTextAttributeId(attrId), user));
+            permissionDao.entries(new TextAttributePermissionsByTextAttributeId(attrId), user));
 
     MapDifference<ObjectRolePermission<TextAttributeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -98,7 +98,7 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
             new PropertyValueDtoToModel<>(attributeId).apply(properties));
     Map<PropertyValueId<TextAttributeId>, LangValue> oldProperties =
         tuplesToMap(
-            propertyDao.getEntries(new TextAttributePropertiesByAttributeId(attributeId), user));
+            propertyDao.entries(new TextAttributePropertiesByAttributeId(attributeId), user));
 
     MapDifference<PropertyValueId<TextAttributeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -116,12 +116,12 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
   }
 
   private void deletePermissions(TextAttributeId id, User user) {
-    permissionDao.delete(permissionDao.getKeys(
+    permissionDao.delete(permissionDao.keys(
         new TextAttributePermissionsByTextAttributeId(id), user), user);
   }
 
   private void deleteProperties(TextAttributeId id, User user) {
-    propertyDao.delete(propertyDao.getKeys(
+    propertyDao.delete(propertyDao.keys(
         new TextAttributePropertiesByAttributeId(id), user), user);
   }
 
@@ -132,13 +132,13 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
 
   @Override
   public Stream<TextAttribute> values(Query<TextAttributeId, TextAttribute> query, User user) {
-    return textAttributeDao.getValues(query.getWhere(), user)
+    return textAttributeDao.values(query.getWhere(), user)
         .map(attribute -> populateValue(attribute, user));
   }
 
   @Override
   public Stream<TextAttributeId> keys(Query<TextAttributeId, TextAttribute> spec, User user) {
-    return textAttributeDao.getKeys(spec.getWhere(), user);
+    return textAttributeDao.keys(spec.getWhere(), user);
   }
 
   @Override
@@ -151,9 +151,9 @@ public class TextAttributeRepository extends AbstractRepository<TextAttributeId,
 
     try (
         Stream<ObjectRolePermission<TextAttributeId>> permissionStream = permissionDao
-            .getKeys(new TextAttributePermissionsByTextAttributeId(id), user);
+            .keys(new TextAttributePermissionsByTextAttributeId(id), user);
         Stream<Tuple2<PropertyValueId<TextAttributeId>, LangValue>> propertyStream = propertyDao
-            .getEntries(new TextAttributePropertiesByAttributeId(id), user)) {
+            .entries(new TextAttributePropertiesByAttributeId(id), user)) {
 
       return TextAttribute.builderFromCopyOf(attribute)
           .permissions(permissionStream.collect(toImmutableMultimap(

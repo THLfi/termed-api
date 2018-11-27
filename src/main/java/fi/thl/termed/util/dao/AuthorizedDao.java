@@ -86,20 +86,20 @@ public class AuthorizedDao<K extends Serializable, V> implements Dao<K, V> {
   }
 
   @Override
-  public Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification, User user) {
-    return delegate.getEntries(specification)
+  public Stream<Tuple2<K, V>> entries(Specification<K, V> specification, User user) {
+    return delegate.entries(specification)
         .filter(e -> evaluator.hasPermission(user, e._1, READ));
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, User user) {
-    return delegate.getKeys(specification)
+  public Stream<K> keys(Specification<K, V> specification, User user) {
+    return delegate.keys(specification)
         .filter(k -> evaluator.hasPermission(user, k, READ));
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> specification, User user) {
-    return getEntries(specification, user).map(e -> e._2);
+  public Stream<V> values(Specification<K, V> specification, User user) {
+    return entries(specification, user).map(e -> e._2);
   }
 
   @Override

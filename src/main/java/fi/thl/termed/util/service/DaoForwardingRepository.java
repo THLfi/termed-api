@@ -38,12 +38,12 @@ public class DaoForwardingRepository<K extends Serializable, V extends Identifia
 
   @Override
   public Stream<V> values(Query<K, V> query, User user) {
-    return delegate.getValues(query.getWhere(), user);
+    return delegate.values(query.getWhere(), user);
   }
 
   @Override
   public Stream<K> keys(Query<K, V> query, User user) {
-    return delegate.getKeys(query.getWhere(), user);
+    return delegate.keys(query.getWhere(), user);
   }
 
   @Override

@@ -146,7 +146,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     Map<ObjectRolePermission<TypeId>, GrantedPermission> newPermissionMap =
         tuplesToMap(new RolePermissionsDtoToModel<>(id.getGraph(), id).apply(permissions));
     Map<ObjectRolePermission<TypeId>, GrantedPermission> oldPermissionMap =
-        tuplesToMap(typePermissionDao.getEntries(new TypePermissionsByTypeId(id), user));
+        tuplesToMap(typePermissionDao.entries(new TypePermissionsByTypeId(id), user));
 
     MapDifference<ObjectRolePermission<TypeId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -159,7 +159,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
     Map<PropertyValueId<TypeId>, LangValue> newProperties =
         tuplesToMap(new PropertyValueDtoToModel<>(id).apply(properties));
     Map<PropertyValueId<TypeId>, LangValue> oldProperties =
-        tuplesToMap(typePropertyDao.getEntries(new TypePropertiesByTypeId(id), user));
+        tuplesToMap(typePropertyDao.entries(new TypePropertiesByTypeId(id), user));
 
     MapDifference<PropertyValueId<TypeId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -181,11 +181,11 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   private void deletePermissions(TypeId id, User user) {
     typePermissionDao
-        .delete(typePermissionDao.getKeys(new TypePermissionsByTypeId(id), user), user);
+        .delete(typePermissionDao.keys(new TypePermissionsByTypeId(id), user), user);
   }
 
   private void deleteProperties(TypeId id, User user) {
-    typePropertyDao.delete(typePropertyDao.getKeys(new TypePropertiesByTypeId(id), user), user);
+    typePropertyDao.delete(typePropertyDao.keys(new TypePropertiesByTypeId(id), user), user);
   }
 
   private void deleteTextAttributes(TypeId id, WriteOptions opts, User user) {
@@ -210,12 +210,12 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
   @Override
   public Stream<Type> values(Query<TypeId, Type> spec, User user) {
-    return typeDao.getValues(spec.getWhere(), user).map(cls -> populateValue(cls, user));
+    return typeDao.values(spec.getWhere(), user).map(cls -> populateValue(cls, user));
   }
 
   @Override
   public Stream<TypeId> keys(Query<TypeId, Type> spec, User user) {
-    return typeDao.getKeys(spec.getWhere(), user);
+    return typeDao.keys(spec.getWhere(), user);
   }
 
   @Override
@@ -228,9 +228,9 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
 
     try (
         Stream<ObjectRolePermission<TypeId>> permissionStream = typePermissionDao
-            .getKeys(new TypePermissionsByTypeId(id), user);
+            .keys(new TypePermissionsByTypeId(id), user);
         Stream<Tuple2<PropertyValueId<TypeId>, LangValue>> propertyStream = typePropertyDao
-            .getEntries(new TypePropertiesByTypeId(id), user);
+            .entries(new TypePropertiesByTypeId(id), user);
         Stream<TextAttribute> textAttributeStream = textAttributeRepository
             .values(new Query<>(new TextAttributesByTypeId(id)), user);
         Stream<ReferenceAttribute> referenceAttributeStream = referenceAttributeRepository

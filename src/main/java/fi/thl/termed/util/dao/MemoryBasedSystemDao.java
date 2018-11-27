@@ -61,20 +61,20 @@ public class MemoryBasedSystemDao<K extends Serializable, V> implements SystemDa
   }
 
   @Override
-  public Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification) {
+  public Stream<Tuple2<K, V>> entries(Specification<K, V> specification) {
     return data.entrySet().stream()
         .map(Tuple::of)
         .filter(t -> specification.test(t._1, t._2));
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification) {
-    return getEntries(specification).map(e -> e._1);
+  public Stream<K> keys(Specification<K, V> specification) {
+    return entries(specification).map(e -> e._1);
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> specification) {
-    return getEntries(specification).map(e -> e._2);
+  public Stream<V> values(Specification<K, V> specification) {
+    return entries(specification).map(e -> e._2);
   }
 
   @Override

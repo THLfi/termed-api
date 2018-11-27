@@ -45,18 +45,18 @@ public class ForwardingSystemDao<K extends Serializable, V> implements SystemDao
   }
 
   @Override
-  public Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification) {
-    return delegate.getEntries(specification);
+  public Stream<Tuple2<K, V>> entries(Specification<K, V> specification) {
+    return delegate.entries(specification);
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification) {
-    return delegate.getKeys(specification);
+  public Stream<K> keys(Specification<K, V> specification) {
+    return delegate.keys(specification);
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> specification) {
-    return delegate.getValues(specification);
+  public Stream<V> values(Specification<K, V> specification) {
+    return delegate.values(specification);
   }
 
   @Override

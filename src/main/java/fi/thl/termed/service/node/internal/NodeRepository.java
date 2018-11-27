@@ -111,11 +111,11 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   public void update(NodeId id, Node node, WriteOptions opts, User user) {
     MapDifference<NodeAttributeValueId, StrictLangValue> textsDiff = difference(
         tuplesToMap(nodePropertiesToRows(id, node.getProperties())),
-        tuplesToMap(textAttrValueDao.getEntries(new NodeTextAttributeValuesByNodeId(id), user)));
+        tuplesToMap(textAttrValueDao.entries(new NodeTextAttributeValuesByNodeId(id), user)));
     MapDifference<NodeAttributeValueId, NodeId> refsDiff = difference(
         tuplesToMap(nodeReferencesToRows(id, node.getReferences())),
         tuplesToMap(
-            refAttrValueDao.getEntries(new NodeReferenceAttributeValuesByNodeId(id), user)));
+            refAttrValueDao.entries(new NodeReferenceAttributeValuesByNodeId(id), user)));
 
     nodeDao.update(id, node, user);
 
@@ -151,10 +151,10 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   protected void deleteBatch(List<NodeId> ids, WriteOptions opts, User user) {
     // note that flatMap will close streams returned by DAOs
     ImmutableList<NodeAttributeValueId> allTextAttrValueIds = ids.stream()
-        .flatMap(id -> textAttrValueDao.getKeys(new NodeTextAttributeValuesByNodeId(id), user))
+        .flatMap(id -> textAttrValueDao.keys(new NodeTextAttributeValuesByNodeId(id), user))
         .collect(toImmutableList());
     ImmutableList<NodeAttributeValueId> allRefAttrValueIds = ids.stream()
-        .flatMap(id -> refAttrValueDao.getKeys(new NodeReferenceAttributeValuesByNodeId(id), user))
+        .flatMap(id -> refAttrValueDao.keys(new NodeReferenceAttributeValuesByNodeId(id), user))
         .collect(toImmutableList());
 
     textAttrValueDao.delete(allTextAttrValueIds.stream(), user);
@@ -171,9 +171,9 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   @Override
   public void delete(NodeId id, WriteOptions opts, User user) {
     try (
-        Stream<NodeAttributeValueId> textAttrValueIds = textAttrValueDao.getKeys(
+        Stream<NodeAttributeValueId> textAttrValueIds = textAttrValueDao.keys(
             new NodeTextAttributeValuesByNodeId(id), user);
-        Stream<NodeAttributeValueId> refAttrValueIds = refAttrValueDao.getKeys(
+        Stream<NodeAttributeValueId> refAttrValueIds = refAttrValueDao.keys(
             new NodeReferenceAttributeValuesByNodeId(id), user)) {
 
       ImmutableList<NodeAttributeValueId> textAttrValueIdList = textAttrValueIds
@@ -211,12 +211,12 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
   @Override
   public Stream<Node> values(Query<NodeId, Node> query, User user) {
-    return nodeDao.getValues(query.getWhere(), user).map(node -> populateValue(node, user));
+    return nodeDao.values(query.getWhere(), user).map(node -> populateValue(node, user));
   }
 
   @Override
   public Stream<NodeId> keys(Query<NodeId, Node> query, User user) {
-    return nodeDao.getKeys(query.getWhere(), user);
+    return nodeDao.keys(query.getWhere(), user);
   }
 
   @Override
@@ -229,10 +229,10 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
 
     try (
         Stream<Tuple2<NodeAttributeValueId, StrictLangValue>> texts = textAttrValueDao
-            .getEntries(new NodeTextAttributeValuesByNodeId(nodeId), user);
-        Stream<Tuple2<NodeAttributeValueId, NodeId>> references = refAttrValueDao.getEntries(
+            .entries(new NodeTextAttributeValuesByNodeId(nodeId), user);
+        Stream<Tuple2<NodeAttributeValueId, NodeId>> references = refAttrValueDao.entries(
             new NodeReferenceAttributeValuesByNodeId(nodeId), user);
-        Stream<Tuple2<NodeAttributeValueId, NodeId>> referrers = refAttrValueDao.getEntries(
+        Stream<Tuple2<NodeAttributeValueId, NodeId>> referrers = refAttrValueDao.entries(
             new NodeReferenceAttributeNodesByValueId(nodeId), user)) {
 
       return Node.builderFromCopyOf(node)

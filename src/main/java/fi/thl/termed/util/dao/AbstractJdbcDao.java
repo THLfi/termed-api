@@ -58,30 +58,30 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
   }
 
   @Override
-  public Stream<Tuple2<K, V>> getEntries(Specification<K, V> specification) {
+  public Stream<Tuple2<K, V>> entries(Specification<K, V> specification) {
     if (specification instanceof SqlSpecification) {
       return get((SqlSpecification<K, V>) specification, entryMapper);
     } else {
       log.warn("Scanning through all entries as SqlSpecification is not provided.");
-      return getEntries(new MatchAll<>()).filter(e -> specification.test(e._1, e._2));
+      return entries(new MatchAll<>()).filter(e -> specification.test(e._1, e._2));
     }
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification) {
+  public Stream<K> keys(Specification<K, V> specification) {
     if (specification instanceof SqlSpecification) {
       return get((SqlSpecification<K, V>) specification, keyMapper);
     } else {
-      return getEntries(specification).map(e -> e._1);
+      return entries(specification).map(e -> e._1);
     }
   }
 
   @Override
-  public Stream<V> getValues(Specification<K, V> specification) {
+  public Stream<V> values(Specification<K, V> specification) {
     if (specification instanceof SqlSpecification) {
       return get((SqlSpecification<K, V>) specification, valueMapper);
     } else {
-      return getEntries(specification).map(e -> e._2);
+      return entries(specification).map(e -> e._2);
     }
   }
 

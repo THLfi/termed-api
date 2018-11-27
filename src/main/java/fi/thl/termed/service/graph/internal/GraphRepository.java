@@ -86,7 +86,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   private void updateRoles(GraphId graphId, List<String> roles, User user) {
     Map<GraphRole, Empty> newRolesMap = tuplesToMap(
         new GraphRoleDtoToModel(graphId).apply(roles));
-    Map<GraphRole, Empty> oldRolesMap = tuplesToMap(graphRoleDao.getEntries(
+    Map<GraphRole, Empty> oldRolesMap = tuplesToMap(graphRoleDao.entries(
         new GraphRolesByGraphId(graphId), user));
 
     MapDifference<GraphRole, Empty> diff = Maps.difference(newRolesMap, oldRolesMap);
@@ -101,7 +101,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     Map<ObjectRolePermission<GraphId>, GrantedPermission> newPermissionMap =
         tuplesToMap(new RolePermissionsDtoToModel<>(graphId, graphId).apply(permissions));
     Map<ObjectRolePermission<GraphId>, GrantedPermission> oldPermissionMap =
-        tuplesToMap(graphPermissionDao.getEntries(new GraphPermissionsByGraphId(graphId), u));
+        tuplesToMap(graphPermissionDao.entries(new GraphPermissionsByGraphId(graphId), u));
 
     MapDifference<ObjectRolePermission<GraphId>, GrantedPermission> diff =
         Maps.difference(newPermissionMap, oldPermissionMap);
@@ -116,7 +116,7 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
     Map<PropertyValueId<GraphId>, LangValue> newProperties =
         tuplesToMap(new PropertyValueDtoToModel<>(graphId).apply(propertyMultimap));
     Map<PropertyValueId<GraphId>, LangValue> oldProperties =
-        tuplesToMap(graphPropertyDao.getEntries(new GraphPropertiesByGraphId(graphId), user));
+        tuplesToMap(graphPropertyDao.entries(new GraphPropertiesByGraphId(graphId), user));
 
     MapDifference<PropertyValueId<GraphId>, LangValue> diff =
         Maps.difference(newProperties, oldProperties);
@@ -135,17 +135,17 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
   }
 
   private void deleteRoles(GraphId id, User user) {
-    graphRoleDao.delete(graphRoleDao.getKeys(
+    graphRoleDao.delete(graphRoleDao.keys(
         new GraphRolesByGraphId(id), user), user);
   }
 
   private void deletePermissions(GraphId id, User user) {
-    graphPermissionDao.delete(graphPermissionDao.getKeys(
+    graphPermissionDao.delete(graphPermissionDao.keys(
         new GraphPermissionsByGraphId(id), user), user);
   }
 
   private void deleteProperties(GraphId id, User user) {
-    graphPropertyDao.delete(graphPropertyDao.getKeys(
+    graphPropertyDao.delete(graphPropertyDao.keys(
         new GraphPropertiesByGraphId(id), user), user);
   }
 
@@ -156,12 +156,12 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
 
   @Override
   public Stream<Graph> values(Query<GraphId, Graph> query, User user) {
-    return graphDao.getValues(query.getWhere(), user).map(graph -> populateValue(graph, user));
+    return graphDao.values(query.getWhere(), user).map(graph -> populateValue(graph, user));
   }
 
   @Override
   public Stream<GraphId> keys(Query<GraphId, Graph> query, User user) {
-    return graphDao.getKeys(query.getWhere(), user);
+    return graphDao.keys(query.getWhere(), user);
   }
 
   @Override
@@ -174,11 +174,11 @@ public class GraphRepository extends AbstractRepository<GraphId, Graph> {
 
     try (
         Stream<GraphRole> roleStream =
-            graphRoleDao.getKeys(new GraphRolesByGraphId(id), user);
+            graphRoleDao.keys(new GraphRolesByGraphId(id), user);
         Stream<ObjectRolePermission<GraphId>> permissionStream = graphPermissionDao
-            .getKeys(new GraphPermissionsByGraphId(id), user);
+            .keys(new GraphPermissionsByGraphId(id), user);
         Stream<Tuple2<PropertyValueId<GraphId>, LangValue>> propertyStream = graphPropertyDao
-            .getEntries(new GraphPropertiesByGraphId(id), user)) {
+            .entries(new GraphPropertiesByGraphId(id), user)) {
 
       return Graph.builderFromCopyOf(graph)
           .roles(roleStream.map(GraphRole::getRole).collect(toImmutableList()))
