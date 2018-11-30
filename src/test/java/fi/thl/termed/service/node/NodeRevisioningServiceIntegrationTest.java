@@ -5,7 +5,6 @@ import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,13 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMultimap;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.domain.Type;
-import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
@@ -29,30 +24,21 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+/**
+ * Tests that node service generates revisions correctly. Tests also node revision service for
+ * reading revisions.
+ */
+class NodeRevisioningServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Autowired
   private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
-
-  @Override
-  protected List<Type> buildTestTypes() {
-    TypeId personId = new TypeId("Person", graphId);
-    return singletonList(
-        Type.builder().id(personId)
-            .textAttributes(
-                TextAttribute.builder().id("firstName", personId).regexAll().build(),
-                TextAttribute.builder().id("lastName", personId).regexAll().build())
-            .referenceAttributes(
-                ReferenceAttribute.builder().id("knows", personId).range(personId).build())
-            .build());
-  }
 
   @Test
   void shouldSaveNewRevisionForEachNodeSave() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
-        .addProperty("firstName", "John")
-        .addProperty("lastName", "Doe")
+        .addProperty("name", "John")
+        .addProperty("email", "john@example.org")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -71,8 +57,8 @@ class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest 
   void shouldSaveRevisionsForNodesWithProperties() {
     NodeId nodeId = NodeId.random("Person", graphId);
     Node node = Node.builder().id(nodeId)
-        .addProperty("firstName", "John")
-        .addProperty("lastName", "Doe")
+        .addProperty("name", "John")
+        .addProperty("email", "john@example.org")
         .build();
 
     assertFalse(nodeService.exists(nodeId, user));
@@ -82,8 +68,8 @@ class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest 
 
     Node personUpdated = Node.builderFromCopyOf(node)
         .properties(ImmutableMultimap.of(
-            "firstName", new StrictLangValue("Jane"),
-            "lastName", new StrictLangValue("Doe")))
+            "name", new StrictLangValue("John Doe"),
+            "email", new StrictLangValue("john@example.org")))
         .build();
     nodeService.save(personUpdated, UPDATE, defaultOpts(), user);
 
@@ -98,19 +84,19 @@ class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest 
 
     assertEquals(nodeId, revisions.get(1)._2.identifier());
     assertEquals(RevisionType.UPDATE, revisions.get(1)._1);
-    assertEquals("Jane", revisions.get(1)._2.getFirstPropertyValue("firstName")
+    assertEquals("John Doe", revisions.get(1)._2.getFirstPropertyValue("name")
         .map(StrictLangValue::getValue)
         .orElseThrow(AssertionError::new));
-    assertEquals("Doe", revisions.get(1)._2.getFirstPropertyValue("lastName")
+    assertEquals("john@example.org", revisions.get(1)._2.getFirstPropertyValue("email")
         .map(StrictLangValue::getValue)
         .orElseThrow(AssertionError::new));
 
     assertEquals(nodeId, revisions.get(2)._2.identifier());
     assertEquals(RevisionType.INSERT, revisions.get(2)._1);
-    assertEquals("John", revisions.get(2)._2.getFirstPropertyValue("firstName")
+    assertEquals("John", revisions.get(2)._2.getFirstPropertyValue("name")
         .map(StrictLangValue::getValue)
         .orElseThrow(AssertionError::new));
-    assertEquals("Doe", revisions.get(2)._2.getFirstPropertyValue("lastName")
+    assertEquals("john@example.org", revisions.get(2)._2.getFirstPropertyValue("email")
         .map(StrictLangValue::getValue)
         .orElseThrow(AssertionError::new));
   }
@@ -122,16 +108,16 @@ class NodeRevisionServiceIntegrationTest extends BaseNodeServiceIntegrationTest 
     NodeId maryId = NodeId.random("Person", graphId);
 
     Node john = Node.builder().id(johnId)
-        .addProperty("firstName", "John")
+        .addProperty("name", "John")
         .build();
 
     Node jack = Node.builder().id(jackId)
-        .addProperty("firstName", "Jack")
+        .addProperty("name", "Jack")
         .addReference("knows", maryId)
         .build();
 
     Node mary = Node.builder().id(maryId)
-        .addProperty("firstName", "Mary")
+        .addProperty("name", "Mary")
         .build();
 
     nodeService.save(Stream.of(john, jack, mary), INSERT, defaultOpts(), user);

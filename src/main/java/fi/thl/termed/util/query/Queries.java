@@ -7,12 +7,16 @@ public final class Queries {
   private Queries() {
   }
 
+  public static <K extends Serializable, V> Query<K, V> query(Specification<K, V> specification) {
+    return new Query<>(specification);
+  }
+
   public static <K extends Serializable, V> Query<K, V> matchAll() {
-    return new Query<>(new MatchAll<>());
+    return query(Specifications.matchAll());
   }
 
   public static <K extends Serializable, V> Query<K, V> matchNone() {
-    return new Query<>(new MatchNone<>());
+    return query(Specifications.matchNone());
   }
 
 }

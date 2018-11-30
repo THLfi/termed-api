@@ -4,91 +4,23 @@ import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
-import static fi.thl.termed.util.service.WriteOptions.opts;
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMultimap;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.domain.TextAttribute;
-import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.util.query.ForwardingLuceneSpecification;
-import fi.thl.termed.util.query.ForwardingSqlSpecification;
-import fi.thl.termed.util.query.Query;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Supplier;
-import java.util.stream.LongStream;
+import fi.thl.termed.util.query.Specifications;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
-
-  @BeforeEach
-  void verifyGraphNodeDbAndIndexAreEmpty() {
-    assertEquals(0,
-        nodeService.count(new ForwardingSqlSpecification<>(new NodesByGraphId(graphId)), user));
-    assertEquals(0,
-        nodeService.count(new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId)), user));
-  }
-
-  @AfterEach
-  void verifyGraphNodeIndexIntegrity() {
-    try (
-        Stream<Node> dbNodeStream = nodeService.values(new Query<>(
-            new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user);
-        Stream<Node> indexNodeStream = nodeService.values(new Query<>(
-            new ForwardingLuceneSpecification<>(new NodesByGraphId(graphId))), user)) {
-
-      Supplier<TreeSet<Node>> nodeTreeSetSupplier =
-          () -> new TreeSet<>(Comparator.comparing(Node::getId));
-
-      Set<Node> dbNodes = dbNodeStream.collect(toCollection(nodeTreeSetSupplier));
-      Set<Node> indexNodes = indexNodeStream.collect(toCollection(nodeTreeSetSupplier));
-
-      assertEquals(dbNodes, indexNodes);
-    }
-  }
-
-  @Override
-  protected List<Type> buildTestTypes() {
-    TypeId personId = TypeId.of("Person", graphId);
-    TypeId groupId = TypeId.of("Group", graphId);
-
-    Type person = Type.builder().id(personId)
-        .textAttributes(
-            TextAttribute.builder().id("name", personId).regexAll().build(),
-            TextAttribute.builder().id("email", personId).regex("^.*@.*$").build())
-        .referenceAttributes(
-            ReferenceAttribute.builder().id("knows", personId).range(personId).build())
-        .build();
-
-    Type group = Type.builder().id(groupId)
-        .textAttributes(
-            TextAttribute.builder().id("name", groupId).regexAll().build())
-        .referenceAttributes(
-            ReferenceAttribute.builder().id("member", groupId).range(personId).build())
-        .build();
-
-    return Arrays.asList(person, group);
-  }
 
   @Test
   void shouldInsertNode() {
@@ -100,27 +32,6 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     nodeService.save(examplePerson, INSERT, defaultOpts(), user);
 
     assertTrue(nodeService.exists(nodeId, user));
-  }
-
-  @Test
-  void shouldInsertManyNodesWithCorrectNumbers() {
-    int testNodeCount = 2500;
-
-    assertEquals(0, nodeService.count(new NodesByGraphId(graphId), user));
-
-    nodeService.save(
-        Stream.generate(() -> Node.builder().id(NodeId.random("Person", graphId)).build())
-            .limit(testNodeCount),
-        INSERT, defaultOpts(), user);
-
-    assertEquals(testNodeCount, nodeService.count(new NodesByGraphId(graphId), user));
-
-    try (Stream<Node> nodes = nodeService.values(
-        new Query<>(new NodesByGraphId(graphId)), user)) {
-      assertEquals(
-          LongStream.range(0, testNodeCount).boxed().collect(toSet()),
-          nodes.map(Node::getNumber).collect(toSet()));
-    }
   }
 
   @Test
@@ -152,135 +63,6 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     nodeService.save(examplePerson, UPSERT, defaultOpts(), user);
 
     assertTrue(nodeService.exists(nodeId, user));
-  }
-
-  @Test
-  void shouldGenerateNodeNumbers() {
-    NodeId node0Id = NodeId.random("Person", graphId);
-    Node node0 = Node.builder().id(node0Id).build();
-
-    NodeId node1Id = NodeId.random("Person", graphId);
-    Node node1 = Node.builder().id(node1Id).build();
-
-    nodeService.save(node0, INSERT, defaultOpts(), user);
-    nodeService.save(node1, INSERT, defaultOpts(), user);
-
-    assertEquals(0, (long) nodeService.get(node0Id, user)
-        .map(Node::getNumber)
-        .orElseThrow(AssertionError::new));
-
-    assertEquals(1, (long) nodeService.get(node1Id, user)
-        .map(Node::getNumber)
-        .orElseThrow(AssertionError::new));
-  }
-
-  @Test
-  void shouldOnlyUseGeneratedNumbers() {
-    NodeId nodeId = NodeId.random("Person", graphId);
-    Node node = Node.builder()
-        .id(nodeId)
-        .number(23L)
-        .build();
-
-    nodeService.save(node, INSERT, defaultOpts(), user);
-
-    assertEquals(0, (long) nodeService.get(nodeId, user)
-        .map(Node::getNumber)
-        .orElseThrow(AssertionError::new));
-
-    // try again with update
-    nodeService.save(node, UPDATE, defaultOpts(), user);
-
-    assertEquals(0, (long) nodeService.get(nodeId, user)
-        .map(Node::getNumber)
-        .orElseThrow(AssertionError::new));
-  }
-
-  @Test
-  void shouldNotAllowDuplicateCodes() {
-    NodeId nodeId0 = NodeId.random("Person", graphId);
-    Node node0 = Node.builder()
-        .id(nodeId0)
-        .code("example-code")
-        .build();
-
-    NodeId nodeId1 = NodeId.random("Person", graphId);
-    Node node1 = Node.builder()
-        .id(nodeId1)
-        .code("example-code")
-        .build();
-
-    assertFalse(nodeService.exists(nodeId0, user));
-    assertFalse(nodeService.exists(nodeId1, user));
-
-    assertThrows(DataIntegrityViolationException.class,
-        () -> nodeService.save(Stream.of(node0, node1), INSERT, defaultOpts(), user));
-
-    assertFalse(nodeService.exists(nodeId0, user));
-    assertFalse(nodeService.exists(nodeId1, user));
-  }
-
-  @Test
-  void shouldNullifyDuplicateCodeIfOptsGenerateCodesIsTrue() {
-    NodeId nodeId0 = NodeId.random("Person", graphId);
-    Node node0 = Node.builder()
-        .id(nodeId0)
-        .code("example-code")
-        .build();
-
-    NodeId nodeId1 = NodeId.random("Person", graphId);
-    Node node1 = Node.builder()
-        .id(nodeId1)
-        .code("example-code")
-        .build();
-
-    assertFalse(nodeService.exists(nodeId0, user));
-    assertFalse(nodeService.exists(nodeId1, user));
-
-    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, null, true, true), user);
-
-    assertEquals("example-code",
-        nodeService.get(nodeId0, user)
-            .orElseThrow(AssertionError::new)
-            .getCode()
-            .orElseThrow(AssertionError::new));
-
-    assertFalse(
-        nodeService.get(nodeId1, user)
-            .orElseThrow(AssertionError::new)
-            .getCode()
-            .isPresent());
-  }
-
-  @Test
-  void shouldNotGenerateDefaultCodeIfIsAlreadyInUse() {
-    NodeId nodeId0 = NodeId.random("Person", graphId);
-    Node node0 = Node.builder()
-        .id(nodeId0)
-        .build();
-
-    NodeId nodeId1 = NodeId.random("Person", graphId);
-    Node node1 = Node.builder()
-        .id(nodeId1)
-        // give code that would be default for the next node
-        .code("person-2")
-        .build();
-
-    NodeId nodeId2 = NodeId.random("Person", graphId);
-    Node node2 = Node.builder()
-        .id(nodeId2)
-        .build();
-
-    nodeService.save(node0, INSERT, opts(false, null, true, true), user);
-    nodeService.save(node1, INSERT, opts(false, null, true, true), user);
-    nodeService.save(node2, INSERT, opts(false, null, true, true), user);
-
-    assertEquals("person-0", nodeService.get(nodeId0, user)
-        .flatMap(Node::getCode).orElse(null));
-    assertEquals("person-2", nodeService.get(nodeId1, user)
-        .flatMap(Node::getCode).orElse(null));
-    assertNull(nodeService.get(nodeId2, user)
-        .flatMap(Node::getCode).orElse(null));
   }
 
   @Test
@@ -318,6 +100,31 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
         () -> nodeService.save(examplePerson, INSERT, defaultOpts(), user));
 
     assertFalse(nodeService.exists(nodeId, user));
+  }
+
+  @Test
+  void shouldNotInsertAnyInBatchIfSomeIsWithIllegalProperties() {
+    Node p0 = Node.builder().random(TypeId.of("Person", graphId))
+        .addProperty("name", "John")
+        .addProperty("email", "john@example.og")
+        .build();
+
+    Node p1 = Node.builder().random(TypeId.of("Person", graphId))
+        .addProperty("name", "Jack")
+        .addProperty("email", "at-symbol-is-required-but-missing")
+        .build();
+
+    Node p2 = Node.builder().random(TypeId.of("Person", graphId))
+        .addProperty("name", "Lisa")
+        .addProperty("email", "lisa@example.org")
+        .build();
+
+    assertEquals(0, nodeService.count(Specifications.matchAll(), user));
+
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.save(Stream.of(p0, p1, p2), INSERT, defaultOpts(), user));
+
+    assertEquals(0, nodeService.count(Specifications.matchAll(), user));
   }
 
   @Test
