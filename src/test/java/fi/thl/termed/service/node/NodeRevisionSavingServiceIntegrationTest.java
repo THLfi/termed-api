@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Tests that node service generates revisions correctly. Tests also node revision service for
  * reading revisions.
  */
-class NodeRevisioningServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+class NodeRevisionSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Autowired
   private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;

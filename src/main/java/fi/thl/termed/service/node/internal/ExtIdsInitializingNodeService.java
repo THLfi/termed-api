@@ -114,7 +114,8 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
       Supplier<Optional<String>> getOrGenerateCode = memoize(() -> lazyFindFirst(
           node::getCode, () -> buildDefaultCode(node.getType(), number, user)));
       Supplier<Optional<String>> getOrGenerateUri = memoize(() -> lazyFindFirst(
-          node::getUri, () -> buildDefaultUri(node.getTypeGraph(), getOrGenerateCode.get(), user)));
+          node::getUri, () -> buildDefaultUri(node.getTypeGraph(), opts.getUriNamespace(),
+              getOrGenerateCode.get(), user)));
 
       if (opts.isGenerateCodes()) {
         getOrGenerateCode.get().ifPresent(code -> {
@@ -148,8 +149,15 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
         Optional.of(defaultCode) : Optional.empty();
   }
 
-  private Optional<String> buildDefaultUri(GraphId graphId, Optional<String> code, User user) {
+  private Optional<String> buildDefaultUri(GraphId graphId,
+      Optional<String> uriNamespace, Optional<String> code, User user) {
     Graph graph = graphSource.apply(graphId, user);
+
+    if (uriNamespace.isPresent()) {
+      String defaultUri = uriNamespace.get() + code.get();
+      return !existsNodeWithUri(graphId, defaultUri, user) ?
+          Optional.of(defaultUri) : Optional.empty();
+    }
 
     if (graph.getUri().isPresent() && code.isPresent()) {
       String defaultUri = graph.getUri().get() + code.get();

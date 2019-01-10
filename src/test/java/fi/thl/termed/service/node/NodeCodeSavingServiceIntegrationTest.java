@@ -17,7 +17,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 /**
  * Tests that node service generates node codes correctly.
  */
-class NodeCodingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+class NodeCodeSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Test
   void shouldNotAllowDuplicateCodes() {
@@ -60,7 +60,7 @@ class NodeCodingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     assertFalse(nodeService.exists(nodeId0, user));
     assertFalse(nodeService.exists(nodeId1, user));
 
-    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, null, true, true), user);
+    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, true, true), user);
 
     assertEquals("example-code",
         nodeService.get(nodeId0, user)
@@ -94,9 +94,9 @@ class NodeCodingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
         .id(nodeId2)
         .build();
 
-    nodeService.save(node0, INSERT, opts(false, null, true, true), user);
-    nodeService.save(node1, INSERT, opts(false, null, true, true), user);
-    nodeService.save(node2, INSERT, opts(false, null, true, true), user);
+    nodeService.save(node0, INSERT, opts(false, true, true), user);
+    nodeService.save(node1, INSERT, opts(false, true, true), user);
+    nodeService.save(node2, INSERT, opts(false, true, true), user);
 
     assertEquals("person-0", nodeService.get(nodeId0, user)
         .flatMap(Node::getCode).orElse(null));

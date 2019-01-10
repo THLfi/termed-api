@@ -48,6 +48,7 @@ public class NodeSaveController {
   public void saveAll(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
@@ -55,7 +56,7 @@ public class NodeSaveController {
     try (InputStream input = request.getInputStream()) {
       nodeService.save(
           JsonStream.readArray(gson, Node.class, input), saveMode(mode),
-          opts(sync, generateCodes, generateUris), user);
+          opts(sync, uriNamespace, generateCodes, generateUris), user);
     }
   }
 
@@ -65,6 +66,7 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
@@ -80,7 +82,7 @@ public class NodeSaveController {
                   .build());
 
       nodeService.save(nodesWithTypes, saveMode(mode),
-          opts(sync, generateCodes, generateUris), user);
+          opts(sync, uriNamespace, generateCodes, generateUris), user);
     }
   }
 
@@ -91,6 +93,7 @@ public class NodeSaveController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @AuthenticationPrincipal User user,
@@ -107,8 +110,8 @@ public class NodeSaveController {
                   .copyOptionalsFrom(node)
                   .build());
 
-      nodeService
-          .save(nodesWithTypes, saveMode(mode), opts(sync, generateCodes, generateUris), user);
+      nodeService.save(nodesWithTypes, saveMode(mode),
+          opts(sync, uriNamespace, generateCodes, generateUris), user);
     }
   }
 
@@ -116,12 +119,13 @@ public class NodeSaveController {
   public Node saveOne(
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
     NodeId nodeId = nodeService
-        .save(node, saveMode(mode), opts(sync, generateCodes, generateUris), user);
+        .save(node, saveMode(mode), opts(sync, uriNamespace, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -130,6 +134,7 @@ public class NodeSaveController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
@@ -142,8 +147,8 @@ public class NodeSaveController {
             .copyOptionalsFrom(node)
             .build();
 
-    NodeId nodeId = nodeService
-        .save(nodeWithType, saveMode(mode), opts(sync, generateCodes, generateUris), user);
+    NodeId nodeId = nodeService.save(nodeWithType, saveMode(mode),
+        opts(sync, uriNamespace, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -153,6 +158,7 @@ public class NodeSaveController {
       @PathVariable("typeId") String typeId,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
@@ -166,8 +172,8 @@ public class NodeSaveController {
             .copyOptionalsFrom(node)
             .build();
 
-    NodeId nodeId = nodeService
-        .save(nodeWithType, saveMode(mode), opts(sync, generateCodes, generateUris), user);
+    NodeId nodeId = nodeService.save(nodeWithType, saveMode(mode),
+        opts(sync, uriNamespace, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
@@ -178,6 +184,7 @@ public class NodeSaveController {
       @PathVariable("id") UUID id,
       @RequestParam(name = "mode", defaultValue = "upsert") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "uriNamespace", required = false) String uriNamespace,
       @RequestParam(name = "generateCodes", defaultValue = "true") boolean generateCodes,
       @RequestParam(name = "generateUris", defaultValue = "true") boolean generateUris,
       @RequestBody Node node,
@@ -188,8 +195,8 @@ public class NodeSaveController {
         .copyOptionalsFrom(node)
         .build();
 
-    NodeId nodeId = nodeService
-        .save(nodeWithId, saveMode(mode), opts(sync, generateCodes, generateUris), user);
+    NodeId nodeId = nodeService.save(nodeWithId, saveMode(mode),
+        opts(sync, uriNamespace, generateCodes, generateUris), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 

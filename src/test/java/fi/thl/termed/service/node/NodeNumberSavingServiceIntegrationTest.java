@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests that node service generates node numbers correctly.
  */
-class NodeNumberingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
+class NodeNumberSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Test
   void shouldGenerateNodeNumbers() {
