@@ -6,8 +6,10 @@ import static fi.thl.termed.util.json.JsonElementFactory.object;
 import static fi.thl.termed.util.json.JsonElementFactory.primitive;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNull.nullValue;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
@@ -268,5 +270,78 @@ class NodeApiIntegrationTest extends BaseApiIntegrationTest {
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
   }
+
+  @Test
+  void shouldDeleteAndDisconnectNodeBatch() {
+    String graphId = UUID.randomUUID().toString();
+
+    // save graph, types and nodes
+    given(adminAuthorizedJsonSaveRequest)
+        .body(resourceToString("examples/termed/animals-graph.json"))
+        .put("/api/graphs/" + graphId + "?mode=insert");
+    given(adminAuthorizedJsonSaveRequest)
+        .body(resourceToString("examples/termed/animals-types.json"))
+        .post("/api/graphs/" + graphId + "/types?batch=true");
+    given(adminAuthorizedJsonSaveRequest)
+        .body(resourceToString("examples/termed/animals-nodes.json"))
+        .post("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    String vertebrates = "26e6d6e4-6189-4c83-b2d9-637044fbdb65";
+    String birds = "dba6b7eb-5905-49a6-84de-b32ea8608ec9";
+    String reptiles = "0aa44b72-1101-44d1-b058-5e70c43c8b8c";
+    String mammals = "b91e6f65-0aca-4055-b2dc-b35106f6aa7c";
+    String rodents = "41dd2ea2-e59c-4ecd-ba4c-83202b49199e"; // this will not be deleted
+
+    JsonElement deleteIds = array(
+        object("id", primitive(vertebrates)),
+        object("id", primitive(birds)),
+        object("id", primitive(reptiles)),
+        object("id", primitive(mammals)));
+
+    // try to delete nodes in batch without disconnect
+    given(adminAuthorizedJsonSaveRequest)
+        .body(deleteIds)
+        .delete("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true")
+        .then()
+        .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+    // delete nodes in batch with disconnect
+    given(adminAuthorizedJsonSaveRequest)
+        .body(deleteIds)
+        .delete("/api/graphs/" + graphId + "/types/Concept/nodes?batch=true&disconnect=true")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    // verify changes
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + vertebrates)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + birds)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + reptiles)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + mammals)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+    given(adminAuthorizedJsonGetRequest)
+        .get("/api/graphs/" + graphId + "/types/Concept/nodes/" + rodents)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("references.broader", nullValue());
+
+    // clean up
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
+    given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
+  }
+
 
 }
