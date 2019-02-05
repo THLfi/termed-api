@@ -1,5 +1,6 @@
 package fi.thl.termed.util.collect;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -12,11 +13,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -27,6 +30,11 @@ public final class StreamUtils {
   private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
   private StreamUtils() {
+  }
+
+  public static <T, K> Stream<T> distinctByKey(Stream<T> stream, Function<T, K> keyExtractor) {
+    Map<K, Boolean> visited = new ConcurrentHashMap<>();
+    return stream.filter(v -> visited.putIfAbsent(keyExtractor.apply(v), Boolean.TRUE) == null);
   }
 
   /**
@@ -68,6 +76,12 @@ public final class StreamUtils {
   public static <T> Set<T> toSetAndClose(Stream<T> stream) {
     try (Stream<T> autoClosed = stream) {
       return autoClosed.collect(toSet());
+    }
+  }
+
+  public static <T> Set<T> toImmutableSetAndClose(Stream<T> stream) {
+    try (Stream<T> autoClosed = stream) {
+      return autoClosed.collect(toImmutableSet());
     }
   }
 
