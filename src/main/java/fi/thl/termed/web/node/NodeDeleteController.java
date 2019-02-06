@@ -183,10 +183,12 @@ public class NodeDeleteController {
 
   private List<Node> collectRefsAndDisconnect(Set<NodeId> deletedNodeIds, User user) {
     return deletedNodeIds.stream()
-        .map(nodeId -> nodeService.get(nodeId, user).orElseThrow(NotFoundException::new))
+        .map(nodeId -> nodeService.get(nodeId, user)
+            .<NotFoundException>orElseThrow(NotFoundException::new))
         .flatMap(node -> node.getReferrers().values().stream())
         .distinct()
-        .map(referrerId -> nodeService.get(referrerId, user).orElseThrow(NotFoundException::new))
+        .map(referrerId -> nodeService.get(referrerId, user)
+            .<NotFoundException>orElseThrow(NotFoundException::new))
         .map(referrer -> Node.builderFromCopyOf(referrer)
             .references(Multimaps.filterValues(
                 referrer.getReferences(),
