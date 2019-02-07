@@ -23,7 +23,7 @@ public class WriteLoggingService<K extends Serializable, V extends Identifiable<
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
     if (log.isInfoEnabled()) {
       log.info("Saving value stream (user: {})", user.getUsername());
     }
@@ -32,7 +32,7 @@ public class WriteLoggingService<K extends Serializable, V extends Identifiable<
         ? values.peek(v -> log.info("Saving {} (user: {})", v.identifier(), user.getUsername()))
         : values;
 
-    return super.save(valuesWithLogging, mode, opts, user);
+    super.save(valuesWithLogging, mode, opts, user);
   }
 
   @Override

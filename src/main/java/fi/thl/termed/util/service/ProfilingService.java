@@ -36,10 +36,11 @@ public class ProfilingService<K extends Serializable, V extends Identifiable<K>>
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
-    return profile(
-        () -> delegate.save(values, mode, opts, user),
-        "Saved value stream (user: %s)", user.getUsername());
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+    profile(() -> {
+      delegate.save(values, mode, opts, user);
+      return null;
+    }, "Saved value stream (user: %s)", user.getUsername());
   }
 
   @Override

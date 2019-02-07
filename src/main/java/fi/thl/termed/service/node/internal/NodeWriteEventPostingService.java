@@ -1,14 +1,19 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.query.Queries.query;
 import static java.util.Collections.singletonList;
 
+import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.RevisionId;
+import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
+import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumber;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
@@ -26,10 +31,15 @@ import java.util.stream.Stream;
 public class NodeWriteEventPostingService implements Service<NodeId, Node> {
 
   private Service<NodeId, Node> delegate;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
   private EventBus eventBus;
 
-  public NodeWriteEventPostingService(Service<NodeId, Node> delegate, EventBus eventBus) {
+  public NodeWriteEventPostingService(
+      Service<NodeId, Node> delegate,
+      Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService,
+      EventBus eventBus) {
     this.delegate = delegate;
+    this.nodeRevisionService = nodeRevisionService;
     this.eventBus = eventBus;
   }
 
@@ -50,10 +60,19 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
-    List<NodeId> ids = toListAndClose(delegate.save(values, mode, opts, user));
-    fireSaveEvents(ids, user.getUsername(), opts.isSync());
-    return ids.stream();
+  public void save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
+    delegate.save(values, mode, opts, user);
+
+    Long revisionNumber = opts.getRevision()
+        .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
+
+    try (Stream<NodeId> idsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
+        .map(RevisionId::getId)) {
+
+      Iterators.partition(idsInRevision.iterator(), 1000).forEachRemaining(
+          ids -> fireSaveEvents(ids, user.getUsername(), opts.isSync()));
+    }
   }
 
   @Override
@@ -65,9 +84,18 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
 
   @Override
   public void delete(Stream<NodeId> ids, WriteOptions opts, User user) {
-    List<NodeId> idList = toListAndClose(ids);
-    delegate.delete(idList.stream(), opts, user);
-    fireDeleteEvents(idList, user.getUsername(), opts.isSync());
+    delegate.delete(ids, opts, user);
+
+    Long revisionNumber = opts.getRevision()
+        .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
+
+    try (Stream<NodeId> idsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
+        .map(RevisionId::getId)) {
+
+      Iterators.partition(idsInRevision.iterator(), 1000).forEachRemaining(
+          batch -> fireDeleteEvents(batch, user.getUsername(), opts.isSync()));
+    }
   }
 
   @Override

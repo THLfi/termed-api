@@ -66,7 +66,7 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
   }
 
   @Override
-  protected Stream<TypeId> insertBatch(List<Tuple2<TypeId, Type>> types, WriteOptions opts,
+  protected void insertBatch(List<Tuple2<TypeId, Type>> types, WriteOptions opts,
       User user) {
     typeDao.insert(types.stream(), user);
     types.forEach(t -> {
@@ -75,7 +75,6 @@ public class TypeRepository extends AbstractRepository<TypeId, Type> {
       saveTextAttributes(t._1, t._2.getTextAttributes(), INSERT, opts, user);
       saveReferenceAttributes(t._1, t._2.getReferenceAttributes(), INSERT, opts, user);
     });
-    return types.stream().map(t -> t._1);
   }
 
   @Override

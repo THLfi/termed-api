@@ -46,119 +46,104 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
     try (Stream<V> closeable = values) {
       Stream<Tuple2<K, V>> tuples = closeable.map(v -> Tuple.of(v.identifier(), v));
 
       switch (mode) {
         case INSERT:
-          return insert(tuples, opts, user);
+          insert(tuples, opts, user);
+          break;
         case UPDATE:
-          return update(tuples, opts, user);
+          update(tuples, opts, user);
+          break;
         case UPSERT:
-          return upsert(tuples, opts, user);
+          upsert(tuples, opts, user);
+          break;
         default:
           throw new IllegalStateException("Unknown save mode: " + mode);
       }
     }
   }
 
-  private Stream<K> insert(Stream<Tuple2<K, V>> inserts, WriteOptions opts, User user) {
+  private void insert(Stream<Tuple2<K, V>> inserts, WriteOptions opts, User user) {
     if (batchSize > 1) {
-      return insertInNBatches(inserts, opts, user);
+      insertInNBatches(inserts, opts, user);
     } else if (batchSize < 0) {
-      return insertBatch(inserts.collect(toImmutableList()), opts, user);
+      insertBatch(inserts.collect(toImmutableList()), opts, user);
     } else if (batchSize == 1) {
-      return insertEach(inserts, opts, user);
+      insertEach(inserts, opts, user);
     } else {
       throw new IllegalStateException("Unexpected batch size: " + batchSize);
     }
   }
 
-  private Stream<K> insertInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
+  private void insertInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
     partition(stream.iterator(), batchSize)
-        .forEachRemaining(batch -> insertBatch(batch, opts, user).forEach(keys));
-    return keys.build();
+        .forEachRemaining(batch -> insertBatch(batch, opts, user));
   }
 
   /**
    * Default implementation just loops each value in the given list, subclasses may override.
    */
-  protected Stream<K> insertBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
-    return insertEach(list.stream(), opts, user);
+  protected void insertBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
+    insertEach(list.stream(), opts, user);
   }
 
-  private Stream<K> insertEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
-    stream.forEach(t -> {
-      insert(t._1, t._2, opts, user);
-      keys.accept(t._1);
-    });
-    return keys.build();
+  private void insertEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
+    stream.forEach(t -> insert(t._1, t._2, opts, user));
   }
 
-  private Stream<K> update(Stream<Tuple2<K, V>> updates, WriteOptions opts, User user) {
+  private void update(Stream<Tuple2<K, V>> updates, WriteOptions opts, User user) {
     if (batchSize > 1) {
-      return updateInNBatches(updates, opts, user);
+      updateInNBatches(updates, opts, user);
     } else if (batchSize < 0) {
-      return upsertBatch(updates.collect(toImmutableList()), opts, user);
+      upsertBatch(updates.collect(toImmutableList()), opts, user);
     } else if (batchSize == 1) {
-      return updateEach(updates, opts, user);
+      updateEach(updates, opts, user);
     } else {
       throw new IllegalStateException("Unexpected batch size: " + batchSize);
     }
   }
 
-  private Stream<K> updateInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
+  private void updateInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
     partition(stream.iterator(), batchSize)
-        .forEachRemaining(batch -> updateBatch(batch, opts, user).forEach(keys));
-    return keys.build();
+        .forEachRemaining(batch -> updateBatch(batch, opts, user));
   }
 
   /**
    * Default implementation just loops each value in the given list, subclasses may override.
    */
-  protected Stream<K> updateBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
-    return updateEach(list.stream(), opts, user);
+  protected void updateBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
+    updateEach(list.stream(), opts, user);
   }
 
-  private Stream<K> updateEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
-    stream.forEach(t -> {
-      update(t._1, t._2, opts, user);
-      keys.accept(t._1);
-    });
-    return keys.build();
+  private void updateEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
+    stream.forEach(t -> update(t._1, t._2, opts, user));
   }
 
-  private Stream<K> upsert(Stream<Tuple2<K, V>> upserts, WriteOptions opts, User user) {
+  private void upsert(Stream<Tuple2<K, V>> upserts, WriteOptions opts, User user) {
     if (batchSize > 1) {
-      return upsertInNBatches(upserts, opts, user);
+      upsertInNBatches(upserts, opts, user);
     } else if (batchSize < 0) {
-      return upsertBatch(upserts.collect(toImmutableList()), opts, user);
+      upsertBatch(upserts.collect(toImmutableList()), opts, user);
     } else if (batchSize == 1) {
-      return upsertEach(upserts, opts, user);
+      upsertEach(upserts, opts, user);
     } else {
       throw new IllegalStateException("Unexpected batch size: " + batchSize);
     }
   }
 
-  private Stream<K> upsertInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
+  private void upsertInNBatches(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
     partition(stream.iterator(), batchSize)
-        .forEachRemaining(batch -> upsertBatch(batch, opts, user).forEach(keys));
-    return keys.build();
+        .forEachRemaining(batch -> upsertBatch(batch, opts, user));
   }
 
   /**
    * Default implementation first collects all inserts and updates and then calls batch insert and
    * batch update.
    */
-  protected Stream<K> upsertBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
-
+  protected void upsertBatch(List<Tuple2<K, V>> list, WriteOptions opts, User user) {
     ImmutableList.Builder<Tuple2<K, V>> inserts = ImmutableList.builder();
     ImmutableList.Builder<Tuple2<K, V>> updates = ImmutableList.builder();
 
@@ -170,19 +155,12 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
       }
     });
 
-    insertBatch(inserts.build(), opts, user).forEach(keys);
-    updateBatch(updates.build(), opts, user).forEach(keys);
-
-    return keys.build();
+    insertBatch(inserts.build(), opts, user);
+    updateBatch(updates.build(), opts, user);
   }
 
-  private Stream<K> upsertEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
-    Stream.Builder<K> keys = Stream.builder();
-    stream.forEach(t -> {
-      upsert(t._1, t._2, opts, user);
-      keys.accept(t._1);
-    });
-    return keys.build();
+  private void upsertEach(Stream<Tuple2<K, V>> stream, WriteOptions opts, User user) {
+    stream.forEach(t -> upsert(t._1, t._2, opts, user));
   }
 
   @Override

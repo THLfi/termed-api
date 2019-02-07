@@ -25,8 +25,8 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(nodes.map(this::resolveId), mode, opts, user);
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+    super.save(nodes.map(this::resolveId), mode, opts, user);
   }
 
   @Override

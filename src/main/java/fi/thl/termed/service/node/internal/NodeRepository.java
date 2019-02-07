@@ -65,9 +65,7 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
   }
 
   @Override
-  protected Stream<NodeId> insertBatch(List<Tuple2<NodeId, Node>> nodes, WriteOptions opts,
-      User user) {
-
+  protected void insertBatch(List<Tuple2<NodeId, Node>> nodes, WriteOptions opts, User user) {
     ImmutableList<Tuple2<NodeAttributeValueId, StrictLangValue>> textValues = nodes.stream()
         .flatMap(idNode -> nodePropertiesToRows(idNode._1, idNode._2.getProperties()))
         .collect(toImmutableList());
@@ -85,8 +83,6 @@ public class NodeRepository extends AbstractRepository<NodeId, Node> {
       textAttrValueRevDao.insert(toRevs(textValues.stream(), r, INSERT), user);
       refAttrValueRevDao.insert(toRevs(refValues.stream(), r, INSERT), user);
     });
-
-    return nodes.stream().map(e -> e._1);
   }
 
   @Override

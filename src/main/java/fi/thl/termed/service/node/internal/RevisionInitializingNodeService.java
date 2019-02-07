@@ -31,8 +31,8 @@ public class RevisionInitializingNodeService extends ForwardingService<NodeId, N
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(nodes, mode,
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+    super.save(nodes, mode,
         opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
         user);
   }

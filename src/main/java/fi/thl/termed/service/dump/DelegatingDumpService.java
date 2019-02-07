@@ -40,12 +40,10 @@ class DelegatingDumpService implements Service<DumpId, Dump> {
   }
 
   @Override
-  public Stream<DumpId> save(Stream<Dump> dumps, SaveMode mode, WriteOptions opts, User user) {
-    Stream.Builder<DumpId> ids = Stream.builder();
+  public void save(Stream<Dump> dumps, SaveMode mode, WriteOptions opts, User user) {
     try (Stream<Dump> closeable = dumps) {
-      closeable.forEach(dump -> ids.accept(save(dump, mode, opts, user)));
+      closeable.forEach(dump -> save(dump, mode, opts, user));
     }
-    return ids.build();
   }
 
   @Override

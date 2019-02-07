@@ -31,8 +31,8 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
   }
 
   @Override
-  public Stream<TypeId> save(Stream<Type> types, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(init(types), mode, opts, user);
+  public void save(Stream<Type> types, SaveMode mode, WriteOptions opts, User user) {
+    super.save(init(types), mode, opts, user);
   }
 
   @Override

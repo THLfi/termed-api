@@ -36,8 +36,11 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
-    return runInTransaction(() -> delegate.save(values, mode, opts, user));
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+    runInTransaction(() -> {
+      delegate.save(values, mode, opts, user);
+      return null;
+    });
   }
 
   @Override

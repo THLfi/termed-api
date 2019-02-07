@@ -44,8 +44,8 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
-    return delegate.save(values, mode, opts, user);
+  public void save(Stream<Node> values, SaveMode mode, WriteOptions opts, User user) {
+    delegate.save(values, mode, opts, user);
   }
 
   @Override

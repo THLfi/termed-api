@@ -24,9 +24,9 @@ public class TimestampingNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     Date now = new Date();
-    return super.save(nodes.map(n -> addTimestamp(n, user, now)), mode, opts, user);
+    super.save(nodes.map(n -> addTimestamp(n, user, now)), mode, opts, user);
   }
 
   @Override

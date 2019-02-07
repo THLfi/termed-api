@@ -1,18 +1,19 @@
 package fi.thl.termed.service.node.internal;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.of;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.Queries.query;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterators;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.RevisionId;
+import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
@@ -20,11 +21,12 @@ import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.select.SelectAllReferrers;
 import fi.thl.termed.service.node.select.SelectReferrer;
 import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumber;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.util.ProgressReporter;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.query.CompositeSpecification;
@@ -53,12 +55,16 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private Index<NodeId, Node> index;
+  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+
   private User indexer = new User("indexer", "", AppRole.ADMIN);
   private Gson gson;
 
-  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index, Gson gson) {
+  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index,
+      Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService, Gson gson) {
     super(delegate);
     this.index = index;
+    this.nodeRevisionService = nodeRevisionService;
     this.gson = gson;
   }
 
@@ -94,71 +100,74 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    ImmutableList<NodeId> idList;
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+    super.save(nodes, mode, opts, user);
 
-    try (Stream<NodeId> idStream = super.save(nodes, mode, opts, user)) {
-      idList = idStream.collect(toImmutableList());
+    Long revisionNumber = opts.getRevision()
+        .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
+
+    log.info("Indexing");
+
+    try (Stream<NodeId> idsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
+        .map(RevisionId::getId)) {
+
+      Iterators.partition(idsInRevision.iterator(), 1000).forEachRemaining(ids -> {
+        log.debug("Indexing...");
+
+        Set<NodeId> indexed = new HashSet<>();
+        Set<NodeId> waiting = new HashSet<>();
+
+        ids.forEach(id -> {
+          getFromIndex(id, user).ifPresent(n -> {
+            waiting.addAll(n.getReferences().values());
+            waiting.addAll(n.getReferrers().values());
+          });
+
+          Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
+
+          index.index(id, node);
+          indexed.add(id);
+
+          waiting.addAll(node.getReferences().values());
+          waiting.addAll(node.getReferrers().values());
+        });
+
+        waiting.removeAll(indexed);
+        waiting.forEach(id ->
+            index.index(id, super.get(id, indexer).orElseThrow(IllegalStateException::new)));
+      });
     }
 
-    log.info("Indexing {} nodes", idList.size());
-    ProgressReporter reporter = new ProgressReporter(log, "Index", 1000, idList.size());
-
-    Set<NodeId> indexed = new HashSet<>();
-    Set<NodeId> reindexingRequired = new HashSet<>();
-
-    idList.forEach(id -> {
-      getFromIndex(id, user).ifPresent(n -> {
-        reindexingRequired.addAll(n.getReferences().values());
-        reindexingRequired.addAll(n.getReferrers().values());
-      });
-
-      Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
-
-      index.index(id, node);
-      indexed.add(id);
-
-      reindexingRequired.addAll(node.getReferences().values());
-      reindexingRequired.addAll(node.getReferrers().values());
-
-      reporter.tick();
-    });
-
-    reindexingRequired.removeAll(indexed);
-    reporter.report();
-
-    // reindex remaining and wait for index refresh
-    reindex(reindexingRequired.stream());
+    waitLuceneIndexRefresh();
 
     log.info("Done");
-    return idList.stream();
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    NodeId id = super.save(node, mode, opts, user);
+    NodeId nodeId = super.save(node, mode, opts, user);
 
-    Set<NodeId> reindexingRequired = Sets.newHashSet();
+    Set<NodeId> waiting = new HashSet<>();
 
-    reindexingRequired.add(id);
+    waiting.add(nodeId);
 
-    getFromIndex(id, user).ifPresent(indexedNode -> {
-      reindexingRequired.addAll(indexedNode.getReferences().values());
-      reindexingRequired.addAll(indexedNode.getReferrers().values());
+    getFromIndex(nodeId, user).ifPresent(indexedNode -> {
+      waiting.addAll(indexedNode.getReferences().values());
+      waiting.addAll(indexedNode.getReferrers().values());
     });
 
-    super.get(id, indexer).ifPresent(n -> {
-      reindexingRequired.addAll(n.getReferences().values());
-      reindexingRequired.addAll(n.getReferrers().values());
+    super.get(nodeId, indexer).ifPresent(n -> {
+      waiting.addAll(n.getReferences().values());
+      waiting.addAll(n.getReferrers().values());
     });
 
-    reindexingRequired.forEach(reindexId ->
-        index.index(reindexId, super.get(reindexId, indexer)
-            .orElseThrow(IllegalStateException::new)));
+    waiting.forEach(id ->
+        index.index(id, super.get(id, indexer).orElseThrow(IllegalStateException::new)));
 
     waitLuceneIndexRefresh();
 
-    return id;
+    return nodeId;
   }
 
   @Override

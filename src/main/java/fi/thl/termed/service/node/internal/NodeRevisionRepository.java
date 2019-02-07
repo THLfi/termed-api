@@ -8,7 +8,6 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.builder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
 /**
  * Coordinates CRUD-operations on Nodes to simpler DAOs. Revision reads are typically done here.
@@ -76,14 +74,12 @@ public class NodeRevisionRepository implements
   }
 
   @Override
-  public Stream<RevisionId<NodeId>> save(Stream<Tuple2<RevisionType, Node>> entries,
-      SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<Tuple2<RevisionType, Node>> entries, SaveMode mode, WriteOptions opts,
+      User user) {
 
     Preconditions.checkArgument(mode == INSERT);
 
     Long revision = opts.getRevision().orElseGet(() -> newRevision(user));
-
-    Builder<RevisionId<NodeId>> keys = builder();
 
     try (Stream<Tuple2<RevisionType, Node>> closeable = entries) {
       Iterators.partition(closeable.iterator(), BATCH_SIZE).forEachRemaining(batch -> {
@@ -97,14 +93,8 @@ public class NodeRevisionRepository implements
         referenceAttributeValueRevDao.insert(batch.stream()
             .flatMap(e -> nodeReferencesToRows(e._2.identifier(), e._2.getReferences())
                 .map(reference -> toRev(reference._1, reference._2, e._1, revision))), user);
-
-        batch.stream()
-            .map(e -> RevisionId.of(e._2.identifier(), revision))
-            .forEach(keys);
       });
     }
-
-    return keys.build();
   }
 
   @Override

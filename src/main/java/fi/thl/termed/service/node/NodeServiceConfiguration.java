@@ -111,17 +111,17 @@ public class NodeServiceConfiguration {
   @Bean
   public Service<NodeId, Node> nodeService() {
     Service<NodeId, Node> service = nodeRepository();
-    service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
     service = new TransactionalService<>(service, transactionManager);
 
-    service = new IndexedNodeService(service, nodeIndex(), gson);
+    service = new IndexedNodeService(service, nodeIndex(), nodeRevisionService(), gson);
     eventBus.register(service);
 
     service = new ReadAuthorizedNodeService(service,
         typeEvaluator, textAttributeEvaluator, referenceAttributeEvaluator);
 
     service = new WriteLoggingService<>(service, packageName + ".WriteLoggingService");
-    service = new NodeWriteEventPostingService(service, eventBus);
+    service = new NodeWriteEventPostingService(service, nodeRevisionService(), eventBus);
+    service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
 
     service = new TimestampingNodeService(service);
     service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),

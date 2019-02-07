@@ -38,9 +38,8 @@ public class PropertyRepository extends AbstractRepository<String, Property> {
   }
 
   @Override
-  public Stream<String> save(Stream<Property> values, SaveMode mode,
-      WriteOptions opts, User user) {
-    return super.save(addPropertyIndices(values), mode, opts, user);
+  public void save(Stream<Property> values, SaveMode mode, WriteOptions opts, User user) {
+    super.save(addPropertyIndices(values), mode, opts, user);
   }
 
   private Stream<Property> addPropertyIndices(Stream<Property> values) {

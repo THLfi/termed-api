@@ -20,8 +20,11 @@ public class WriteErrorHandlingService<K extends Serializable, V>
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
-    return processErrors(() -> super.save(values, mode, opts, user));
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+    processErrors(() -> {
+      super.save(values, mode, opts, user);
+      return null;
+    });
   }
 
   @Override

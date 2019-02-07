@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 public interface Service<K extends Serializable, V> {
 
-  Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user);
+  void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user);
 
   K save(V value, SaveMode mode, WriteOptions opts, User user);
 

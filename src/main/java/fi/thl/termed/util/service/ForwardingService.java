@@ -20,8 +20,8 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
-    return delegate.save(values, mode, opts, user);
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+    delegate.save(values, mode, opts, user);
   }
 
   @Override

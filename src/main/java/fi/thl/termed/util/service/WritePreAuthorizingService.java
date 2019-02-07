@@ -21,15 +21,14 @@ public class WritePreAuthorizingService<K extends Serializable, V>
   }
 
   @Override
-  public Stream<K> save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(values.filter(value -> {
+  public void save(Stream<V> values, SaveMode mode, WriteOptions opts, User user) {
+    super.save(values.filter(value -> {
       if (savePredicate.test(user)) {
         return true;
       } else {
         throw new AccessDeniedException("Access is denied");
       }
     }), mode, opts, user);
-
   }
 
   @Override

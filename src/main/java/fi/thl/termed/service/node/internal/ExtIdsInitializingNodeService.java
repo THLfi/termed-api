@@ -50,10 +50,10 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     Multimap<TypeId, String> generatedCodes = HashMultimap.create();
     Multimap<GraphId, String> generatedUris = HashMultimap.create();
-    return super.save(
+    super.save(
         nodes.map(n -> addExternalIdentifiers(n, mode, opts, user, generatedCodes, generatedUris)),
         mode, opts, user);
   }

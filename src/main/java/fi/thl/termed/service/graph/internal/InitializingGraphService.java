@@ -20,8 +20,8 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
   }
 
   @Override
-  public Stream<GraphId> save(Stream<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
-    return super.save(graphs.map(this::initialize), mode, opts, user);
+  public void save(Stream<Graph> graphs, SaveMode mode, WriteOptions opts, User user) {
+    super.save(graphs.map(this::initialize), mode, opts, user);
   }
 
   @Override

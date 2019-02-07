@@ -43,10 +43,10 @@ public class AttributeValueInitializingNodeService extends ForwardingService<Nod
   }
 
   @Override
-  public Stream<NodeId> save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
+  public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
     LoadingCache<TextAttributeId, TextAttribute> textAttrCache = initTextAttrCache(user);
     LoadingCache<ReferenceAttributeId, ReferenceAttribute> refAttrCache = initRefAttrCache(user);
-    return super.save(
+    super.save(
         nodes.map(node -> resolveAttributes(node, textAttrCache, refAttrCache)),
         mode, opts, user);
   }
