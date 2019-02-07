@@ -124,18 +124,17 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
             waiting.addAll(n.getReferrers().values());
           });
 
-          Node node = super.get(id, indexer).orElseThrow(IllegalStateException::new);
-
-          index.index(id, node);
-          indexed.add(id);
-
-          waiting.addAll(node.getReferences().values());
-          waiting.addAll(node.getReferrers().values());
+          super.get(id, indexer).ifPresent(node -> {
+            index.index(id, node);
+            indexed.add(id);
+            waiting.addAll(node.getReferences().values());
+            waiting.addAll(node.getReferrers().values());
+          });
         });
 
         waiting.removeAll(indexed);
         waiting.forEach(id ->
-            index.index(id, super.get(id, indexer).orElseThrow(IllegalStateException::new)));
+            super.get(id, indexer).ifPresent(node -> index.index(id, node)));
       });
     }
 
@@ -163,7 +162,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     });
 
     waiting.forEach(id ->
-        index.index(id, super.get(id, indexer).orElseThrow(IllegalStateException::new)));
+        super.get(id, indexer).ifPresent(n -> index.index(id, n)));
 
     waitLuceneIndexRefresh();
 
