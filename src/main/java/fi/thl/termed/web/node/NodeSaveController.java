@@ -2,14 +2,22 @@ package fi.thl.termed.web.node;
 
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
+import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import com.google.gson.Gson;
+import fi.thl.termed.domain.Graph;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.specification.NodeSpecifications;
+import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.json.JsonStream;
+import fi.thl.termed.util.query.Queries;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
@@ -19,6 +27,7 @@ import fi.thl.termed.util.spring.exception.BadRequestException;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -37,6 +46,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class NodeSaveController {
 
+  @Autowired
+  private Service<GraphId, Graph> graphService;
+  @Autowired
+  private Service<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
 
@@ -200,18 +213,64 @@ public class NodeSaveController {
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);
   }
 
+  @PatchJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void patchNodesOfType(
+      @PathVariable("graphId") UUID graphId,
+      @PathVariable("typeId") String typeId,
+      @RequestParam(value = "where", defaultValue = EMPTY_LIST) List<String> where,
+      @RequestParam(name = "append", defaultValue = "true") boolean append,
+      @RequestParam(name = "mode", defaultValue = "update") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestBody Node node,
+      @AuthenticationPrincipal User user) {
+
+    if (saveMode(mode) != SaveMode.UPDATE && saveMode(mode) != SaveMode.UPSERT) {
+      throw new BadRequestException(
+          "Use mode \"update\" or \"upsert \" when patching existing nodes.");
+    }
+
+    Type domain = typeService.get(TypeId.of(typeId, graphId), user)
+        .orElseThrow(NotFoundException::new);
+
+    Specification<NodeId, Node> spec =
+        NodeSpecifications.specifyByQuery(
+            StreamUtils.toImmutableListAndClose(graphService.values(Queries.matchAll(), user)),
+            StreamUtils.toImmutableListAndClose(typeService.values(Queries.matchAll(), user)),
+            domain,
+            where);
+
+    try (Stream<Node> patchNodes = nodeService.values(Queries.query(spec), user)) {
+      nodeService.save(patchNodes.map(patchNode -> {
+        Node.Builder patchNodeBuilder = Node.builderFromCopyOf(patchNode);
+        node.getCode().ifPresent(patchNodeBuilder::code);
+        node.getUri().ifPresent(patchNodeBuilder::uri);
+        if (append) {
+          node.getProperties().forEach(patchNodeBuilder::addProperty);
+          node.getReferences().forEach(patchNodeBuilder::addReference);
+        } else {
+          node.getProperties().asMap().forEach(patchNodeBuilder::replaceProperty);
+          node.getReferences().asMap().forEach(patchNodeBuilder::replaceReference);
+        }
+        return patchNodeBuilder.build();
+      }), saveMode(mode), opts(sync), user);
+    }
+  }
+
   @PatchJsonMapping(path = "/graphs/{graphId}/types/{typeId}/nodes/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Node patchOneById(
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
-      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @RequestParam(name = "append", defaultValue = "true") boolean append,
+      @RequestParam(name = "mode", defaultValue = "update") String mode,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @RequestBody Node node,
       @AuthenticationPrincipal User user) {
 
-    if (saveMode(mode) == SaveMode.INSERT) {
-      throw new BadRequestException("Can't use mode \"insert\" when patching an existing node.");
+    if (saveMode(mode) != SaveMode.UPDATE && saveMode(mode) != SaveMode.UPSERT) {
+      throw new BadRequestException(
+          "Use mode \"update\" or \"upsert \" when patching an existing node.");
     }
 
     Node.Builder baseNode = Node.builderFromCopyOf(
@@ -219,8 +278,14 @@ public class NodeSaveController {
 
     node.getCode().ifPresent(baseNode::code);
     node.getUri().ifPresent(baseNode::uri);
-    node.getProperties().forEach(baseNode::addProperty);
-    node.getReferences().forEach(baseNode::addReference);
+
+    if (append) {
+      node.getProperties().forEach(baseNode::addProperty);
+      node.getReferences().forEach(baseNode::addReference);
+    } else {
+      node.getProperties().asMap().forEach(baseNode::replaceProperty);
+      node.getReferences().asMap().forEach(baseNode::replaceReference);
+    }
 
     NodeId nodeId = nodeService.save(baseNode.build(), saveMode(mode), opts(sync), user);
     return nodeService.get(nodeId, user).orElseThrow(NotFoundException::new);

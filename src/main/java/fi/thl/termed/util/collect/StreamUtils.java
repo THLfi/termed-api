@@ -1,5 +1,6 @@
 package fi.thl.termed.util.collect;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
@@ -70,6 +71,12 @@ public final class StreamUtils {
   public static <T> List<T> toListAndClose(Stream<T> stream) {
     try (Stream<T> autoClosed = stream) {
       return autoClosed.collect(toList());
+    }
+  }
+
+  public static <T> List<T> toImmutableListAndClose(Stream<T> stream) {
+    try (Stream<T> autoClosed = stream) {
+      return autoClosed.collect(toImmutableList());
     }
   }
 

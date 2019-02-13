@@ -1,6 +1,5 @@
 package fi.thl.termed.domain;
 
-import static fi.thl.termed.util.collect.MapUtils.entry;
 import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
 import static fi.thl.termed.util.collect.MultimapUtils.nullableImmutableCopyOf;
 import static java.util.Objects.requireNonNull;
@@ -13,7 +12,6 @@ import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Identifiable;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -307,16 +305,11 @@ public final class Node implements Identifiable<NodeId> {
       return addProperty(attributeId, new StrictLangValue(lang, value));
     }
 
-    public Builder addProperty(String attributeId, StrictLangValue strictLangValue) {
-      return addProperties(entry(attributeId, strictLangValue));
+    public Builder addProperty(String attributeId, StrictLangValue... strictLangValues) {
+      return addProperty(attributeId, Arrays.asList(strictLangValues));
     }
 
-    @SafeVarargs
-    public final Builder addProperties(Map.Entry<String, StrictLangValue>... entries) {
-      return addProperties(ImmutableMultimap.copyOf(Arrays.asList(entries)));
-    }
-
-    public Builder addProperties(Multimap<String, StrictLangValue> newProperties) {
+    public Builder addProperty(String attributeId, Iterable<StrictLangValue> strictLangValues) {
       if (properties == null) {
         properties = LinkedHashMultimap.create();
       }
@@ -324,21 +317,37 @@ public final class Node implements Identifiable<NodeId> {
         properties = LinkedHashMultimap.create(properties);
       }
 
-      properties.putAll(newProperties);
+      properties.putAll(attributeId, strictLangValues);
 
       return this;
     }
 
-    public Builder addReference(String k0, NodeId v0) {
-      return addReferences(entry(k0, v0));
+    public Builder replaceProperty(String attributeId, String value) {
+      return replaceProperty(attributeId, new StrictLangValue(value));
     }
 
-    @SafeVarargs
-    public final Builder addReferences(Map.Entry<String, NodeId>... entries) {
-      return addReferences(ImmutableMultimap.copyOf(Arrays.asList(entries)));
+    public Builder replaceProperty(String attributeId, String lang, String value) {
+      return replaceProperty(attributeId, new StrictLangValue(lang, value));
     }
 
-    public Builder addReferences(Multimap<String, NodeId> newReferences) {
+    public Builder replaceProperty(String attributeId, StrictLangValue... strictLangValues) {
+      return replaceProperty(attributeId, Arrays.asList(strictLangValues));
+    }
+
+    public Builder replaceProperty(String attributeId, Iterable<StrictLangValue> strictLangValues) {
+      if (properties == null) {
+        properties = LinkedHashMultimap.create();
+      }
+      if (properties instanceof ImmutableMultimap) {
+        properties = LinkedHashMultimap.create(properties);
+      }
+
+      properties.replaceValues(attributeId, strictLangValues);
+
+      return this;
+    }
+
+    public Builder addReference(String attributeId, NodeId... valueIds) {
       if (references == null) {
         references = LinkedHashMultimap.create();
       }
@@ -346,7 +355,24 @@ public final class Node implements Identifiable<NodeId> {
         references = LinkedHashMultimap.create(references);
       }
 
-      references.putAll(newReferences);
+      references.putAll(attributeId, Arrays.asList(valueIds));
+
+      return this;
+    }
+
+    public Builder replaceReference(String attributeId, NodeId... valueIds) {
+      return replaceReference(attributeId, Arrays.asList(valueIds));
+    }
+
+    public Builder replaceReference(String attributeId, Iterable<NodeId> valueIds) {
+      if (references == null) {
+        references = LinkedHashMultimap.create();
+      }
+      if (references instanceof ImmutableMultimap) {
+        references = LinkedHashMultimap.create(references);
+      }
+
+      references.replaceValues(attributeId, valueIds);
 
       return this;
     }
