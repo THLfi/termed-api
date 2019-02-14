@@ -6,7 +6,8 @@ import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIEL
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.Queries.query;
 
-import com.google.common.collect.Iterators;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
@@ -34,6 +35,8 @@ import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.NotSpecification;
+import fi.thl.termed.util.query.OrSpecification;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
@@ -46,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,37 +110,74 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     Long revisionNumber = opts.getRevision()
         .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
 
-    log.info("Indexing");
+    long nodeCount = nodeRevisionService
+        .count(NodeRevisionsByRevisionNumber.of(revisionNumber), user);
 
+    log.info("Indexing {} nodes", nodeCount);
+
+    Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().maximumSize(100_000).build();
+
+    AtomicInteger check = new AtomicInteger();
+    AtomicInteger index = new AtomicInteger();
+
+    // first pass: index saved nodes
     try (Stream<NodeId> idsInRevision = nodeRevisionService
         .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
         .map(RevisionId::getId)) {
-
-      Iterators.partition(idsInRevision.iterator(), 1000).forEachRemaining(ids -> {
-        log.debug("Indexing...");
-
-        Set<NodeId> indexed = new HashSet<>();
-        Set<NodeId> waiting = new HashSet<>();
-
-        ids.forEach(id -> {
-          getFromIndex(id, user).ifPresent(n -> {
-            waiting.addAll(n.getReferences().values());
-            waiting.addAll(n.getReferrers().values());
-          });
-
-          super.get(id, indexer).ifPresent(node -> {
-            index.index(id, node);
-            indexed.add(id);
-            waiting.addAll(node.getReferences().values());
-            waiting.addAll(node.getReferrers().values());
-          });
-        });
-
-        waiting.removeAll(indexed);
-        waiting.forEach(id ->
-            super.get(id, indexer).ifPresent(node -> index.index(id, node)));
-      });
+      reindex(idsInRevision
+          .peek(id -> check.incrementAndGet())
+          .filter(refId -> indexed.getIfPresent(refId) == null)
+          .peek(id -> index.incrementAndGet())
+          .peek(id -> indexed.put(id, true)));
     }
+
+    log.debug("Checked {} values", check.get());
+    log.debug("Indexed {} values", index.get());
+
+    index.set(0);
+    check.set(0);
+
+    // second pass: index each saved node refs
+    try (Stream<NodeId> idsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
+        .map(RevisionId::getId)) {
+      reindex(idsInRevision
+          .flatMap(id -> super.get(id, indexer)
+              .map(node -> Stream.concat(
+                  node.getReferences().values().stream(),
+                  node.getReferrers().values().stream())
+                  .distinct())
+              .orElseGet(Stream::of))
+          .peek(id -> check.incrementAndGet())
+          .filter(refId -> indexed.getIfPresent(refId) == null)
+          .peek(id -> index.incrementAndGet())
+          .peek(id -> indexed.put(id, true)));
+    }
+
+    log.debug("Checked {} db refs", check.get());
+    log.debug("Indexed {} db refs", index.get());
+
+    index.set(0);
+    check.set(0);
+
+    // final pass: index each saved node refs in index
+    try (Stream<NodeId> idsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
+        .map(RevisionId::getId)) {
+      reindex(idsInRevision
+          .flatMap(id ->
+              keys(Queries.query(OrSpecification.or(
+                  NodeAllReferences.of(id),
+                  NodeAllReferrers.of(id)
+              )), user))
+          .peek(id -> check.incrementAndGet())
+          .filter(refId -> indexed.getIfPresent(refId) == null)
+          .peek(id -> index.incrementAndGet())
+          .peek(id -> indexed.put(id, true)));
+    }
+
+    log.debug("Checked {} index refs", check.get());
+    log.debug("Indexed {} index refs", index.get());
 
     waitLuceneIndexRefresh();
 

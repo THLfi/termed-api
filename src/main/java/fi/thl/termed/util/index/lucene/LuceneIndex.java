@@ -9,6 +9,7 @@ import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.collect.StreamUtils.toStreamWithTimeout;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.DOCUMENT_ID;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
@@ -156,7 +157,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     try {
       searcher = tryAcquire();
       Query query = ((LuceneSpecification<K, V>) specification).luceneQuery();
-      return query(searcher, query, max, sort, d -> keyConverter.applyInverse(d.get(DOCUMENT_ID)));
+      return query(searcher, query, max, sort, singleton(DOCUMENT_ID),
+          d -> keyConverter.applyInverse(d.get(DOCUMENT_ID)));
     } catch (IOException e) {
       tryRelease(searcher);
       throw new LuceneException(e);

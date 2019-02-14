@@ -99,6 +99,7 @@ public class NodeToDocument implements Function<Node, Document> {
       String property = entry.getKey();
       NodeId value = entry.getValue();
 
+      doc.add(stringField("references.nodeId", value.toString()));
       doc.add(stringField("references." + property + ".nodeId", value.toString()));
 
       doc.add(stringField("references." + property + ".id", value.getId()));
@@ -112,6 +113,7 @@ public class NodeToDocument implements Function<Node, Document> {
       String property = entry.getKey();
       NodeId value = entry.getValue();
 
+      doc.add(stringField("referrers.nodeId", value.toString()));
       doc.add(stringField("referrers." + property + ".nodeId", value.toString()));
 
       doc.add(stringField("referrers." + property + ".id", value.getId()));

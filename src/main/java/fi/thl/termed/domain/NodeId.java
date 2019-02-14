@@ -3,6 +3,7 @@ package fi.thl.termed.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
+import fi.thl.termed.util.UUIDs;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
@@ -79,7 +80,7 @@ public final class NodeId implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("id", id)
+        .add("id", UUIDs.toString(id))
         .add("type", type)
         .toString();
   }
