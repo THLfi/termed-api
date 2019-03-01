@@ -2,6 +2,7 @@ package fi.thl.termed.domain;
 
 import static com.google.common.collect.ImmutableMultimap.copyOf;
 import static com.google.common.collect.Multimaps.transformValues;
+import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMultimap;
@@ -40,9 +41,12 @@ public final class SimpleNodeTree implements NodeTree {
     this.lastModifiedDate = tree.getLastModifiedDate();
     this.type = tree.getType();
     // copy transformed map to get a concrete serializable map instead of lazily transformed view
-    this.properties = copyOf(tree.getProperties());
-    this.references = copyOf(transformValues(tree.getReferences(), SimpleNodeTree::new));
-    this.referrers = copyOf(transformValues(tree.getReferrers(), SimpleNodeTree::new));
+    this.properties = copyOf(
+        nullToEmpty(tree.getProperties()));
+    this.references = copyOf(
+        transformValues(nullToEmpty(tree.getReferences()), SimpleNodeTree::new));
+    this.referrers = copyOf(
+        transformValues(nullToEmpty(tree.getReferrers()), SimpleNodeTree::new));
   }
 
   @Override
