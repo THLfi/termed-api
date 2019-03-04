@@ -5,12 +5,12 @@ import fi.thl.termed.util.jena.JenaModelMessageConverter;
 import fi.thl.termed.util.rdf.RdfMediaTypes;
 import fi.thl.termed.util.spring.http.MediaTypes;
 import java.util.Collection;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
@@ -42,10 +42,11 @@ public class ApplicationWebConfiguration implements WebMvcConfigurer {
         .mediaType("nt", RdfMediaTypes.N_TRIPLES);
   }
 
-  @Override
-  public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-    converters.add(new GsonHttpMessageConverter(gson));
-    converters.add(new JenaModelMessageConverter());
+  @Bean
+  public HttpMessageConverters httpMessageConverters() {
+    return new HttpMessageConverters(
+        new JenaModelMessageConverter(),
+        new GsonHttpMessageConverter(gson));
   }
 
   @Override
