@@ -42,6 +42,7 @@ import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -66,6 +67,8 @@ public class NodeRdfTreeReadController {
   private Service<TypeId, Type> typeService;
   @Autowired
   private Service<NodeId, Node> nodeService;
+  @Autowired
+  private Map<String, String> defaultNamespacePrefixes;
 
   @GetRdfMapping("/node-trees")
   public Model get(
@@ -88,6 +91,7 @@ public class NodeRdfTreeReadController {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
+      model.setNsPrefixes(defaultNamespacePrefixes);
 
       trees.flatMap(tree -> collectNodes(tree, t -> copyOf(t.getReferences().values())).stream())
           .map(this::toNode)
@@ -126,6 +130,7 @@ public class NodeRdfTreeReadController {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
+      model.setNsPrefixes(defaultNamespacePrefixes);
 
       trees.flatMap(tree -> collectNodes(tree, t -> copyOf(t.getReferences().values())).stream())
           .map(this::toNode)
@@ -161,6 +166,7 @@ public class NodeRdfTreeReadController {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
+      model.setNsPrefixes(defaultNamespacePrefixes);
 
       trees.flatMap(tree -> collectNodes(tree, t -> copyOf(t.getReferences().values())).stream())
           .map(this::toNode)
@@ -190,6 +196,7 @@ public class NodeRdfTreeReadController {
     NodeTree tree = toTree(node, selects, user);
 
     Model model = ModelFactory.createDefaultModel();
+    model.setNsPrefixes(defaultNamespacePrefixes);
 
     collectNodes(tree, t -> copyOf(t.getReferences().values())).stream()
         .map(this::toNode)

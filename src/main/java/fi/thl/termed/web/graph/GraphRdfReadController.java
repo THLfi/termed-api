@@ -41,6 +41,9 @@ public class GraphRdfReadController {
   @Autowired
   private Service<GraphId, Graph> graphService;
 
+  @Autowired
+  private Map<String, String> defaultNamespacePrefixes;
+
   @GetRdfMapping
   public Model getAllGraphs(@AuthenticationPrincipal User user) {
     try (
@@ -81,7 +84,9 @@ public class GraphRdfReadController {
       rdfResources.add(rdfResource);
     }
 
-    return new JenaRdfModel(ModelFactory.createDefaultModel()).save(rdfResources).getModel();
+    Model model = new JenaRdfModel(ModelFactory.createDefaultModel()).save(rdfResources).getModel();
+    model.setNsPrefixes(defaultNamespacePrefixes);
+    return model;
   }
 
 }

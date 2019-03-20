@@ -5,15 +5,18 @@ import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fi.thl.termed.util.json.DateTypeAdapter;
+import fi.thl.termed.util.json.FastUUIDTypeAdapter;
 import fi.thl.termed.util.json.ImmutableListDeserializer;
 import fi.thl.termed.util.json.ImmutableMultimapTypeAdapterFactory;
 import fi.thl.termed.util.json.MultimapTypeAdapterFactory;
 import fi.thl.termed.util.json.StreamTypeAdapterFactory;
-import fi.thl.termed.util.json.FastUUIDTypeAdapter;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -46,6 +49,12 @@ public class Application extends SpringBootServletInitializer {
   @Bean
   public EventBus eventBus() {
     return new EventBus();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "fi.thl.termed.nsprefixes")
+  public Map<String, String> defaultNamespacePrefixes() {
+    return new HashMap<>();
   }
 
 }
