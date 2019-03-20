@@ -115,7 +115,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     log.info("Indexing {} nodes", nodeCount);
 
-    Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().maximumSize(100_000).build();
+    Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().softValues().build();
 
     AtomicInteger check = new AtomicInteger();
     AtomicInteger index = new AtomicInteger();
