@@ -1,7 +1,9 @@
 package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Sets.difference;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
@@ -16,6 +18,8 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.service.Service;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -59,16 +63,46 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
 
       Set<NodeId> referenceIds = ImmutableSet.copyOf(node.getReferences().get(attributeId));
 
-      if (!referenceValueMap.keySet().equals(referenceIds)) {
-        log.error("Index may be corrupted or outdated, requested: {}, found: {}",
-            referenceIds, referenceValueMap.keySet());
-      }
+      checkReferenceSetIntegrity(node.identifier(), attributeId,
+          referenceIds, referenceValueMap.keySet());
 
       return referenceIds.stream()
           .filter(referenceValueMap::containsKey)
           .map(referenceValueMap::get)
           .collect(toImmutableList());
     }
+  }
+
+  private void checkReferenceSetIntegrity(NodeId nodeId, String attributeId,
+      Set<NodeId> referenceIdsInDb, Set<NodeId> referenceIdsInIndex) {
+
+    Set<NodeId> notInIndex = ImmutableSet.copyOf(difference(referenceIdsInDb, referenceIdsInIndex));
+    Set<NodeId> notInDb = ImmutableSet.copyOf(difference(referenceIdsInIndex, referenceIdsInDb));
+
+    if (!notInIndex.isEmpty() || !notInDb.isEmpty()) {
+      List<String> errorMessages = new ArrayList<>();
+      if (!notInIndex.isEmpty()) {
+        errorMessages.add("has " + notInIndex.size() +
+            " \"" + attributeId + "\" reference(s) missing " +
+            notInIndex.stream().map(this::prettyPrint).collect(joining(", ", "[", "]")));
+      }
+      if (!notInDb.isEmpty()) {
+        errorMessages.add("has " + notInDb.size() +
+            " deleted \"" + attributeId + "\" reference(s) " +
+            notInDb.stream().map(this::prettyPrint).collect(joining(", ", "[", "]")));
+      }
+
+      log.error("Index may be corrupted or outdated\n\tindex node: {}\n\t{}",
+          prettyPrint(nodeId),
+          String.join("\n\t", errorMessages));
+    }
+  }
+
+  private String prettyPrint(NodeId id) {
+    return String.format("/graphs/%s/types/%s/nodes/%s",
+        id.getTypeGraphId(),
+        id.getTypeId(),
+        id.getId());
   }
 
 }

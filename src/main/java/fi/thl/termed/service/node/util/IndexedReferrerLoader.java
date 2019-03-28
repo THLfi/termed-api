@@ -1,7 +1,9 @@
 package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Sets.difference;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Preconditions;
@@ -16,7 +18,8 @@ import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.service.Service;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -57,18 +60,48 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
     try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referrerValueMap = results.collect(toMap(Node::identifier, n -> n));
 
-      Collection<NodeId> referrerIds = ImmutableSet.copyOf(node.getReferrers().get(attributeId));
+      Set<NodeId> referrerIds = ImmutableSet.copyOf(node.getReferrers().get(attributeId));
 
-      if (!referrerValueMap.keySet().equals(referrerIds)) {
-        log.error("Index may be corrupted or outdated, requested: {}, found: {}",
-            referrerIds, referrerValueMap.keySet());
-      }
+      checkReferrerSetIntegrity(node.identifier(), attributeId,
+          referrerIds, referrerValueMap.keySet());
 
       return referrerIds.stream()
           .filter(referrerValueMap::containsKey)
           .map(referrerValueMap::get)
           .collect(toImmutableList());
     }
+  }
+
+  private void checkReferrerSetIntegrity(NodeId nodeId, String attributeId,
+      Set<NodeId> referrerIdsInDb, Set<NodeId> referrerIdsInIndex) {
+
+    Set<NodeId> notInIndex = ImmutableSet.copyOf(difference(referrerIdsInDb, referrerIdsInIndex));
+    Set<NodeId> notInDb = ImmutableSet.copyOf(difference(referrerIdsInIndex, referrerIdsInDb));
+
+    if (!notInIndex.isEmpty() || !notInDb.isEmpty()) {
+      List<String> errorMessages = new ArrayList<>();
+      if (!notInIndex.isEmpty()) {
+        errorMessages.add("has " + notInIndex.size() +
+            " \"" + attributeId + "\" referrer(s) missing " +
+            notInIndex.stream().map(this::prettyPrint).collect(joining(", ", "(", ")")));
+      }
+      if (!notInDb.isEmpty()) {
+        errorMessages.add("has " + notInDb.size() +
+            " deleted \"" + attributeId + "\" referrer(s) " +
+            notInDb.stream().map(this::prettyPrint).collect(joining(", ", "(", ")")));
+      }
+
+      log.error("Index may be corrupted or outdated\n\tindex node: {}\n\t{}",
+          prettyPrint(nodeId),
+          String.join("\n\t", errorMessages));
+    }
+  }
+
+  private String prettyPrint(NodeId id) {
+    return String.format("%s.%s.%s",
+        id.getTypeGraphId(),
+        id.getTypeId(),
+        id.getId());
   }
 
 }
