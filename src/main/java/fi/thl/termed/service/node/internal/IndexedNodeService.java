@@ -3,53 +3,46 @@ package fi.thl.termed.service.node.internal;
 import static com.google.common.collect.ImmutableSet.of;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
-import static fi.thl.termed.util.query.AndSpecification.and;
-import static fi.thl.termed.util.query.Queries.query;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Empty;
+import fi.thl.termed.domain.IndexingQueueItemId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.RevisionId;
-import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.select.SelectAllReferrers;
 import fi.thl.termed.service.node.select.SelectReferrer;
-import fi.thl.termed.service.node.specification.NodeById;
-import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumber;
-import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.service.node.specification.NodeIndexingQueueItemsByQueueId;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
-import fi.thl.termed.util.collect.Tuple2;
+import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemSequenceDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.query.CompositeSpecification;
 import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
-import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
+import fi.thl.termed.util.query.Specifications;
 import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,26 +52,48 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private Index<NodeId, Node> index;
-  private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService;
+
+  private SystemSequenceDao nodeIndexingQueueSequenceDao;
+  private SystemDao<Long, Empty> nodeIndexingQueueDao;
+  private SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao;
 
   private User indexer = new User("indexer", "", AppRole.ADMIN);
   private Gson gson;
 
-  public IndexedNodeService(Service<NodeId, Node> delegate, Index<NodeId, Node> index,
-      Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionService, Gson gson) {
+  public IndexedNodeService(
+      Service<NodeId, Node> delegate,
+      Index<NodeId, Node> index,
+      SystemSequenceDao nodeIndexingQueueSequenceDao,
+      SystemDao<Long, Empty> nodeIndexingQueueDao,
+      SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao,
+      Gson gson) {
     super(delegate);
     this.index = index;
-    this.nodeRevisionService = nodeRevisionService;
+    this.nodeIndexingQueueSequenceDao = nodeIndexingQueueSequenceDao;
+    this.nodeIndexingQueueDao = nodeIndexingQueueDao;
+    this.nodeIndexingQueueItemDao = nodeIndexingQueueItemDao;
     this.gson = gson;
   }
 
   @Subscribe
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
-      // async reindex all
-      index.index(
-          () -> super.keys(new Query<>(new MatchAll<>()), indexer),
-          key -> super.get(key, indexer));
+      asyncReindexAll();
+    } else {
+      // if app was shut down mid indexing, resume by indexing all queues
+      indexAllQueues();
+    }
+  }
+
+  private void asyncReindexAll() {
+    index.index(
+        () -> super.keys(Queries.matchAll(), indexer),
+        key -> super.get(key, indexer));
+  }
+
+  private void indexAllQueues() {
+    try (Stream<Long> queues = nodeIndexingQueueDao.keys(Specifications.matchAll())) {
+      queues.forEach(this::index);
     }
   }
 
@@ -90,161 +105,147 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   @Subscribe
   public void reindexOn(ReindexEvent<NodeId> e) {
     log.info("Indexing");
-    reindex(e.getKeyStreamSupplier().get());
+    index(e.getKeyStreamSupplier().get());
     log.info("Done");
-  }
-
-  private Optional<Node> getFromIndex(NodeId nodeId, User user) {
-    try (Stream<Node> indexedNode = values(new Query<>(and(
-        new NodesByGraphId(nodeId.getTypeGraphId()),
-        new NodesByTypeId(nodeId.getTypeId()),
-        new NodeById(nodeId.getId()))), user)) {
-      return indexedNode.findAny();
-    }
   }
 
   @Override
   public void save(Stream<Node> nodes, SaveMode mode, WriteOptions opts, User user) {
-    super.save(nodes, mode, opts, user);
+    Long queueId = initQueue();
 
-    Long revisionNumber = opts.getRevision()
-        .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
-
-    long nodeCount = nodeRevisionService
-        .count(NodeRevisionsByRevisionNumber.of(revisionNumber), user);
-
-    log.info("Indexing {} nodes", nodeCount);
-
-    Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().softValues().build();
-
-    AtomicInteger check = new AtomicInteger();
-    AtomicInteger index = new AtomicInteger();
-
-    // first pass: index saved nodes
-    try (Stream<NodeId> idsInRevision = nodeRevisionService
-        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
-        .map(RevisionId::getId)) {
-      reindex(idsInRevision
-          .peek(id -> check.incrementAndGet())
-          .filter(refId -> indexed.getIfPresent(refId) == null)
-          .peek(id -> index.incrementAndGet())
-          .peek(id -> indexed.put(id, true)));
+    try {
+      super.save(nodes.peek(node -> enqueue(queueId, node.identifier())), mode, opts, user);
+    } finally {
+      index(queueId);
     }
-
-    log.debug("Checked {} values", check.get());
-    log.debug("Indexed {} values", index.get());
-
-    index.set(0);
-    check.set(0);
-
-    // second pass: index each saved node refs
-    try (Stream<NodeId> idsInRevision = nodeRevisionService
-        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
-        .map(RevisionId::getId)) {
-      reindex(idsInRevision
-          .flatMap(id -> super.get(id, indexer)
-              .map(node -> Stream.concat(
-                  node.getReferences().values().stream(),
-                  node.getReferrers().values().stream())
-                  .distinct())
-              .orElseGet(Stream::of))
-          .peek(id -> check.incrementAndGet())
-          .filter(refId -> indexed.getIfPresent(refId) == null)
-          .peek(id -> index.incrementAndGet())
-          .peek(id -> indexed.put(id, true)));
-    }
-
-    log.debug("Checked {} db refs", check.get());
-    log.debug("Indexed {} db refs", index.get());
-
-    index.set(0);
-    check.set(0);
-
-    // final pass: index each saved node refs in index
-    try (Stream<NodeId> idsInRevision = nodeRevisionService
-        .keys(query(NodeRevisionsByRevisionNumber.of(revisionNumber)), user)
-        .map(RevisionId::getId)) {
-      reindex(idsInRevision
-          .flatMap(id ->
-              keys(Queries.query(OrSpecification.or(
-                  NodeAllReferences.of(id),
-                  NodeAllReferrers.of(id)
-              )), user))
-          .peek(id -> check.incrementAndGet())
-          .filter(refId -> indexed.getIfPresent(refId) == null)
-          .peek(id -> index.incrementAndGet())
-          .peek(id -> indexed.put(id, true)));
-    }
-
-    log.debug("Checked {} index refs", check.get());
-    log.debug("Indexed {} index refs", index.get());
-
-    waitLuceneIndexRefresh();
-
-    log.info("Done");
   }
 
   @Override
   public NodeId save(Node node, SaveMode mode, WriteOptions opts, User user) {
-    NodeId nodeId = super.save(node, mode, opts, user);
+    Long queueId = initQueue();
+    enqueue(queueId, node.identifier());
 
-    Set<NodeId> waiting = new HashSet<>();
-
-    waiting.add(nodeId);
-
-    getFromIndex(nodeId, user).ifPresent(indexedNode -> {
-      waiting.addAll(indexedNode.getReferences().values());
-      waiting.addAll(indexedNode.getReferrers().values());
-    });
-
-    super.get(nodeId, indexer).ifPresent(n -> {
-      waiting.addAll(n.getReferences().values());
-      waiting.addAll(n.getReferrers().values());
-    });
-
-    waiting.forEach(id ->
-        super.get(id, indexer).ifPresent(n -> index.index(id, n)));
-
-    waitLuceneIndexRefresh();
-
-    return nodeId;
+    try {
+      return super.save(node, mode, opts, user);
+    } finally {
+      index(queueId);
+    }
   }
 
   @Override
   public void delete(Stream<NodeId> idStream, WriteOptions opts, User user) {
-    List<NodeId> deleted = new ArrayList<>();
+    Long queueId = initQueue();
 
-    super.delete(idStream.peek(deleted::add), opts, user);
-
-    Set<NodeId> reindexingRequired = new HashSet<>(deleted);
-
-    deleted.forEach(nodeId -> getFromIndex(nodeId, user).ifPresent(n -> {
-      reindexingRequired.addAll(n.getReferences().values());
-      reindexingRequired.addAll(n.getReferrers().values());
-    }));
-
-    reindex(reindexingRequired.stream());
+    try {
+      super.delete(idStream.peek(id -> enqueue(queueId, id)), opts, user);
+    } finally {
+      index(queueId);
+    }
   }
 
   @Override
-  public void delete(NodeId nodeId, WriteOptions opts, User user) {
-    super.delete(nodeId, opts, user);
+  public void delete(NodeId id, WriteOptions opts, User user) {
+    Long queueId = initQueue();
+    enqueue(queueId, id);
 
-    Set<NodeId> reindexingRequired = new HashSet<>();
-
-    reindexingRequired.add(nodeId);
-
-    getFromIndex(nodeId, user).ifPresent(n -> {
-      reindexingRequired.addAll(n.getReferences().values());
-      reindexingRequired.addAll(n.getReferrers().values());
-    });
-
-    reindex(reindexingRequired.stream());
+    try {
+      super.delete(id, opts, user);
+    } finally {
+      index(queueId);
+    }
   }
 
-  private void reindex(Stream<NodeId> ids) {
-    try (Stream<NodeId> closeable = ids) {
+  private Long initQueue() {
+    Long queueId = nodeIndexingQueueSequenceDao.getAndAdvance();
+    nodeIndexingQueueDao.insert(queueId, Empty.INSTANCE);
+    return queueId;
+  }
 
+  private void enqueue(Long queueId, NodeId nodeId) {
+    nodeIndexingQueueItemDao.insert(IndexingQueueItemId.of(nodeId, queueId), Empty.INSTANCE);
+  }
+
+  private void index(Long queueId) {
+    log.trace("Indexing queue {}", queueId);
+
+    index(() -> nodeIndexingQueueItemDao
+        .keys(NodeIndexingQueueItemsByQueueId.of(queueId))
+        .map(IndexingQueueItemId::getId));
+
+    log.trace("Deleting queue {}", queueId);
+    nodeIndexingQueueDao.delete(queueId);
+  }
+
+  // index nodes and its references and referrers
+  private void index(Supplier<Stream<NodeId>> idsSupplier) {
+    long nodeCount = StreamUtils.countAndClose(idsSupplier.get());
+
+    if (nodeCount > 1) {
+      log.info("Indexing {} nodes", nodeCount);
+    }
+
+    Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().softValues().build();
+
+    AtomicInteger checkCounter = new AtomicInteger();
+    AtomicInteger indexCounter = new AtomicInteger();
+
+    // first pass: index nodes
+    index(idsSupplier.get()
+        .peek(id -> checkCounter.incrementAndGet())
+        .filter(refId -> indexed.getIfPresent(refId) == null)
+        .peek(id -> indexCounter.incrementAndGet())
+        .peek(id -> indexed.put(id, true)));
+
+    log.trace("Checked {} values", checkCounter.get());
+    log.trace("Indexed {} values", indexCounter.get());
+
+    indexCounter.set(0);
+    checkCounter.set(0);
+
+    // second pass: index each reference and referrer of a db node
+    index(idsSupplier.get()
+        .flatMap(id -> super.get(id, indexer)
+            .map(node -> Stream.concat(
+                node.getReferences().values().stream(),
+                node.getReferrers().values().stream())
+                .distinct())
+            .orElseGet(Stream::of))
+        .peek(id -> checkCounter.incrementAndGet())
+        .filter(refId -> indexed.getIfPresent(refId) == null)
+        .peek(id -> indexCounter.incrementAndGet())
+        .peek(id -> indexed.put(id, true)));
+
+    log.trace("Checked {} db refs", checkCounter.get());
+    log.trace("Indexed {} db refs", indexCounter.get());
+
+    indexCounter.set(0);
+    checkCounter.set(0);
+
+    // final pass: index each reference and referrer of an index node
+    index(idsSupplier.get()
+        .flatMap(id ->
+            keys(Queries.query(OrSpecification.or(
+                NodeAllReferences.of(id),
+                NodeAllReferrers.of(id)
+            )), indexer))
+        .peek(id -> checkCounter.incrementAndGet())
+        .filter(refId -> indexed.getIfPresent(refId) == null)
+        .peek(id -> indexCounter.incrementAndGet())
+        .peek(id -> indexed.put(id, true)));
+
+    log.trace("Checked {} index refs", checkCounter.get());
+    log.trace("Indexed {} index refs", indexCounter.get());
+
+    waitLuceneIndexRefresh();
+
+    if (nodeCount > 1) {
+      log.info("Done");
+    }
+  }
+
+  // index all nodes identified by given ids, closes the stream
+  private void index(Stream<NodeId> ids) {
+    try (Stream<NodeId> closeable = ids) {
       StreamUtils.zipIndex(closeable, Tuple::of).forEach(t -> {
         NodeId id = t._1;
         int i = t._2;
@@ -261,8 +262,6 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
           log.debug("Indexed {} values", i);
         }
       });
-
-      waitLuceneIndexRefresh();
     }
   }
 

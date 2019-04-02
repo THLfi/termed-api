@@ -104,6 +104,12 @@ public final class StreamUtils {
     }
   }
 
+  public static <T> long countAndClose(Stream<T> stream) {
+    try (Stream<T> autoClosed = stream) {
+      return autoClosed.count();
+    }
+  }
+
   public static <T> Stream<T> toStream(Optional<T> optional) {
     return optional.map(Stream::of).orElse(Stream.empty());
   }

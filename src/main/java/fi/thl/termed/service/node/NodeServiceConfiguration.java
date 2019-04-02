@@ -9,8 +9,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
+import fi.thl.termed.domain.IndexingQueueItemId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
@@ -29,6 +31,8 @@ import fi.thl.termed.service.node.internal.ExtIdsInitializingNodeService;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
 import fi.thl.termed.service.node.internal.JdbcNodeDao;
+import fi.thl.termed.service.node.internal.JdbcNodeIndexingQueueDao;
+import fi.thl.termed.service.node.internal.JdbcNodeIndexingQueueItemDao;
 import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcNodeRevisionDao;
@@ -50,7 +54,9 @@ import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
 import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
+import fi.thl.termed.util.dao.JdbcSystemSequenceDao;
 import fi.thl.termed.util.dao.SystemDao;
+import fi.thl.termed.util.dao.SystemSequenceDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
@@ -113,7 +119,12 @@ public class NodeServiceConfiguration {
     Service<NodeId, Node> service = nodeRepository();
     service = new TransactionalService<>(service, transactionManager);
 
-    service = new IndexedNodeService(service, nodeIndex(), nodeRevisionService(), gson);
+    service = new IndexedNodeService(service,
+        nodeIndex(),
+        nodeIndexingQueueSequenceDao(),
+        nodeIndexingQueueDao(),
+        nodeIndexingQueueItemDao(),
+        gson);
     eventBus.register(service);
 
     service = new ReadAuthorizedNodeService(service,
@@ -266,6 +277,18 @@ public class NodeServiceConfiguration {
     SystemDao<RevisionId<NodeAttributeValueId>, Tuple2<RevisionType, NodeId>> dao =
         new JdbcNodeReferenceAttributeValueRevisionDao(dataSource);
     return new JdbcPostgresNodeReferenceAttributeValueRevisionDao(dao, dataSource);
+  }
+
+  private SystemSequenceDao nodeIndexingQueueSequenceDao() {
+    return new JdbcSystemSequenceDao(dataSource, "node_indexing_queue_seq");
+  }
+
+  private SystemDao<Long, Empty> nodeIndexingQueueDao() {
+    return new JdbcNodeIndexingQueueDao(dataSource);
+  }
+
+  private SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao() {
+    return new JdbcNodeIndexingQueueItemDao(dataSource);
   }
 
   /**
