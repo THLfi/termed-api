@@ -110,11 +110,11 @@ class NodeSaveApiIntegrationTest extends BaseApiIntegrationTest {
         .body("properties.email[0].value",
             equalTo(exampleNode1.getFirstPropertyValue("email")
                 .map(StrictLangValue::getValue)
-                .orElseThrow(AssertionError::new)))
+                .orElse(null)))
         .body("properties.name[0].value",
             equalTo(exampleNode1.getFirstPropertyValue("name")
                 .map(StrictLangValue::getValue)
-                .orElseThrow(AssertionError::new)));
+                .orElse(null)));
 
     // patch name (replace person name with with a new one)
     given(adminAuthorizedJsonSaveRequest)
@@ -133,7 +133,7 @@ class NodeSaveApiIntegrationTest extends BaseApiIntegrationTest {
         .body("properties.email[0].value",
             equalTo(exampleNode1.getFirstPropertyValue("email")
                 .map(StrictLangValue::getValue)
-                .orElseThrow(AssertionError::new)))
+                .orElse(null)))
         .body("properties.name[0].value", equalTo("PatchedName"));
 
     // clean up
