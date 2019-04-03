@@ -40,6 +40,7 @@ import fi.thl.termed.util.service.ForwardingService;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -86,13 +87,19 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   }
 
   private void asyncReindexAll() {
+    log.info("No index found, indexing all on background");
+
     index.index(
         () -> super.keys(Queries.matchAll(), indexer),
         key -> super.get(key, indexer));
   }
 
   private void indexAllQueues() {
-    try (Stream<Long> queues = nodeIndexingQueueDao.keys(Specifications.matchAll())) {
+    List<Long> queues = StreamUtils.toImmutableListAndClose(
+        nodeIndexingQueueDao.keys(Specifications.matchAll()));
+
+    if (!queues.isEmpty()) {
+      log.info("Found {} indexing queues, resuming indexing", queues.size());
       queues.forEach(this::index);
     }
   }
