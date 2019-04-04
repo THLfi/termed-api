@@ -66,4 +66,22 @@ public class WriteLoggingService<K extends Serializable, V extends Identifiable<
     super.delete(key, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    if (log.isInfoEnabled()) {
+      log.info("Saving and deleting streams (user: {})", user.getUsername());
+    }
+
+    Stream<V> savesWithLogging = log.isInfoEnabled()
+        ? saves.peek(v -> log.info("Saving {} (user: {})", v.identifier(), user.getUsername()))
+        : saves;
+
+    Stream<K> deletesWithLogging = log.isInfoEnabled()
+        ? deletes.peek(k -> log.info("Deleting {} (user: {})", k, user.getUsername()))
+        : deletes;
+
+    super.saveAndDelete(savesWithLogging, deletesWithLogging, mode, opts, user);
+  }
+
 }

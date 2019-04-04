@@ -65,6 +65,15 @@ public class TransactionalService<K extends Serializable, V> implements Service<
   }
 
   @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    runInTransaction(() -> {
+      delegate.saveAndDelete(saves, deletes, mode, opts, user);
+      return null;
+    });
+  }
+
+  @Override
   public Stream<V> values(Query<K, V> query, User user) {
     return readStreamInTransaction(() -> delegate.values(query, user));
   }

@@ -162,6 +162,21 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     }
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    Long queueId = initQueue();
+
+    try {
+      super.saveAndDelete(
+          saves.peek(node -> enqueue(queueId, node.identifier())),
+          deletes.peek(id -> enqueue(queueId, id)),
+          mode, opts, user);
+    } finally {
+      index(queueId);
+    }
+  }
+
   private Long initQueue() {
     Long queueId = nodeIndexingQueueSequenceDao.getAndAdvance();
     nodeIndexingQueueDao.insert(queueId, Empty.INSTANCE);

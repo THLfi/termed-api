@@ -60,6 +60,16 @@ public class AttributeValueInitializingNodeService extends ForwardingService<Nod
         resolveAttributes(node, textAttributeCache, refAttributeCache), mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    LoadingCache<TextAttributeId, TextAttribute> textAttrCache = initTextAttrCache(user);
+    LoadingCache<ReferenceAttributeId, ReferenceAttribute> refAttrCache = initRefAttrCache(user);
+    super.saveAndDelete(
+        saves.map(node -> resolveAttributes(node, textAttrCache, refAttrCache)),
+        deletes, mode, opts, user);
+  }
+
   private LoadingCache<TextAttributeId, TextAttribute> initTextAttrCache(User user) {
     Function<TextAttributeId, TextAttribute> textAttrLoader =
         attr -> typeSource.apply(attr.getDomainId(), user)

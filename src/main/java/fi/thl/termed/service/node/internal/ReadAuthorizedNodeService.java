@@ -64,6 +64,12 @@ public class ReadAuthorizedNodeService implements Service<NodeId, Node> {
   }
 
   @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    delegate.saveAndDelete(saves, deletes, mode, opts, user);
+  }
+
+  @Override
   public Stream<Node> values(Query<NodeId, Node> query, User user) {
     return filterValues(delegate.values(query, user), user);
   }

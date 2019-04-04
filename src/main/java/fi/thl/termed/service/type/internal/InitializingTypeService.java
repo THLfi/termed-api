@@ -40,6 +40,12 @@ public class InitializingTypeService extends ForwardingService<TypeId, Type> {
     return super.save(init(type, type.getIndex().orElse(0)), mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Type> saves, Stream<TypeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    super.saveAndDelete(init(saves), deletes, mode, opts, user);
+  }
+
   private Stream<Type> init(Stream<Type> types) {
     return zipIndex(types, this::init);
   }

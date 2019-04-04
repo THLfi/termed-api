@@ -6,18 +6,15 @@ import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.apache.jena.ext.com.google.common.collect.Sets.difference;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.event.InvalidateCachesEvent;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import fi.thl.termed.util.spring.transaction.TransactionUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -26,7 +23,6 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,12 +37,6 @@ public class TypeWriteController {
 
   @Autowired
   private Service<TypeId, Type> typeService;
-
-  @Autowired
-  private PlatformTransactionManager transactionManager;
-
-  @Autowired
-  private EventBus eventBus;
 
   @PostJsonMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Type save(
@@ -96,11 +86,9 @@ public class TypeWriteController {
       Set<TypeId> oldTypes = typeIdStream.collect(toImmutableSet());
       Set<TypeId> newTypes = typeList.stream().map(Type::identifier).collect(toImmutableSet());
 
-      TransactionUtils.runInTransaction(transactionManager, () -> {
-        typeService.save(typeList.stream(), saveMode(mode), opts(sync), user);
-        typeService.delete(difference(oldTypes, newTypes).stream(), opts(sync), user);
-        return null;
-      }, (error) -> eventBus.post(new InvalidateCachesEvent()));
+      typeService.saveAndDelete(
+          typeList.stream(), difference(oldTypes, newTypes).stream(),
+          saveMode(mode), opts(sync), user);
     }
   }
 

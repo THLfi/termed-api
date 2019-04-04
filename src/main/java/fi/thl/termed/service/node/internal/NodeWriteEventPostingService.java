@@ -1,5 +1,9 @@
 package fi.thl.termed.service.node.internal;
 
+import static fi.thl.termed.domain.RevisionType.DELETE;
+import static fi.thl.termed.domain.RevisionType.INSERT;
+import static fi.thl.termed.domain.RevisionType.UPDATE;
+import static fi.thl.termed.util.query.OrSpecification.or;
 import static fi.thl.termed.util.query.Queries.query;
 import static java.util.Collections.singletonList;
 
@@ -13,6 +17,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
 import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumber;
+import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumberAndType;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
@@ -102,6 +107,33 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   public void delete(NodeId id, WriteOptions opts, User user) {
     delegate.delete(id, opts, user);
     fireDeleteEvent(id, user.getUsername(), opts.isSync());
+  }
+
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    delegate.saveAndDelete(saves, deletes, mode, opts, user);
+
+    Long revisionNumber = opts.getRevision()
+        .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
+
+    try (Stream<NodeId> savedIdsInRevision = nodeRevisionService
+        .keys(query(or(
+            NodeRevisionsByRevisionNumberAndType.of(revisionNumber, INSERT),
+            NodeRevisionsByRevisionNumberAndType.of(revisionNumber, UPDATE))), user)
+        .map(RevisionId::getId)) {
+
+      Iterators.partition(savedIdsInRevision.iterator(), 1000).forEachRemaining(
+          batch -> fireDeleteEvents(batch, user.getUsername(), opts.isSync()));
+    }
+
+    try (Stream<NodeId> deletedIdsInRevision = nodeRevisionService
+        .keys(query(NodeRevisionsByRevisionNumberAndType.of(revisionNumber, DELETE)), user)
+        .map(RevisionId::getId)) {
+
+      Iterators.partition(deletedIdsInRevision.iterator(), 1000).forEachRemaining(
+          batch -> fireDeleteEvents(batch, user.getUsername(), opts.isSync()));
+    }
   }
 
   @Override

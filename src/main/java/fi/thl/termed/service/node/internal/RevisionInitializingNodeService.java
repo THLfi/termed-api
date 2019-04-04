@@ -58,6 +58,14 @@ public class RevisionInitializingNodeService extends ForwardingService<NodeId, N
         user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    super.saveAndDelete(saves, deletes, mode,
+        opts(opts.isSync(), newRevision(user), opts.isGenerateCodes(), opts.isGenerateUris()),
+        user);
+  }
+
   private Long newRevision(User user) {
     return revisionService.save(
         Revision.of(revisionSequenceService.getAndAdvance(user), user.getUsername(), new Date()),

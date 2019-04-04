@@ -138,6 +138,12 @@ public class NodeRevisionRepository implements
   }
 
   @Override
+  public void saveAndDelete(Stream<Tuple2<RevisionType, Node>> saves,
+      Stream<RevisionId<NodeId>> deletes, SaveMode mode, WriteOptions opts, User user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public boolean exists(RevisionId<NodeId> nodeId, User user) {
     return nodeRevisionDao.exists(nodeId, user);
   }

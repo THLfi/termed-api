@@ -60,4 +60,24 @@ public class WritePreAuthorizingService<K extends Serializable, V>
     }
   }
 
+  @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    super.saveAndDelete(
+        saves.filter(value -> {
+          if (savePredicate.test(user)) {
+            return true;
+          } else {
+            throw new AccessDeniedException("Access is denied");
+          }
+        }),
+        deletes.filter(id -> {
+          if (deletePredicate.test(user)) {
+            return true;
+          } else {
+            throw new AccessDeniedException("Access is denied");
+          }
+        }), mode, opts, user);
+  }
+
 }

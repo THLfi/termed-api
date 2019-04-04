@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * A service which simply forwards all requests to a delegate.
  */
-public class ForwardingService<K extends Serializable, V> implements Service<K, V> {
+public abstract class ForwardingService<K extends Serializable, V> implements Service<K, V> {
 
   private Service<K, V> delegate;
 
@@ -37,6 +37,12 @@ public class ForwardingService<K extends Serializable, V> implements Service<K, 
   @Override
   public void delete(K key, WriteOptions opts, User user) {
     delegate.delete(key, opts, user);
+  }
+
+  @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    delegate.saveAndDelete(saves, deletes, mode, opts, user);
   }
 
   @Override

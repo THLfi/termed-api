@@ -18,6 +18,9 @@ public interface Service<K extends Serializable, V> {
 
   void delete(K key, WriteOptions opts, User user);
 
+  void saveAndDelete(Stream<V> saves, Stream<K> deletes,
+      SaveMode mode, WriteOptions opts, User user);
+
   Stream<K> keys(Query<K, V> query, User user);
 
   Stream<V> values(Query<K, V> query, User user);

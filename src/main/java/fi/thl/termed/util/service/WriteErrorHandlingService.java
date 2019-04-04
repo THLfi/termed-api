@@ -48,6 +48,15 @@ public class WriteErrorHandlingService<K extends Serializable, V>
     });
   }
 
+  @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    processErrors(() -> {
+      super.saveAndDelete(saves, deletes, mode, opts, user);
+      return null;
+    });
+  }
+
   private <E> E processErrors(Supplier<E> supplier) {
     E results;
 

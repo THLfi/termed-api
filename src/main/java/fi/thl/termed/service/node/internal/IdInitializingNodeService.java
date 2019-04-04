@@ -34,6 +34,12 @@ public class IdInitializingNodeService extends ForwardingService<NodeId, Node> {
     return super.save(resolveId(node), mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    super.saveAndDelete(saves.map(this::resolveId), deletes, mode, opts, user);
+  }
+
   private Node resolveId(Node node) {
     if (node.getId() != null) {
       return node;

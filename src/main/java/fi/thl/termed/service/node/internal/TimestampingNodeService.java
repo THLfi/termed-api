@@ -34,6 +34,13 @@ public class TimestampingNodeService extends ForwardingService<NodeId, Node> {
     return super.save(addTimestamp(node, user, new Date()), mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    Date now = new Date();
+    super.saveAndDelete(saves.map(n -> addTimestamp(n, user, now)), deletes, mode, opts, user);
+  }
+
   private Node addTimestamp(Node node, User user, Date now) {
     try (Stream<Node> indexedNodes = values(new Query<>(and(
         new NodesByGraphId(node.getTypeGraphId()),

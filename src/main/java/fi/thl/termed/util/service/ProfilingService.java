@@ -67,6 +67,15 @@ public class ProfilingService<K extends Serializable, V extends Identifiable<K>>
   }
 
   @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    profile(() -> {
+      delegate.saveAndDelete(saves, deletes, mode, opts, user);
+      return null;
+    }, "Saved and deleted value and key streams (user: %s)", user.getUsername());
+  }
+
+  @Override
   public Stream<K> keys(Query<K, V> query, User user) {
     return profileStream(
         () -> delegate.keys(query, user),

@@ -86,6 +86,12 @@ class DelegatingDumpService implements Service<DumpId, Dump> {
   }
 
   @Override
+  public void saveAndDelete(Stream<Dump> saves, Stream<DumpId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Stream<Dump> values(Query<DumpId, Dump> query, User user) {
     throw new UnsupportedOperationException();
   }

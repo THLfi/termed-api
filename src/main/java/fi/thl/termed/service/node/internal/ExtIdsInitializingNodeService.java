@@ -66,6 +66,16 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
         mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Node> saves, Stream<NodeId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    Multimap<TypeId, String> generatedCodes = HashMultimap.create();
+    Multimap<GraphId, String> generatedUris = HashMultimap.create();
+    super.saveAndDelete(
+        saves.map(n -> addExternalIdentifiers(n, mode, opts, user, generatedCodes, generatedUris)),
+        deletes, mode, opts, user);
+  }
+
   private Node addExternalIdentifiers(Node node,
       SaveMode mode, WriteOptions opts, User user,
       Multimap<TypeId, String> generatedCodes,

@@ -228,6 +228,13 @@ public abstract class AbstractRepository<K extends Serializable, V extends Ident
   }
 
   @Override
+  public void saveAndDelete(Stream<V> saves, Stream<K> deletes, SaveMode mode, WriteOptions opts,
+      User user) {
+    save(saves, mode, opts, user);
+    delete(deletes, opts, user);
+  }
+
+  @Override
   public long count(Specification<K, V> spec, User user) {
     try (Stream<K> keys = keys(new Query<>(spec), user)) {
       return keys.count();

@@ -29,6 +29,12 @@ public class InitializingGraphService extends ForwardingService<GraphId, Graph> 
     return super.save(initialize(graph), mode, opts, user);
   }
 
+  @Override
+  public void saveAndDelete(Stream<Graph> saves, Stream<GraphId> deletes, SaveMode mode,
+      WriteOptions opts, User user) {
+    super.saveAndDelete(saves.map(this::initialize), deletes, mode, opts, user);
+  }
+
   private Graph initialize(Graph graph) {
     if (graph.getId() == null) {
       UUID id = graph.getCode()

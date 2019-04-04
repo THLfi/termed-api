@@ -279,4 +279,104 @@ class NodeServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
     assertTrue(nodeService.exists(jackId, user));
   }
 
+  @Test
+  void shouldSaveAndDeleteNodes() {
+    NodeId johnId = NodeId.random("Person", graphId);
+    NodeId jackId = NodeId.random("Person", graphId);
+
+    Node john = Node.builder().id(johnId)
+        .addProperty("name", "John")
+        .build();
+    Node jack = Node.builder().id(jackId)
+        .addProperty("name", "Jack")
+        .build();
+
+    nodeService.save(Stream.of(john, jack), INSERT, defaultOpts(), user);
+
+    Node johnEmailAdded = Node.builderFromCopyOf(john)
+        .addProperty("email", new StrictLangValue("john@example.org"))
+        .build();
+
+    nodeService.saveAndDelete(
+        Stream.of(johnEmailAdded),
+        Stream.of(jack.identifier()),
+        UPSERT, defaultOpts(), user);
+
+    assertTrue(nodeService.exists(johnId, user));
+    assertEquals("john@example.org", nodeService.get(johnId, user)
+        .orElseThrow(AssertionError::new)
+        .getFirstPropertyValue("email")
+        .map(StrictLangValue::getValue)
+        .orElseThrow(AssertionError::new));
+
+    assertFalse(nodeService.exists(jackId, user));
+  }
+
+  @Test
+  void saveAndDeleteShouldBackAtomicallyOnFailedSave() {
+    NodeId johnId = NodeId.random("Person", graphId);
+    NodeId jackId = NodeId.random("Person", graphId);
+
+    Node john = Node.builder().id(johnId)
+        .addProperty("name", "John")
+        .build();
+    Node jack = Node.builder().id(jackId)
+        .addProperty("name", "Jack")
+        .build();
+
+    nodeService.save(Stream.of(john, jack), INSERT, defaultOpts(), user);
+
+    Node johnIllegalEmailAdded = Node.builderFromCopyOf(john)
+        .addProperty("email", new StrictLangValue("john(at)example.org"))
+        .build();
+
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.saveAndDelete(
+            // can't save with illegal email
+            Stream.of(johnIllegalEmailAdded),
+            Stream.of(jack.identifier()),
+            UPSERT, defaultOpts(), user));
+
+    assertTrue(nodeService.exists(johnId, user));
+    assertFalse(nodeService.get(johnId, user)
+        .orElseThrow(AssertionError::new)
+        .getFirstPropertyValue("email")
+        .isPresent());
+    assertTrue(nodeService.exists(jackId, user));
+  }
+
+  @Test
+  void saveAndDeleteShouldBackAtomicallyOnFailedDelete() {
+    NodeId johnId = NodeId.random("Person", graphId);
+    NodeId jackId = NodeId.random("Person", graphId);
+
+    Node john = Node.builder().id(johnId)
+        .addProperty("name", "John")
+        .addReference("knows", jackId)
+        .build();
+    Node jack = Node.builder().id(jackId)
+        .addProperty("name", "Jack")
+        .build();
+
+    nodeService.save(Stream.of(john, jack), INSERT, defaultOpts(), user);
+
+    Node johnEmailAdded = Node.builderFromCopyOf(john)
+        .addProperty("email", new StrictLangValue("john@example.org"))
+        .build();
+
+    assertThrows(DataIntegrityViolationException.class,
+        () -> nodeService.saveAndDelete(
+            Stream.of(johnEmailAdded),
+            // can't delete as jack is still referenced
+            Stream.of(jackId),
+            UPSERT, defaultOpts(), user));
+
+    assertTrue(nodeService.exists(johnId, user));
+    assertFalse(nodeService.get(johnId, user)
+        .orElseThrow(AssertionError::new)
+        .getFirstPropertyValue("email")
+        .isPresent());
+    assertTrue(nodeService.exists(jackId, user));
+  }
+
 }
