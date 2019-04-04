@@ -23,6 +23,10 @@ public class NodesByTypeId
     this.typeId = typeId;
   }
 
+  public static NodesByTypeId of(String typeId) {
+    return new NodesByTypeId(typeId);
+  }
+
   public String getTypeId() {
     return typeId;
   }

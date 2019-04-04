@@ -23,6 +23,10 @@ public class NodesByGraphId
     this.graphId = graphId;
   }
 
+  public static NodesByGraphId of(UUID graphId) {
+    return new NodesByGraphId(graphId);
+  }
+
   public UUID getGraphId() {
     return graphId;
   }

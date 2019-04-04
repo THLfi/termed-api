@@ -1,21 +1,27 @@
 package fi.thl.termed.web.admin;
 
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.Queries.matchAll;
+import static fi.thl.termed.util.query.Queries.query;
+import static fi.thl.termed.util.query.Queries.sqlQuery;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
+import fi.thl.termed.domain.Graph;
+import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.util.query.ForwardingSqlSpecification;
-import fi.thl.termed.util.query.MatchAll;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.AndSpecification;
+import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.service.Service;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,14 +39,21 @@ public class IndexController {
   private EventBus eventBus;
 
   @Autowired
+  private Service<GraphId, Graph> graphService;
+
+  @Autowired
   private Service<NodeId, Node> nodeService;
 
   @DeleteMapping("/index")
   @ResponseStatus(NO_CONTENT)
   public void reindex(@AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(
-          () -> nodeService.keys(new Query<>(new MatchAll<>()), user)));
+      OrSpecification<NodeId, Node> nodesByAnyGraph = OrSpecification.or(toListAndClose(
+          graphService.keys(matchAll(), user).map(id -> NodesByGraphId.of(id.getId()))));
+
+      eventBus.post(new ReindexEvent<>(() -> Stream.concat(
+          nodeService.keys(sqlQuery(nodesByAnyGraph), user),
+          nodeService.keys(query(nodesByAnyGraph), user))));
     } else {
       throw new AccessDeniedException("");
     }
@@ -52,9 +65,11 @@ public class IndexController {
       @PathVariable("graphId") UUID graphId,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(
-          () -> nodeService.keys(new Query<>(
-              new ForwardingSqlSpecification<>(new NodesByGraphId(graphId))), user)));
+      NodesByGraphId nodesByGraphId = NodesByGraphId.of(graphId);
+
+      eventBus.post(new ReindexEvent<>(() -> Stream.concat(
+          nodeService.keys(sqlQuery(nodesByGraphId), user),
+          nodeService.keys(query(nodesByGraphId), user))));
     } else {
       throw new AccessDeniedException("");
     }
@@ -67,9 +82,13 @@ public class IndexController {
       @PathVariable("id") String id,
       @AuthenticationPrincipal User user) {
     if (user.getAppRole() == AppRole.SUPERUSER) {
-      eventBus.post(new ReindexEvent<>(
-          () -> nodeService.keys(new Query<>(new ForwardingSqlSpecification<>(
-              and(new NodesByGraphId(graphId), new NodesByTypeId(id)))), user)));
+      AndSpecification<NodeId, Node> nodesByTypeId = and(
+          NodesByGraphId.of(graphId),
+          NodesByTypeId.of(id));
+
+      eventBus.post(new ReindexEvent<>(() -> Stream.concat(
+          nodeService.keys(sqlQuery(nodesByTypeId), user),
+          nodeService.keys(query(nodesByTypeId), user))));
     } else {
       throw new AccessDeniedException("");
     }
