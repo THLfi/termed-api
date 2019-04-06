@@ -23,7 +23,6 @@ import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,12 +35,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class DumpWriteCopyController {
 
   @Autowired
-  private Service<GraphId, Graph> graphService;
-
-  @Autowired
   private Service<DumpId, Dump> dumpService;
 
-  @PostJsonMapping(path = "/graphs/{graphId}/dump", params = "copy=true", produces = APPLICATION_JSON_UTF8_VALUE)
+  @PostJsonMapping(path = "/graphs/{graphId}/dump", params = "copy=true",
+      produces = APPLICATION_JSON_UTF8_VALUE)
   public GraphId copyDump(
       @PathVariable("graphId") UUID sourceGraphId,
       @RequestParam(name = "targetGraphId", defaultValue = RANDOM_UUID) UUID targetGraphId,
@@ -51,19 +48,12 @@ public class DumpWriteCopyController {
       @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
       @AuthenticationPrincipal User user) {
 
-    Graph sourceGraph = graphService.get(new GraphId(sourceGraphId), user)
-        .orElseThrow(NotFoundException::new);
-
-    Dump dump = dumpService.get(new DumpId(sourceGraph.identifier()), user)
-        .orElseThrow(IllegalStateException::new);
-
-    try (Stream<Graph> graphs = dump.getGraphs();
-        Stream<Type> types = dump.getTypes();
-        Stream<Node> nodes = dump.getNodes()) {
+    try (Dump dump = dumpService.get(new DumpId(GraphId.of(sourceGraphId)), user)
+        .orElseThrow(NotFoundException::new)) {
       dumpService.save(new Dump(
-              graphs.map(graph -> mapGraphToGraph(graph, targetGraphId)),
-              types.map(type -> mapTypeToGraph(type, targetGraphId)),
-              nodes.map(node -> mapNodeToGraph(node, targetGraphId))),
+              dump.getGraphs().map(graph -> mapGraphToGraph(graph, targetGraphId)),
+              dump.getTypes().map(type -> mapTypeToGraph(type, targetGraphId)),
+              dump.getNodes().map(node -> mapNodeToGraph(node, targetGraphId))),
           saveMode(mode), opts(sync, generateCodes, generateUris), user);
     }
 

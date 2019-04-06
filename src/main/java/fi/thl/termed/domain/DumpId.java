@@ -20,6 +20,10 @@ public final class DumpId implements Serializable {
         requireNonNull(graphIds, () -> "id can't be null in " + getClass()));
   }
 
+  public static DumpId of(GraphId... graphIds) {
+    return new DumpId(graphIds);
+  }
+
   public ImmutableSet<GraphId> getGraphIds() {
     return graphIds;
   }

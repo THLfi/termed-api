@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
+import com.google.common.collect.ImmutableList;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Iterator;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class StreamUtils {
     }
   }
 
-  public static <T> List<T> toImmutableListAndClose(Stream<T> stream) {
+  public static <T> ImmutableList<T> toImmutableListAndClose(Stream<T> stream) {
     try (Stream<T> autoClosed = stream) {
       return autoClosed.collect(toImmutableList());
     }

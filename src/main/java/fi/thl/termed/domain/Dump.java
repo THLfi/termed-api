@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.collect.SetUtils.toImmutableSet;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.ImmutableList;
@@ -10,15 +10,15 @@ import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.StreamUtils;
 import java.util.stream.Stream;
 
-public final class Dump implements Identifiable<DumpId> {
+public final class Dump implements Identifiable<DumpId>, AutoCloseable {
 
   private final ImmutableList<Graph> graphs;
   private final ImmutableList<Type> types;
   private final Stream<Node> nodes;
 
   public Dump(Stream<Graph> graphs, Stream<Type> types, Stream<Node> nodes) {
-    this.graphs = requireNonNull(graphs).collect(toImmutableList());
-    this.types = requireNonNull(types).collect(toImmutableList());
+    this.graphs = toImmutableListAndClose(graphs);
+    this.types = toImmutableListAndClose(types);
     this.nodes = requireNonNull(nodes);
   }
 
@@ -37,6 +37,11 @@ public final class Dump implements Identifiable<DumpId> {
 
   public Stream<Node> getNodes() {
     return StreamUtils.nullToEmpty(nodes);
+  }
+
+  @Override
+  public void close() {
+    nodes.close();
   }
 
 }
