@@ -1,11 +1,14 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.of;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
@@ -19,13 +22,17 @@ import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.select.SelectAllReferrers;
 import fi.thl.termed.service.node.select.SelectReferrer;
+import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodeIndexingQueueItemsByQueueId;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.dao.SystemSequenceDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
+import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.CompositeSpecification;
 import fi.thl.termed.util.query.DependentSpecification;
 import fi.thl.termed.util.query.LuceneSpecification;
@@ -203,7 +210,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     long nodeCount = StreamUtils.countAndClose(idsSupplier.get());
 
     if (nodeCount > 1) {
-      log.info("Indexing {} nodes", nodeCount);
+      log.debug("Indexing {} nodes", nodeCount);
     }
 
     Cache<NodeId, Boolean> indexed = CacheBuilder.newBuilder().softValues().build();
@@ -225,17 +232,29 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     checkCounter.set(0);
 
     // second pass: index each reference and referrer of a db node
-    index(idsSupplier.get()
-        .flatMap(id -> super.get(id, indexer)
-            .map(node -> Stream.concat(
-                node.getReferences().values().stream(),
-                node.getReferrers().values().stream())
-                .distinct())
-            .orElseGet(Stream::of))
-        .peek(id -> checkCounter.incrementAndGet())
-        .filter(refId -> indexed.getIfPresent(refId) == null)
-        .peek(id -> indexCounter.incrementAndGet())
-        .peek(id -> indexed.put(id, true)));
+    try (Stream<NodeId> idStream = idsSupplier.get()) {
+      // in batches for better performance
+      Iterators.partition(idStream.iterator(), 200).forEachRemaining(idBatch -> {
+        OrSpecification<NodeId, Node> nodeSpecs =
+            OrSpecification.or(idBatch.stream().map(id -> AndSpecification.and(
+                NodesByGraphId.of(id.getTypeGraphId()),
+                NodesByTypeId.of(id.getTypeId()),
+                NodeById.of(id.getId())))
+                .collect(toImmutableList()));
+
+        try (Stream<Node> nodes = values(Queries.sqlQuery(nodeSpecs), indexer)) {
+          index(nodes.flatMap(node ->
+              Stream.concat(
+                  node.getReferences().values().stream(),
+                  node.getReferrers().values().stream()))
+              .distinct()
+              .peek(id -> checkCounter.incrementAndGet())
+              .filter(refId -> indexed.getIfPresent(refId) == null)
+              .peek(id -> indexCounter.incrementAndGet())
+              .peek(id -> indexed.put(id, true)));
+        }
+      });
+    }
 
     log.trace("Checked {} db refs", checkCounter.get());
     log.trace("Indexed {} db refs", indexCounter.get());
@@ -244,16 +263,22 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     checkCounter.set(0);
 
     // final pass: index each reference and referrer of an index node
-    index(idsSupplier.get()
-        .flatMap(id ->
-            keys(Queries.query(OrSpecification.or(
-                NodeAllReferences.of(id),
-                NodeAllReferrers.of(id)
-            )), indexer))
-        .peek(id -> checkCounter.incrementAndGet())
-        .filter(refId -> indexed.getIfPresent(refId) == null)
-        .peek(id -> indexCounter.incrementAndGet())
-        .peek(id -> indexed.put(id, true)));
+    try (Stream<NodeId> idStream = idsSupplier.get()) {
+      // in batches for better performance
+      Iterators.partition(idStream.iterator(), 200).forEachRemaining(idBatch -> {
+        OrSpecification<NodeId, Node> refSpecs =
+            OrSpecification.or(Streams.concat(
+                idBatch.stream().map(NodeAllReferences::of),
+                idBatch.stream().map(NodeAllReferrers::of))
+                .collect(toImmutableList()));
+
+        index(keys(Queries.query(refSpecs), indexer)
+            .peek(id -> checkCounter.incrementAndGet())
+            .filter(refId -> indexed.getIfPresent(refId) == null)
+            .peek(id -> indexCounter.incrementAndGet())
+            .peek(id -> indexed.put(id, true)));
+      });
+    }
 
     log.trace("Checked {} index refs", checkCounter.get());
     log.trace("Indexed {} index refs", indexCounter.get());
@@ -261,14 +286,14 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
     waitLuceneIndexRefresh();
 
     if (nodeCount > 1) {
-      log.info("Done");
+      log.debug("Done");
     }
   }
 
   // index all nodes identified by given ids, closes the stream
   private void index(Stream<NodeId> ids) {
     try (Stream<NodeId> closeable = ids) {
-      StreamUtils.zipIndex(closeable, Tuple::of).forEach(t -> {
+      StreamUtils.zipIndex(closeable, 1, Tuple::of).forEach(t -> {
         NodeId id = t._1;
         int i = t._2;
 
@@ -281,7 +306,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         }
 
         if (i % 1000 == 0) {
-          log.debug("Indexed {} values", i);
+          log.debug("Indexed {} nodes", i);
         }
       });
     }

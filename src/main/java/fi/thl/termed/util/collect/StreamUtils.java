@@ -137,7 +137,12 @@ public final class StreamUtils {
   }
 
   public static <L, Z> Stream<Z> zipIndex(Stream<L> l, BiFunction<L, Integer, Z> zipper) {
-    return zip(l, IntStream.iterate(0, i -> i + 1).boxed(), zipper);
+    return zipIndex(l, 0, zipper);
+  }
+
+  public static <L, Z> Stream<Z> zipIndex(Stream<L> l, int offset,
+      BiFunction<L, Integer, Z> zipper) {
+    return zip(l, IntStream.iterate(offset, i -> i + 1).boxed(), zipper);
   }
 
   public static <T> Stream<T> nullToEmpty(Stream<T> stream) {

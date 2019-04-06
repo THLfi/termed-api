@@ -22,6 +22,10 @@ public class NodeById implements LuceneSpecification<NodeId, Node>, SqlSpecifica
     this.id = id;
   }
 
+  public static NodeById of(UUID id) {
+    return new NodeById(id);
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
