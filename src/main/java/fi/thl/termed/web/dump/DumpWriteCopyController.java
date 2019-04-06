@@ -23,6 +23,7 @@ import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,6 +55,29 @@ public class DumpWriteCopyController {
               dump.getGraphs().map(graph -> mapGraphToGraph(graph, targetGraphId)),
               dump.getTypes().map(type -> mapTypeToGraph(type, targetGraphId)),
               dump.getNodes().map(node -> mapNodeToGraph(node, targetGraphId))),
+          saveMode(mode), opts(sync, generateCodes, generateUris), user);
+    }
+
+    return new GraphId(targetGraphId);
+  }
+
+  @PostJsonMapping(path = "/graphs/{graphId}/dump", params = {"copy=true", "typesOnly=true"},
+      produces = APPLICATION_JSON_UTF8_VALUE)
+  public GraphId copyTypesOnly(
+      @PathVariable("graphId") UUID sourceGraphId,
+      @RequestParam(name = "targetGraphId", defaultValue = RANDOM_UUID) UUID targetGraphId,
+      @RequestParam(name = "mode", defaultValue = "insert") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "generateCodes", defaultValue = "false") boolean generateCodes,
+      @RequestParam(name = "generateUris", defaultValue = "false") boolean generateUris,
+      @AuthenticationPrincipal User user) {
+
+    try (Dump dump = dumpService.get(DumpId.of(GraphId.of(sourceGraphId)), user)
+        .orElseThrow(NotFoundException::new)) {
+      dumpService.save(new Dump(
+              dump.getGraphs().map(graph -> mapGraphToGraph(graph, targetGraphId)),
+              dump.getTypes().map(type -> mapTypeToGraph(type, targetGraphId)),
+              Stream.empty()),
           saveMode(mode), opts(sync, generateCodes, generateUris), user);
     }
 
