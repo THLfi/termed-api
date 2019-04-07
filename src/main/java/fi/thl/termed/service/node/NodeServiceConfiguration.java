@@ -57,6 +57,7 @@ import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.JdbcSystemSequenceDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.dao.SystemSequenceDao;
+import fi.thl.termed.util.dao.TransactionalSystemDao;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
@@ -284,11 +285,13 @@ public class NodeServiceConfiguration {
   }
 
   private SystemDao<Long, Empty> nodeIndexingQueueDao() {
-    return new JdbcNodeIndexingQueueDao(dataSource);
+    return new TransactionalSystemDao<>(
+        new JdbcNodeIndexingQueueDao(dataSource), transactionManager);
   }
 
   private SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao() {
-    return new JdbcNodeIndexingQueueItemDao(dataSource);
+    return new TransactionalSystemDao<>(
+        new JdbcNodeIndexingQueueItemDao(dataSource), transactionManager);
   }
 
   /**
