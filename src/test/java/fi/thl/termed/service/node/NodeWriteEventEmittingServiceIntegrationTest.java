@@ -16,6 +16,7 @@ import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.util.query.Queries;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,38 @@ class NodeWriteEventEmittingServiceIntegrationTest extends BaseNodeServiceIntegr
     }
 
     assertEquals(nodeCount, eventListener.countNodesSaved());
+    assertEquals(nodeCount, eventListener.countNodesDeleted());
+  }
+
+  @Test
+  void shouldProduceEventsForNodeSaveAndDelete() {
+    int nodeCount = 1100;
+
+    Supplier<Stream<Node>> nodeStreamSupplier = () -> Stream
+        .generate(() -> Node.builder().id(NodeId.random("Person", graphId)).build())
+        .limit(nodeCount);
+
+    Stream<Node> initialNodeList = nodeStreamSupplier.get()
+        .limit(nodeCount);
+
+    SimpleNodeWriteEventListener eventListener = new SimpleNodeWriteEventListener();
+    eventBus.register(eventListener);
+
+    assertEquals(0, nodeService.count(NodesByGraphId.of(graphId), user));
+    assertEquals(0, eventListener.countNodesSaved());
+    assertEquals(0, eventListener.countNodesDeleted());
+
+    nodeService.save(initialNodeList, INSERT, opts(true), user);
+    assertEquals(nodeCount, eventListener.countNodesSaved());
+    assertEquals(0, eventListener.countNodesDeleted());
+
+    try (Stream<NodeId> keys = nodeService.keys(Queries.query(NodesByGraphId.of(graphId)), user)) {
+      nodeService.saveAndDelete(
+          nodeStreamSupplier.get().limit(nodeCount), keys,
+          INSERT, opts(true), user);
+    }
+
+    assertEquals(nodeCount * 2, eventListener.countNodesSaved());
     assertEquals(nodeCount, eventListener.countNodesDeleted());
   }
 

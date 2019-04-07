@@ -124,7 +124,7 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
         .map(RevisionId::getId)) {
 
       Iterators.partition(savedIdsInRevision.iterator(), 1000).forEachRemaining(
-          batch -> fireDeleteEvents(batch, user.getUsername(), opts.isSync()));
+          batch -> fireSaveEvents(batch, user.getUsername(), opts.isSync()));
     }
 
     try (Stream<NodeId> deletedIdsInRevision = nodeRevisionService
