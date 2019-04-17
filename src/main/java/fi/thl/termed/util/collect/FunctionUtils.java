@@ -55,6 +55,16 @@ public final class FunctionUtils {
   }
 
   /**
+   * Memoize given function with cache where values are soft references. I.e. cached values may be
+   * evicted if memory is running low.
+   */
+  public static <F, T> Function<F, T> memoizeSoft(Function<F, T> function) {
+    return CacheBuilder.newBuilder()
+        .softValues()
+        .build(CacheLoader.from(function::apply))::getUnchecked;
+  }
+
+  /**
    * Memoize given function with given maximum cache size.
    */
   public static <F, T> Function<F, T> memoize(Function<F, T> function, long maxCacheSize) {
