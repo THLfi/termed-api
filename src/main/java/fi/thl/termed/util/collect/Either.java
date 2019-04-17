@@ -8,6 +8,14 @@ import java.util.function.Function;
 
 public interface Either<L, R> {
 
+  static <L, R> Either<L, R> left(L left) {
+    return Left.of(left);
+  }
+
+  static <L, R> Either<L, R> right(R right) {
+    return Right.of(right);
+  }
+
   boolean isLeft();
 
   boolean isRight();

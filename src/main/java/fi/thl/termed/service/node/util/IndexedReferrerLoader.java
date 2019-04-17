@@ -83,25 +83,18 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
       if (!notInIndex.isEmpty()) {
         errorMessages.add("has " + notInIndex.size() +
             " \"" + attributeId + "\" referrer(s) missing " +
-            notInIndex.stream().map(this::prettyPrint).collect(joining(", ", "(", ")")));
+            notInIndex.stream().map(NodeId::toString).collect(joining(", ", "(", ")")));
       }
       if (!notInDb.isEmpty()) {
         errorMessages.add("has " + notInDb.size() +
             " deleted \"" + attributeId + "\" referrer(s) " +
-            notInDb.stream().map(this::prettyPrint).collect(joining(", ", "(", ")")));
+            notInDb.stream().map(NodeId::toString).collect(joining(", ", "(", ")")));
       }
 
       log.error("Index may be corrupted or outdated\n\tindex node: {}\n\t{}",
-          prettyPrint(nodeId),
+          nodeId,
           String.join("\n\t", errorMessages));
     }
-  }
-
-  private String prettyPrint(NodeId id) {
-    return String.format("%s.%s.%s",
-        id.getTypeGraphId(),
-        id.getTypeId(),
-        id.getId());
   }
 
 }
