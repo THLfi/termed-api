@@ -12,6 +12,7 @@ import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLList.list;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -26,7 +27,6 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
-import fi.thl.termed.service.node.util.GraphQLUtils;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.node.util.TypeToGraphQLType;
@@ -35,11 +35,14 @@ import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.exception.BadRequestException;
 import fi.thl.termed.util.spring.exception.NotFoundException;
+import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.idl.SchemaPrinter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +54,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -71,6 +75,7 @@ public class NodeGraphQLReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @RequestBody String graphQLQueryString,
+      @RequestParam(value = "unwrapResults", defaultValue = "true") boolean unwrapResults,
       @AuthenticationPrincipal User user) {
 
     TypeId domainId = TypeId.of(typeId, graphId);
@@ -117,12 +122,21 @@ public class NodeGraphQLReadController {
       log.trace("GraphQLSchema: {}", new SchemaPrinter().print(graphQLSchema));
     }
 
-    return GraphQLUtils.getErrorsOrData(
-        GraphQL.newGraphQL(graphQLSchema).build().execute(graphQLQueryString))
-        .mapLeft(errorMessage -> {
-          throw new BadRequestException(errorMessage);
-        })
-        .getRight();
+    ExecutionResult result = GraphQL.newGraphQL(graphQLSchema).build().execute(graphQLQueryString);
+
+    if (!result.getErrors().isEmpty()) {
+      throw new BadRequestException(result.getErrors().stream()
+          .map(GraphQLError::getMessage)
+          .collect(joining(", ")));
+    }
+
+    if (unwrapResults) {
+      return ((Map<String, Object>) result.toSpecification()
+          .getOrDefault("data", Collections.emptyMap()))
+          .getOrDefault("nodes", Collections.emptyList());
+    } else {
+      return result.toSpecification();
+    }
   }
 
 }

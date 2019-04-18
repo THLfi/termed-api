@@ -69,7 +69,7 @@ class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .body("nodes.id", hasItems(
+        .body("id", hasItems(
             exampleNode0.getId().toString(),
             exampleNode1.getId().toString()));
   }
@@ -89,16 +89,14 @@ class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .body(sameJSONAs(
-            object("nodes",
+        .body(sameJSONAs(array(object(
+            "id", primitive(exampleNode0.getId().toString()),
+            "properties", object("name", array(object("value", primitive("John")))),
+            "references", object("knows",
                 array(object(
-                    "id", primitive(exampleNode0.getId().toString()),
-                    "properties", object("name", array(object("value", primitive("John")))),
-                    "references", object("knows",
-                        array(object(
-                            "id", primitive(exampleNode1.getId().toString()),
-                            "uri", primitive(exampleNode1.getUri().orElse(""))))))))
-                .toString()));
+                    "id", primitive(exampleNode1.getId().toString()),
+                    "uri", primitive(exampleNode1.getUri().orElse("")))))))
+            .toString()));
   }
 
   @Test
@@ -119,7 +117,7 @@ class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .body("nodes.id", contains(exampleNode0Id.getId().toString()));
+        .body("id", contains(exampleNode0Id.getId().toString()));
   }
 
   @Test
@@ -137,7 +135,7 @@ class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .body("nodes", hasSize(1));
+        .body("", hasSize(1));
   }
 
   @Test
@@ -155,7 +153,7 @@ class NodeGraphQLIntegrationTest extends BaseApiIntegrationTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .body("nodes.properties.name.value.flatten()", contains(
+        .body("properties.name.value.flatten()", contains(
             exampleNode1.getFirstPropertyValue("name")
                 .map(StrictLangValue::getValue).orElse(null),
             exampleNode0.getFirstPropertyValue("name")
