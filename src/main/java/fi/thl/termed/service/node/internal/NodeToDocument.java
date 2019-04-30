@@ -1,9 +1,8 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
-import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 import static fi.thl.termed.util.index.lucene.LuceneConstants.MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS;
 import static java.lang.Integer.min;
+import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
@@ -13,7 +12,6 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,96 +28,110 @@ import org.apache.lucene.util.BytesRef;
 
 public class NodeToDocument implements Function<Node, Document> {
 
-  private Gson gson;
-
-  public NodeToDocument(Gson gson) {
-    this.gson = gson;
-  }
+  private static final Gson gson = new Gson();
 
   @Override
   public Document apply(Node n) {
     Document doc = new Document();
 
-    Node.Builder cachedNodeBuilder = Node.builderFromCopyOf(n);
-    cachedNodeBuilder.referrers(null);
-    doc.add(new StoredField(CACHED_RESULT_FIELD, gson.toJson(cachedNodeBuilder.build())));
-    doc.add(new StoredField(CACHED_REFERRERS_FIELD, gson.toJson(n.getReferrers())));
+    String qualifier = UUIDs.toString(n.getTypeGraphId()) + "." + n.getTypeId();
 
-    doc.add(stringField("type.graph.id", n.getTypeGraphId()));
-    doc.add(stringField("type.id", n.getTypeId()));
-    doc.add(stringField("id", n.getId()));
+    doc.add(storedStringField("type.graph.id", n.getTypeGraphId()));
+    doc.add(storedStringField("type.id", n.getTypeId()));
+    doc.add(storedStringField("id", n.getId()));
+
+    doc.add(storedField(qualifier + ".code", n.getCode().orElse("")));
+    doc.add(storedField(qualifier + ".uri", n.getUri().orElse("")));
+    doc.add(storedField(qualifier + ".number", n.getNumber()));
+    doc.add(storedField(qualifier + ".createdBy", n.getCreatedBy()));
+    doc.add(storedField(qualifier + ".createdDate", n.getCreatedDate()));
+    doc.add(storedField(qualifier + ".lastModifiedBy", n.getLastModifiedBy()));
+    doc.add(storedField(qualifier + ".lastModifiedDate", n.getLastModifiedDate()));
+
     doc.add(stringField("code", n.getCode().orElse("")));
     doc.add(stringField("uri", n.getUri().orElse("")));
     doc.add(stringField("number", n.getNumber()));
-
+    doc.add(stringField("createdBy", n.getCreatedBy()));
     doc.add(stringField("createdDate", n.getCreatedDate()));
+    doc.add(stringField("lastModifiedBy", n.getLastModifiedBy()));
     doc.add(stringField("lastModifiedDate", n.getLastModifiedDate()));
+
     doc.add(sortableField("createdDate.sortable", n.getCreatedDate()));
     doc.add(sortableField("lastModifiedDate.sortable", n.getLastModifiedDate()));
 
-    addProperties(doc, n.getProperties());
-    addReferences(doc, n.getReferences());
-    addReferrers(doc, n.getReferrers());
+    addProperties(doc, qualifier, n.getProperties());
+    addReferences(doc, qualifier, n.getReferences());
+    addReferrers(doc, qualifier, n.getReferrers());
 
     return doc;
   }
 
-  private void addProperties(Document doc, Multimap<String, StrictLangValue> properties) {
-    properties.asMap().forEach((p, langValues) -> {
-      boolean sortFieldAdded = false;
+  private void addProperties(Document doc, String qualifier,
+      Multimap<String, StrictLangValue> properties) {
+
+    properties.asMap().forEach((property, langValues) -> {
+      doc.add(storedField(qualifier + ".properties." + property, gson.toJson(langValues)));
+
       Set<String> sortFieldAddedForLang = new HashSet<>();
-
       for (StrictLangValue langValue : langValues) {
-        String lang = langValue.getLang();
-        String val = langValue.getValue();
-
-        doc.add(textField("properties." + p, val));
-        doc.add(stringField("properties." + p + ".string", val));
-
-        if (!sortFieldAdded) {
-          doc.add(sortableField("properties." + p + ".sortable", val.toLowerCase()));
-          sortFieldAdded = true;
-        }
-
-        if (!lang.isEmpty()) {
-          doc.add(textField("properties." + p + "." + lang, val));
-          doc.add(stringField("properties." + p + "." + lang + ".string", val));
-
-          if (!sortFieldAddedForLang.contains(lang)) {
-            doc.add(sortableField("properties." + p + "." + lang + ".sortable", val.toLowerCase()));
-            sortFieldAddedForLang.add(lang);
-          }
-        }
+        addProperty(doc, property,
+            langValue.getLang(),
+            langValue.getValue(),
+            sortFieldAddedForLang);
       }
     });
   }
 
-  private void addReferences(Document doc, Multimap<String, NodeId> references) {
-    for (Map.Entry<String, NodeId> entry : references.entries()) {
-      String property = entry.getKey();
-      NodeId value = entry.getValue();
+  private void addProperty(Document doc, String property, String lang, String val,
+      Set<String> sortFieldAddedForLang) {
+    doc.add(textField("properties." + property, val));
+    doc.add(stringField("properties." + property + ".string", val));
+    if (!sortFieldAddedForLang.contains("")) {
+      doc.add(sortableField("properties." + property + ".sortable", val.toLowerCase()));
+      sortFieldAddedForLang.add("");
+    }
 
-      doc.add(stringField("references.nodeId", value.toString()));
-      doc.add(stringField("references." + property + ".nodeId", value.toString()));
-
-      doc.add(stringField("references." + property + ".id", value.getId()));
-      doc.add(stringField("references." + property + ".type.id", value.getTypeId()));
-      doc.add(stringField("references." + property + ".type.graph.id", value.getTypeGraphId()));
+    if (!lang.isEmpty()) {
+      doc.add(textField("properties." + property + "." + lang, val));
+      doc.add(stringField("properties." + property + "." + lang + ".string", val));
+      if (!sortFieldAddedForLang.contains(lang)) {
+        doc.add(
+            sortableField("properties." + property + "." + lang + ".sortable", val.toLowerCase()));
+        sortFieldAddedForLang.add(lang);
+      }
     }
   }
 
-  private void addReferrers(Document doc, Multimap<String, NodeId> referrers) {
-    for (Map.Entry<String, NodeId> entry : referrers.entries()) {
-      String property = entry.getKey();
-      NodeId value = entry.getValue();
+  private void addReferences(Document doc, String qualifier, Multimap<String, NodeId> references) {
+    references.asMap().forEach((property, values) -> {
+      doc.add(storedField(qualifier + ".references." + property,
+          values.stream().map(NodeId::toString).collect(joining(","))));
 
-      doc.add(stringField("referrers.nodeId", value.toString()));
-      doc.add(stringField("referrers." + property + ".nodeId", value.toString()));
+      values.forEach(value -> {
+        doc.add(stringField("references.nodeId", value.toString()));
+        doc.add(stringField("references." + property + ".nodeId", value.toString()));
 
-      doc.add(stringField("referrers." + property + ".id", value.getId()));
-      doc.add(stringField("referrers." + property + ".type.id", value.getTypeId()));
-      doc.add(stringField("referrers." + property + ".type.graph.id", value.getTypeGraphId()));
-    }
+        doc.add(stringField("references." + property + ".id", value.getId()));
+        doc.add(stringField("references." + property + ".type.id", value.getTypeId()));
+        doc.add(stringField("references." + property + ".type.graph.id", value.getTypeGraphId()));
+      });
+    });
+  }
+
+  private void addReferrers(Document doc, String qualifier, Multimap<String, NodeId> referrers) {
+    referrers.asMap().forEach((property, values) -> {
+      doc.add(storedField(qualifier + ".referrers." + property,
+          values.stream().map(NodeId::toString).collect(joining(","))));
+
+      values.forEach(value -> {
+        doc.add(stringField("referrers.nodeId", value.toString()));
+        doc.add(stringField("referrers." + property + ".nodeId", value.toString()));
+
+        doc.add(stringField("referrers." + property + ".id", value.getId()));
+        doc.add(stringField("referrers." + property + ".type.id", value.getTypeId()));
+        doc.add(stringField("referrers." + property + ".type.graph.id", value.getTypeGraphId()));
+      });
+    });
   }
 
   private Field textField(String name, String value) {
@@ -144,6 +156,16 @@ public class NodeToDocument implements Function<Node, Document> {
     return new StringField(name, String.valueOf(value), Store.NO);
   }
 
+  private Field storedStringField(String name, String value) {
+    return new StringField(name,
+        value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length())),
+        Store.YES);
+  }
+
+  private Field storedStringField(String name, UUID value) {
+    return new StringField(name, UUIDs.toString(value), Store.YES);
+  }
+
   private Field sortableField(String name, String value) {
     return new SortedDocValuesField(name,
         new BytesRef(
@@ -153,6 +175,18 @@ public class NodeToDocument implements Function<Node, Document> {
   private Field sortableField(String name, Date value) {
     return new SortedDocValuesField(name,
         new BytesRef(DateTools.dateToString(value, Resolution.MILLISECOND)));
+  }
+
+  private Field storedField(String name, String value) {
+    return new StoredField(name, value);
+  }
+
+  private Field storedField(String name, Date value) {
+    return new StoredField(name, DateTools.dateToString(value, Resolution.MILLISECOND));
+  }
+
+  private Field storedField(String name, Long value) {
+    return new StoredField(name, String.valueOf(value));
   }
 
 }

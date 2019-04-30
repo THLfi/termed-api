@@ -5,6 +5,8 @@ import static com.google.common.collect.Multimaps.transformValues;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -16,19 +18,19 @@ public final class DepthLimitedNodeTree implements NodeTree {
 
   private final int depth;
 
-  private final ImmutableMap<String, Integer> maxReferenceAttributeDepth;
-  private final ImmutableMap<String, Integer> maxReferrerAttributeDepth;
+  private final ImmutableMap<Tuple2<TypeId, String>, Integer> maxReferenceAttributeDepth;
+  private final ImmutableMap<Tuple2<TypeId, String>, Integer> maxReferrerAttributeDepth;
 
   public DepthLimitedNodeTree(NodeTree source,
-      Map<String, Integer> maxReferenceAttributeDepth,
-      Map<String, Integer> maxReferrerAttributeDepth) {
+      Map<Tuple2<TypeId, String>, Integer> maxReferenceAttributeDepth,
+      Map<Tuple2<TypeId, String>, Integer> maxReferrerAttributeDepth) {
     this(source, 0, maxReferenceAttributeDepth, maxReferrerAttributeDepth);
   }
 
   private DepthLimitedNodeTree(NodeTree source,
       int depth,
-      Map<String, Integer> maxReferenceAttributeDepth,
-      Map<String, Integer> maxReferrerAttributeDepth) {
+      Map<Tuple2<TypeId, String>, Integer> maxReferenceAttributeDepth,
+      Map<Tuple2<TypeId, String>, Integer> maxReferrerAttributeDepth) {
     this.source = source;
     this.depth = depth;
     this.maxReferenceAttributeDepth = ImmutableMap.copyOf(maxReferenceAttributeDepth);
@@ -89,7 +91,7 @@ public final class DepthLimitedNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferences() {
     return transformValues(
         filterKeys(source.getReferences(),
-            ref -> depth < maxReferenceAttributeDepth.getOrDefault(ref, 1)),
+            attr -> depth < maxReferenceAttributeDepth.getOrDefault(Tuple.of(getType(), attr), 1)),
         filtered -> new DepthLimitedNodeTree(filtered,
             depth + 1,
             maxReferenceAttributeDepth,
@@ -100,7 +102,7 @@ public final class DepthLimitedNodeTree implements NodeTree {
   public Multimap<String, ? extends NodeTree> getReferrers() {
     return transformValues(
         filterKeys(source.getReferrers(),
-            ref -> depth < maxReferrerAttributeDepth.getOrDefault(ref, 1)),
+            attr -> depth < maxReferrerAttributeDepth.getOrDefault(Tuple.of(getType(), attr), 1)),
         filtered -> new DepthLimitedNodeTree(filtered,
             depth + 1,
             maxReferenceAttributeDepth,

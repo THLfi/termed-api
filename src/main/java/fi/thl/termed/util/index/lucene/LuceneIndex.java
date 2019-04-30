@@ -231,6 +231,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   // null in fieldsToLoad means load all
   private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
       Set<String> fieldsToLoad, Function<Document, E> documentDeserializer) throws IOException {
+    log.trace("{}", fieldsToLoad);
     log.trace("{}", query);
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
     return toStreamWithTimeout(Arrays.stream(docs.scoreDocs)

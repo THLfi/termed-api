@@ -348,6 +348,10 @@ public final class Node implements Identifiable<NodeId> {
     }
 
     public Builder addReference(String attributeId, NodeId... valueIds) {
+      return addReference(attributeId, Arrays.asList(valueIds));
+    }
+
+    public Builder addReference(String attributeId, Iterable<NodeId> valueIds) {
       if (references == null) {
         references = LinkedHashMultimap.create();
       }
@@ -355,7 +359,7 @@ public final class Node implements Identifiable<NodeId> {
         references = LinkedHashMultimap.create(references);
       }
 
-      references.putAll(attributeId, Arrays.asList(valueIds));
+      references.putAll(attributeId, valueIds);
 
       return this;
     }
@@ -373,6 +377,19 @@ public final class Node implements Identifiable<NodeId> {
       }
 
       references.replaceValues(attributeId, valueIds);
+
+      return this;
+    }
+
+    public Builder addReferrer(String attributeId, Iterable<NodeId> valueIds) {
+      if (referrers == null) {
+        referrers = LinkedHashMultimap.create();
+      }
+      if (referrers instanceof ImmutableMultimap) {
+        referrers = LinkedHashMultimap.create(referrers);
+      }
+
+      referrers.putAll(attributeId, valueIds);
 
       return this;
     }

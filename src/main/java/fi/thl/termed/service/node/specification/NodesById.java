@@ -14,16 +14,17 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
-public class NodeById implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
+public class NodesById implements LuceneSpecification<NodeId, Node>,
+    SqlSpecification<NodeId, Node> {
 
   private UUID id;
 
-  public NodeById(UUID id) {
+  public NodesById(UUID id) {
     this.id = id;
   }
 
-  public static NodeById of(UUID id) {
-    return new NodeById(id);
+  public static NodesById of(UUID id) {
+    return new NodesById(id);
   }
 
   @Override
@@ -50,7 +51,7 @@ public class NodeById implements LuceneSpecification<NodeId, Node>, SqlSpecifica
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    NodeById that = (NodeById) o;
+    NodesById that = (NodesById) o;
     return Objects.equals(id, that.id);
   }
 

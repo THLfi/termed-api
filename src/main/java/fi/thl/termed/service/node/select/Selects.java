@@ -3,39 +3,48 @@ package fi.thl.termed.service.node.select;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import fi.thl.termed.domain.Type;
+import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.util.collect.Tuple;
+import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Select;
 import java.util.List;
-import java.util.Set;
-import org.jparsercombinator.Parser;
 
 public final class Selects {
 
-  private static Parser<List<Select>> parser = new SelectParser();
+  private static final SelectParser PARSER = new SelectParser();
+  private static final SelectQualifier QUALIFIER = new SelectQualifier();
 
   private Selects() {
   }
 
-  public static ImmutableSet<Select> parse(String select) {
-    return ImmutableSet.copyOf(parser.apply(select));
+  public static List<Select> parse(List<String> selects) {
+    return PARSER.apply(String.join(",", selects));
   }
 
-  public static ImmutableMap<String, Integer> selectReferences(Set<Select> selects) {
-    return ImmutableMap.copyOf(selects.stream()
-        .filter(s -> s instanceof SelectReference)
-        .map(s -> (SelectReference) s)
-        .collect(toMap(
-            SelectReference::getField,
-            SelectReference::getDepth)));
+  public static List<Select> qualify(List<Type> allTypes, List<Type> domainTypes,
+      List<Select> selects) {
+    return QUALIFIER.apply(allTypes, domainTypes, selects);
   }
 
-  public static ImmutableMap<String, Integer> selectReferrers(Set<Select> selects) {
+  public static ImmutableMap<Tuple2<TypeId, String>, Integer> selectReferences(
+      List<Select> selects) {
     return ImmutableMap.copyOf(selects.stream()
-        .filter(s -> s instanceof SelectReferrer)
-        .map(s -> (SelectReferrer) s)
+        .filter(s -> s instanceof SelectTypeQualifiedReference)
+        .map(s -> (SelectTypeQualifiedReference) s)
         .collect(toMap(
-            SelectReferrer::getField,
-            SelectReferrer::getDepth)));
+            s -> Tuple.of(s.getTypeId(), s.getField()),
+            SelectTypeQualifiedReference::getDepth)));
+  }
+
+  public static ImmutableMap<Tuple2<TypeId, String>, Integer> selectReferrers(
+      List<Select> selects) {
+    return ImmutableMap.copyOf(selects.stream()
+        .filter(s -> s instanceof SelectTypeQualifiedReferrer)
+        .map(s -> (SelectTypeQualifiedReferrer) s)
+        .collect(toMap(
+            s -> Tuple.of(s.getTypeId(), s.getField()),
+            SelectTypeQualifiedReferrer::getDepth)));
   }
 
 }

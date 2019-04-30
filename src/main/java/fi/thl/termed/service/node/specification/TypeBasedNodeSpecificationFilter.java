@@ -89,7 +89,7 @@ public class TypeBasedNodeSpecificationFilter implements
   }
 
   private boolean isAcceptedIdentifierSpecification(Specification<NodeId, Node> s) {
-    return s instanceof NodeById || s instanceof NodesByCode || s instanceof NodesByUri
+    return s instanceof NodesById || s instanceof NodesByCode || s instanceof NodesByUri
         || s instanceof NodesByNumber;
   }
 

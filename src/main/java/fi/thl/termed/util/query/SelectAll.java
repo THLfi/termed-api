@@ -1,9 +1,20 @@
 package fi.thl.termed.util.query;
 
-public class SelectAll extends Select {
+public final class SelectAll implements Select {
 
-  public SelectAll() {
-    super("*");
+  @Override
+  public String toString() {
+    return "*";
+  }
+
+  @Override
+  public int hashCode() {
+    return SelectAll.class.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    return this == that || that instanceof SelectAll;
   }
 
 }

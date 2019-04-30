@@ -7,7 +7,6 @@ import static fi.thl.termed.util.spring.jdbc.SpringJdbcUtils.getDatabaseProductN
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.Graph;
@@ -107,8 +106,6 @@ public class NodeServiceConfiguration {
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
-  @Autowired
-  private Gson gson;
 
   @Autowired
   private EventBus eventBus;
@@ -124,8 +121,7 @@ public class NodeServiceConfiguration {
         nodeIndex(),
         nodeIndexingQueueSequenceDao(),
         nodeIndexingQueueDao(),
-        nodeIndexingQueueItemDao(),
-        gson);
+        nodeIndexingQueueItemDao());
     eventBus.register(service);
 
     service = new ReadAuthorizedNodeService(service,
@@ -156,7 +152,7 @@ public class NodeServiceConfiguration {
   private Index<NodeId, Node> nodeIndex() {
     return new LuceneIndex<>(
         indexPath, new JsonStringConverter<>(NodeId.class),
-        newConverter(new NodeToDocument(gson), new DocumentToNode(gson)));
+        newConverter(new NodeToDocument(), new DocumentToNode()));
   }
 
   private Service<NodeId, Node> nodeRepository() {

@@ -4,7 +4,6 @@ import static fi.thl.termed.util.UUIDs.nilUuid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -15,7 +14,6 @@ import fi.thl.termed.util.query.SelectAll;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +24,7 @@ class NodesToCsvTest {
   private TypeId unknownTypeId = TypeId.of("", nilUuid());
 
   private CsvOptions defaultOpts = CsvOptions.builder().build();
-  private Set<Select> selectAll = ImmutableSet.of(new SelectAll());
+  private List<Select> selectAll = ImmutableList.of(new SelectAll());
 
   private void assertNodesAreEqualAfterConvertingCsvAndBack(List<Node> nodes) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();

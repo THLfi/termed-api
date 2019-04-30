@@ -1,14 +1,13 @@
 package fi.thl.termed.util.query;
 
-import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Query<K extends Serializable, V> {
 
@@ -83,10 +82,18 @@ public class Query<K extends Serializable, V> {
 
   @Override
   public String toString() {
-    return "SELECT " + join(", ", select.stream().map(Select::toString).collect(toList()))
-        + " WHERE " + where
-        + (!sort.isEmpty() ? " SORT " + join(", ", sort) : "")
-        + " MAX " + max;
+    String selectString = "SELECT " + select.stream()
+        .map(Select::toString)
+        .sorted()
+        .collect(Collectors.joining(", "));
+
+    String whereString = " WHERE " + where;
+
+    String sortString = sort.isEmpty() ? "" : " SORT " + String.join(", ", sort);
+
+    String maxString = max == -1 ? "" : " MAX " + max;
+
+    return selectString + whereString + sortString + maxString;
   }
 
 }

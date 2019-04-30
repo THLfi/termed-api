@@ -18,7 +18,7 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByPropertyString;
 import fi.thl.termed.service.node.specification.NodesByReference;
@@ -74,7 +74,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
         findFirstAndClose(nodeProvider.apply(and(
             new NodesByGraphId(nodeId.getTypeGraphId()),
             new NodesByTypeId(nodeId.getTypeId()),
-            new NodeById(nodeId.getId()))));
+            new NodesById(nodeId.getId()))));
 
     this.toTriples = new NodeToTriples(
         typeUriResolver(getType),
@@ -139,7 +139,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
   private Specification<NodeId, fi.thl.termed.domain.Node> byUriOrId(String nodeUri) {
     return nodeUri.matches(RegularExpressions.URN_UUID) ?
-        new NodeById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))) :
+        new NodesById(UUIDs.fromString(nodeUri.substring("urn:uuid:".length()))) :
         new NodesByUri(nodeUri);
   }
 

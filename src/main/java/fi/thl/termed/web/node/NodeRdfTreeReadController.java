@@ -1,21 +1,22 @@
 package fi.thl.termed.web.node;
 
 import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.ImmutableList.of;
 import static com.google.common.collect.Multimaps.transformValues;
-import static fi.thl.termed.service.node.select.Selects.selectReferences;
-import static fi.thl.termed.service.node.select.Selects.selectReferrers;
+import static fi.thl.termed.service.node.select.Selects.parse;
+import static fi.thl.termed.service.node.select.Selects.qualify;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.service.node.util.UriResolvers.nodeUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.refAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.textAttrUriResolver;
 import static fi.thl.termed.service.node.util.UriResolvers.typeUriResolver;
 import static fi.thl.termed.util.GraphUtils.collectNodes;
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
+import static fi.thl.termed.util.query.AndSpecification.and;
+import static fi.thl.termed.util.query.Queries.matchAll;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
-import static java.lang.String.join;
 
 import fi.thl.termed.domain.DepthLimitedNodeTree;
-import fi.thl.termed.domain.FilteredNodeTree;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.LazyLoadingNodeTree;
@@ -26,24 +27,23 @@ import fi.thl.termed.domain.SimpleNodeTree;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.select.SelectId;
-import fi.thl.termed.service.node.select.SelectType;
 import fi.thl.termed.service.node.select.Selects;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesById;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
 import fi.thl.termed.service.node.util.IndexedReferrerLoader;
 import fi.thl.termed.service.node.util.NodeToTriples;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
-import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -78,14 +78,11 @@ public class NodeRdfTreeReadController {
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user) {
 
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
-    Set<Select> selects = new LinkedHashSet<>();
-    selects.add(new SelectId());
-    selects.add(new SelectType());
-    selects.addAll(Selects.parse(join(",", select)));
+    List<Select> selects = qualify(types, types, parse(select));
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
@@ -115,16 +112,13 @@ public class NodeRdfTreeReadController {
       throw new NotFoundException();
     }
 
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> anyDomain = toListAndClose(
-        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
+    List<Type> domains = toImmutableListAndClose(
+        typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, anyDomain, where);
-    Set<Select> selects = new LinkedHashSet<>();
-    selects.add(new SelectId());
-    selects.add(new SelectType());
-    selects.addAll(Selects.parse(join(",", select)));
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domains, where);
+    List<Select> selects = qualify(types, domains, parse(select));
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
@@ -151,16 +145,13 @@ public class NodeRdfTreeReadController {
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @AuthenticationPrincipal User user) {
 
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    Type domain = typeService.get(new TypeId(typeId, graphId), user)
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
+    Type domain = typeService.get(TypeId.of(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
-    Set<Select> selects = new LinkedHashSet<>();
-    selects.add(new SelectId());
-    selects.add(new SelectType());
-    selects.addAll(Selects.parse(join(",", select)));
+    List<Select> selects = qualify(types, of(domain), parse(select));
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
@@ -185,38 +176,46 @@ public class NodeRdfTreeReadController {
       @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
       @AuthenticationPrincipal User user) {
 
-    Node node = nodeService.get(new NodeId(id, typeId, graphId), user)
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
+    Type domain = typeService.get(TypeId.of(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
-    Set<Select> selects = new LinkedHashSet<>();
-    selects.add(new SelectId());
-    selects.add(new SelectType());
-    selects.addAll(Selects.parse(join(",", select)));
+    Specification<NodeId, Node> spec = and(
+        NodesByGraphId.of(graphId),
+        NodesByTypeId.of(typeId),
+        NodesById.of(id));
+    List<Select> selects = qualify(types, of(domain), parse(select));
 
-    NodeTree tree = toTree(node, selects, user);
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec), user)) {
+      Node node = nodes.findFirst().orElseThrow(NotFoundException::new);
 
-    Model model = ModelFactory.createDefaultModel();
-    model.setNsPrefixes(defaultNamespacePrefixes);
+      NodeTree tree = toTree(node, selects, user);
 
-    collectNodes(tree, t -> copyOf(t.getReferences().values())).stream()
-        .map(this::toNode)
-        .flatMap(n -> toTriples(user).apply(n).stream())
-        .forEach(t -> model.getGraph().add(t));
+      Model model = ModelFactory.createDefaultModel();
+      model.setNsPrefixes(defaultNamespacePrefixes);
 
-    return model;
+      collectNodes(tree, t -> copyOf(t.getReferences().values())).stream()
+          .map(this::toNode)
+          .flatMap(n -> toTriples(user).apply(n).stream())
+          .forEach(t -> model.getGraph().add(t));
+
+      return model;
+    }
   }
 
-  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, Set<Select> selects, User user) {
+  private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, List<Select> selects, User user) {
     return nodes.map(node -> toTree(node, selects, user));
   }
 
-  private SimpleNodeTree toTree(Node node, Set<Select> selects, User user) {
+  private SimpleNodeTree toTree(Node node, List<Select> selects, User user) {
     NodeTree tree = new LazyLoadingNodeTree(node,
         new IndexedReferenceLoader(nodeService, user, selects),
         new IndexedReferrerLoader(nodeService, user, selects));
-    tree = new DepthLimitedNodeTree(tree, selectReferences(selects), selectReferrers(selects));
-    tree = new FilteredNodeTree(tree, selects);
-    return new SimpleNodeTree(tree);
+
+    return new SimpleNodeTree(
+        new DepthLimitedNodeTree(tree,
+            Selects.selectReferences(selects),
+            Selects.selectReferrers(selects)));
   }
 
   private Node toNode(NodeTree t) {

@@ -5,7 +5,7 @@ import static fi.thl.termed.util.query.AndSpecification.and;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.Query;
@@ -45,7 +45,7 @@ public class TimestampingNodeService extends ForwardingService<NodeId, Node> {
     try (Stream<Node> indexedNodes = values(new Query<>(and(
         new NodesByGraphId(node.getTypeGraphId()),
         new NodesByTypeId(node.getTypeId()),
-        new NodeById(node.getId()))), user)) {
+        new NodesById(node.getId()))), user)) {
 
       Optional<Node> indexedNode = indexedNodes.findAny();
 

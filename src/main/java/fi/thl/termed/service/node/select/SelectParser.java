@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.select;
 
 import static fi.thl.termed.util.RegularExpressions.CODE;
+import static fi.thl.termed.util.RegularExpressions.UUID;
 import static org.jparsercombinator.ParserCombinators.regex;
 import static org.jparsercombinator.ParserCombinators.regexMatchResult;
 
@@ -10,51 +11,68 @@ import java.util.List;
 import org.jparsercombinator.Parser;
 import org.jparsercombinator.ParserCombinator;
 
-public class SelectParser implements Parser<List<Select>> {
+class SelectParser implements Parser<List<Select>> {
+
+  public static void main(String[] args) {
+    System.out.println(new SelectParser().apply("Concept.number"));
+  }
+
 
   private Parser<List<Select>> parser;
 
-  public SelectParser() {
+  SelectParser() {
+    String qualifier = "(" + UUID + "\\." + CODE + "\\.|" + CODE + "\\.|)";
+
     ParserCombinator<Select> selectAll =
         regex("\\*").map(m -> new SelectAll());
 
     ParserCombinator<Select> selectIdParser =
-        regex("(node\\.id|nodeId|id)").map(m -> new SelectId());
-    ParserCombinator<Select> selectCodeParser =
-        regex("code").map(m -> new SelectCode());
-    ParserCombinator<Select> selectUriParser =
-        regex("uri").map(m -> new SelectUri());
-    ParserCombinator<Select> selectNumberParser =
-        regex("(number|n)").map(m -> new SelectNumber());
-    ParserCombinator<Select> selectCreatedByParser =
-        regex("createdBy").map(m -> new SelectCreatedBy());
-    ParserCombinator<Select> selectCreatedDateParser =
-        regex("createdDate").map(m -> new SelectCreatedDate());
-    ParserCombinator<Select> selectLastModifiedByParser =
-        regex("lastModifiedBy").map(m -> new SelectLastModifiedBy());
-    ParserCombinator<Select> selectLastModifiedDateParser =
-        regex("lastModifiedDate").map(m -> new SelectLastModifiedDate());
+        regex("(node\\.id|nodeId|id)")
+            .map(m -> new SelectId());
     ParserCombinator<Select> selectTypeParser =
-        regex("type").map(m -> new SelectType());
+        regex("type")
+            .map(m -> new SelectType());
+
+    ParserCombinator<Select> selectCodeParser =
+        regexMatchResult(qualifier + "code")
+            .map(m -> Select.qualifiedField(m.group(1), "code"));
+    ParserCombinator<Select> selectUriParser =
+        regexMatchResult(qualifier + "uri")
+            .map(m -> Select.qualifiedField(m.group(1), "uri"));
+    ParserCombinator<Select> selectNumberParser =
+        regexMatchResult(qualifier + "(number|n)")
+            .map(m -> Select.qualifiedField(m.group(1), "number"));
+    ParserCombinator<Select> selectCreatedByParser =
+        regexMatchResult(qualifier + "createdBy")
+            .map(m -> Select.qualifiedField(m.group(1), "createdBy"));
+    ParserCombinator<Select> selectCreatedDateParser =
+        regexMatchResult(qualifier + "createdDate")
+            .map(m -> Select.qualifiedField(m.group(1), "createdDate"));
+    ParserCombinator<Select> selectLastModifiedByParser =
+        regexMatchResult(qualifier + "lastModifiedBy")
+            .map(m -> Select.qualifiedField(m.group(1), "lastModifiedBy"));
+    ParserCombinator<Select> selectLastModifiedDateParser =
+        regexMatchResult(qualifier + "lastModifiedDate")
+            .map(m -> Select.qualifiedField(m.group(1), "lastModifiedDate"));
 
     ParserCombinator<Select> selectAllProperties =
-        regex("(properties|props|p)\\.\\*")
-            .map(m -> new SelectAllProperties());
+        regexMatchResult(qualifier + "(properties|props|p)\\.\\*")
+            .map(m -> new SelectAllProperties(m.group(1)));
     ParserCombinator<Select> selectProperty =
-        regexMatchResult("(properties|props|p)\\.(" + CODE + ")")
-            .map(m -> new SelectProperty(m.group(2)));
+        regexMatchResult(qualifier + "(properties|props|p)\\.(" + CODE + ")")
+            .map(m -> new SelectProperty(m.group(1), m.group(3)));
     ParserCombinator<Select> selectAllReferences =
-        regex("(references|refs|r)\\.\\*")
-            .map(m -> new SelectAllReferences());
+        regexMatchResult(qualifier + "(references|refs|r)\\.\\*")
+            .map(m -> new SelectAllReferences(m.group(1)));
     ParserCombinator<Select> selectReference =
-        regexMatchResult("(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?")
-            .map(m -> new SelectReference(m.group(2), parseIntOrNullToOne(m.group(4))));
+        regexMatchResult(qualifier + "(references|refs|r)\\.(" + CODE + ")(:([0-9]+))?")
+            .map(m -> new SelectReference(m.group(1), m.group(3), parseIntOrNullToOne(m.group(5))));
     ParserCombinator<Select> selectAllReferrers =
-        regex("(referrers|refrs)\\.\\*")
-            .map(m -> new SelectAllReferrers());
+        regexMatchResult(qualifier + "(referrers|refrs)\\.\\*")
+            .map(m -> new SelectAllReferrers(m.group(1)));
     ParserCombinator<Select> selectReferrer =
-        regexMatchResult("(referrers|refrs)\\.(" + CODE + ")(:([0-9]+))?")
-            .map(m -> new SelectReferrer(m.group(2), parseIntOrNullToOne(m.group(4))));
+        regexMatchResult(qualifier + "(referrers|refrs)\\.(" + CODE + ")(:([0-9]+))?")
+            .map(m -> new SelectReferrer(m.group(1), m.group(3), parseIntOrNullToOne(m.group(5))));
 
     ParserCombinator<Select> primitiveSelectParser =
         selectAll

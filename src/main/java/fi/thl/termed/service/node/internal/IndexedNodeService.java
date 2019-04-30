@@ -1,16 +1,12 @@
 package fi.thl.termed.service.node.internal;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.of;
-import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_REFERRERS_FIELD;
-import static fi.thl.termed.util.index.lucene.LuceneConstants.CACHED_RESULT_FIELD;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.Gson;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Empty;
 import fi.thl.termed.domain.IndexingQueueItemId;
@@ -20,11 +16,9 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.domain.event.ReindexEvent;
-import fi.thl.termed.service.node.select.SelectAllReferrers;
-import fi.thl.termed.service.node.select.SelectReferrer;
-import fi.thl.termed.service.node.specification.NodeById;
 import fi.thl.termed.service.node.specification.NodeIndexingQueueItemsByQueueId;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
@@ -40,6 +34,7 @@ import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.query.Specifications;
@@ -49,8 +44,10 @@ import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,21 +63,18 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   private SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao;
 
   private User indexer = new User("indexer", "", AppRole.ADMIN);
-  private Gson gson;
 
   public IndexedNodeService(
       Service<NodeId, Node> delegate,
       Index<NodeId, Node> index,
       SystemSequenceDao nodeIndexingQueueSequenceDao,
       SystemDao<Long, Empty> nodeIndexingQueueDao,
-      SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao,
-      Gson gson) {
+      SystemDao<IndexingQueueItemId<NodeId>, Empty> nodeIndexingQueueItemDao) {
     super(delegate);
     this.index = index;
     this.nodeIndexingQueueSequenceDao = nodeIndexingQueueSequenceDao;
     this.nodeIndexingQueueDao = nodeIndexingQueueDao;
     this.nodeIndexingQueueItemDao = nodeIndexingQueueItemDao;
-    this.gson = gson;
   }
 
   @Subscribe
@@ -239,7 +233,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
             OrSpecification.or(idBatch.stream().map(id -> AndSpecification.and(
                 NodesByGraphId.of(id.getTypeGraphId()),
                 NodesByTypeId.of(id.getTypeId()),
-                NodeById.of(id.getId())))
+                NodesById.of(id.getId())))
                 .collect(toImmutableList()));
 
         try (Stream<Node> nodes = values(Queries.sqlQuery(nodeSpecs), indexer)) {
@@ -327,17 +321,26 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     resolve(query.getWhere(), user);
 
-    boolean loadReferrers = query.getSelect().stream()
-        .anyMatch(select -> select instanceof SelectReferrer
-            || select instanceof SelectAllReferrers
-            || select instanceof SelectAll);
+    Set<String> fieldsToLoad =
+        query.getSelect().contains(new SelectAll())
+            ? null // select all fields
+            : query.getSelect().stream()
+                .map(Select::toString)
+                .collect(Collectors.toSet());
+
+    // ensure that id fields are loaded
+    if (fieldsToLoad != null) {
+      fieldsToLoad.add("id");
+      fieldsToLoad.add("type.id");
+      fieldsToLoad.add("type.graph.id");
+    }
 
     return ((LuceneIndex<NodeId, Node>) index).get(
         query.getWhere(),
         query.getSort(),
         query.getMax(),
-        loadReferrers ? of(CACHED_RESULT_FIELD, CACHED_REFERRERS_FIELD) : of(CACHED_RESULT_FIELD),
-        new DocumentToNode(gson, loadReferrers));
+        fieldsToLoad,
+        new DocumentToNode());
   }
 
   @Override

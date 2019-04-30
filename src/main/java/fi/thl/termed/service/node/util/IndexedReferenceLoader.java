@@ -2,7 +2,6 @@ package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Sets.difference;
-import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
@@ -36,16 +35,16 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
 
   private Service<NodeId, Node> nodeService;
   private User user;
-  private Set<Select> selects;
+  private List<Select> selects;
 
   public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user) {
     this.nodeService = nodeService;
     this.user = user;
-    this.selects = singleton(new SelectAll());
+    this.selects = ImmutableList.of(new SelectAll());
   }
 
   public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user,
-      Set<Select> selects) {
+      List<Select> selects) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = selects;

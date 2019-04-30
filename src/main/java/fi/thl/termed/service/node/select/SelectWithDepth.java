@@ -1,27 +1,33 @@
 package fi.thl.termed.service.node.select;
 
-import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.AbstractSelectQualifiedField;
 
-public abstract class SelectWithDepth extends Select {
+abstract class SelectWithDepth extends AbstractSelectQualifiedField {
 
-  private int depth;
+  protected int depth;
 
-  SelectWithDepth(String field) {
-    this(field, 1);
+  public SelectWithDepth(String field) {
+    super(field);
+    this.depth = 1;
   }
 
-  SelectWithDepth(String field, int depth) {
+  public SelectWithDepth(String field, int depth) {
     super(field);
+    this.depth = depth;
+  }
+
+  SelectWithDepth(String qualifier, String field) {
+    super(qualifier, field);
+    this.depth = 1;
+  }
+
+  SelectWithDepth(String qualifier, String field, int depth) {
+    super(qualifier, field);
     this.depth = depth;
   }
 
   public int getDepth() {
     return depth;
-  }
-
-  @Override
-  public String toString() {
-    return super.toString() + ":" + depth;
   }
 
 }

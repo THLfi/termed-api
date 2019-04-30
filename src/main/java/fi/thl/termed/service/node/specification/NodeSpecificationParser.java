@@ -36,13 +36,13 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
 
     ParserCombinator<Specification<NodeId, Node>> idParser =
         regexMatchResult("(node\\.id|nodeId|id):(" + UUID + ")")
-            .map(m -> new NodeById(UUIDs.fromString(m.group(2))));
+            .map(m -> new NodesById(UUIDs.fromString(m.group(2))));
     ParserCombinator<Specification<NodeId, Node>> codeParser =
         regexMatchResult("code:(" + CODE + ")")
             .map(m -> new NodesByCode(m.group(1)));
     ParserCombinator<Specification<NodeId, Node>> urnUuidParser =
         regexMatchResult("urn:uuid:(" + UUID + ")")
-            .map(m -> new NodeById(UUIDs.fromString(m.group(1))));
+            .map(m -> new NodesById(UUIDs.fromString(m.group(1))));
     ParserCombinator<Specification<NodeId, Node>> uriParser =
         regexMatchResult("uri:([^\\s]+)")
             .map(m -> new NodesByUri(m.group(1)));

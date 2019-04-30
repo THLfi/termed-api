@@ -1,10 +1,13 @@
 package fi.thl.termed.web.node;
 
+import static com.google.common.collect.ImmutableList.of;
+import static fi.thl.termed.service.node.select.Selects.parse;
+import static fi.thl.termed.service.node.select.Selects.qualify;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
+import static fi.thl.termed.util.query.Queries.matchAll;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.LocalDate.now;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
@@ -16,14 +19,13 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.select.Selects;
 import fi.thl.termed.service.node.util.NodesToCsv;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.csv.CsvDelimiter;
 import fi.thl.termed.util.csv.CsvLineBreak;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.csv.CsvQuoteChar;
-import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.Specification;
@@ -35,7 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
@@ -83,12 +84,14 @@ public class NodeCsvReadController {
 
     response.setCharacterEncoding(UTF_8.toString());
 
-    Set<Select> selects = Selects.parse(join(",", select));
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
+    List<Select> selects = parse(select);
+    List<Select> qSelects = qualify(types, types, selects);
+
+    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)
@@ -132,14 +135,16 @@ public class NodeCsvReadController {
 
     response.setCharacterEncoding(UTF_8.toString());
 
-    Set<Select> selects = Selects.parse(join(",", select));
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> graphTypes = toListAndClose(
-        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, graphTypes, where);
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
+    List<Type> domains = toImmutableListAndClose(
+        typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domains, where);
+    List<Select> selects = parse(select);
+    List<Select> qSelects = qualify(types, domains, selects);
+
+    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)
@@ -172,7 +177,7 @@ public class NodeCsvReadController {
 
     Graph graph = graphService.get(GraphId.of(graphId), user)
         .orElseThrow(NotFoundException::new);
-    Type domain = typeService.get(new TypeId(typeId, graphId), user)
+    Type domain = typeService.get(TypeId.of(typeId, graphId), user)
         .orElseThrow(NotFoundException::new);
 
     if (download) {
@@ -186,12 +191,14 @@ public class NodeCsvReadController {
 
     response.setCharacterEncoding(UTF_8.toString());
 
-    Set<Select> selects = Selects.parse(join(",", select));
-    List<Graph> graphs = toListAndClose(graphService.values(new Query<>(new MatchAll<>()), user));
-    List<Type> types = toListAndClose(typeService.values(new Query<>(new MatchAll<>()), user));
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
+    List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
+    List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user);
+    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
+    List<Select> selects = parse(select);
+    List<Select> qSelects = qualify(types, of(domain), selects);
+
+    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)

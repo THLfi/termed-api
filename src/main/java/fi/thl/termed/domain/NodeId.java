@@ -42,6 +42,13 @@ public final class NodeId implements Serializable {
     return new NodeId(UUID.randomUUID(), type);
   }
 
+  public static NodeId fromString(String str) {
+    return new NodeId(
+        UUIDs.fromString(str.substring(str.length() - 36)),
+        str.substring(37, str.length() - 37),
+        UUIDs.fromString(str.substring(0, 36)));
+  }
+
   public UUID getId() {
     return id;
   }
@@ -68,7 +75,6 @@ public final class NodeId implements Serializable {
     }
     NodeId that = (NodeId) o;
     return Objects.equals(id, that.id) && Objects.equals(type, that.type);
-
   }
 
   @Override

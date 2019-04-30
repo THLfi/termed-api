@@ -13,7 +13,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodeById;
+import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
@@ -182,7 +182,7 @@ public class ExtIdsInitializingNodeService extends ForwardingService<NodeId, Nod
     try (Stream<Node> nodeStream = values(new Query<>(and(
         new NodesByGraphId(nodeId.getTypeGraphId()),
         new NodesByTypeId(nodeId.getTypeId()),
-        new NodeById(nodeId.getId()))), user)) {
+        new NodesById(nodeId.getId()))), user)) {
       return nodeStream.findAny();
     }
   }

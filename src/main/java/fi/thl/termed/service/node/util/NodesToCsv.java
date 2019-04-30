@@ -28,17 +28,10 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.select.SelectAllProperties;
 import fi.thl.termed.service.node.select.SelectAllReferences;
-import fi.thl.termed.service.node.select.SelectCode;
-import fi.thl.termed.service.node.select.SelectCreatedBy;
-import fi.thl.termed.service.node.select.SelectCreatedDate;
 import fi.thl.termed.service.node.select.SelectId;
-import fi.thl.termed.service.node.select.SelectLastModifiedBy;
-import fi.thl.termed.service.node.select.SelectLastModifiedDate;
-import fi.thl.termed.service.node.select.SelectNumber;
 import fi.thl.termed.service.node.select.SelectProperty;
 import fi.thl.termed.service.node.select.SelectReference;
 import fi.thl.termed.service.node.select.SelectType;
-import fi.thl.termed.service.node.select.SelectUri;
 import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.query.Select;
@@ -52,7 +45,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -129,13 +121,13 @@ public final class NodesToCsv {
     }
   }
 
-  public static void writeAsCsv(Stream<Node> nodes, Set<Select> selects, CsvOptions csvOpts,
+  public static void writeAsCsv(Stream<Node> nodes, List<Select> selects, CsvOptions csvOpts,
       OutputStream out) {
     writeCsv(out, csvOpts,
         toTable(nodes.map(n -> nodeToMap(n, selects)).collect(toList())).stream());
   }
 
-  private static Map<String, String> nodeToMap(Node node, Set<Select> s) {
+  private static Map<String, String> nodeToMap(Node node, List<Select> s) {
     Map<String, String> map = new LinkedHashMap<>();
 
     if (s.contains(new SelectAll()) || s.contains(new SelectId())) {
@@ -145,25 +137,25 @@ public final class NodesToCsv {
       map.put("type.id", node.getType().getId());
       map.put("type.graph.id", node.getTypeGraphId().toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectCode())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("code"))) {
       map.put("code", node.getCode().orElse(null));
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectUri())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("uri"))) {
       map.put("uri", node.getUri().orElse(null));
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectNumber())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("number"))) {
       map.put("number", node.getNumber().toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectCreatedBy())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("createdBy"))) {
       map.put("createdBy", node.getCreatedBy());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectCreatedDate())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("createdDate"))) {
       map.put("createdDate", new DateTime(node.getCreatedDate()).toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectLastModifiedBy())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("lastModifiedBy"))) {
       map.put("lastModifiedBy", node.getLastModifiedBy());
     }
-    if (s.contains(new SelectAll()) || s.contains(new SelectLastModifiedDate())) {
+    if (s.contains(new SelectAll()) || s.contains(Select.field("lastModifiedDate"))) {
       map.put("lastModifiedDate", new DateTime(node.getLastModifiedDate()).toString());
     }
 

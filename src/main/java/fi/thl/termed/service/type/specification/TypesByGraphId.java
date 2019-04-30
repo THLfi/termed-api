@@ -15,6 +15,10 @@ public class TypesByGraphId extends AbstractSqlSpecification<TypeId, Type> {
     this.graphId = graphId;
   }
 
+  public static TypesByGraphId of(UUID graphId) {
+    return new TypesByGraphId(graphId);
+  }
+
   @Override
   public boolean test(TypeId typeId, Type cls) {
     return Objects.equals(typeId.getGraphId(), graphId);

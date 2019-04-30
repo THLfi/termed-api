@@ -2,7 +2,6 @@ package fi.thl.termed.util;
 
 import com.eatthepath.uuid.FastUUID;
 import com.google.common.base.Charsets;
-
 import java.util.UUID;
 
 public final class UUIDs {
@@ -10,11 +9,16 @@ public final class UUIDs {
   private UUIDs() {
   }
 
+  public static UUID lenientFromString(String uuidString) {
+    return uuidString != null && uuidString.matches(RegularExpressions.UUID)
+        ? FastUUID.parseUUID(uuidString) : null;
+  }
+
   public static UUID fromString(String uuidString) {
     return uuidString != null ? FastUUID.parseUUID(uuidString) : null;
   }
 
-  public static String toString(UUID  uuid) {
+  public static String toString(UUID uuid) {
     return uuid != null ? FastUUID.toString(uuid) : null;
   }
 
