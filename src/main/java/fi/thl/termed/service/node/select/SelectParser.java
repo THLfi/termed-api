@@ -34,26 +34,26 @@ class SelectParser implements Parser<List<Select>> {
             .map(m -> new SelectType());
 
     ParserCombinator<Select> selectCodeParser =
-        regexMatchResult(qualifier + "code")
-            .map(m -> Select.qualifiedField(m.group(1), "code"));
+        regex("code")
+            .map(m -> Select.field("code"));
     ParserCombinator<Select> selectUriParser =
-        regexMatchResult(qualifier + "uri")
-            .map(m -> Select.qualifiedField(m.group(1), "uri"));
+        regex("uri")
+            .map(m -> Select.field("uri"));
     ParserCombinator<Select> selectNumberParser =
-        regexMatchResult(qualifier + "(number|n)")
-            .map(m -> Select.qualifiedField(m.group(1), "number"));
+        regex("(number|n)")
+            .map(m -> Select.field("number"));
     ParserCombinator<Select> selectCreatedByParser =
-        regexMatchResult(qualifier + "createdBy")
-            .map(m -> Select.qualifiedField(m.group(1), "createdBy"));
+        regex("createdBy")
+            .map(m -> Select.field("createdBy"));
     ParserCombinator<Select> selectCreatedDateParser =
-        regexMatchResult(qualifier + "createdDate")
-            .map(m -> Select.qualifiedField(m.group(1), "createdDate"));
+        regex("createdDate")
+            .map(m -> Select.field("createdDate"));
     ParserCombinator<Select> selectLastModifiedByParser =
-        regexMatchResult(qualifier + "lastModifiedBy")
-            .map(m -> Select.qualifiedField(m.group(1), "lastModifiedBy"));
+        regex("lastModifiedBy")
+            .map(m -> Select.field("lastModifiedBy"));
     ParserCombinator<Select> selectLastModifiedDateParser =
-        regexMatchResult(qualifier + "lastModifiedDate")
-            .map(m -> Select.qualifiedField(m.group(1), "lastModifiedDate"));
+        regex("lastModifiedDate")
+            .map(m -> Select.field("lastModifiedDate"));
 
     ParserCombinator<Select> selectAllProperties =
         regexMatchResult(qualifier + "(properties|props|p)\\.\\*")

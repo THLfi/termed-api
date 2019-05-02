@@ -10,8 +10,4 @@ public interface Select {
     return new SelectField(field);
   }
 
-  static SelectField qualifiedField(String qualifier, String field) {
-    return new SelectField(qualifier, field);
-  }
-
 }

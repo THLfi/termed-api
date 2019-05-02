@@ -40,21 +40,13 @@ public class NodeToDocument implements Function<Node, Document> {
     doc.add(storedStringField("type.id", n.getTypeId()));
     doc.add(storedStringField("id", n.getId()));
 
-    doc.add(storedField(qualifier + ".code", n.getCode().orElse("")));
-    doc.add(storedField(qualifier + ".uri", n.getUri().orElse("")));
-    doc.add(storedField(qualifier + ".number", n.getNumber()));
-    doc.add(storedField(qualifier + ".createdBy", n.getCreatedBy()));
-    doc.add(storedField(qualifier + ".createdDate", n.getCreatedDate()));
-    doc.add(storedField(qualifier + ".lastModifiedBy", n.getLastModifiedBy()));
-    doc.add(storedField(qualifier + ".lastModifiedDate", n.getLastModifiedDate()));
-
-    doc.add(stringField("code", n.getCode().orElse("")));
-    doc.add(stringField("uri", n.getUri().orElse("")));
-    doc.add(stringField("number", n.getNumber()));
-    doc.add(stringField("createdBy", n.getCreatedBy()));
-    doc.add(stringField("createdDate", n.getCreatedDate()));
-    doc.add(stringField("lastModifiedBy", n.getLastModifiedBy()));
-    doc.add(stringField("lastModifiedDate", n.getLastModifiedDate()));
+    doc.add(storedStringField("code", n.getCode().orElse("")));
+    doc.add(storedStringField("uri", n.getUri().orElse("")));
+    doc.add(storedStringField("number", n.getNumber()));
+    doc.add(storedStringField("createdBy", n.getCreatedBy()));
+    doc.add(storedStringField("createdDate", n.getCreatedDate()));
+    doc.add(storedStringField("lastModifiedBy", n.getLastModifiedBy()));
+    doc.add(storedStringField("lastModifiedDate", n.getLastModifiedDate()));
 
     doc.add(sortableField("createdDate.sortable", n.getCreatedDate()));
     doc.add(sortableField("lastModifiedDate.sortable", n.getLastModifiedDate()));
@@ -148,14 +140,6 @@ public class NodeToDocument implements Function<Node, Document> {
     return new StringField(name, UUIDs.toString(value), Store.NO);
   }
 
-  private Field stringField(String name, Date value) {
-    return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND), Store.NO);
-  }
-
-  private Field stringField(String name, Long value) {
-    return new StringField(name, String.valueOf(value), Store.NO);
-  }
-
   private Field storedStringField(String name, String value) {
     return new StringField(name,
         value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length())),
@@ -164,6 +148,14 @@ public class NodeToDocument implements Function<Node, Document> {
 
   private Field storedStringField(String name, UUID value) {
     return new StringField(name, UUIDs.toString(value), Store.YES);
+  }
+
+  private Field storedStringField(String name, Date value) {
+    return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND), Store.YES);
+  }
+
+  private Field storedStringField(String name, Long value) {
+    return new StringField(name, String.valueOf(value), Store.YES);
   }
 
   private Field sortableField(String name, String value) {
@@ -179,14 +171,6 @@ public class NodeToDocument implements Function<Node, Document> {
 
   private Field storedField(String name, String value) {
     return new StoredField(name, value);
-  }
-
-  private Field storedField(String name, Date value) {
-    return new StoredField(name, DateTools.dateToString(value, Resolution.MILLISECOND));
-  }
-
-  private Field storedField(String name, Long value) {
-    return new StoredField(name, String.valueOf(value));
   }
 
 }

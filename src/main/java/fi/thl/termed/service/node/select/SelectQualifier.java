@@ -7,23 +7,25 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableList;
+import fi.thl.termed.domain.Attribute;
 import fi.thl.termed.domain.ReferenceAttribute;
 import fi.thl.termed.domain.ReferenceAttributeId;
 import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.TriFunction;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
-import fi.thl.termed.util.query.SelectField;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,41 +42,17 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
   public List<Select> apply(List<Type> allTypes, List<Type> domainTypes, List<Select> selects) {
     log.trace("Qualify: {}", selects);
 
-    List<Type> transitiveDomainTypes = new ArrayList<>();
+    Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange = allTypes.stream()
+        .flatMap(t -> t.getReferenceAttributes().stream())
+        .collect(groupingBy(ReferenceAttribute::getRange));
 
-    transitiveDomainTypes.addAll(
-        findTransitiveReferencedRangeTypes(allTypes, domainTypes, selects.stream()
-            .filter(s -> s instanceof SelectReference)
-            .map(s -> (SelectReference) s)
-            .collect(toList())));
+    List<Type> transitiveDomainTypes = findTransitiveDomainTypes(allTypes, domainTypes, selects);
 
-    transitiveDomainTypes.addAll(
-        findTransitiveReferredDomainTypes(allTypes, domainTypes, selects.stream()
-            .filter(s -> s instanceof SelectReferrer)
-            .map(s -> (SelectReferrer) s)
-            .collect(toList())));
+    Set<Select> qualified = new HashSet<>();
 
-    log.trace("Domain types: {}", domainTypes.stream().map(Type::getId).collect(toList()));
-    log.trace("Transitive domain types: {}", transitiveDomainTypes.stream()
-        .map(Type::getId).collect(toList()));
-
-    List<Select> qualified = selects.stream()
+    // add specific selects
+    qualified.addAll(selects.stream()
         .flatMap(s -> {
-          if (s instanceof SelectAll) {
-            return qualifyAll(transitiveDomainTypes);
-          }
-          if (s instanceof SelectField) {
-            return qualifyField(transitiveDomainTypes, (SelectField) s);
-          }
-          if (s instanceof SelectAllProperties) {
-            return qualifyAllProperties(transitiveDomainTypes);
-          }
-          if (s instanceof SelectAllReferences) {
-            return qualifyAllReferences(transitiveDomainTypes);
-          }
-          if (s instanceof SelectAllReferrers) {
-            return qualifyAllReferrers(transitiveDomainTypes);
-          }
           if (s instanceof SelectProperty) {
             return qualifyProperty(transitiveDomainTypes, (SelectProperty) s);
           }
@@ -87,25 +65,101 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
           return Stream.of(s);
         })
         .distinct()
-        .collect(ImmutableList.toImmutableList());
+        .collect(ImmutableList.toImmutableList()));
+
+    // process catch-all selects after specific so they don't
+    // overwrite specific ref selects with depths
+    qualified.addAll(selects.stream()
+        .flatMap(s -> {
+          if (s instanceof SelectAll) {
+            return qualifyAll(transitiveDomainTypes, allReferenceAttributesByRange);
+          }
+          if (s instanceof SelectAllProperties) {
+            return qualifyAllProperties(transitiveDomainTypes);
+          }
+          if (s instanceof SelectAllReferences) {
+            return qualifyAllReferences(transitiveDomainTypes);
+          }
+          if (s instanceof SelectAllReferrers) {
+            return qualifyAllReferrers(transitiveDomainTypes, allReferenceAttributesByRange);
+          }
+
+          return Stream.of(s);
+        })
+        .distinct()
+        .collect(ImmutableList.toImmutableList()));
 
     log.trace("Qualified to: {}", qualified);
 
-    return qualified;
+    return new ArrayList<>(qualified);
+  }
+
+  private List<Type> findTransitiveDomainTypes(List<Type> allTypes, List<Type> domainTypes,
+      List<Select> selects) {
+
+    log.trace("Domain types: {}", domainTypes.stream().map(Type::getId).collect(toList()));
+
+    Map<TypeId, Type> allTypesById = allTypes.stream().collect(toMap(Type::identifier, t -> t));
+    Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange = allTypes.stream()
+        .flatMap(t -> t.getReferenceAttributes().stream())
+        .collect(groupingBy(ReferenceAttribute::getRange));
+
+    Set<Type> transitiveDomainTypes = new TreeSet<>(
+        Comparator.comparing(Type::getGraphId).thenComparing(Type::getId));
+    transitiveDomainTypes.addAll(domainTypes);
+
+    // add referenced types to transitiveDomainTypes if select all or select all references
+    if (selects.stream().anyMatch(
+        s -> s instanceof SelectAll || s instanceof SelectAllReferences)) {
+      domainTypes.stream()
+          .flatMap(t -> t.getReferenceAttributes().stream())
+          .map(ReferenceAttribute::getRange)
+          .map(allTypesById::get)
+          .forEach(transitiveDomainTypes::add);
+    }
+
+    // add referring types to transitiveDomainTypes if select all or select all referrers
+    if (selects.stream().anyMatch(
+        s -> s instanceof SelectAll || s instanceof SelectAllReferrers)) {
+      domainTypes.stream()
+          .flatMap(t -> allReferenceAttributesByRange.getOrDefault(t.identifier(), of()).stream())
+          .map(Attribute::getDomain)
+          .map(allTypesById::get)
+          .forEach(transitiveDomainTypes::add);
+    }
+
+    log.trace("Directly referenced domain types: {}",
+        transitiveDomainTypes.stream().map(Type::getId).collect(toList()));
+
+    transitiveDomainTypes.addAll(
+        findTransitiveReferencedRangeTypes(allTypesById, transitiveDomainTypes, selects.stream()
+            .filter(s -> s instanceof SelectReference)
+            .map(s -> (SelectReference) s)
+            .collect(toList())));
+
+    transitiveDomainTypes.addAll(
+        findTransitiveReferredDomainTypes(allTypesById, allReferenceAttributesByRange,
+            transitiveDomainTypes, selects.stream()
+                .filter(s -> s instanceof SelectReferrer)
+                .map(s -> (SelectReferrer) s)
+                .collect(toList())));
+
+    log.trace("Transitive domain types: {}", transitiveDomainTypes.stream()
+        .map(Type::getId).collect(toList()));
+
+    return new ArrayList<>(transitiveDomainTypes);
   }
 
   private Set<Type> findTransitiveReferencedRangeTypes(
-      List<Type> allTypes,
-      List<Type> domainTypes,
+      Map<TypeId, Type> allTypesById,
+      Set<Type> domainTypes,
       List<SelectReference> selectedReferences) {
 
-    Map<TypeId, Type> allTypesById = allTypes.stream().collect(toMap(Type::identifier, t -> t));
-
     Set<Type> transitiveDomainTypes = new HashSet<>(domainTypes);
-    List<Type> sourceTypes = domainTypes;
+    Set<Type> sourceTypes = domainTypes;
 
     while (true) {
-      List<Type> newTypes = findReferencedRangeTypes(
+      Set<Type> newTypes = findReferencedRangeTypes(
           allTypesById, sourceTypes, selectedReferences);
 
       if (transitiveDomainTypes.containsAll(newTypes)) {
@@ -119,7 +173,7 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
     return transitiveDomainTypes;
   }
 
-  private List<Type> findReferencedRangeTypes(
+  private Set<Type> findReferencedRangeTypes(
       Map<TypeId, Type> allTypesById,
       Collection<Type> domainTypes,
       Collection<SelectReference> selectedReferences) {
@@ -128,6 +182,18 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
         .flatMap(selectReference -> {
           Stream<ReferenceAttribute> allPossibleReferencingAttributes = domainTypes.stream()
               .flatMap(t -> t.getReferenceAttributes().stream());
+
+          /*
+          log.trace("Finding new range types for {}.{} from {}",
+              selectReference.getQualifier(),
+              selectReference.getField(),
+              domainTypes.stream()
+                  .flatMap(t -> t.getReferenceAttributes().stream())
+                  .map(a -> a.getDomainId() + "." + a.getId() + " -> " + a.getRangeId())
+                  .distinct()
+                  .sorted()
+                  .collect(toList()));
+           */
 
           if (selectReference.getQualifier().isEmpty()) {
             return allPossibleReferencingAttributes
@@ -155,26 +221,21 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
           return Stream.empty();
         })
         .map(allTypesById::get)
-        .collect(toList());
+        .collect(Collectors.toSet());
   }
 
   private Set<Type> findTransitiveReferredDomainTypes(
-      List<Type> allTypes,
-      List<Type> domainTypes,
+      Map<TypeId, Type> allTypesById,
+      Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange,
+      Set<Type> domainTypes,
       List<SelectReferrer> selectedReferrers) {
 
-    Map<TypeId, Type> allTypesById = allTypes.stream().collect(toMap(Type::identifier, t -> t));
-    // index for finding ref attributes by range
-    Map<TypeId, List<ReferenceAttribute>> referenceAttributesByRange = allTypes.stream()
-        .flatMap(t -> t.getReferenceAttributes().stream())
-        .collect(groupingBy(ReferenceAttribute::getRange));
-
     Set<Type> transitiveDomainTypes = new HashSet<>(domainTypes);
-    List<Type> sourceTypes = domainTypes;
+    Set<Type> sourceTypes = domainTypes;
 
     while (true) {
-      List<Type> newTypes = findReferredDomainTypes(
-          allTypesById, referenceAttributesByRange, sourceTypes, selectedReferrers);
+      Set<Type> newTypes = findReferredDomainTypes(
+          allTypesById, allReferenceAttributesByRange, sourceTypes, selectedReferrers);
 
       if (transitiveDomainTypes.containsAll(newTypes)) {
         break;
@@ -187,16 +248,17 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
     return transitiveDomainTypes;
   }
 
-  private List<Type> findReferredDomainTypes(
+  private Set<Type> findReferredDomainTypes(
       Map<TypeId, Type> allTypesById,
-      Map<TypeId, List<ReferenceAttribute>> referenceAttributesByRange,
+      Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange,
       Collection<Type> domainTypes,
       Collection<SelectReferrer> selectedReferrers) {
 
     return selectedReferrers.stream()
         .flatMap(selectReferrer -> {
           Stream<ReferenceAttribute> allPossibleReferringAttributes = domainTypes.stream()
-              .flatMap(t -> referenceAttributesByRange.getOrDefault(t.identifier(), of()).stream());
+              .flatMap(t -> allReferenceAttributesByRange.getOrDefault(t.identifier(), of())
+                  .stream());
 
           if (selectReferrer.getQualifier().isEmpty()) {
             return allPossibleReferringAttributes
@@ -224,46 +286,15 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
           return Stream.empty();
         })
         .map(allTypesById::get)
-        .collect(toList());
+        .collect(Collectors.toSet());
   }
 
-  private Stream<AbstractSelectTypeQualified> qualifyField(List<Type> possibleTypes,
-      SelectField selectField) {
-    if (selectField.getQualifier().isEmpty()) {
-      return possibleTypes.stream()
-          .map(t -> new SelectTypeQualifiedField(t.identifier(), selectField.getField()));
-    }
-
-    String[] qualifierParts = selectField.getQualifier().split("\\.");
-
-    if (qualifierParts.length == 1) {
-      return possibleTypes.stream()
-          .filter(t -> Objects.equals(t.getId(), qualifierParts[0]))
-          .map(t -> new SelectTypeQualifiedField(t.identifier(), selectField.getField()));
-    }
-
-    if (qualifierParts.length == 2) {
-      return possibleTypes.stream()
-          .filter(t -> Objects.equals(t.getGraphId(), UUIDs.lenientFromString(qualifierParts[0])))
-          .filter(t -> Objects.equals(t.getId(), qualifierParts[1]))
-          .map(t -> new SelectTypeQualifiedField(t.identifier(), selectField.getField()));
-    }
-
-    return Stream.empty();
-  }
-
-  private Stream<AbstractSelectTypeQualified> qualifyAll(List<Type> possibleTypes) {
+  private Stream<AbstractSelectTypeQualified> qualifyAll(List<Type> possibleTypes,
+      Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange) {
     return Stream.of(
-        qualifyField(possibleTypes, new SelectField("code")),
-        qualifyField(possibleTypes, new SelectField("uri")),
-        qualifyField(possibleTypes, new SelectField("number")),
-        qualifyField(possibleTypes, new SelectField("createdBy")),
-        qualifyField(possibleTypes, new SelectField("createdDate")),
-        qualifyField(possibleTypes, new SelectField("lastModifiedBy")),
-        qualifyField(possibleTypes, new SelectField("lastModifiedDate")),
         qualifyAllProperties(possibleTypes),
         qualifyAllReferences(possibleTypes),
-        qualifyAllReferrers(possibleTypes))
+        qualifyAllReferrers(possibleTypes, allReferenceAttributesByRange))
         .flatMap(s -> s);
   }
 
@@ -282,9 +313,11 @@ class SelectQualifier implements TriFunction<List<Type>, List<Type>, List<Select
   }
 
   private Stream<SelectTypeQualifiedReferrer> qualifyAllReferrers(
-      List<Type> possibleTypes) {
+      List<Type> possibleTypes,
+      Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange) {
+
     return possibleTypes.stream()
-        .flatMap(t -> t.getReferenceAttributes().stream())
+        .flatMap(t -> allReferenceAttributesByRange.getOrDefault(t.identifier(), of()).stream())
         .map(a -> new SelectTypeQualifiedReferrer(
             new ReferenceAttributeId(a.getRange(), a.getId())));
   }
