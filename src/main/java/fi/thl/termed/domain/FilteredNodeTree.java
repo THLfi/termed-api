@@ -10,6 +10,7 @@ import fi.thl.termed.service.node.select.SelectTypeQualifiedProperty;
 import fi.thl.termed.service.node.select.SelectTypeQualifiedReference;
 import fi.thl.termed.service.node.select.SelectTypeQualifiedReferrer;
 import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.SelectAll;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,12 +28,12 @@ public final class FilteredNodeTree extends ForwardingNodeTree {
 
   @Override
   public UUID getId() {
-    return s.contains(new SelectId()) ? super.getId() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectId()) ? super.getId() : null;
   }
 
   @Override
   public TypeId getType() {
-    return s.contains(new SelectType()) ? super.getType() : null;
+    return s.contains(new SelectAll()) || s.contains(new SelectType()) ? super.getType() : null;
   }
 
   @Override
