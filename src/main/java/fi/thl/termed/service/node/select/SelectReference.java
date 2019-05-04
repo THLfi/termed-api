@@ -6,6 +6,10 @@ public class SelectReference extends SelectWithDepth {
     super(attributeId);
   }
 
+  public SelectReference(String attributeId, int depth) {
+    super(attributeId, depth);
+  }
+
   public SelectReference(String qualifier, String attributeId) {
     super(qualifier, attributeId);
   }

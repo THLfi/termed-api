@@ -214,8 +214,8 @@ public class NodeRdfTreeReadController {
 
     return new SimpleNodeTree(
         new DepthLimitedNodeTree(tree,
-            Selects.selectReferences(selects),
-            Selects.selectReferrers(selects)));
+            Selects.toReferenceSelectsWithDepths(selects),
+            Selects.toReferrerSelectsWithDepths(selects)));
   }
 
   private Node toNode(NodeTree t) {

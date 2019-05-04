@@ -189,8 +189,8 @@ public class NodeTreeReadController {
         new IndexedReferrerLoader(nodeService, user, selects));
 
     tree = new DepthLimitedNodeTree(tree,
-        Selects.selectReferences(selects),
-        Selects.selectReferrers(selects));
+        Selects.toReferenceSelectsWithDepths(selects),
+        Selects.toReferrerSelectsWithDepths(selects));
 
     return new FilteredNodeTree(tree, ImmutableSet.copyOf(selects));
   }
