@@ -1,20 +1,18 @@
 package fi.thl.termed.service.node.internal;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-
+import com.google.common.collect.ImmutableMultimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.UUIDs;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
@@ -31,58 +29,101 @@ public class DocumentToNode implements Function<Document, Node> {
 
   @Override
   public Node apply(Document doc) {
-    Map<String, String> fields = doc.getFields().stream()
-        .collect(toMap(IndexableField::name, IndexableField::stringValue, (l, r) -> {
-          log.warn("Unexpected duplicate: {} for: {}", l, r);
-          return r;
-        }));
+    UUID id = null;
+    String typeId = null;
+    UUID graphId = null;
 
-    String typeId = fields.get("type.id");
-    // 38 = 36 char UUID and 2 dot chars
-    int qualifierLength = 38 + typeId.length();
+    long number = -1;
+    String uri = null;
+    String code = null;
 
-    Node.Builder builder = Node.builder().id(
-        UUIDs.fromString(fields.get("id")),
-        typeId,
-        UUIDs.fromString(fields.get("type.graph.id")));
+    String createdBy = null;
+    Date createdDate = null;
+    String lastModifiedBy = null;
+    Date lastModifiedDate = null;
 
-    fields.forEach((name, value) -> {
-      String fieldName = name.length() > qualifierLength ? name.substring(qualifierLength) : name;
+    ImmutableMultimap.Builder<String, StrictLangValue> properties = ImmutableMultimap.builder();
+    ImmutableMultimap.Builder<String, NodeId> references = ImmutableMultimap.builder();
+    ImmutableMultimap.Builder<String, NodeId> referrers = ImmutableMultimap.builder();
 
-      if (fieldName.equals("number")) {
-        builder.number(Long.valueOf(value));
-      } else if (fieldName.equals("uri")) {
-        builder.uri(value);
-      } else if (fieldName.equals("code")) {
-        builder.code(value);
-      } else if (fieldName.equals("createdBy")) {
-        builder.createdBy(value);
-      } else if (fieldName.equals("createdDate")) {
-        builder.createdDate(stringToDate(value));
-      } else if (fieldName.equals("lastModifiedBy")) {
-        builder.lastModifiedBy(value);
-      } else if (fieldName.equals("lastModifiedDate")) {
-        builder.lastModifiedDate(stringToDate(value));
-      } else if (fieldName.startsWith("properties.")) {
-        String property = name.substring(qualifierLength + 11); // "properties.".length() == 11
-        List<StrictLangValue> values = gson.fromJson(value, propertyValuesTypeToken.getType());
-        builder.addProperty(property, values);
-      } else if (fieldName.startsWith("references.")) {
-        String property = name.substring(qualifierLength + 11); // "references.".length() == 11
-        List<NodeId> values = Stream.of(value.split(","))
-            .map(NodeId::fromString)
-            .collect(toList());
-        builder.addReference(property, values);
-      } else if (fieldName.startsWith("referrers.")) {
-        String property = name.substring(qualifierLength + 10); // "referrers.".length() == 10
-        List<NodeId> values = Stream.of(value.split(","))
-            .map(NodeId::fromString)
-            .collect(toList());
-        builder.addReferrer(property, values);
+    for (IndexableField field : doc.getFields()) {
+      String fieldName = field.name();
+      String fieldValue = field.stringValue();
+
+      switch (fieldName) {
+        case "id":
+          id = UUIDs.fromString(fieldValue);
+          continue;
+        case "type.id":
+          typeId = fieldValue;
+          continue;
+        case "type.graph.id":
+          graphId = UUIDs.fromString(fieldValue);
+          continue;
+        case "number":
+          number = Long.valueOf(fieldValue);
+          continue;
+        case "uri":
+          uri = fieldValue;
+          continue;
+        case "code":
+          code = fieldValue;
+          continue;
+        case "createdBy":
+          createdBy = fieldValue;
+          continue;
+        case "createdDate":
+          createdDate = stringToDate(fieldValue);
+          continue;
+        case "lastModifiedBy":
+          lastModifiedBy = fieldValue;
+          continue;
+        case "lastModifiedDate":
+          lastModifiedDate = stringToDate(fieldValue);
+          continue;
       }
-    });
 
-    return builder.build();
+      int attrNameIndex = fieldName.lastIndexOf('.');
+      int attrTypeIndex = fieldName.lastIndexOf('.', attrNameIndex - 1);
+
+      if (attrNameIndex > 0 && attrTypeIndex > 0) {
+        String attrType = fieldName.substring(attrTypeIndex + 1, attrNameIndex);
+        String attrName = fieldName.substring(attrNameIndex + 1);
+
+        switch (attrType) {
+          case "properties":
+            List<StrictLangValue> values =
+                gson.fromJson(fieldValue, propertyValuesTypeToken.getType());
+            properties.putAll(attrName, values);
+            continue;
+          case "references":
+            for (String s : fieldValue.split(",")) {
+              references.put(attrName, NodeId.fromString(s));
+            }
+            continue;
+          case "referrers":
+            for (String s : fieldValue.split(",")) {
+              referrers.put(attrName, NodeId.fromString(s));
+            }
+            continue;
+          default:
+            log.warn("Unexpected attrType: {}", attrType);
+        }
+      }
+    }
+
+    return new Node(id,
+        TypeId.of(typeId, graphId),
+        code,
+        uri,
+        number,
+        createdBy,
+        createdDate,
+        lastModifiedBy,
+        lastModifiedDate,
+        properties.build(),
+        references.build(),
+        referrers.build());
   }
 
   private Date stringToDate(String str) {
