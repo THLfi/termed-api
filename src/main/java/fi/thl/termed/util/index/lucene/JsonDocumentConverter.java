@@ -3,19 +3,16 @@ package fi.thl.termed.util.index.lucene;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-
+import fi.thl.termed.util.Converter;
+import fi.thl.termed.util.json.JsonUtils;
+import java.util.Map;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-
-import fi.thl.termed.util.Converter;
-import fi.thl.termed.util.json.JsonUtils;
 
 public class JsonDocumentConverter<V> extends Converter<V, Document> {
 
@@ -34,17 +31,14 @@ public class JsonDocumentConverter<V> extends Converter<V, Document> {
   public Document apply(V v) {
     Document doc = new Document();
 
-    for (Map.Entry<String, String> entry : JsonUtils.flatten(gson.toJsonTree(v)).entrySet()) {
-      String field = entry.getKey();
-      String value = entry.getValue();
-
-      // will be used in backward transformation, useful also for sorting
-      doc.add(new StringField(field, value, Field.Store.YES));
-      // index also without array indices
+    JsonUtils.flatten(gson.toJsonTree(v)).forEach((field, value) -> {
+      // will be used in backward transformation
+      doc.add(new StoredField(field, value));
+      // index without array indices
       doc.add(new TextField(field.replaceAll("\\[\\d+\\]", ""), value, Field.Store.NO));
       // kitchen sink field for easy searching
       doc.add(new TextField(LuceneConstants.DEFAULT_SEARCH_FIELD, value, Field.Store.NO));
-    }
+    });
 
     return doc;
   }

@@ -58,7 +58,6 @@ import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.dao.SystemSequenceDao;
 import fi.thl.termed.util.dao.TransactionalSystemDao;
 import fi.thl.termed.util.index.Index;
-import fi.thl.termed.util.index.lucene.JsonStringConverter;
 import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
@@ -151,7 +150,8 @@ public class NodeServiceConfiguration {
 
   private Index<NodeId, Node> nodeIndex() {
     return new LuceneIndex<>(
-        indexPath, new JsonStringConverter<>(NodeId.class),
+        indexPath,
+        newConverter(NodeId::toString, NodeId::fromString),
         newConverter(new NodeToDocument(), new DocumentToNode()));
   }
 
