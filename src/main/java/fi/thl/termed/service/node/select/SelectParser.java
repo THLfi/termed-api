@@ -13,11 +13,6 @@ import org.jparsercombinator.ParserCombinator;
 
 class SelectParser implements Parser<List<Select>> {
 
-  public static void main(String[] args) {
-    System.out.println(new SelectParser().apply("Concept.number"));
-  }
-
-
   private Parser<List<Select>> parser;
 
   SelectParser() {
