@@ -33,7 +33,7 @@ public class DocumentToNode implements Function<Document, Node> {
     String typeId = null;
     UUID graphId = null;
 
-    long number = -1;
+    Long number = null;
     String uri = null;
     String code = null;
 
