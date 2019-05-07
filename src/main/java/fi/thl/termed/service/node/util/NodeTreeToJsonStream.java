@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node.util;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.stream.JsonWriter;
 import fi.thl.termed.domain.NodeTree;
 import fi.thl.termed.domain.StrictLangValue;
@@ -77,13 +78,22 @@ public final class NodeTreeToJsonStream {
       writer.endObject();
     }
 
-    if (tree.getProperties() != null) {
+    writeProperties(tree.getProperties(), writer);
+    writeReferences(tree.getReferences(), writer);
+    writeReferrers(tree.getReferrers(), writer);
+
+    writer.endObject();
+  }
+
+  private static void writeProperties(Multimap<String, StrictLangValue> properties,
+      JsonWriter writer) throws IOException {
+    if (properties != null) {
       writer.name("properties");
       writer.beginObject();
-      for (String key : tree.getProperties().keySet()) {
+      for (String key : properties.keySet()) {
         writer.name(key);
         writer.beginArray();
-        for (StrictLangValue value : tree.getProperties().get(key)) {
+        for (StrictLangValue value : properties.get(key)) {
           writer.beginObject();
           writer.name("lang");
           writer.value(value.getLang());
@@ -97,36 +107,40 @@ public final class NodeTreeToJsonStream {
       }
       writer.endObject();
     }
+  }
 
-    if (tree.getReferences() != null) {
+  private static void writeReferences(Multimap<String, ? extends NodeTree> references,
+      JsonWriter writer) throws IOException {
+    if (references != null) {
       writer.name("references");
       writer.beginObject();
-      for (String key : tree.getReferences().keySet()) {
+      for (String key : references.keySet()) {
         writer.name(key);
         writer.beginArray();
-        for (NodeTree value : tree.getReferences().get(key)) {
+        for (NodeTree value : references.get(key)) {
           toJson(value, writer);
         }
         writer.endArray();
       }
       writer.endObject();
     }
+  }
 
-    if (tree.getReferrers() != null) {
+  private static void writeReferrers(Multimap<String, ? extends NodeTree> referrers,
+      JsonWriter writer) throws IOException {
+    if (referrers != null) {
       writer.name("referrers");
       writer.beginObject();
-      for (String key : tree.getReferrers().keySet()) {
+      for (String key : referrers.keySet()) {
         writer.name(key);
         writer.beginArray();
-        for (NodeTree value : tree.getReferrers().get(key)) {
+        for (NodeTree value : referrers.get(key)) {
           toJson(value, writer);
         }
         writer.endArray();
       }
       writer.endObject();
     }
-
-    writer.endObject();
   }
 
 }
