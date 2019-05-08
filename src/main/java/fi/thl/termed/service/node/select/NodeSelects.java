@@ -16,13 +16,13 @@ import org.jparsercombinator.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Selects {
+public final class NodeSelects {
 
-  private static final Logger log = LoggerFactory.getLogger(Selects.class);
+  private static final Logger log = LoggerFactory.getLogger(NodeSelects.class);
 
-  private static final SelectParser PARSER = new SelectParser();
+  private static final NodeSelectParser PARSER = new NodeSelectParser();
 
-  private Selects() {
+  private NodeSelects() {
   }
 
   public static List<Select> parse(List<String> selects) {
@@ -37,7 +37,7 @@ public final class Selects {
   public static List<Select> qualify(List<Type> allTypes, List<Type> domainTypes,
       List<Select> selects) {
     return ImmutableList.copyOf(
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             ImmutableSet.copyOf(domainTypes),
             ImmutableSet.copyOf(selects)));
   }

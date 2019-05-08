@@ -7,15 +7,16 @@ import static org.jparsercombinator.ParserCombinators.regexMatchResult;
 
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
+import fi.thl.termed.util.query.Selects;
 import java.util.List;
 import org.jparsercombinator.Parser;
 import org.jparsercombinator.ParserCombinator;
 
-class SelectParser implements Parser<List<Select>> {
+class NodeSelectParser implements Parser<List<Select>> {
 
   private Parser<List<Select>> parser;
 
-  SelectParser() {
+  NodeSelectParser() {
     String qualifier = "(" + UUID + "\\." + CODE + "\\.|" + CODE + "\\.|)";
 
     ParserCombinator<Select> selectAll =
@@ -30,25 +31,25 @@ class SelectParser implements Parser<List<Select>> {
 
     ParserCombinator<Select> selectCodeParser =
         regex("code")
-            .map(m -> Select.field("code"));
+            .map(m -> Selects.field("code"));
     ParserCombinator<Select> selectUriParser =
         regex("uri")
-            .map(m -> Select.field("uri"));
+            .map(m -> Selects.field("uri"));
     ParserCombinator<Select> selectNumberParser =
         regex("(number|n)")
-            .map(m -> Select.field("number"));
+            .map(m -> Selects.field("number"));
     ParserCombinator<Select> selectCreatedByParser =
         regex("createdBy")
-            .map(m -> Select.field("createdBy"));
+            .map(m -> Selects.field("createdBy"));
     ParserCombinator<Select> selectCreatedDateParser =
         regex("createdDate")
-            .map(m -> Select.field("createdDate"));
+            .map(m -> Selects.field("createdDate"));
     ParserCombinator<Select> selectLastModifiedByParser =
         regex("lastModifiedBy")
-            .map(m -> Select.field("lastModifiedBy"));
+            .map(m -> Selects.field("lastModifiedBy"));
     ParserCombinator<Select> selectLastModifiedDateParser =
         regex("lastModifiedDate")
-            .map(m -> Select.field("lastModifiedDate"));
+            .map(m -> Selects.field("lastModifiedDate"));
 
     ParserCombinator<Select> selectAllProperties =
         regexMatchResult(qualifier + "(properties|props|p)\\.\\*")

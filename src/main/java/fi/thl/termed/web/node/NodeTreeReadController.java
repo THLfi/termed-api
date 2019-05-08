@@ -1,8 +1,8 @@
 package fi.thl.termed.web.node;
 
 import static com.google.common.collect.ImmutableList.of;
-import static fi.thl.termed.service.node.select.Selects.parse;
-import static fi.thl.termed.service.node.select.Selects.qualify;
+import static fi.thl.termed.service.node.select.NodeSelects.parse;
+import static fi.thl.termed.service.node.select.NodeSelects.qualify;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
@@ -24,7 +24,7 @@ import fi.thl.termed.domain.NodeTree;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.select.Selects;
+import fi.thl.termed.service.node.select.NodeSelects;
 import fi.thl.termed.service.node.sort.NodeSorts;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesById;
@@ -194,8 +194,8 @@ public class NodeTreeReadController {
         new IndexedReferrerLoader(nodeService, user, selects));
 
     tree = new DepthLimitedNodeTree(tree,
-        Selects.toReferenceSelectsWithDepths(selects),
-        Selects.toReferrerSelectsWithDepths(selects));
+        NodeSelects.toReferenceSelectsWithDepths(selects),
+        NodeSelects.toReferrerSelectsWithDepths(selects));
 
     return new FilteredNodeTree(tree, ImmutableSet.copyOf(selects));
   }

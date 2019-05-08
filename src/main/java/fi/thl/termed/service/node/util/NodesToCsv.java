@@ -36,6 +36,7 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
+import fi.thl.termed.util.query.Selects;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -137,25 +138,25 @@ public final class NodesToCsv {
       map.put("type.id", node.getType().getId());
       map.put("type.graph.id", node.getTypeGraphId().toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("code"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("code"))) {
       map.put("code", node.getCode().orElse(null));
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("uri"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("uri"))) {
       map.put("uri", node.getUri().orElse(null));
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("number"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("number"))) {
       map.put("number", node.getNumber().toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("createdBy"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("createdBy"))) {
       map.put("createdBy", node.getCreatedBy());
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("createdDate"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("createdDate"))) {
       map.put("createdDate", new DateTime(node.getCreatedDate()).toString());
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("lastModifiedBy"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("lastModifiedBy"))) {
       map.put("lastModifiedBy", node.getLastModifiedBy());
     }
-    if (s.contains(new SelectAll()) || s.contains(Select.field("lastModifiedDate"))) {
+    if (s.contains(new SelectAll()) || s.contains(Selects.field("lastModifiedDate"))) {
       map.put("lastModifiedDate", new DateTime(node.getLastModifiedDate()).toString());
     }
 

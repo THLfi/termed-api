@@ -34,12 +34,12 @@ import java.util.stream.Stream;
  * Resolves and qualifies selects. For example: Select 'foo' -> Select 'GraphA.TypeA.foo',
  * 'GraphA.TypeB.foo'.
  */
-public class SelectQualifier implements BiFunction<Set<Type>, Set<Select>, Set<Select>> {
+public class NodeSelectQualifier implements BiFunction<Set<Type>, Set<Select>, Set<Select>> {
 
   private final Map<TypeId, Type> allTypesById;
   private final Map<TypeId, List<ReferenceAttribute>> allReferenceAttributesByRange;
 
-  SelectQualifier(List<Type> allTypes) {
+  NodeSelectQualifier(List<Type> allTypes) {
     this.allTypesById = allTypes.stream().collect(toMap(Type::identifier, t -> t));
     this.allReferenceAttributesByRange = allTypes.stream()
         .flatMap(t -> t.getReferenceAttributes().stream())

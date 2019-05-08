@@ -16,7 +16,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.select.Selects;
+import fi.thl.termed.service.node.select.NodeSelects;
 import fi.thl.termed.service.node.sort.NodeSorts;
 import fi.thl.termed.service.node.specification.NodeSpecifications;
 import fi.thl.termed.service.node.util.NodesToCsv;
@@ -90,8 +90,8 @@ public class NodeCsvReadController {
 
     Specification<NodeId, Node> spec = NodeSpecifications
         .specifyByQuery(graphs, types, types, where);
-    List<Select> selects = Selects.parse(select);
-    List<Select> qSelects = Selects.qualify(types, types, selects);
+    List<Select> selects = NodeSelects.parse(select);
+    List<Select> qSelects = NodeSelects.qualify(types, types, selects);
     List<Sort> sorts = NodeSorts.parse(sort);
 
     try (Stream<Node> nodes = nodeService
@@ -146,8 +146,8 @@ public class NodeCsvReadController {
 
     Specification<NodeId, Node> spec = NodeSpecifications
         .specifyByQuery(graphs, types, domains, where);
-    List<Select> selects = Selects.parse(select);
-    List<Select> qSelects = Selects.qualify(types, domains, selects);
+    List<Select> selects = NodeSelects.parse(select);
+    List<Select> qSelects = NodeSelects.qualify(types, domains, selects);
     List<Sort> sorts = NodeSorts.parse(sort);
 
     try (Stream<Node> nodes = nodeService
@@ -203,8 +203,8 @@ public class NodeCsvReadController {
 
     Specification<NodeId, Node> spec = NodeSpecifications
         .specifyByQuery(graphs, types, domain, where);
-    List<Select> selects = Selects.parse(select);
-    List<Select> qSelects = Selects.qualify(types, of(domain), selects);
+    List<Select> selects = NodeSelects.parse(select);
+    List<Select> qSelects = NodeSelects.qualify(types, of(domain), selects);
     List<Sort> sorts = NodeSorts.parse(sort);
 
     try (Stream<Node> nodes = nodeService

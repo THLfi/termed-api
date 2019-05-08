@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class SelectQualifierTest {
+class NodeSelectQualifierTest {
 
   private UUID graphId = UUID.randomUUID();
 
@@ -87,7 +87,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "altLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectAllProperties())));
   }
@@ -99,7 +99,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "altLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(collectionTypeId, "prefLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllProperties())));
   }
@@ -110,7 +110,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "altLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllProperties("Concept"))));
   }
@@ -120,7 +120,7 @@ class SelectQualifierTest {
     assertEquals(
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectProperty("prefLabel"))));
   }
@@ -131,7 +131,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(collectionTypeId, "prefLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectProperty("prefLabel"))));
   }
@@ -141,7 +141,7 @@ class SelectQualifierTest {
     assertEquals(
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectProperty("Concept", "prefLabel"))));
   }
@@ -154,7 +154,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReference(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(conceptTypeId, "prefLabelXl"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectAllReferences())));
   }
@@ -170,7 +170,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReference(new ReferenceAttributeId(collectionTypeId, "member")),
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(collectionTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllReferences())));
   }
@@ -183,7 +183,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReference(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(conceptTypeId, "prefLabelXl"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllReferences("Concept"))));
   }
@@ -193,7 +193,7 @@ class SelectQualifierTest {
     assertEquals(
         of(
             new SelectTypeQualifiedReference(new ReferenceAttributeId(conceptTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectReference("related"))));
   }
@@ -204,7 +204,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(conceptTypeId, "related"), 2)),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectReference("related", 2))));
   }
@@ -216,7 +216,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedProperty(new TextAttributeId(collectionTypeId, "prefLabel")),
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedReference(new ReferenceAttributeId(collectionTypeId, "member"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(collectionType),
             of(
                 new SelectProperty("prefLabel"),
@@ -229,7 +229,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedReference(new ReferenceAttributeId(collectionTypeId, "member"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(collectionType),
             of(
                 new SelectProperty("Concept", "prefLabel"),
@@ -243,7 +243,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReference(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(collectionTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectReference("related"))));
   }
@@ -259,7 +259,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReference(
                 new ReferenceAttributeId(conceptTypeId, "prefLabelXl"), 2)
         ),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(collectionType),
             of(
                 new SelectProperty("prefLabel"),
@@ -276,7 +276,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
             new SelectTypeQualifiedReference(new ReferenceAttributeId(collectionTypeId, "member"))
         ),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(collectionType),
             of(
                 new SelectProperty("prefLabel"),
@@ -297,7 +297,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "broader")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "member"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectAllReferrers())));
   }
@@ -310,7 +310,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "member")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(collectionTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllReferrers())));
   }
@@ -322,7 +322,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "broader")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "member"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectAllReferrers("Concept"))));
   }
@@ -332,7 +332,7 @@ class SelectQualifierTest {
     assertEquals(
         of(
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectReferrer("related"))));
   }
@@ -342,7 +342,7 @@ class SelectQualifierTest {
     assertEquals(
         of(
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related"), 2)),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType),
             of(new SelectReferrer("related", 2))));
   }
@@ -353,7 +353,7 @@ class SelectQualifierTest {
         of(
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "related")),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(collectionTypeId, "related"))),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(conceptType, collectionType),
             of(new SelectReferrer("related"))));
   }
@@ -368,7 +368,7 @@ class SelectQualifierTest {
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "member"), 2),
             new SelectTypeQualifiedReferrer(new ReferenceAttributeId(termTypeId, "prefLabelXl"))
         ),
-        new SelectQualifier(allTypes).apply(
+        new NodeSelectQualifier(allTypes).apply(
             of(termType),
             of(
                 new SelectProperty("prefLabel"),
