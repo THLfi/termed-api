@@ -1,5 +1,6 @@
 package fi.thl.termed.util.index;
 
+import fi.thl.termed.util.query.Sort;
 import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.List;
@@ -22,9 +23,9 @@ public interface Index<K extends Serializable, V> {
 
   boolean isEmpty();
 
-  Stream<V> get(Specification<K, V> specification, List<String> sort, int max);
+  Stream<V> get(Specification<K, V> specification, List<Sort> sort, int max);
 
-  Stream<K> getKeys(Specification<K, V> specification, List<String> sort, int max);
+  Stream<K> getKeys(Specification<K, V> specification, List<Sort> sort, int max);
 
   long count(Specification<K, V> spec);
 

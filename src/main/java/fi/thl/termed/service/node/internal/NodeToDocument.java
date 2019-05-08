@@ -5,6 +5,7 @@ import static java.lang.Integer.min;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.Multimap;
+import com.google.common.primitives.Longs;
 import com.google.gson.Gson;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -20,6 +21,7 @@ import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
@@ -42,12 +44,15 @@ public class NodeToDocument implements Function<Node, Document> {
 
     doc.add(storedStringField("code", n.getCode().orElse("")));
     doc.add(storedStringField("uri", n.getUri().orElse("")));
-    doc.add(storedStringField("number", n.getNumber()));
+    doc.add(longField("number", n.getNumber()));
+    doc.add(storedField("number", n.getNumber()));
+
     doc.add(storedStringField("createdBy", n.getCreatedBy()));
     doc.add(storedStringField("createdDate", n.getCreatedDate()));
     doc.add(storedStringField("lastModifiedBy", n.getLastModifiedBy()));
     doc.add(storedStringField("lastModifiedDate", n.getLastModifiedDate()));
 
+    doc.add(sortableField("number.sortable", n.getNumber()));
     doc.add(sortableField("createdDate.sortable", n.getCreatedDate()));
     doc.add(sortableField("lastModifiedDate.sortable", n.getLastModifiedDate()));
 
@@ -140,6 +145,10 @@ public class NodeToDocument implements Function<Node, Document> {
     return new StringField(name, UUIDs.toString(value), Store.NO);
   }
 
+  private Field longField(String name, Long value) {
+    return new LongPoint(name, value);
+  }
+
   private Field storedStringField(String name, String value) {
     return new StringField(name,
         value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length())),
@@ -154,10 +163,6 @@ public class NodeToDocument implements Function<Node, Document> {
     return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND), Store.YES);
   }
 
-  private Field storedStringField(String name, Long value) {
-    return new StringField(name, String.valueOf(value), Store.YES);
-  }
-
   private Field sortableField(String name, String value) {
     return new SortedDocValuesField(name,
         new BytesRef(
@@ -169,7 +174,15 @@ public class NodeToDocument implements Function<Node, Document> {
         new BytesRef(DateTools.dateToString(value, Resolution.MILLISECOND)));
   }
 
+  private Field sortableField(String name, Long value) {
+    return new SortedDocValuesField(name, new BytesRef(Longs.toByteArray(value)));
+  }
+
   private Field storedField(String name, String value) {
+    return new StoredField(name, value);
+  }
+
+  private Field storedField(String name, Long value) {
     return new StoredField(name, value);
   }
 

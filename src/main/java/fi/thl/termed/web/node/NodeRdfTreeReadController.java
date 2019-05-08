@@ -28,6 +28,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.select.Selects;
+import fi.thl.termed.service.node.sort.Sorts;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
@@ -38,6 +39,7 @@ import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Sort;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetRdfMapping;
@@ -83,8 +85,9 @@ public class NodeRdfTreeReadController {
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
     List<Select> selects = qualify(types, types, parse(select));
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
@@ -119,8 +122,9 @@ public class NodeRdfTreeReadController {
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domains, where);
     List<Select> selects = qualify(types, domains, parse(select));
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();
@@ -152,8 +156,9 @@ public class NodeRdfTreeReadController {
 
     Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
     List<Select> selects = qualify(types, of(domain), parse(select));
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sort, max), user)) {
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user)) {
       Stream<SimpleNodeTree> trees = toTrees(nodes, selects, user);
 
       Model model = ModelFactory.createDefaultModel();

@@ -12,9 +12,11 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.sort.Sorts;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Sort;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
@@ -50,8 +52,9 @@ public class NodeReadController {
     Specification<NodeId, Node> spec = or(toListAndClose(
         typeService.values(new Query<>(new MatchAll<>()), user)
             .map(type -> specifyByAnyPropertyPrefix(type, query))));
+    List<Sort> sorts = Sorts.parse(sort);
 
-    return nodeService.values(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sorts, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/nodes")
@@ -69,8 +72,9 @@ public class NodeReadController {
     Specification<NodeId, Node> spec = or(toListAndClose(
         typeService.values(new Query<>(new TypesByGraphId(graphId)), user)
             .map(type -> specifyByAnyPropertyPrefix(type, query))));
+    List<Sort> sorts = Sorts.parse(sort);
 
-    return nodeService.values(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sorts, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes")
@@ -86,8 +90,9 @@ public class NodeReadController {
         .orElseThrow(NotFoundException::new);
 
     Specification<NodeId, Node> spec = specifyByAnyPropertyPrefix(type, query);
+    List<Sort> sorts = Sorts.parse(sort);
 
-    return nodeService.values(new Query<>(spec, sort, max), user);
+    return nodeService.values(new Query<>(spec, sorts, max), user);
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}")

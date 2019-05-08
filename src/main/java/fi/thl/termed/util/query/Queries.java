@@ -1,6 +1,8 @@
 package fi.thl.termed.util.query;
 
+import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
+import java.util.List;
 
 public final class Queries {
 
@@ -10,6 +12,16 @@ public final class Queries {
   public static <K extends Serializable, V> Query<K, V> query(
       Specification<K, V> specification) {
     return new Query<>(specification);
+  }
+
+  public static <K extends Serializable, V> Query<K, V> query(
+      Specification<K, V> specification, List<Sort> sort, int max) {
+    return new Query<>(specification, sort, max);
+  }
+
+  public static <K extends Serializable, V> Query<K, V> query(
+      Specification<K, V> specification, Sort sort, int max) {
+    return new Query<>(specification, ImmutableList.of(sort), max);
   }
 
   public static <K extends Serializable, V> Query<K, V> sqlQuery(

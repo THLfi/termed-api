@@ -1,9 +1,6 @@
 package fi.thl.termed.web.node;
 
 import static com.google.common.collect.ImmutableList.of;
-import static fi.thl.termed.service.node.select.Selects.parse;
-import static fi.thl.termed.service.node.select.Selects.qualify;
-import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.query.Queries.matchAll;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
@@ -19,6 +16,9 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.select.Selects;
+import fi.thl.termed.service.node.sort.Sorts;
+import fi.thl.termed.service.node.specification.NodeSpecifications;
 import fi.thl.termed.service.node.util.NodesToCsv;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
 import fi.thl.termed.util.csv.CsvDelimiter;
@@ -28,6 +28,7 @@ import fi.thl.termed.util.csv.CsvQuoteChar;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
+import fi.thl.termed.util.query.Sort;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetCsvMapping;
@@ -87,11 +88,14 @@ public class NodeCsvReadController {
     List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
     List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, types, where);
-    List<Select> selects = parse(select);
-    List<Select> qSelects = qualify(types, types, selects);
+    Specification<NodeId, Node> spec = NodeSpecifications
+        .specifyByQuery(graphs, types, types, where);
+    List<Select> selects = Selects.parse(select);
+    List<Select> qSelects = Selects.qualify(types, types, selects);
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
+    try (Stream<Node> nodes = nodeService
+        .values(new Query<>(qSelects, spec, sorts, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)
@@ -140,11 +144,14 @@ public class NodeCsvReadController {
     List<Type> domains = toImmutableListAndClose(
         typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domains, where);
-    List<Select> selects = parse(select);
-    List<Select> qSelects = qualify(types, domains, selects);
+    Specification<NodeId, Node> spec = NodeSpecifications
+        .specifyByQuery(graphs, types, domains, where);
+    List<Select> selects = Selects.parse(select);
+    List<Select> qSelects = Selects.qualify(types, domains, selects);
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
+    try (Stream<Node> nodes = nodeService
+        .values(new Query<>(qSelects, spec, sorts, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)
@@ -194,11 +201,14 @@ public class NodeCsvReadController {
     List<Graph> graphs = toImmutableListAndClose(graphService.values(matchAll(), user));
     List<Type> types = toImmutableListAndClose(typeService.values(matchAll(), user));
 
-    Specification<NodeId, Node> spec = specifyByQuery(graphs, types, domain, where);
-    List<Select> selects = parse(select);
-    List<Select> qSelects = qualify(types, of(domain), selects);
+    Specification<NodeId, Node> spec = NodeSpecifications
+        .specifyByQuery(graphs, types, domain, where);
+    List<Select> selects = Selects.parse(select);
+    List<Select> qSelects = Selects.qualify(types, of(domain), selects);
+    List<Sort> sorts = Sorts.parse(sort);
 
-    try (Stream<Node> nodes = nodeService.values(new Query<>(qSelects, spec, sort, max), user);
+    try (Stream<Node> nodes = nodeService
+        .values(new Query<>(qSelects, spec, sorts, max), user);
         OutputStream out = response.getOutputStream()) {
       CsvOptions csvOptions = CsvOptions.builder()
           .delimiter(delimiter)

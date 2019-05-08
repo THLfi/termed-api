@@ -25,6 +25,7 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
+import fi.thl.termed.service.node.sort.Sorts;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.util.IndexedReferenceLoader;
@@ -109,7 +110,7 @@ public class NodeGraphQLReadController {
                   specifyByQuery(allGraphs, allTypes, domain, where);
 
               return toImmutableListAndClose(nodeService.values(
-                  new Query<>(nodeSpecification, sort, max), user));
+                  new Query<>(nodeSpecification, Sorts.parse(sort), max), user));
             }))
         .build();
 

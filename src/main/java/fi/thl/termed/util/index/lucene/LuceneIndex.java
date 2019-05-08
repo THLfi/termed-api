@@ -21,6 +21,7 @@ import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.concurrent.ExecutorUtils;
 import fi.thl.termed.util.concurrent.FutureUtils;
 import fi.thl.termed.util.index.Index;
+import fi.thl.termed.util.query.LuceneSortField;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.Specification;
 import java.io.IOException;
@@ -36,7 +37,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
@@ -131,15 +131,16 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public Stream<V> get(Specification<K, V> specification, List<String> sort, int max) {
+  public Stream<V> get(Specification<K, V> specification,
+      List<fi.thl.termed.util.query.Sort> sort, int max) {
     return get(specification, sort, max, null, documentConverter.inverse());
   }
 
   /**
    * Expert method for searching and loading results with custom Lucene Document deserializer.
    */
-  public Stream<V> get(Specification<K, V> specification, List<String> sort, int max,
-      Set<String> fieldsToLoad, Function<Document, V> documentDeserializer) {
+  public Stream<V> get(Specification<K, V> specification, List<fi.thl.termed.util.query.Sort> sort,
+      int max, Set<String> fieldsToLoad, Function<Document, V> documentDeserializer) {
     IndexSearcher searcher = null;
     try {
       searcher = tryAcquire();
@@ -152,7 +153,8 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public Stream<K> getKeys(Specification<K, V> specification, List<String> sort, int max) {
+  public Stream<K> getKeys(Specification<K, V> specification,
+      List<fi.thl.termed.util.query.Sort> sort, int max) {
     IndexSearcher searcher = null;
     try {
       searcher = tryAcquire();
@@ -223,17 +225,20 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
-      Function<Document, E> documentDeserializer) throws IOException {
+  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max,
+      List<fi.thl.termed.util.query.Sort> orderBy, Function<Document, E> documentDeserializer)
+      throws IOException {
     return query(searcher, query, max, orderBy, null, documentDeserializer);
   }
 
   // null in fieldsToLoad means load all
-  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max, List<String> orderBy,
-      Set<String> fieldsToLoad, Function<Document, E> documentDeserializer) throws IOException {
+  private <E> Stream<E> query(IndexSearcher searcher, Query query, int max,
+      List<fi.thl.termed.util.query.Sort> sort, Set<String> fieldsToLoad,
+      Function<Document, E> documentDeserializer) throws IOException {
     log.trace("{}", fieldsToLoad);
     log.trace("{}", query);
-    TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(orderBy));
+    log.trace("{}", sort);
+    TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(sort));
     return toStreamWithTimeout(Arrays.stream(docs.scoreDocs)
         .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
         .map(documentDeserializer)
@@ -256,18 +261,16 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     }
   }
 
-  private Sort sort(List<String> orderBy) {
-    if (ListUtils.isNullOrEmpty(orderBy)) {
+  private Sort sort(List<fi.thl.termed.util.query.Sort> sort) {
+    if (ListUtils.isNullOrEmpty(sort)) {
       return new Sort(SortField.FIELD_SCORE);
     }
 
-    return new Sort(orderBy.stream()
-        .map(field -> {
-          Matcher m = descendingSortPattern.matcher(field);
-          return m.matches() ?
-              new SortField(m.group(1), SortField.Type.STRING, true) :
-              new SortField(field, SortField.Type.STRING);
-        }).toArray(SortField[]::new));
+    return new Sort(sort.stream()
+        .filter(s -> s instanceof LuceneSortField)
+        .map(s -> (LuceneSortField) s)
+        .map(LuceneSortField::toLuceneSortField)
+        .toArray(SortField[]::new));
   }
 
   @Override

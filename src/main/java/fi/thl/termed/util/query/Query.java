@@ -13,7 +13,7 @@ public class Query<K extends Serializable, V> {
 
   private List<Select> select;
   private Specification<K, V> where;
-  private List<String> sort;
+  private List<Sort> sort;
   private int max;
 
   public Query(Specification<K, V> where) {
@@ -30,14 +30,14 @@ public class Query<K extends Serializable, V> {
     this.max = -1;
   }
 
-  public Query(Specification<K, V> where, List<String> sort, int max) {
+  public Query(Specification<K, V> where, List<Sort> sort, int max) {
     this.select = singletonList(new SelectAll());
     this.where = where;
     this.sort = sort;
     this.max = max;
   }
 
-  public Query(Iterable<Select> select, Specification<K, V> where, List<String> sort, int max) {
+  public Query(Iterable<Select> select, Specification<K, V> where, List<Sort> sort, int max) {
     this.select = ImmutableList.copyOf(select);
     this.where = where;
     this.sort = sort;
@@ -52,7 +52,7 @@ public class Query<K extends Serializable, V> {
     return where;
   }
 
-  public List<String> getSort() {
+  public List<Sort> getSort() {
     return sort;
   }
 
@@ -89,7 +89,9 @@ public class Query<K extends Serializable, V> {
 
     String whereString = " WHERE " + where;
 
-    String sortString = sort.isEmpty() ? "" : " SORT " + String.join(", ", sort);
+    String sortString = sort.isEmpty() ? "" : " SORT " + sort.stream()
+        .map(Sort::toString)
+        .collect(Collectors.joining(", "));
 
     String maxString = max == -1 ? "" : " MAX " + max;
 
