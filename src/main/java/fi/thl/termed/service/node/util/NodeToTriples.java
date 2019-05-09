@@ -23,21 +23,24 @@ import org.joda.time.DateTime;
 
 public class NodeToTriples implements Function<Node, List<Triple>> {
 
+  private String defaultNamespace;
   private Function<TypeId, String> typeResolver;
   private Function<TextAttributeId, String> textAttrResolver;
   private Function<ReferenceAttributeId, String> refAttrResolver;
   private Function<NodeId, String> nodeResolver;
 
   public NodeToTriples(
+      String ns,
       Function<TypeId, Optional<String>> typeUris,
       Function<TextAttributeId, Optional<String>> textAttrUris,
       Function<ReferenceAttributeId, Optional<String>> refAttrUris,
       Function<NodeId, Optional<String>> nodeUris) {
+    this.defaultNamespace = ns;
     // cache and add urn fallback to uri resolving functions
-    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(uri(id)), 1000);
-    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(uri(id)), 1000);
-    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(uri(id)), 1000);
-    this.nodeResolver = memoize(id -> nodeUris.apply(id).orElse(uri(id)), 100_000);
+    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(uri(ns, id)), 1000);
+    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(uri(ns, id)), 1000);
+    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(uri(ns, id)), 1000);
+    this.nodeResolver = memoize(id -> nodeUris.apply(id).orElse(uri(ns, id)), 100_000);
   }
 
   @Override
@@ -81,7 +84,9 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
 
   private Triple createTermedLiteral(org.apache.jena.graph.Node subject, String propertyUri,
       String literal) {
-    return create(subject, createURI(propertyUri(propertyUri)), createLiteral(literal));
+    return create(subject,
+        createURI(propertyUri(defaultNamespace, propertyUri)),
+        createLiteral(literal));
   }
 
 }

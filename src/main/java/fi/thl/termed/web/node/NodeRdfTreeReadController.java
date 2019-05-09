@@ -53,6 +53,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,12 +66,18 @@ public class NodeRdfTreeReadController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
+
   @Autowired
   private Service<TypeId, Type> typeService;
+
   @Autowired
   private Service<NodeId, Node> nodeService;
+
   @Autowired
   private Map<String, String> defaultNamespacePrefixes;
+
+  @Value("${fi.thl.termed.defaultNamespace:}")
+  private String defaultNamespace;
 
   @GetRdfMapping("/node-trees")
   public Model get(
@@ -239,7 +246,7 @@ public class NodeRdfTreeReadController {
   }
 
   private Function<Node, List<Triple>> toTriples(User user) {
-    return new NodeToTriples(
+    return new NodeToTriples(defaultNamespace,
         typeUriResolver(id -> typeService.get(id, user)),
         textAttrUriResolver(id -> typeService.get(id, user)),
         refAttrUriResolver(id -> typeService.get(id, user)),

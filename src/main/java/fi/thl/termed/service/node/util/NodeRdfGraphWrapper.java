@@ -18,8 +18,8 @@ import fi.thl.termed.domain.TextAttribute;
 import fi.thl.termed.domain.TextAttributeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
-import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesById;
 import fi.thl.termed.service.node.specification.NodesByPropertyString;
 import fi.thl.termed.service.node.specification.NodesByReference;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
@@ -57,7 +57,9 @@ public class NodeRdfGraphWrapper extends GraphBase {
 
   private Function<Node, List<Triple>> toTriples;
 
-  public NodeRdfGraphWrapper(List<Type> typeList,
+  public NodeRdfGraphWrapper(
+      String defaultNamespace,
+      List<Type> typeList,
       Function<Specification<NodeId, Node>, Stream<Node>> nodeProvider) {
 
     typeList.forEach(type -> {
@@ -77,6 +79,7 @@ public class NodeRdfGraphWrapper extends GraphBase {
             new NodesById(nodeId.getId()))));
 
     this.toTriples = new NodeToTriples(
+        defaultNamespace,
         typeUriResolver(getType),
         textAttrUriResolver(getType),
         refAttrUriResolver(getType),

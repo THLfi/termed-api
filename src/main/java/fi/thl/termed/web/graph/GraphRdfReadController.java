@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,9 @@ public class GraphRdfReadController {
 
   @Autowired
   private Map<String, String> defaultNamespacePrefixes;
+
+  @Value("${fi.thl.termed.defaultNamespace:}")
+  private String ns;
 
   @GetRdfMapping
   public Model getAllGraphs(@AuthenticationPrincipal User user) {
@@ -68,16 +72,16 @@ public class GraphRdfReadController {
     List<RdfResource> rdfResources = new ArrayList<>();
 
     for (Graph graph : graphs) {
-      RdfResource rdfResource = new RdfResource(graph.getUri().orElse(uri(graph.identifier())));
+      RdfResource rdfResource = new RdfResource(graph.getUri().orElse(uri(ns, graph.identifier())));
 
-      rdfResource.addLiteral(propertyUri("id"), "", graph.getId().toString());
-      graph.getCode().ifPresent(code -> rdfResource.addLiteral(propertyUri("code"), "", code));
-      graph.getUri().ifPresent(uri -> rdfResource.addLiteral(propertyUri("uri"), "", uri));
+      rdfResource.addLiteral(propertyUri(ns, "id"), "", graph.getId().toString());
+      graph.getCode().ifPresent(code -> rdfResource.addLiteral(propertyUri(ns, "code"), "", code));
+      graph.getUri().ifPresent(uri -> rdfResource.addLiteral(propertyUri(ns, "uri"), "", uri));
 
       for (Map.Entry<String, LangValue> entry : graph.getProperties().entries()) {
         LangValue langValue = entry.getValue();
         String attributeUri = propertyMap.get(entry.getKey()).getUri()
-            .orElse(propertyUri(entry.getKey()));
+            .orElse(propertyUri(ns, entry.getKey()));
         rdfResource.addLiteral(attributeUri, langValue.getLang(), langValue.getValue());
       }
 

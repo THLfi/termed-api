@@ -18,4 +18,8 @@ public final class URIs {
     return String.format("urn:uuid:%s", uuid);
   }
 
+  public static String ensureTrailingSlashOrHash(String ns) {
+    return ns.isEmpty() || ns.endsWith("/") || ns.endsWith("#") ? ns : ns + "/";
+  }
+
 }

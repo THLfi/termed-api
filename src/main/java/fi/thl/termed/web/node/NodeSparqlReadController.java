@@ -41,6 +41,7 @@ import org.apache.jena.riot.system.StreamRDFWriter;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,6 +66,9 @@ public class NodeSparqlReadController {
   @Autowired
   private Service<NodeId, Node> nodeService;
 
+  @Value("${fi.thl.termed.defaultNamespace:}")
+  private String defaultNamespace;
+
   private Model buildModelWrapper(UUID graphId, User user) {
     if (!graphService.exists(new GraphId(graphId), user)) {
       throw new NotFoundException();
@@ -74,7 +78,7 @@ public class NodeSparqlReadController {
         typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
     Function<Specification<NodeId, Node>, Stream<Node>> nodes =
         s -> nodeService.values(new Query<>(s), user);
-    return createModelForGraph(new NodeRdfGraphWrapper(types, nodes));
+    return createModelForGraph(new NodeRdfGraphWrapper(defaultNamespace, types, nodes));
   }
 
   @PostMapping(produces = MediaType.TEXT_PLAIN_VALUE)

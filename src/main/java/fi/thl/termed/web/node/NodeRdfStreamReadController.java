@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.riot.Lang;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,10 +43,15 @@ public class NodeRdfStreamReadController {
 
   @Autowired
   private Service<GraphId, Graph> graphService;
+
   @Autowired
   private Service<TypeId, Type> typeService;
+
   @Autowired
   private Service<NodeId, Node> nodeService;
+
+  @Value("${fi.thl.termed.defaultNamespace:}")
+  private String defaultNamespace;
 
   @GetMapping(produces = RdfMediaTypes.N_TRIPLES_VALUE)
   public void streamNTriples(
@@ -72,7 +78,7 @@ public class NodeRdfStreamReadController {
           s -> nodeService.values(new Query<>(s), user);
 
       StreamRDFWriterUtils.writeAndCloseIterator(out,
-          new NodeRdfGraphWrapper(types, nodes).find(null, null, null),
+          new NodeRdfGraphWrapper(defaultNamespace, types, nodes).find(null, null, null),
           Lang.NTRIPLES);
     }
   }
@@ -102,7 +108,7 @@ public class NodeRdfStreamReadController {
           s -> nodeService.values(new Query<>(s), user);
 
       StreamRDFWriterUtils.writeAndCloseIterator(out,
-          new NodeRdfGraphWrapper(types, nodes).find(null, null, null),
+          new NodeRdfGraphWrapper(defaultNamespace, types, nodes).find(null, null, null),
           Lang.TURTLE);
     }
   }
