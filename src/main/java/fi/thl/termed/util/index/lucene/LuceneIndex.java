@@ -37,7 +37,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -75,8 +74,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
   private ExecutorService indexingExecutor;
   private ScheduledExecutorService scheduledExecutorService;
-
-  private Pattern descendingSortPattern = Pattern.compile("(.*)[ |+]desc$");
 
   public LuceneIndex(String directoryPath,
       Converter<K, String> keyConverter,
