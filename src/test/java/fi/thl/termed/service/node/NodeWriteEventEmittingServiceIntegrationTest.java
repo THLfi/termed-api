@@ -14,6 +14,7 @@ import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.util.query.Queries;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -31,6 +32,8 @@ class NodeWriteEventEmittingServiceIntegrationTest extends BaseNodeServiceIntegr
 
   @Test
   void shouldProduceEventsForNodeWrites() {
+    LocalDateTime startTime = LocalDateTime.now();
+
     Node node = Node.builder()
         .id(NodeId.random("Person", graphId))
         .build();
@@ -46,9 +49,48 @@ class NodeWriteEventEmittingServiceIntegrationTest extends BaseNodeServiceIntegr
     assertEquals(1, eventListener.savedEvents.size());
     assertEquals(0, eventListener.deletedEvents.size());
 
+    LocalDateTime timeAfterSave = LocalDateTime.now();
+
+    NodeSavedEvent nodeSavedEvent = eventListener.savedEvents.get(0);
+    assertEquals(node.identifier(), nodeSavedEvent.getNodes().get(0));
+    assertEquals(user.getUsername(), nodeSavedEvent.getUser());
+    LocalDateTime eventTime = nodeSavedEvent.getDate();
+    assertTrue(eventTime.isEqual(startTime) || eventTime.isAfter(startTime));
+    assertTrue(eventTime.isEqual(timeAfterSave) || eventTime.isBefore(timeAfterSave));
+
     nodeService.delete(node.identifier(), opts(true), user);
     assertEquals(1, eventListener.deletedEvents.size());
     assertEquals(1, eventListener.deletedEvents.size());
+  }
+
+  @Test
+  void shouldProduceEventsForNodeDeletes() {
+    LocalDateTime startTime = LocalDateTime.now();
+
+    Node node = Node.builder()
+        .id(NodeId.random("Person", graphId))
+        .build();
+
+    SimpleNodeWriteEventListener eventListener = new SimpleNodeWriteEventListener();
+    eventBus.register(eventListener);
+
+    assertFalse(nodeService.exists(node.identifier(), user));
+    assertTrue(eventListener.savedEvents.isEmpty());
+    assertTrue(eventListener.deletedEvents.isEmpty());
+
+    nodeService.save(node, INSERT, opts(true), user);
+    nodeService.delete(node.identifier(), opts(true), user);
+    assertEquals(1, eventListener.savedEvents.size());
+    assertEquals(1, eventListener.deletedEvents.size());
+
+    LocalDateTime timeAfterDelete = LocalDateTime.now();
+
+    NodeDeletedEvent nodeDeletedEvent = eventListener.deletedEvents.get(0);
+    assertEquals(node.identifier(), nodeDeletedEvent.getNodes().get(0));
+    assertEquals(user.getUsername(), nodeDeletedEvent.getUser());
+    LocalDateTime eventTime = nodeDeletedEvent.getDate();
+    assertTrue(eventTime.isEqual(startTime) || eventTime.isAfter(startTime));
+    assertTrue(eventTime.isEqual(timeAfterDelete) || eventTime.isBefore(timeAfterDelete));
   }
 
   @Test

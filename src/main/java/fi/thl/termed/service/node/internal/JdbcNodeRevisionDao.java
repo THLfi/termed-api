@@ -113,9 +113,11 @@ public class JdbcNodeRevisionDao extends
       builder.number(rs.wasNull() ? null : number);
 
       builder.createdBy(rs.getString("created_by"));
-      builder.createdDate(rs.getTimestamp("created_date"));
       builder.lastModifiedBy(rs.getString("last_modified_by"));
-      builder.lastModifiedDate(rs.getTimestamp("last_modified_date"));
+      builder.createdDate(rs.getTimestamp("created_date") != null
+          ? rs.getTimestamp("created_date").toLocalDateTime() : null);
+      builder.lastModifiedDate(rs.getTimestamp("last_modified_date") != null
+          ? rs.getTimestamp("last_modified_date").toLocalDateTime() : null);
 
       return Tuple.of(RevisionType.valueOf(rs.getString("revision_type")), builder.build());
     };

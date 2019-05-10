@@ -13,7 +13,7 @@ import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 public class RevisionInitializingNodeService extends ForwardingService<NodeId, Node> {
@@ -68,7 +68,10 @@ public class RevisionInitializingNodeService extends ForwardingService<NodeId, N
 
   private Long newRevision(User user) {
     return revisionService.save(
-        Revision.of(revisionSequenceService.getAndAdvance(user), user.getUsername(), new Date()),
+        Revision.of(
+            revisionSequenceService.getAndAdvance(user),
+            user.getUsername(),
+            LocalDateTime.now()),
         INSERT, defaultOpts(), user);
   }
 

@@ -4,22 +4,22 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.MoreObjects;
 import fi.thl.termed.util.collect.Identifiable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public final class Revision implements Identifiable<Long> {
 
   private final Long number;
   private final String author;
-  private final Date date;
+  private final LocalDateTime date;
 
-  private Revision(Long number, String author, Date date) {
+  private Revision(Long number, String author, LocalDateTime date) {
     this.number = requireNonNull(number);
     this.author = requireNonNull(author);
     this.date = requireNonNull(date);
   }
 
-  public static Revision of(Long number, String author, Date date) {
+  public static Revision of(Long number, String author, LocalDateTime date) {
     return new Revision(number, author, date);
   }
 
@@ -36,7 +36,7 @@ public final class Revision implements Identifiable<Long> {
     return author;
   }
 
-  public Date getDate() {
+  public LocalDateTime getDate() {
     return date;
   }
 

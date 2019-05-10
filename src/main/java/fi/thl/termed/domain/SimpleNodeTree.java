@@ -7,7 +7,7 @@ import static fi.thl.termed.util.collect.MultimapUtils.nullToEmpty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,9 +20,9 @@ public final class SimpleNodeTree implements NodeTree {
   private final Long number;
 
   private final String createdBy;
-  private final Date createdDate;
+  private final LocalDateTime createdDate;
   private final String lastModifiedBy;
-  private final Date lastModifiedDate;
+  private final LocalDateTime lastModifiedDate;
 
   private final TypeId type;
 
@@ -75,7 +75,7 @@ public final class SimpleNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getCreatedDate() {
+  public LocalDateTime getCreatedDate() {
     return createdDate;
   }
 
@@ -85,7 +85,7 @@ public final class SimpleNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getLastModifiedDate() {
+  public LocalDateTime getLastModifiedDate() {
     return lastModifiedDate;
   }
 

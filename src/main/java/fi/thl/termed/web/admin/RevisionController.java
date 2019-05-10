@@ -20,7 +20,7 @@ import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
 import fi.thl.termed.util.spring.transaction.TransactionUtils;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -69,7 +69,7 @@ public class RevisionController {
         Long revision = revisionSeq.getAndAdvance(user);
 
         revisionService.save(
-            Revision.of(revision, user.getUsername(), new Date()),
+            Revision.of(revision, user.getUsername(), LocalDateTime.now()),
             SaveMode.INSERT, defaultOpts(), user);
 
         try (Stream<NodeId> nodeIds = nodeService.keys(new Query<>(new MatchAll<>()), user)) {

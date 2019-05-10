@@ -6,8 +6,9 @@ import fi.thl.termed.domain.NodeTree;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.util.UUIDs;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
-import org.joda.time.DateTime;
 
 public final class NodeTreeToJsonStream {
 
@@ -54,7 +55,9 @@ public final class NodeTreeToJsonStream {
     }
     if (tree.getCreatedDate() != null) {
       writer.name("createdDate");
-      writer.value(new DateTime(tree.getCreatedDate()).toString());
+      writer.value(tree.getCreatedDate()
+          .atZone(ZoneId.systemDefault())
+          .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     }
     if (tree.getLastModifiedBy() != null) {
       writer.name("lastModifiedBy");
@@ -62,7 +65,9 @@ public final class NodeTreeToJsonStream {
     }
     if (tree.getLastModifiedDate() != null) {
       writer.name("lastModifiedDate");
-      writer.value(new DateTime(tree.getLastModifiedDate()).toString());
+      writer.value(tree.getLastModifiedDate()
+          .atZone(ZoneId.systemDefault())
+          .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     }
 
     if (tree.getType() != null) {

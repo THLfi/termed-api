@@ -7,13 +7,12 @@ import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.util.DateUtils;
 import fi.thl.termed.util.UUIDs;
-import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.slf4j.Logger;
@@ -38,9 +37,9 @@ public class DocumentToNode implements Function<Document, Node> {
     String code = null;
 
     String createdBy = null;
-    Date createdDate = null;
+    LocalDateTime createdDate = null;
     String lastModifiedBy = null;
-    Date lastModifiedDate = null;
+    LocalDateTime lastModifiedDate = null;
 
     ImmutableMultimap.Builder<String, StrictLangValue> properties = ImmutableMultimap.builder();
     ImmutableMultimap.Builder<String, NodeId> references = ImmutableMultimap.builder();
@@ -126,12 +125,8 @@ public class DocumentToNode implements Function<Document, Node> {
         referrers.build());
   }
 
-  private Date stringToDate(String str) {
-    try {
-      return str != null ? DateTools.stringToDate(str) : null;
-    } catch (ParseException e) {
-      throw new RuntimeException(e);
-    }
+  private LocalDateTime stringToDate(String str) {
+    return str != null ? DateUtils.parseLuceneDateString(str) : null;
   }
 
 }

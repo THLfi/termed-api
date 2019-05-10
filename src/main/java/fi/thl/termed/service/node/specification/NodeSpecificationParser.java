@@ -18,8 +18,8 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
-import java.util.Date;
-import org.joda.time.DateTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.jparsercombinator.Parser;
 import org.jparsercombinator.ParserCombinator;
 import org.jparsercombinator.ParserCombinatorReference;
@@ -142,8 +142,8 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     parser = queryParser.end();
   }
 
-  private Date parseDate(String date) {
-    return !date.equals("*") ? new DateTime(date).toDate() : null;
+  private LocalDateTime parseDate(String date) {
+    return !date.equals("*") ? LocalDateTime.parse(date) : null;
   }
 
   @Override

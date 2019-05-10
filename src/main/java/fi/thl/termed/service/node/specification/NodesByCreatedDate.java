@@ -4,15 +4,15 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.DateUtils;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import fi.thl.termed.util.query.SqlSpecification;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import org.apache.lucene.document.DateTools;
-import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.util.BytesRef;
@@ -20,10 +20,10 @@ import org.apache.lucene.util.BytesRef;
 public class NodesByCreatedDate
     implements LuceneSpecification<NodeId, Node>, SqlSpecification<NodeId, Node> {
 
-  private final Date lower;
-  private final Date upper;
+  private final LocalDateTime lower;
+  private final LocalDateTime upper;
 
-  public NodesByCreatedDate(Date lower, Date upper) {
+  public NodesByCreatedDate(LocalDateTime lower, LocalDateTime upper) {
     this.lower = lower;
     this.upper = upper;
   }
@@ -33,17 +33,17 @@ public class NodesByCreatedDate
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
     Preconditions.checkNotNull(node.getLastModifiedDate());
 
-    Date modified = node.getLastModifiedDate();
+    LocalDateTime modified = node.getLastModifiedDate();
 
-    return (lower == null || modified.equals(lower) || modified.after(lower)) &&
-        (upper == null || modified.equals(upper) || modified.after(upper));
+    return (lower == null || modified.equals(lower) || modified.isAfter(lower)) &&
+        (upper == null || modified.equals(upper) || modified.isBefore(upper));
   }
 
   @Override
   public Query luceneQuery() {
     return new TermRangeQuery("createdDate",
-        lower != null ? new BytesRef(DateTools.dateToString(lower, Resolution.MILLISECOND)) : null,
-        upper != null ? new BytesRef(DateTools.dateToString(upper, Resolution.MILLISECOND)) : null,
+        lower != null ? new BytesRef(DateUtils.formatLuceneDateString(lower)) : null,
+        upper != null ? new BytesRef(DateUtils.formatLuceneDateString(upper)) : null,
         true, true);
   }
 
@@ -54,11 +54,11 @@ public class NodesByCreatedDate
 
     if (lower != null) {
       clauses.add("created_date >= ?");
-      params.add(lower);
+      params.add(Timestamp.valueOf(lower));
     }
     if (upper != null) {
       clauses.add("created_date <= ?");
-      params.add(upper);
+      params.add(Timestamp.valueOf(upper));
     }
 
     if (clauses.isEmpty()) {
@@ -67,7 +67,7 @@ public class NodesByCreatedDate
 
     return ParametrizedSqlQuery.of(
         String.join(" AND ", clauses),
-        params.toArray(new Object[params.size()]));
+        params.toArray(new Object[0]));
   }
 
   @Override

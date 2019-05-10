@@ -10,8 +10,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Identifiable;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,16 +26,17 @@ public final class Node implements Identifiable<NodeId> {
   private final Long number;
 
   private final String createdBy;
-  private final Date createdDate;
+  private final LocalDateTime createdDate;
   private final String lastModifiedBy;
-  private final Date lastModifiedDate;
+  private final LocalDateTime lastModifiedDate;
 
   private final ImmutableMultimap<String, StrictLangValue> properties;
   private final ImmutableMultimap<String, NodeId> references;
   private final ImmutableMultimap<String, NodeId> referrers;
 
   public Node(UUID id, TypeId type, String code, String uri, Long number,
-      String createdBy, Date createdDate, String lastModifiedBy, Date lastModifiedDate,
+      String createdBy, LocalDateTime createdDate, String lastModifiedBy,
+      LocalDateTime lastModifiedDate,
       Multimap<String, StrictLangValue> properties,
       Multimap<String, NodeId> references,
       Multimap<String, NodeId> referrers) {
@@ -88,7 +89,7 @@ public final class Node implements Identifiable<NodeId> {
     return createdBy;
   }
 
-  public Date getCreatedDate() {
+  public LocalDateTime getCreatedDate() {
     return createdDate;
   }
 
@@ -96,7 +97,7 @@ public final class Node implements Identifiable<NodeId> {
     return lastModifiedBy;
   }
 
-  public Date getLastModifiedDate() {
+  public LocalDateTime getLastModifiedDate() {
     return lastModifiedDate;
   }
 
@@ -227,9 +228,9 @@ public final class Node implements Identifiable<NodeId> {
     private Long number;
 
     private String createdBy;
-    private Date createdDate;
+    private LocalDateTime createdDate;
     private String lastModifiedBy;
-    private Date lastModifiedDate;
+    private LocalDateTime lastModifiedDate;
 
     private Multimap<String, StrictLangValue> properties;
     private Multimap<String, NodeId> references;
@@ -277,7 +278,7 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
-    public Builder createdDate(Date createdDate) {
+    public Builder createdDate(LocalDateTime createdDate) {
       this.createdDate = createdDate;
       return this;
     }
@@ -287,7 +288,7 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
-    public Builder lastModifiedDate(Date lastModifiedDate) {
+    public Builder lastModifiedDate(LocalDateTime lastModifiedDate) {
       this.lastModifiedDate = lastModifiedDate;
       return this;
     }

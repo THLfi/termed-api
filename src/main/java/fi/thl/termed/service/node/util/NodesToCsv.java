@@ -51,7 +51,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.jena.atlas.RuntimeIOException;
-import org.joda.time.DateTime;
 
 /**
  * Write stream of nodes to OuputStream or Writer as CSV. This operation is not actually streaming
@@ -151,13 +150,15 @@ public final class NodesToCsv {
       map.put("createdBy", node.getCreatedBy());
     }
     if (s.contains(new SelectAll()) || s.contains(Selects.field("createdDate"))) {
-      map.put("createdDate", new DateTime(node.getCreatedDate()).toString());
+      map.put("createdDate",
+          node.getCreatedDate() != null ? node.getCreatedDate().toString() : null);
     }
     if (s.contains(new SelectAll()) || s.contains(Selects.field("lastModifiedBy"))) {
       map.put("lastModifiedBy", node.getLastModifiedBy());
     }
     if (s.contains(new SelectAll()) || s.contains(Selects.field("lastModifiedDate"))) {
-      map.put("lastModifiedDate", new DateTime(node.getLastModifiedDate()).toString());
+      map.put("lastModifiedDate",
+          node.getLastModifiedDate() != null ? node.getLastModifiedDate().toString() : null);
     }
 
     Multimap<String, StrictLangValue> properties =

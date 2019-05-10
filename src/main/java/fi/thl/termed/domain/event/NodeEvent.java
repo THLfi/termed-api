@@ -1,18 +1,18 @@
 package fi.thl.termed.domain.event;
 
 import fi.thl.termed.domain.NodeId;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 public abstract class NodeEvent implements TermedEvent {
 
   private String user;
-  private Date date;
+  private LocalDateTime date;
   private List<NodeId> nodes;
   private boolean sync;
 
-  NodeEvent(String user, Date date, boolean sync, List<NodeId> nodes) {
+  NodeEvent(String user, LocalDateTime date, boolean sync, List<NodeId> nodes) {
     this.user = user;
     this.date = date;
     this.sync = sync;
@@ -23,7 +23,7 @@ public abstract class NodeEvent implements TermedEvent {
     return user;
   }
 
-  public Date getDate() {
+  public LocalDateTime getDate() {
     return date;
   }
 

@@ -1,13 +1,13 @@
 package fi.thl.termed.domain;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public final class ObjectRevision<E> {
 
   private final Long number;
   private final String author;
-  private final Date date;
+  private final LocalDateTime date;
   private final RevisionType type;
   private final E object;
 
@@ -15,7 +15,8 @@ public final class ObjectRevision<E> {
     this(revision.getNumber(), revision.getAuthor(), revision.getDate(), type, object);
   }
 
-  public ObjectRevision(Long number, String author, Date date, RevisionType type, E object) {
+  public ObjectRevision(Long number, String author, LocalDateTime date, RevisionType type,
+      E object) {
     this.number = number;
     this.author = author;
     this.date = date;
@@ -31,7 +32,7 @@ public final class ObjectRevision<E> {
     return author;
   }
 
-  public Date getDate() {
+  public LocalDateTime getDate() {
     return date;
   }
 

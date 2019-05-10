@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.collect.Multimap;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,7 +39,7 @@ public class ForwardingNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getCreatedDate() {
+  public LocalDateTime getCreatedDate() {
     return delegate.getCreatedDate();
   }
 
@@ -49,7 +49,7 @@ public class ForwardingNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getLastModifiedDate() {
+  public LocalDateTime getLastModifiedDate() {
     return delegate.getLastModifiedDate();
   }
 

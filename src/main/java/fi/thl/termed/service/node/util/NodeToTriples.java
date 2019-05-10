@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.RDF;
-import org.joda.time.DateTime;
 
 public class NodeToTriples implements Function<Node, List<Triple>> {
 
@@ -61,11 +60,11 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
     ofNullable(node.getCreatedBy()).ifPresent(s ->
         triples.add(createTermedLiteral(subject, "createdBy", s)));
     ofNullable(node.getCreatedDate()).ifPresent(d ->
-        triples.add(createTermedLiteral(subject, "createdDate", new DateTime(d).toString())));
+        triples.add(createTermedLiteral(subject, "createdDate", d.toString())));
     ofNullable(node.getLastModifiedBy()).ifPresent(s ->
         triples.add(createTermedLiteral(subject, "lastModifiedBy", s)));
     ofNullable(node.getLastModifiedDate()).ifPresent(d ->
-        triples.add(createTermedLiteral(subject, "lastModifiedDate", new DateTime(d).toString())));
+        triples.add(createTermedLiteral(subject, "lastModifiedDate", d.toString())));
 
     node.getProperties().forEach((k, v) ->
         triples.add(create(

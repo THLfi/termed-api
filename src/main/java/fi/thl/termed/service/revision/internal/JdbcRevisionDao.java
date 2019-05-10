@@ -58,7 +58,9 @@ public class JdbcRevisionDao extends AbstractJdbcDao<Long, Revision> {
   @Override
   protected RowMapper<Revision> buildValueMapper() {
     return (rs, rowNum) -> Revision
-        .of(rs.getLong("number"), rs.getString("author"), rs.getTimestamp("date"));
+        .of(rs.getLong("number"),
+            rs.getString("author"),
+            rs.getTimestamp("date").toLocalDateTime());
   }
 
 }

@@ -12,7 +12,6 @@ import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
 import fi.thl.termed.util.dao.SystemDao;
 import java.util.Optional;
 import javax.sql.DataSource;
-import org.joda.time.DateTime;
 
 public class JdbcPostgresNodeRevisionDao extends
     AbstractJdbcPostgresDao<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
@@ -35,9 +34,9 @@ public class JdbcPostgresNodeRevisionDao extends
         node.flatMap(Node::getUri).map(Strings::emptyToNull).orElse(null),
         node.map(Node::getNumber).map(Object::toString).orElse(null),
         node.map(Node::getCreatedBy).orElse(null),
-        node.map(Node::getCreatedDate).map(DateTime::new).map(Object::toString).orElse(null),
+        node.map(Node::getCreatedDate).map(Object::toString).orElse(null),
         node.map(Node::getLastModifiedBy).orElse(null),
-        node.map(Node::getLastModifiedDate).map(DateTime::new).map(Object::toString).orElse(null),
+        node.map(Node::getLastModifiedDate).map(Object::toString).orElse(null),
         k.getRevision().toString(),
         v._1.toString()
     };

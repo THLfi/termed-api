@@ -5,7 +5,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.LazyLoadingMultimap;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -51,7 +51,7 @@ public final class LazyLoadingNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getCreatedDate() {
+  public LocalDateTime getCreatedDate() {
     return source.getCreatedDate();
   }
 
@@ -61,7 +61,7 @@ public final class LazyLoadingNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getLastModifiedDate() {
+  public LocalDateTime getLastModifiedDate() {
     return source.getLastModifiedDate();
   }
 

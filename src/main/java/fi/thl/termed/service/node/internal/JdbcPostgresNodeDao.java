@@ -6,7 +6,6 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.dao.AbstractJdbcPostgresDao;
 import fi.thl.termed.util.dao.SystemDao;
 import javax.sql.DataSource;
-import org.joda.time.DateTime;
 
 public class JdbcPostgresNodeDao extends AbstractJdbcPostgresDao<NodeId, Node> {
 
@@ -24,9 +23,9 @@ public class JdbcPostgresNodeDao extends AbstractJdbcPostgresDao<NodeId, Node> {
         v.getUri().map(Strings::emptyToNull).orElse(null),
         v.getNumber().toString(),
         v.getCreatedBy(),
-        new DateTime(v.getCreatedDate()).toString(),
+        v.getCreatedDate().toString(),
         v.getLastModifiedBy(),
-        new DateTime(v.getLastModifiedDate()).toString()
+        v.getLastModifiedDate().toString()
     };
   }
 

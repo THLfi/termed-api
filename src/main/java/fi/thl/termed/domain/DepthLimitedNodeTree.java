@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,7 +63,7 @@ public final class DepthLimitedNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getCreatedDate() {
+  public LocalDateTime getCreatedDate() {
     return source.getCreatedDate();
   }
 
@@ -73,7 +73,7 @@ public final class DepthLimitedNodeTree implements NodeTree {
   }
 
   @Override
-  public Date getLastModifiedDate() {
+  public LocalDateTime getLastModifiedDate() {
     return source.getLastModifiedDate();
   }
 

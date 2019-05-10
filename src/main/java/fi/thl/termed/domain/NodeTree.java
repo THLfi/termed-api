@@ -1,7 +1,7 @@
 package fi.thl.termed.domain;
 
 import com.google.common.collect.Multimap;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,11 +17,11 @@ public interface NodeTree {
 
   String getCreatedBy();
 
-  Date getCreatedDate();
+  LocalDateTime getCreatedDate();
 
   String getLastModifiedBy();
 
-  Date getLastModifiedDate();
+  LocalDateTime getLastModifiedDate();
 
   TypeId getType();
 

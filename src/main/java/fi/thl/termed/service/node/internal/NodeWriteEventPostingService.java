@@ -25,7 +25,7 @@ import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -49,19 +49,19 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
   }
 
   private void fireSaveEvents(List<NodeId> ids, String user, boolean sync) {
-    eventBus.post(new NodeSavedEvent(user, new Date(), sync, ids));
+    eventBus.post(new NodeSavedEvent(user, LocalDateTime.now(), sync, ids));
   }
 
   private void fireSaveEvent(NodeId id, String user, boolean sync) {
-    eventBus.post(new NodeSavedEvent(user, new Date(), sync, singletonList(id)));
+    eventBus.post(new NodeSavedEvent(user, LocalDateTime.now(), sync, singletonList(id)));
   }
 
   private void fireDeleteEvents(List<NodeId> ids, String user, boolean sync) {
-    eventBus.post(new NodeDeletedEvent(user, new Date(), sync, ids));
+    eventBus.post(new NodeDeletedEvent(user, LocalDateTime.now(), sync, ids));
   }
 
   private void fireDeleteEvent(NodeId id, String user, boolean sync) {
-    eventBus.post(new NodeDeletedEvent(user, new Date(), sync, singletonList(id)));
+    eventBus.post(new NodeDeletedEvent(user, LocalDateTime.now(), sync, singletonList(id)));
   }
 
   @Override

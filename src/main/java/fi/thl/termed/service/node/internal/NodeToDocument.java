@@ -10,14 +10,13 @@ import com.google.gson.Gson;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.StrictLangValue;
+import fi.thl.termed.util.DateUtils;
 import fi.thl.termed.util.UUIDs;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import org.apache.lucene.document.DateTools;
-import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
@@ -159,8 +158,8 @@ public class NodeToDocument implements Function<Node, Document> {
     return new StringField(name, UUIDs.toString(value), Store.YES);
   }
 
-  private Field storedStringField(String name, Date value) {
-    return new StringField(name, DateTools.dateToString(value, Resolution.MILLISECOND), Store.YES);
+  private Field storedStringField(String name, LocalDateTime value) {
+    return new StringField(name, DateUtils.formatLuceneDateString(value), Store.YES);
   }
 
   private Field sortableField(String name, String value) {
@@ -169,9 +168,9 @@ public class NodeToDocument implements Function<Node, Document> {
             value.substring(0, min(MAX_SAFE_TERM_LENGTH_IN_UTF8_CHARS, value.length()))));
   }
 
-  private Field sortableField(String name, Date value) {
+  private Field sortableField(String name, LocalDateTime value) {
     return new SortedDocValuesField(name,
-        new BytesRef(DateTools.dateToString(value, Resolution.MILLISECOND)));
+        new BytesRef(DateUtils.formatLuceneDateString(value)));
   }
 
   private Field sortableField(String name, Long value) {

@@ -32,7 +32,7 @@ import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.SequenceService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +123,10 @@ public class NodeRevisionRepository implements
 
   private Long newRevision(User user) {
     return revisionService.save(
-        Revision.of(revisionSeqService.getAndAdvance(user), user.getUsername(), new Date()),
+        Revision.of(
+            revisionSeqService.getAndAdvance(user),
+            user.getUsername(),
+            LocalDateTime.now()),
         INSERT, defaultOpts(), user);
   }
 

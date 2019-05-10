@@ -7,8 +7,7 @@ import static graphql.schema.GraphQLObjectType.newObject;
 import graphql.schema.Coercing;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
-import java.util.Date;
-import org.joda.time.DateTime;
+import java.time.LocalDateTime;
 
 final class GraphQLTypes {
 
@@ -30,22 +29,23 @@ final class GraphQLTypes {
       .field(newFieldDefinition().name("regex").type(GraphQLString)).build();
 
   static final GraphQLScalarType dateScalar = new GraphQLScalarType("Date",
-      "A custom scalar that handles java.util.Date", new Coercing<Date, String>() {
-    @Override
-    public String serialize(Object dataFetcherResult) {
-      return new DateTime(dataFetcherResult).toString();
-    }
+      "A custom scalar that handles java.time.LocalDateTime",
+      new Coercing<LocalDateTime, String>() {
+        @Override
+        public String serialize(Object dataFetcherResult) {
+          return dataFetcherResult.toString();
+        }
 
-    @Override
-    public Date parseValue(Object input) {
-      return new DateTime(input).toDate();
-    }
+        @Override
+        public LocalDateTime parseValue(Object input) {
+          return LocalDateTime.parse((String) input);
+        }
 
-    @Override
-    public Date parseLiteral(Object input) {
-      return new DateTime(input).toDate();
-    }
-  });
+        @Override
+        public LocalDateTime parseLiteral(Object input) {
+          return LocalDateTime.parse((String) input);
+        }
+      });
 
   private GraphQLTypes() {
   }
