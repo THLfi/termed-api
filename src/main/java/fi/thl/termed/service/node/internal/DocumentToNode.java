@@ -2,6 +2,7 @@ package fi.thl.termed.service.node.internal;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -9,6 +10,7 @@ import fi.thl.termed.domain.StrictLangValue;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.util.DateUtils;
 import fi.thl.termed.util.UUIDs;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 public class DocumentToNode implements Function<Document, Node> {
 
-  private static final Gson gson = new Gson();
-  private static final TypeToken<List<StrictLangValue>> propertyValuesTypeToken =
-      new TypeToken<List<StrictLangValue>>() {
-      };
   private static final Logger log = LoggerFactory.getLogger(DocumentToNode.class);
+
+  private static final TypeAdapter<List<StrictLangValue>> propertyValuesListParser = new Gson()
+      .getAdapter(new TypeToken<List<StrictLangValue>>() {
+      });
 
   @Override
   public Node apply(Document doc) {
@@ -91,9 +93,11 @@ public class DocumentToNode implements Function<Document, Node> {
 
         switch (attrType) {
           case "properties":
-            List<StrictLangValue> values =
-                gson.fromJson(fieldValue, propertyValuesTypeToken.getType());
-            properties.putAll(attrName, values);
+            try {
+              properties.putAll(attrName, propertyValuesListParser.fromJson(fieldValue));
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
             continue;
           case "references":
             for (String s : fieldValue.split(",")) {

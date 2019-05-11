@@ -21,9 +21,19 @@ public final class FilteredNodeTree extends ForwardingNodeTree {
 
   private final ImmutableSet<Select> s;
 
+  private final boolean propertiesSelected;
+  private final boolean referencesSelected;
+  private final boolean referrersSelected;
+
   public FilteredNodeTree(NodeTree source, Set<Select> selects) {
     super(source);
     this.s = ImmutableSet.copyOf(selects);
+    this.propertiesSelected = s.stream()
+        .anyMatch(select -> select instanceof SelectTypeQualifiedProperty);
+    this.referencesSelected = s.stream()
+        .anyMatch(select -> select instanceof SelectTypeQualifiedReference);
+    this.referrersSelected = s.stream()
+        .anyMatch(select -> select instanceof SelectTypeQualifiedReferrer);
   }
 
   @Override
@@ -38,29 +48,19 @@ public final class FilteredNodeTree extends ForwardingNodeTree {
 
   @Override
   public Multimap<String, StrictLangValue> getProperties() {
-    if (s.stream().noneMatch(select -> select instanceof SelectTypeQualifiedProperty)) {
-      return null;
-    }
-
-    return super.getProperties();
+    return propertiesSelected ? super.getProperties() : null;
   }
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferences() {
-    if (s.stream().noneMatch(select -> select instanceof SelectTypeQualifiedReference)) {
-      return null;
-    }
-
-    return transformValues(super.getReferences(), r -> new FilteredNodeTree(r, s));
+    return referencesSelected ? transformValues(super.getReferences(),
+        r -> new FilteredNodeTree(r, s)) : null;
   }
 
   @Override
   public Multimap<String, ? extends NodeTree> getReferrers() {
-    if (s.stream().noneMatch(select -> select instanceof SelectTypeQualifiedReferrer)) {
-      return null;
-    }
-
-    return transformValues(super.getReferrers(), r -> new FilteredNodeTree(r, s));
+    return referrersSelected ? transformValues(super.getReferrers(),
+        r -> new FilteredNodeTree(r, s)) : null;
   }
 
 }
