@@ -25,8 +25,8 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService;
+import fi.thl.termed.service.node.internal.NodeMetadataInitializingService;
 import fi.thl.termed.service.node.internal.DocumentToNode;
-import fi.thl.termed.service.node.internal.ExtIdsInitializingNodeService;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
 import fi.thl.termed.service.node.internal.JdbcNodeDao;
@@ -50,7 +50,6 @@ import fi.thl.termed.service.node.internal.NodeToDocument;
 import fi.thl.termed.service.node.internal.NodeWriteEventPostingService;
 import fi.thl.termed.service.node.internal.ReadAuthorizedNodeService;
 import fi.thl.termed.service.node.internal.RevisionInitializingNodeService;
-import fi.thl.termed.service.node.internal.TimestampingNodeService;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.JdbcSystemSequenceDao;
@@ -102,6 +101,8 @@ public class NodeServiceConfiguration {
   private SequenceService revisionSeqService;
   @Autowired
   private Service<Long, Revision> revisionService;
+  @Value("${fi.thl.termed.defaultNamespace:}")
+  private String ns;
 
   @Value("${fi.thl.termed.index:}")
   private String indexPath;
@@ -130,9 +131,8 @@ public class NodeServiceConfiguration {
     service = new NodeWriteEventPostingService(service, nodeRevisionService(), eventBus);
     service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
 
-    service = new TimestampingNodeService(service);
-    service = new ExtIdsInitializingNodeService(service, nodeSequenceService(),
-        typeService::get, graphService::get);
+    service = new NodeMetadataInitializingService(service, nodeSequenceService(),
+        typeService::get, graphService::get, ns);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new ProfilingService<>(service, packageName + ".ProfilingService", 500);
 

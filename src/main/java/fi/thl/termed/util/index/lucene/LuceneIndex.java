@@ -236,10 +236,12 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
     log.trace("{}", query);
     log.trace("{}", sort);
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(sort));
-    return toStreamWithTimeout(Arrays.stream(docs.scoreDocs)
-        .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
-        .map(documentDeserializer)
-        .onClose(() -> tryRelease(searcher)), scheduledExecutorService, 1, TimeUnit.HOURS);
+    return toStreamWithTimeout(
+        Arrays.stream(docs.scoreDocs)
+            .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
+            .map(documentDeserializer)
+            .onClose(() -> tryRelease(searcher)),
+        scheduledExecutorService, 1, TimeUnit.HOURS, query::toString);
   }
 
   private IndexSearcher tryAcquire() {

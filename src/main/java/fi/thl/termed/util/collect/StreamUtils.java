@@ -2,6 +2,7 @@ package fi.thl.termed.util.collect;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Iterators.partition;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -58,10 +60,11 @@ public final class StreamUtils {
    * Set timeout to Stream, i.e. Stream is automatically closed after given time.
    */
   public static <T> Stream<T> toStreamWithTimeout(Stream<T> stream,
-      ScheduledExecutorService scheduledExecutorService, int delay, TimeUnit timeUnit) {
+      ScheduledExecutorService scheduledExecutorService, int delay, TimeUnit timeUnit,
+      Supplier<String> timeoutMessageSupplier) {
     ScheduledFuture<Void> closeOnTimeout = scheduledExecutorService.schedule(() -> {
       stream.close();
-      log.warn("Stream closed on timeout");
+      log.warn("Stream closed on timeout: {}", timeoutMessageSupplier.get());
       return null;
     }, delay, timeUnit);
 
@@ -147,6 +150,14 @@ public final class StreamUtils {
 
   public static <T> Stream<T> nullToEmpty(Stream<T> stream) {
     return stream != null ? stream : Stream.empty();
+  }
+
+  public static <T, R> Stream<R> partitionedMap(Stream<T> stream, int partitionSize,
+      Function<List<T>, Stream<R>> mapper) {
+    Stream<List<T>> partitionedNodeStream = stream(
+        spliteratorUnknownSize(partition(stream.iterator(), partitionSize), 0), false)
+        .onClose(stream::close);
+    return partitionedNodeStream.flatMap(mapper);
   }
 
 }

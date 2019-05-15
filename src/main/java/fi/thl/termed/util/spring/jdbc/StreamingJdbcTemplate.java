@@ -71,15 +71,16 @@ public class StreamingJdbcTemplate {
             DataSourceUtils.releaseConnection(connection, dataSource);
           });
 
-      return withRecurringWarningIfKeptOpen(withTimeout(results), sql, currentTimeMillis());
+      return withRecurringWarningIfKeptOpen(withTimeout(results, sql), sql, currentTimeMillis());
     } catch (SQLException | RuntimeException | Error e) {
       DataSourceUtils.releaseConnection(connection, dataSource);
       throw new RuntimeException(e);
     }
   }
 
-  private <T> Stream<T> withTimeout(Stream<T> stream) {
-    return StreamUtils.toStreamWithTimeout(stream, executor, STREAM_TIMEOUT_IN_MINUTES, MINUTES);
+  private <T> Stream<T> withTimeout(Stream<T> stream, String timeoutMessage) {
+    return StreamUtils.toStreamWithTimeout(stream, executor, STREAM_TIMEOUT_IN_MINUTES, MINUTES,
+        () -> timeoutMessage);
   }
 
   private <T> Stream<T> withRecurringWarningIfKeptOpen(Stream<T> stream, String sql, Long start) {

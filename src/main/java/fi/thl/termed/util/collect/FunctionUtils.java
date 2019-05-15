@@ -1,10 +1,12 @@
 package fi.thl.termed.util.collect;
 
+import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class FunctionUtils {
 
@@ -70,6 +72,13 @@ public final class FunctionUtils {
   public static <F, T> Function<F, T> memoize(Function<F, T> function, long maxCacheSize) {
     return CacheBuilder.newBuilder().maximumSize(maxCacheSize)
         .build(CacheLoader.from(function::apply))::getUnchecked;
+  }
+
+  /**
+   * Memoize given supplier.
+   */
+  public static <T> Supplier<T> memoize(Supplier<T> supplier) {
+    return Suppliers.memoize(supplier::get);
   }
 
 }

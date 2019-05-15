@@ -7,6 +7,7 @@ import fi.thl.termed.util.collect.FunctionUtils;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 class FunctionUtilsTest {
@@ -102,6 +103,35 @@ class FunctionUtilsTest {
     assertEquals(6, counter.get());
     memoizedToIntFunction.apply("1");
     assertEquals(6, counter.get());
+  }
+
+  @Test
+  void shouldMemoizeSupplier() {
+    final AtomicInteger counter = new AtomicInteger();
+
+    Supplier<String> supplier = () -> {
+      counter.incrementAndGet();
+      return "foo";
+    };
+
+    assertEquals(0, counter.get());
+
+    supplier.get();
+    assertEquals(1, counter.get());
+
+    supplier.get();
+    assertEquals(2, counter.get());
+
+    Supplier<String> memoizedSupplier = FunctionUtils.memoize(supplier);
+
+    memoizedSupplier.get();
+    assertEquals(3, counter.get());
+
+    memoizedSupplier.get();
+    assertEquals(3, counter.get());
+
+    memoizedSupplier.get();
+    assertEquals(3, counter.get());
   }
 
 }

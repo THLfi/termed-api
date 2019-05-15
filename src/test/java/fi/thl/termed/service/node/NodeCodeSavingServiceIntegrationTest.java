@@ -44,38 +44,6 @@ class NodeCodeSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTes
   }
 
   @Test
-  void shouldNullifyDuplicateCodeIfOptsGenerateCodesIsTrue() {
-    NodeId nodeId0 = NodeId.random("Person", graphId);
-    Node node0 = Node.builder()
-        .id(nodeId0)
-        .code("example-code")
-        .build();
-
-    NodeId nodeId1 = NodeId.random("Person", graphId);
-    Node node1 = Node.builder()
-        .id(nodeId1)
-        .code("example-code")
-        .build();
-
-    assertFalse(nodeService.exists(nodeId0, user));
-    assertFalse(nodeService.exists(nodeId1, user));
-
-    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, true, true), user);
-
-    assertEquals("example-code",
-        nodeService.get(nodeId0, user)
-            .orElseThrow(AssertionError::new)
-            .getCode()
-            .orElseThrow(AssertionError::new));
-
-    assertFalse(
-        nodeService.get(nodeId1, user)
-            .orElseThrow(AssertionError::new)
-            .getCode()
-            .isPresent());
-  }
-
-  @Test
   void shouldNotGenerateDefaultCodeIfIsAlreadyInUse() {
     NodeId nodeId0 = NodeId.random("Person", graphId);
     Node node0 = Node.builder()
@@ -104,6 +72,108 @@ class NodeCodeSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTes
         .flatMap(Node::getCode).orElse(null));
     assertNull(nodeService.get(nodeId2, user)
         .flatMap(Node::getCode).orElse(null));
+  }
+
+  @Test
+  void shouldGenerateCodesIfRequested() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    nodeService.save(Stream.of(node0, node1), INSERT, opts(false, true, false), user);
+
+    assertNull(nodeService.get(nodeId0, user).flatMap(Node::getUri).orElse(null));
+    assertNull(nodeService.get(nodeId1, user).flatMap(Node::getUri).orElse(null));
+
+    assertEquals("person-0", nodeService.get(nodeId0, user).flatMap(Node::getCode).orElse(null));
+    assertEquals("person-1", nodeService.get(nodeId1, user).flatMap(Node::getCode).orElse(null));
+  }
+
+  @Test
+  void shouldGenerateUrisWithGivenNamespaceIfRequested() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    nodeService.save(Stream.of(node0, node1), INSERT,
+        opts(false, "http://example.org/", false, true), user);
+
+    assertNull(nodeService.get(nodeId0, user).flatMap(Node::getCode).orElse(null));
+    assertNull(nodeService.get(nodeId1, user).flatMap(Node::getCode).orElse(null));
+
+    assertEquals("http://example.org/person-0",
+        nodeService.get(nodeId0, user).flatMap(Node::getUri).orElse(null));
+    assertEquals("http://example.org/person-1",
+        nodeService.get(nodeId1, user).flatMap(Node::getUri).orElse(null));
+  }
+
+  @Test
+  void shouldGenerateCodesAndUrisWithGivenNamespaceIfRequested() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    nodeService.save(Stream.of(node0, node1), INSERT,
+        opts(false, "http://example.org/", true, true), user);
+
+    assertEquals("person-0",
+        nodeService.get(nodeId0, user).flatMap(Node::getCode).orElse(null));
+    assertEquals("person-1",
+        nodeService.get(nodeId1, user).flatMap(Node::getCode).orElse(null));
+    assertEquals("http://example.org/person-0",
+        nodeService.get(nodeId0, user).flatMap(Node::getUri).orElse(null));
+    assertEquals("http://example.org/person-1",
+        nodeService.get(nodeId1, user).flatMap(Node::getUri).orElse(null));
+  }
+
+  @Test
+  void shouldNotGenerateCodesOrUrisWithDefaultOpts() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+    assertFalse(nodeService.exists(nodeId1, user));
+
+    nodeService.save(Stream.of(node0, node1), INSERT, defaultOpts(), user);
+
+    assertNull(nodeService.get(nodeId0, user).flatMap(Node::getCode).orElse(null));
+    assertNull(nodeService.get(nodeId1, user).flatMap(Node::getCode).orElse(null));
+    assertNull(nodeService.get(nodeId0, user).flatMap(Node::getUri).orElse(null));
+    assertNull(nodeService.get(nodeId1, user).flatMap(Node::getUri).orElse(null));
   }
 
 }
