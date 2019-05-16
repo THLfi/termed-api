@@ -1,5 +1,6 @@
 package fi.thl.termed.service.node;
 
+import static fi.thl.termed.util.query.Queries.query;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
@@ -8,8 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.service.node.specification.NodesByNumberRange;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -68,14 +70,34 @@ class NodeNumberSavingServiceIntegrationTest extends BaseNodeServiceIntegrationT
     assertEquals(0, nodeService.count(new NodesByGraphId(graphId), user));
 
     nodeService.save(
-        Stream.generate(() -> Node.builder().id(NodeId.random("Person", graphId)).build())
+        Stream.generate(() ->
+            Node.builder()
+                .random(TypeId.of("Person", graphId))
+                .build())
             .limit(testNodeCount),
         INSERT, defaultOpts(), user);
 
     assertEquals(testNodeCount, nodeService.count(new NodesByGraphId(graphId), user));
 
-    try (Stream<Node> nodes = nodeService.values(
-        new Query<>(new NodesByGraphId(graphId)), user)) {
+    try (Stream<Node> nodes = nodeService.values(query(NodesByNumberRange.of(null, 25L)), user)) {
+      assertEquals(
+          LongStream.rangeClosed(0, 25).boxed().collect(toSet()),
+          nodes.map(Node::getNumber).collect(toSet()));
+    }
+
+    try (Stream<Node> nodes = nodeService.values(query(NodesByNumberRange.of(2000L, null)), user)) {
+      assertEquals(
+          LongStream.range(2000, 2500).boxed().collect(toSet()),
+          nodes.map(Node::getNumber).collect(toSet()));
+    }
+
+    try (Stream<Node> nodes = nodeService.values(query(NodesByNumberRange.of(10L, 25L)), user)) {
+      assertEquals(
+          LongStream.rangeClosed(10, 25).boxed().collect(toSet()),
+          nodes.map(Node::getNumber).collect(toSet()));
+    }
+
+    try (Stream<Node> nodes = nodeService.values(query(NodesByGraphId.of(graphId)), user)) {
       assertEquals(
           LongStream.range(0, testNodeCount).boxed().collect(toSet()),
           nodes.map(Node::getNumber).collect(toSet()));
