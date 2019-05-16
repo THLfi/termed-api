@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.specification;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -62,9 +61,7 @@ public class NodesById implements LuceneSpecification<NodeId, Node>,
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .toString();
+    return "id = " + id;
   }
 
 }

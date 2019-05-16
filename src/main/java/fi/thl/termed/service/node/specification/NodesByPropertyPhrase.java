@@ -7,7 +7,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.indexOfSubList;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -80,11 +79,8 @@ public class NodesByPropertyPhrase implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("attributeId", attributeId)
-        .add("lang", lang)
-        .add("phrase", phrase)
-        .toString();
+    return "properties." + attributeId + (lang.isEmpty() ? "" : "." + lang)
+        + " = \"" + phrase + "\"";
   }
 
 }

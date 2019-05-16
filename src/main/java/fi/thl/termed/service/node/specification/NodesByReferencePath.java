@@ -67,4 +67,9 @@ public class NodesByReferencePath implements LuceneSpecification<NodeId, Node>,
     return clauses.build();
   }
 
+  @Override
+  public String toString() {
+    return "references." + attributeId + "." + valueSpecification.toString();
+  }
+
 }

@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.specification;
 
-import com.google.common.base.MoreObjects;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.util.query.Specification;
@@ -43,9 +42,7 @@ public class NodesByTypeUri implements Specification<NodeId, Node> {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("typeUri", typeUri)
-        .toString();
+    return "type.uri = " + typeUri;
   }
 
 }

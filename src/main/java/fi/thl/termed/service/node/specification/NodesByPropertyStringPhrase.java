@@ -5,7 +5,6 @@ import static fi.thl.termed.util.RegularExpressions.CODE;
 import static fi.thl.termed.util.RegularExpressions.IETF_LANGUAGE_TAG;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -74,11 +73,9 @@ public class NodesByPropertyStringPhrase implements LuceneSpecification<NodeId, 
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("attributeId", attributeId)
-        .add("lang", lang)
-        .add("phrase", phrase)
-        .toString();
+    return "properties." + attributeId + (lang.isEmpty() ? "" : "." + lang) + ".string = \""
+        + phrase + "\"";
+
   }
 
 }

@@ -1,20 +1,16 @@
 package fi.thl.termed.service.node.specification;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
+import fi.thl.termed.domain.Node;
+import fi.thl.termed.domain.NodeId;
+import fi.thl.termed.util.RegularExpressions;
+import fi.thl.termed.util.query.LuceneSpecification;
+import java.util.Objects;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermRangeQuery;
-
-import java.util.Objects;
-
-import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.util.RegularExpressions;
-import fi.thl.termed.util.query.LuceneSpecification;
 
 public class NodesWithoutReferrers implements LuceneSpecification<NodeId, Node> {
 
@@ -36,7 +32,7 @@ public class NodesWithoutReferrers implements LuceneSpecification<NodeId, Node> 
     BooleanQuery.Builder query = new BooleanQuery.Builder();
     query.add(new MatchAllDocsQuery(), BooleanClause.Occur.SHOULD);
     query.add(new TermRangeQuery("referrers." + attributeId + ".nodeId", null, null, true, true),
-              BooleanClause.Occur.MUST_NOT);
+        BooleanClause.Occur.MUST_NOT);
     return query.build();
   }
 
@@ -59,9 +55,8 @@ public class NodesWithoutReferrers implements LuceneSpecification<NodeId, Node> 
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("attributeId", attributeId)
-        .toString();
+    return "referrers." + attributeId + ".id = null";
+
   }
 
 }

@@ -1,6 +1,5 @@
 package fi.thl.termed.service.node.specification;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
@@ -56,9 +55,7 @@ public class NodesByNumber
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("number", number)
-        .toString();
+    return "number = " + number;
   }
 
 }
