@@ -10,6 +10,11 @@ public class SelectTypeQualifiedProperty extends AbstractSelectTypeQualifiedFiel
   }
 
   @Override
+  public String toLuceneSelectField() {
+    return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".properties." + field;
+  }
+
+  @Override
   public String toString() {
     return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".properties." + field;
   }

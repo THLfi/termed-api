@@ -29,12 +29,12 @@ import fi.thl.termed.util.index.lucene.LuceneIndex;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.CompositeSpecification;
 import fi.thl.termed.util.query.DependentSpecification;
+import fi.thl.termed.util.query.LuceneSelectField;
 import fi.thl.termed.util.query.LuceneSpecification;
 import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.query.Specifications;
@@ -325,7 +325,9 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         query.getSelect().contains(new SelectAll())
             ? null // select all fields
             : query.getSelect().stream()
-                .map(Select::toString)
+                .map(s -> s instanceof LuceneSelectField
+                    ? ((LuceneSelectField) s).toLuceneSelectField()
+                    : s.toString())
                 .collect(Collectors.toSet());
 
     // ensure that id fields are loaded

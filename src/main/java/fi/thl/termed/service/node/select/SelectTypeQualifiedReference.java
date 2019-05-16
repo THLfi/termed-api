@@ -14,8 +14,14 @@ public class SelectTypeQualifiedReference extends AbstractSelectTypeQualifiedFie
   }
 
   @Override
-  public String toString() {
+  public String toLuceneSelectField() {
     return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".references." + field;
+  }
+
+  @Override
+  public String toString() {
+    return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() +
+        ".references." + field + ":" + depth;
   }
 
 }

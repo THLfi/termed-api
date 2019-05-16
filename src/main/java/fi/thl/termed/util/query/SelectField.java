@@ -2,7 +2,7 @@ package fi.thl.termed.util.query;
 
 import java.util.Objects;
 
-public final class SelectField implements Select {
+public final class SelectField implements LuceneSelectField {
 
   private final String field;
 
@@ -11,6 +11,11 @@ public final class SelectField implements Select {
   }
 
   public String getField() {
+    return field;
+  }
+
+  @Override
+  public String toLuceneSelectField() {
     return field;
   }
 

@@ -2,7 +2,8 @@ package fi.thl.termed.util.query;
 
 import java.util.Objects;
 
-public abstract class AbstractSelectQualifiedField extends AbstractSelectQualified {
+public abstract class AbstractSelectQualifiedField
+    extends AbstractSelectQualified implements LuceneSelectField {
 
   protected final String field;
 
@@ -18,6 +19,11 @@ public abstract class AbstractSelectQualifiedField extends AbstractSelectQualifi
 
   public String getField() {
     return field;
+  }
+
+  @Override
+  public String toLuceneSelectField() {
+    return qualifier + field;
   }
 
   @Override
