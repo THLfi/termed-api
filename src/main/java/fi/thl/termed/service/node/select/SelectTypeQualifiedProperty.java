@@ -5,13 +5,19 @@ import fi.thl.termed.util.UUIDs;
 
 public class SelectTypeQualifiedProperty extends AbstractSelectTypeQualifiedField {
 
+  private transient String luceneSelectField;
+
   public SelectTypeQualifiedProperty(TextAttributeId textAttributeId) {
     super(textAttributeId.getDomainId(), textAttributeId.getId());
   }
 
   @Override
   public String toLuceneSelectField() {
-    return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".properties." + field;
+    if (luceneSelectField == null) {
+      luceneSelectField =
+          UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".properties." + field;
+    }
+    return luceneSelectField;
   }
 
   @Override

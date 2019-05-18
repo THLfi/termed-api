@@ -5,6 +5,8 @@ import fi.thl.termed.util.UUIDs;
 
 public class SelectTypeQualifiedReference extends AbstractSelectTypeQualifiedFieldWithDepth {
 
+  private transient String luceneSelectField;
+
   public SelectTypeQualifiedReference(ReferenceAttributeId attributeId) {
     super(attributeId.getDomainId(), attributeId.getId());
   }
@@ -15,7 +17,11 @@ public class SelectTypeQualifiedReference extends AbstractSelectTypeQualifiedFie
 
   @Override
   public String toLuceneSelectField() {
-    return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".references." + field;
+    if (luceneSelectField == null) {
+      luceneSelectField =
+          UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".references." + field;
+    }
+    return luceneSelectField;
   }
 
   @Override

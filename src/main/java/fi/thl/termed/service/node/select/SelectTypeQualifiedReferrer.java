@@ -5,6 +5,8 @@ import fi.thl.termed.util.UUIDs;
 
 public class SelectTypeQualifiedReferrer extends AbstractSelectTypeQualifiedFieldWithDepth {
 
+  private transient String luceneSelectField;
+
   public SelectTypeQualifiedReferrer(ReferenceAttributeId attributeId) {
     super(attributeId.getDomainId(), attributeId.getId());
   }
@@ -15,7 +17,11 @@ public class SelectTypeQualifiedReferrer extends AbstractSelectTypeQualifiedFiel
 
   @Override
   public String toLuceneSelectField() {
-    return UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".referrers." + field;
+    if (luceneSelectField == null) {
+      luceneSelectField =
+          UUIDs.toString(typeId.getGraphId()) + "." + typeId.getId() + ".referrers." + field;
+    }
+    return luceneSelectField;
   }
 
   @Override
