@@ -84,7 +84,9 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
     try {
       Analyzer a = new LowerCaseWhitespaceAnalyzer();
-      IndexWriterConfig c = new IndexWriterConfig(a).setOpenMode(CREATE_OR_APPEND);
+      IndexWriterConfig c = new IndexWriterConfig(a)
+          .setOpenMode(CREATE_OR_APPEND)
+          .setCodec(new TermedCodec());
       this.writer = new IndexWriter(openDirectory(directoryPath), c);
       this.searcherManager = new SearcherManager(writer, new SearcherFactory());
     } catch (IOException e) {
@@ -232,15 +234,20 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   private <E> Stream<E> query(IndexSearcher searcher, Query query, int max,
       List<fi.thl.termed.util.query.Sort> sort, Set<String> fieldsToLoad,
       Function<Document, E> documentDeserializer) throws IOException {
-    log.trace("{}", fieldsToLoad);
-    log.trace("{}", query);
-    log.trace("{}", sort);
+
+    long start = System.currentTimeMillis();
+
     TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(sort));
     return toStreamWithTimeout(
         Arrays.stream(docs.scoreDocs)
             .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
             .map(documentDeserializer)
-            .onClose(() -> tryRelease(searcher)),
+            .onClose(() -> tryRelease(searcher))
+            .onClose(() -> {
+              if (log.isTraceEnabled()) {
+                log.trace("{} in {} ms", query, System.currentTimeMillis() - start);
+              }
+            }),
         scheduledExecutorService, 1, TimeUnit.HOURS, query::toString);
   }
 
