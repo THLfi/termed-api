@@ -4,7 +4,6 @@ import static com.google.common.collect.ImmutableList.of;
 import static fi.thl.termed.service.node.select.NodeSelects.parse;
 import static fi.thl.termed.service.node.select.NodeSelects.qualify;
 import static fi.thl.termed.service.node.specification.NodeSpecifications.specifyByQuery;
-import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.Queries.matchAll;
@@ -45,7 +44,6 @@ import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
@@ -174,20 +172,20 @@ public class NodeTreeReadController {
         NodesByGraphId.of(graphId),
         NodesByTypeId.of(typeId),
         NodesById.of(id));
+
+    if (nodeService.count(spec, user) < 1) {
+      throw new NotFoundException();
+    }
+
     List<Select> selects = qualify(types, of(domain), parse(select));
 
-    Optional<Node> optionalRoot = findFirstAndClose(
-        nodeService.values(new Query<>(selects, spec), user));
+    resp.setContentType(APPLICATION_JSON_UTF8_VALUE);
+    resp.setCharacterEncoding(UTF_8.toString());
 
-    if (optionalRoot.isPresent()) {
-      resp.setContentType(APPLICATION_JSON_UTF8_VALUE);
-      resp.setCharacterEncoding(UTF_8.toString());
-
-      try (JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
-        NodeTreeToJsonStream.toJson(toTree(optionalRoot.get(), selects, user), writer);
-      }
-    } else {
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+    try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec), user);
+        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
+      Node root = nodes.findFirst().orElseThrow(NotFoundException::new);
+      NodeTreeToJsonStream.toJson(toTree(root, selects, user), writer);
     }
   }
 
