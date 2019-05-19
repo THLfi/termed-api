@@ -35,6 +35,7 @@ import fi.thl.termed.util.query.NotSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.query.Specifications;
@@ -321,14 +322,22 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
     resolve(query.getWhere(), user);
 
-    Set<String> fieldsToLoad =
-        query.getSelect().contains(new SelectAll())
-            ? null // select all fields
-            : query.getSelect().stream()
-                .map(s -> s instanceof LuceneSelectField
-                    ? ((LuceneSelectField) s).toLuceneSelectField()
-                    : s.toString())
-                .collect(Collectors.toSet());
+    return ((LuceneIndex<NodeId, Node>) index).get(
+        query.getWhere(),
+        query.getSort(),
+        query.getMax(),
+        selectToFieldsToLoad(query.getSelect()),
+        new DocumentToNode());
+  }
+
+  private Set<String> selectToFieldsToLoad(List<Select> selects) {
+    Set<String> fieldsToLoad = selects.contains(new SelectAll())
+        ? null // select all fields
+        : selects.stream()
+            .map(s -> s instanceof LuceneSelectField
+                ? ((LuceneSelectField) s).toLuceneSelectField()
+                : s.toString())
+            .collect(Collectors.toSet());
 
     // ensure that id fields are loaded
     if (fieldsToLoad != null) {
@@ -337,12 +346,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
       fieldsToLoad.add("type.graph.id");
     }
 
-    return ((LuceneIndex<NodeId, Node>) index).get(
-        query.getWhere(),
-        query.getSort(),
-        query.getMax(),
-        fieldsToLoad,
-        new DocumentToNode());
+    return fieldsToLoad;
   }
 
   @Override
