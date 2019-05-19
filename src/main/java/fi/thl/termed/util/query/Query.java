@@ -1,6 +1,5 @@
 package fi.thl.termed.util.query;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import com.google.common.collect.ImmutableList;
@@ -19,14 +18,14 @@ public class Query<K extends Serializable, V> {
   public Query(Specification<K, V> where) {
     this.select = singletonList(new SelectAll());
     this.where = where;
-    this.sort = emptyList();
+    this.sort = singletonList(new SortRelevance());
     this.max = -1;
   }
 
   public Query(Iterable<Select> select, Specification<K, V> where) {
     this.select = ImmutableList.copyOf(select);
     this.where = where;
-    this.sort = emptyList();
+    this.sort = singletonList(new SortRelevance());
     this.max = -1;
   }
 

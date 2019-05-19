@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableList;
@@ -45,7 +46,7 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
   @Override
   public ImmutableList<Node> apply(Node node, String attributeId) {
     Query<NodeId, Node> query = new Query<>(selects,
-        new NodeReferrers(node.identifier(), attributeId));
+        new NodeReferrers(node.identifier(), attributeId), emptyList(), -1);
 
     try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referrerValuesMap = results.collect(toMap(Node::identifier, n -> n));

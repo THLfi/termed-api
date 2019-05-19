@@ -1,8 +1,10 @@
 package fi.thl.termed.util.query;
 
+import static org.apache.lucene.search.SortField.Type.STRING;
+
 import java.util.Objects;
 
-public class SortField implements Sort {
+public class SortField implements LuceneSortField {
 
   final String field;
   final boolean desc;
@@ -46,6 +48,11 @@ public class SortField implements Sort {
   @Override
   public String toString() {
     return "'" + field + "'" + (desc ? " DESC" : "");
+  }
+
+  public org.apache.lucene.search.SortField toLuceneSortField() {
+    return new org.apache.lucene.search.SortField(
+        field + ".sortable", STRING, desc);
   }
 
 }

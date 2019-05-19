@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.util;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableList;
@@ -46,7 +47,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
   @Override
   public ImmutableList<Node> apply(Node node, String attributeId) {
     Query<NodeId, Node> query = new Query<>(selects,
-        new NodeReferences(node.identifier(), attributeId));
+        new NodeReferences(node.identifier(), attributeId), emptyList(), -1);
 
     try (Stream<Node> results = nodeService.values(query, user)) {
       Map<NodeId, Node> referenceValuesMap = results.collect(toMap(Node::identifier, n -> n));

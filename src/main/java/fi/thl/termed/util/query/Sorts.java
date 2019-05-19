@@ -6,15 +6,15 @@ public final class Sorts {
   }
 
   public static Sort sort(String field) {
-    return new LuceneSortField(field);
+    return new SortField(field);
   }
 
   public static Sort sort(String field, boolean desc) {
-    return new LuceneSortField(field, desc);
+    return new SortField(field, desc);
   }
 
   public static Sort sortDesc(String field) {
-    return new LuceneSortField(field, true);
+    return new SortField(field, true);
   }
 
 }

@@ -237,10 +237,19 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
 
     long start = System.currentTimeMillis();
 
-    TopFieldDocs docs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(sort));
-    return toStreamWithTimeout(
-        Arrays.stream(docs.scoreDocs)
-            .map(toUnchecked(scoreDoc -> searcher.doc(scoreDoc.doc, fieldsToLoad)))
+    Stream<Integer> docs;
+
+    if (ListUtils.isNullOrEmpty(sort) && (max < 0 || max == Integer.MAX_VALUE)) {
+      SimpleAllCollector c = new SimpleAllCollector();
+      searcher.search(query, c);
+      docs = c.getDocs().stream();
+    } else {
+      TopFieldDocs topDocs = searcher.search(query, max > 0 ? max : Integer.MAX_VALUE, sort(sort));
+      docs = Arrays.stream(topDocs.scoreDocs).map(sd -> sd.doc);
+    }
+
+    return toStreamWithTimeout(docs
+            .map(toUnchecked(doc -> searcher.doc(doc, fieldsToLoad)))
             .map(documentDeserializer)
             .onClose(() -> tryRelease(searcher))
             .onClose(() -> {
@@ -268,11 +277,7 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   private Sort sort(List<fi.thl.termed.util.query.Sort> sort) {
-    if (ListUtils.isNullOrEmpty(sort)) {
-      return new Sort(SortField.FIELD_SCORE);
-    }
-
-    return new Sort(sort.stream()
+    return new Sort(ListUtils.nullToEmpty(sort).stream()
         .filter(s -> s instanceof LuceneSortField)
         .map(s -> (LuceneSortField) s)
         .map(LuceneSortField::toLuceneSortField)
