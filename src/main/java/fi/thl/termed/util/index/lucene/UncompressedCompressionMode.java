@@ -36,8 +36,8 @@ public class UncompressedCompressionMode extends CompressionMode {
       public void decompress(DataInput in, int originalLength, int offset, int length,
           BytesRef bytes)
           throws IOException {
-        bytes.bytes = ArrayUtil.grow(bytes.bytes, originalLength);
-        in.readBytes(bytes.bytes, 0, originalLength);
+        bytes.bytes = ArrayUtil.grow(bytes.bytes, offset + length);
+        in.readBytes(bytes.bytes, 0, offset + length);
         bytes.offset = offset;
         bytes.length = length;
       }
