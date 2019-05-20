@@ -1,18 +1,29 @@
 package fi.thl.termed.service.node.util;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static fi.thl.termed.util.query.Queries.query;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.internal.NodeReferences;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.service.node.specification.NodesByGraphId;
+import fi.thl.termed.service.node.specification.NodesById;
+import fi.thl.termed.service.node.specification.NodesByTypeId;
+import fi.thl.termed.util.query.AndSpecification;
+import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Select;
 import fi.thl.termed.util.query.SelectAll;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -25,53 +36,94 @@ import org.slf4j.LoggerFactory;
  */
 public class IndexedReferenceLoader implements BiFunction<Node, String, ImmutableList<Node>> {
 
-  private Logger log = LoggerFactory.getLogger(getClass());
+  private static final Logger log = LoggerFactory.getLogger(IndexedReferenceLoader.class);
 
-  private Service<NodeId, Node> nodeService;
-  private User user;
-  private List<Select> selects;
+  private final Service<NodeId, Node> nodeService;
+  private final User user;
+  private final List<Select> selects;
+
+  private final Cache<NodeId, Node> referenceCache;
 
   public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user) {
-    this.nodeService = nodeService;
-    this.user = user;
-    this.selects = ImmutableList.of(new SelectAll());
+    this(nodeService, user, ImmutableList.of(new SelectAll()));
   }
 
   public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user,
       List<Select> selects) {
+    this(nodeService, user, selects, CacheBuilder.newBuilder().softValues().build());
+  }
+
+  private IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, List<Select> selects,
+      Cache<NodeId, Node> referenceCache) {
     this.nodeService = nodeService;
     this.user = user;
     this.selects = selects;
+    this.referenceCache = referenceCache;
   }
 
   @Override
   public ImmutableList<Node> apply(Node node, String attributeId) {
-    Query<NodeId, Node> query = new Query<>(selects,
-        new NodeReferences(node.identifier(), attributeId), emptyList(), -1);
+    Collection<NodeId> referenceIds = node.getReferences().get(attributeId);
 
-    try (Stream<Node> results = nodeService.values(query, user)) {
+    List<NodeId> missingReferenceIds = new ArrayList<>();
+    Map<NodeId, Node> references = new LinkedHashMap<>();
+
+    referenceIds.forEach(refId -> {
+      Node cachedRef = referenceCache.getIfPresent(refId);
+      if (cachedRef != null) {
+        references.put(refId, cachedRef);
+      } else {
+        missingReferenceIds.add(refId);
+        references.put(refId, null);
+      }
+    });
+
+    // all ref values found from cache, return results
+    if (missingReferenceIds.isEmpty()) {
+      return ImmutableList.copyOf(references.values());
+    }
+
+    // if many or all refs are missing, find all refs, otherwise query missing ones by id
+    Specification<NodeId, Node> missingReferencesSpec;
+    if (missingReferenceIds.size() == referenceIds.size() || missingReferenceIds.size() > 20) {
+      missingReferencesSpec = new NodeReferences(node.identifier(), attributeId);
+    } else {
+      missingReferencesSpec = OrSpecification.or(missingReferenceIds.stream()
+          .map(refId -> AndSpecification.and(
+              NodesByGraphId.of(refId.getTypeGraphId()),
+              NodesByTypeId.of(refId.getTypeId()),
+              NodesById.of(refId.getId())))
+          .collect(toList()));
+    }
+
+    try (Stream<Node> results = nodeService.values(
+        query(selects, missingReferencesSpec, emptyList(), -1), user)) {
+
       Map<NodeId, Node> referenceValuesMap = results.collect(toMap(Node::identifier, n -> n));
 
-      ImmutableList<Node> populatedReferences = node.getReferences().get(attributeId).stream()
-          .filter(referenceId -> referenceValuesMap.containsKey(referenceId) ||
-              logMissingReferenceValue(node.identifier(), attributeId, referenceId))
-          .map(referenceValuesMap::remove)
-          .collect(toImmutableList());
+      missingReferenceIds.forEach(refId -> {
+        if (referenceValuesMap.containsKey(refId)) {
+          Node reference = referenceValuesMap.remove(refId);
+          references.put(refId, reference);
+          referenceCache.put(refId, reference);
+        } else {
+          logMissingReferenceValue(node.identifier(), attributeId, refId);
+        }
+      });
 
       if (!referenceValuesMap.isEmpty()) {
         referenceValuesMap.keySet()
             .forEach(k -> logUnexpectedReferenceValue(node.identifier(), attributeId, k));
       }
-
-      return populatedReferences;
     }
+
+    return ImmutableList.copyOf(references.values());
   }
 
-  private boolean logMissingReferenceValue(NodeId nodeId, String attributeId, NodeId referrerId) {
+  private void logMissingReferenceValue(NodeId nodeId, String attributeId, NodeId referrerId) {
     log.warn(
         "Index may be corrupted or outdated. Node {} is missing references.{}.{} from the index.",
         nodeId, attributeId, referrerId);
-    return false;
   }
 
   private void logUnexpectedReferenceValue(NodeId nodeId, String attributeId, NodeId referenceId) {
