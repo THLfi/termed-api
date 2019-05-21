@@ -82,8 +82,10 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
       return ImmutableList.copyOf(referrers.values());
     }
 
+    boolean loadAllRefs = missingReferrerIds.size() == referrerIds.size();
+
     Specification<NodeId, Node> missingReferrersSpec;
-    if (missingReferrerIds.size() == referrerIds.size() || missingReferrerIds.size() > 20) {
+    if (loadAllRefs || missingReferrerIds.size() > 20) {
       missingReferrersSpec = new NodeReferrers(node.identifier(), attributeId);
     } else {
       missingReferrersSpec = OrSpecification.or(missingReferrerIds.stream()
@@ -100,16 +102,17 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
       Map<NodeId, Node> referrerValuesMap = results.collect(toMap(Node::identifier, n -> n));
 
       missingReferrerIds.forEach(refId -> {
-        if (referrerValuesMap.containsKey(refId)) {
-          Node reference = referrerValuesMap.remove(refId);
-          referrers.put(refId, reference);
-          referrerCache.put(refId, reference);
+        Node referrer = referrerValuesMap.remove(refId);
+
+        if (referrer != null) {
+          referrers.put(refId, referrer);
+          referrerCache.put(refId, referrer);
         } else {
           logMissingReferrerValue(node.identifier(), attributeId, refId);
         }
       });
 
-      if (!referrerValuesMap.isEmpty()) {
+      if (loadAllRefs && !referrerValuesMap.isEmpty()) {
         referrerValuesMap.keySet()
             .forEach(k -> logUnexpectedReferrerValue(node.identifier(), attributeId, k));
       }

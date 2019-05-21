@@ -83,9 +83,11 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
       return ImmutableList.copyOf(references.values());
     }
 
-    // if many or all refs are missing, find all refs, otherwise query missing ones by id
+    boolean loadAllRefs = missingReferenceIds.size() == referenceIds.size();
+
+    // if all or many refs are missing, find all refs, otherwise query just the missing ones
     Specification<NodeId, Node> missingReferencesSpec;
-    if (missingReferenceIds.size() == referenceIds.size() || missingReferenceIds.size() > 20) {
+    if (loadAllRefs || missingReferenceIds.size() > 20) {
       missingReferencesSpec = new NodeReferences(node.identifier(), attributeId);
     } else {
       missingReferencesSpec = OrSpecification.or(missingReferenceIds.stream()
@@ -102,8 +104,9 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
       Map<NodeId, Node> referenceValuesMap = results.collect(toMap(Node::identifier, n -> n));
 
       missingReferenceIds.forEach(refId -> {
-        if (referenceValuesMap.containsKey(refId)) {
-          Node reference = referenceValuesMap.remove(refId);
+        Node reference = referenceValuesMap.remove(refId);
+
+        if (reference != null) {
           references.put(refId, reference);
           referenceCache.put(refId, reference);
         } else {
@@ -111,7 +114,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
         }
       });
 
-      if (!referenceValuesMap.isEmpty()) {
+      if (loadAllRefs && !referenceValuesMap.isEmpty()) {
         referenceValuesMap.keySet()
             .forEach(k -> logUnexpectedReferenceValue(node.identifier(), attributeId, k));
       }
