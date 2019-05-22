@@ -11,6 +11,8 @@ import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
 import fi.thl.termed.domain.DepthLimitedNodeTree;
@@ -185,18 +187,20 @@ public class NodeTreeReadController {
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec), user);
         JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
       Node root = nodes.findFirst().orElseThrow(NotFoundException::new);
-      NodeTreeToJsonStream.toJson(toTree(root, selects, user), writer);
+      NodeTreeToJsonStream.toJson(toTree(root, selects, user,
+          CacheBuilder.newBuilder().softValues().build()), writer);
     }
   }
 
   private Stream<NodeTree> toTrees(Stream<Node> nodes, List<Select> selects, User user) {
-    return nodes.map(node -> toTree(node, selects, user));
+    Cache<NodeId, Node> cache = CacheBuilder.newBuilder().softValues().build();
+    return nodes.map(node -> toTree(node, selects, user, cache));
   }
 
-  private NodeTree toTree(Node node, List<Select> selects, User user) {
+  private NodeTree toTree(Node node, List<Select> selects, User user, Cache<NodeId, Node> cache) {
     NodeTree tree = new LazyLoadingNodeTree(node,
-        new IndexedReferenceLoader(nodeService, user, selects),
-        new IndexedReferrerLoader(nodeService, user, selects));
+        new IndexedReferenceLoader(nodeService, user, selects, cache),
+        new IndexedReferrerLoader(nodeService, user, selects, cache));
 
     tree = new DepthLimitedNodeTree(tree,
         NodeSelects.toReferenceSelectsWithDepths(selects),

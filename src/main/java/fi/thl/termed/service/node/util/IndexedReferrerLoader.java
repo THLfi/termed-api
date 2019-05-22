@@ -52,7 +52,7 @@ public class IndexedReferrerLoader implements BiFunction<Node, String, Immutable
     this(nodeService, user, selects, CacheBuilder.newBuilder().softValues().build());
   }
 
-  private IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user, List<Select> selects,
+  public IndexedReferrerLoader(Service<NodeId, Node> nodeService, User user, List<Select> selects,
       Cache<NodeId, Node> referrerCache) {
     this.nodeService = nodeService;
     this.user = user;

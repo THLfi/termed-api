@@ -16,6 +16,8 @@ import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.Queries.matchAll;
 import static fi.thl.termed.util.spring.SpEL.EMPTY_LIST;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import fi.thl.termed.domain.DepthLimitedNodeTree;
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
@@ -201,7 +203,7 @@ public class NodeRdfTreeReadController {
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec), user)) {
       Node node = nodes.findFirst().orElseThrow(NotFoundException::new);
 
-      NodeTree tree = toTree(node, selects, user);
+      NodeTree tree = toTree(node, selects, user, CacheBuilder.newBuilder().softValues().build());
 
       Model model = ModelFactory.createDefaultModel();
       model.setNsPrefixes(defaultNamespacePrefixes);
@@ -216,13 +218,15 @@ public class NodeRdfTreeReadController {
   }
 
   private Stream<SimpleNodeTree> toTrees(Stream<Node> nodes, List<Select> selects, User user) {
-    return nodes.map(node -> toTree(node, selects, user));
+    Cache<NodeId, Node> cache = CacheBuilder.newBuilder().softValues().build();
+    return nodes.map(node -> toTree(node, selects, user, cache));
   }
 
-  private SimpleNodeTree toTree(Node node, List<Select> selects, User user) {
+  private SimpleNodeTree toTree(Node node, List<Select> selects, User user,
+      Cache<NodeId, Node> cache) {
     NodeTree tree = new LazyLoadingNodeTree(node,
-        new IndexedReferenceLoader(nodeService, user, selects),
-        new IndexedReferrerLoader(nodeService, user, selects));
+        new IndexedReferenceLoader(nodeService, user, selects, cache),
+        new IndexedReferrerLoader(nodeService, user, selects, cache));
 
     return new SimpleNodeTree(
         new DepthLimitedNodeTree(tree,

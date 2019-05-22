@@ -53,7 +53,7 @@ public class IndexedReferenceLoader implements BiFunction<Node, String, Immutabl
     this(nodeService, user, selects, CacheBuilder.newBuilder().softValues().build());
   }
 
-  private IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, List<Select> selects,
+  public IndexedReferenceLoader(Service<NodeId, Node> nodeService, User user, List<Select> selects,
       Cache<NodeId, Node> referenceCache) {
     this.nodeService = nodeService;
     this.user = user;
