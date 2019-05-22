@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ public class DocumentToNode implements Function<Document, Node> {
   private static final TypeAdapter<List<StrictLangValue>> propertyValuesListParser = new Gson()
       .getAdapter(new TypeToken<List<StrictLangValue>>() {
       });
+  private static final Pattern commaPattern = Pattern.compile(",");
 
   @Override
   public Node apply(Document doc) {
@@ -100,14 +102,12 @@ public class DocumentToNode implements Function<Document, Node> {
             }
             continue;
           case "references":
-            for (String s : fieldValue.split(",")) {
-              references.put(attrName, NodeId.fromString(s));
-            }
+            commaPattern.splitAsStream(fieldValue)
+                .forEach(s -> references.put(attrName, NodeId.fromString(s)));
             continue;
           case "referrers":
-            for (String s : fieldValue.split(",")) {
-              referrers.put(attrName, NodeId.fromString(s));
-            }
+            commaPattern.splitAsStream(fieldValue)
+                .forEach(s -> referrers.put(attrName, NodeId.fromString(s)));
             continue;
           default:
             log.warn("Unexpected attrType: {}", attrType);
