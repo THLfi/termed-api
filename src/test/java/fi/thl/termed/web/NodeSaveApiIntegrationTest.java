@@ -1,14 +1,10 @@
 package fi.thl.termed.web;
 
 import static fi.thl.termed.util.io.ResourceUtils.resourceToString;
-import static fi.thl.termed.web.ApiExampleData.exampleGraphId;
-import static fi.thl.termed.web.ApiExampleData.exampleNode1;
-import static fi.thl.termed.web.ApiExampleData.exampleNode1Id;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
-import fi.thl.termed.domain.StrictLangValue;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -82,64 +78,6 @@ class NodeSaveApiIntegrationTest extends BaseApiIntegrationTest {
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/nodes");
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId + "/types");
     given(adminAuthorizedRequest).delete("/api/graphs/" + graphId);
-  }
-
-  @Test
-  void shouldPatchNodeById() {
-    // save graph and types
-    given(adminAuthorizedJsonSaveRequest)
-        .body(ApiExampleData.exampleGraph)
-        .put("/api/graphs/{graphId}?mode=insert", exampleGraphId.getId());
-    given(adminAuthorizedJsonSaveRequest)
-        .body(ApiExampleData.personType)
-        .post("/api/graphs/{graphId}/types", exampleGraphId.getId());
-
-    // save a node with
-    given(adminAuthorizedJsonSaveRequest)
-        .body(exampleNode1)
-        .post("/api/graphs/{graphId}/types/Person/nodes", exampleGraphId.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK);
-
-    // check preconditions
-    given(adminAuthorizedJsonSaveRequest)
-        .get("/api/graphs/{graphId}/types/Person/nodes/{id}",
-            exampleGraphId.getId(), exampleNode1Id.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("properties.email[0].value",
-            equalTo(exampleNode1.getFirstPropertyValue("email")
-                .map(StrictLangValue::getValue)
-                .orElse(null)))
-        .body("properties.name[0].value",
-            equalTo(exampleNode1.getFirstPropertyValue("name")
-                .map(StrictLangValue::getValue)
-                .orElse(null)));
-
-    // patch name (replace person name with with a new one)
-    given(adminAuthorizedJsonSaveRequest)
-        .body("{\"properties\": { \"name\": [ { \"value\": \"PatchedName\"} ] } }")
-        .patch("/api/graphs/{graphId}/types/Person/nodes/{id}?append=false",
-            exampleGraphId.getId(), exampleNode1Id.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK);
-
-    // verify changes
-    given(adminAuthorizedJsonSaveRequest)
-        .get("/api/graphs/{graphId}/types/Person/nodes/{id}",
-            exampleGraphId.getId(), exampleNode1Id.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("properties.email[0].value",
-            equalTo(exampleNode1.getFirstPropertyValue("email")
-                .map(StrictLangValue::getValue)
-                .orElse(null)))
-        .body("properties.name[0].value", equalTo("PatchedName"));
-
-    // clean up
-    given(adminAuthorizedRequest).delete("/api/graphs/{graphId}/nodes", exampleGraphId.getId());
-    given(adminAuthorizedRequest).delete("/api/graphs/{graphId}/types", exampleGraphId.getId());
-    given(adminAuthorizedRequest).delete("/api/graphs/{graphId}", exampleGraphId.getId());
   }
 
 }
