@@ -1,9 +1,6 @@
 package fi.thl.termed.web;
 
-import static fi.thl.termed.util.io.ResourceUtils.resourceToString;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 import com.google.common.collect.ImmutableList;
 import fi.thl.termed.domain.Node;

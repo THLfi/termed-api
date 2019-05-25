@@ -1,6 +1,5 @@
 package fi.thl.termed.web.node;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableSetAndClose;
 import static fi.thl.termed.util.query.AndSpecification.and;
@@ -11,26 +10,20 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
-import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.domain.event.ReindexEvent;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.util.query.Query;
-import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
-import fi.thl.termed.util.service.WriteOptions;
-import fi.thl.termed.util.spring.exception.NotFoundException;
-import fi.thl.termed.util.spring.transaction.TransactionUtils;
+import fi.thl.termed.util.spring.http.HttpPreconditions;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,12 +39,6 @@ public class NodeDeleteController {
   @Autowired
   private Service<NodeId, Node> nodeService;
 
-  @Autowired
-  private PlatformTransactionManager transactionManager;
-
-  @Autowired
-  private EventBus eventBus;
-
   @DeleteMapping("/graphs/{graphId}/nodes")
   @ResponseStatus(NO_CONTENT)
   public void deleteAllOfGraph(
@@ -63,7 +50,9 @@ public class NodeDeleteController {
 
     if (disconnect) {
       Set<NodeId> deleteIds = toImmutableSetAndClose(nodeService.keys(nodesByGraphId, user));
-      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteIds, user),
+          deleteIds.stream(), UPDATE, opts(sync), user);
     } else {
       nodeService.delete(nodeService.keys(nodesByGraphId, user), opts(sync), user);
     }
@@ -82,7 +71,10 @@ public class NodeDeleteController {
         .collect(toImmutableSet());
 
     if (disconnect) {
-      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteIds, user),
+          deleteIds.stream(),
+          UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
@@ -102,7 +94,10 @@ public class NodeDeleteController {
 
     if (disconnect) {
       Set<NodeId> deleteIds = toImmutableSetAndClose(nodeService.keys(nodesByType, user));
-      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteIds, user),
+          deleteIds.stream(),
+          UPDATE, opts(sync), user);
     } else {
       nodeService.delete(nodeService.keys(nodesByType, user), opts(sync), user);
     }
@@ -117,7 +112,10 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     Set<NodeId> deleteIds = ImmutableSet.copyOf(nodeIds);
     if (disconnect) {
-      saveAndDelete(collectRefsAndDisconnect(deleteIds, user), deleteIds, UPDATE, opts(sync), user);
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteIds, user),
+          deleteIds.stream(),
+          UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
@@ -137,8 +135,10 @@ public class NodeDeleteController {
         .collect(toImmutableSet());
 
     if (disconnect) {
-      saveAndDelete(collectRefsAndDisconnect(deleteIds, user),
-          deleteIds, UPDATE, opts(sync), user);
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteIds, user),
+          deleteIds.stream(),
+          UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteIds.stream(), opts(sync), user);
     }
@@ -152,7 +152,9 @@ public class NodeDeleteController {
       @RequestBody NodeId deleteId,
       @AuthenticationPrincipal User user) {
     if (disconnect) {
-      saveAndDelete(collectRefsAndDisconnect(deleteId, user), singleton(deleteId),
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteId, user),
+          Stream.of(deleteId),
           UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteId, opts(sync), user);
@@ -170,45 +172,32 @@ public class NodeDeleteController {
       @AuthenticationPrincipal User user) {
     NodeId deleteId = new NodeId(id, typeId, graphId);
     if (disconnect) {
-      saveAndDelete(collectRefsAndDisconnect(deleteId, user), singleton(deleteId),
+      nodeService.saveAndDelete(
+          collectRefsAndDisconnect(deleteId, user),
+          Stream.of(deleteId),
           UPDATE, opts(sync), user);
     } else {
       nodeService.delete(deleteId, opts(sync), user);
     }
   }
 
-  private List<Node> collectRefsAndDisconnect(NodeId deletedNodeId, User user) {
+  private Stream<Node> collectRefsAndDisconnect(NodeId deletedNodeId, User user) {
     return collectRefsAndDisconnect(singleton(deletedNodeId), user);
   }
 
-  private List<Node> collectRefsAndDisconnect(Set<NodeId> deletedNodeIds, User user) {
+  private Stream<Node> collectRefsAndDisconnect(Set<NodeId> deletedNodeIds, User user) {
     return deletedNodeIds.stream()
-        .map(nodeId -> nodeService.get(nodeId, user)
-            .<NotFoundException>orElseThrow(NotFoundException::new))
+        .map(nodeId -> HttpPreconditions.checkFound(nodeService.get(nodeId, user)))
         .flatMap(node -> node.getReferrers().values().stream())
+        // skip referrer nodes that will be deleted
+        .filter(referrerId -> !deletedNodeIds.contains(referrerId))
         .distinct()
-        .map(referrerId -> nodeService.get(referrerId, user)
-            .<NotFoundException>orElseThrow(NotFoundException::new))
+        .map(referrerId -> HttpPreconditions.checkFound(nodeService.get(referrerId, user)))
         .map(referrer -> Node.builderFromCopyOf(referrer)
             .references(Multimaps.filterValues(
                 referrer.getReferences(),
                 referrerReferenceId -> !deletedNodeIds.contains(referrerReferenceId)))
-            .build())
-        .collect(toImmutableList());
-  }
-
-  private void saveAndDelete(List<Node> saves, Set<NodeId> deletes, SaveMode mode,
-      WriteOptions opts, User user) {
-    TransactionUtils.runInTransaction(transactionManager, () -> {
-      nodeService.save(saves.stream(), mode, opts, user);
-      nodeService.delete(deletes.stream(), opts, user);
-      return null;
-    }, (error) -> {
-      Stream<NodeId> reindex = Stream.concat(
-          saves.stream().map(Node::identifier),
-          deletes.stream());
-      eventBus.post(new ReindexEvent<>(() -> reindex));
-    });
+            .build());
   }
 
 }
