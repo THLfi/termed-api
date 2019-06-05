@@ -3,10 +3,7 @@ package fi.thl.termed.service.revision;
 import static fi.thl.termed.domain.Permission.INSERT;
 import static fi.thl.termed.domain.Permission.READ;
 import static fi.thl.termed.domain.Permission.UPDATE;
-import static fi.thl.termed.util.EventBusUtils.register;
-import static fi.thl.termed.util.dao.CachedSystemDao.cache;
 
-import com.google.common.eventbus.EventBus;
 import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.service.revision.internal.JdbcRevisionDao;
@@ -34,9 +31,6 @@ public class RevisionServiceConfiguration {
   @Autowired
   private PlatformTransactionManager transactionManager;
 
-  @Autowired
-  private EventBus eventBus;
-
   @Bean
   public SequenceService revisionSeqService() {
     return new JdbcSequenceService(dataSource, "revision_seq", revisionSeqEvaluator());
@@ -44,7 +38,7 @@ public class RevisionServiceConfiguration {
 
   @Bean
   public Service<Long, Revision> revisionService() {
-    SystemDao<Long, Revision> dao = register(eventBus, cache(new JdbcRevisionDao(dataSource)));
+    SystemDao<Long, Revision> dao = new JdbcRevisionDao(dataSource);
 
     Service<Long, Revision> service =
         new DaoForwardingRepository<>(
