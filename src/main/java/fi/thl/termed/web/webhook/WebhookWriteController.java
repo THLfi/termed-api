@@ -1,5 +1,6 @@
 package fi.thl.termed.web.webhook;
 
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.UUID.randomUUID;
@@ -8,10 +9,11 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.specification.WebhookByUrl;
-import fi.thl.termed.util.query.MatchAll;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +52,8 @@ public class WebhookWriteController {
   @DeleteMapping
   @ResponseStatus(NO_CONTENT)
   public void delete(@AuthenticationPrincipal User user) {
-    webhookService.delete(
-        webhookService.keys(new Query<>(new MatchAll<>()), user), defaultOpts(), user);
+    List<UUID> hookIds = toImmutableListAndClose(webhookService.keys(Queries.matchAll(), user));
+    webhookService.delete(hookIds.stream(), defaultOpts(), user);
   }
 
 }

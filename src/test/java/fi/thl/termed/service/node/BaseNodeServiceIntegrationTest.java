@@ -2,6 +2,7 @@ package fi.thl.termed.service.node;
 
 import static fi.thl.termed.domain.User.newSuperuser;
 import static fi.thl.termed.util.UUIDs.randomUUIDString;
+import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static fi.thl.termed.util.query.Queries.query;
 import static fi.thl.termed.util.query.Specifications.asLucene;
 import static fi.thl.termed.util.query.Specifications.asSql;
@@ -22,6 +23,7 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.util.Arrays;
@@ -142,8 +144,9 @@ abstract class BaseNodeServiceIntegrationTest {
   }
 
   private void deleteTestTypes() {
-    typeService.delete(
-        typeService.keys(new Query<>(new TypesByGraphId(graphId)), user), defaultOpts(), user);
+    List<TypeId> graphTypeIds = toListAndClose(
+        typeService.keys(Queries.query(TypesByGraphId.of(graphId)), user));
+    typeService.delete(graphTypeIds.stream(), defaultOpts(), user);
   }
 
   private void deleteTestGraph() {

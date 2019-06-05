@@ -15,6 +15,7 @@ import fi.thl.termed.service.property.internal.PropertyRepository;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.service.ReadWriteSynchronizedService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
@@ -49,10 +50,12 @@ public class PropertyServiceConfiguration {
             new AuthorizedDao<>(propertyDao, propertyEvaluator),
             new AuthorizedDao<>(propertyPropertyDao, propertyPropertyEvaluator));
 
+    service = new TransactionalService<>(service, transactionManager);
     service = new WriteLoggingService<>(service,
         getClass().getPackage().getName() + ".WriteLoggingService");
+    service = new ReadWriteSynchronizedService<>(service);
 
-    return new TransactionalService<>(service, transactionManager);
+    return service;
   }
 
 }

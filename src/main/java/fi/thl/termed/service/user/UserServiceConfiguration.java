@@ -14,6 +14,7 @@ import fi.thl.termed.service.user.internal.UserRepository;
 import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.PermissionEvaluator;
+import fi.thl.termed.util.service.ReadWriteSynchronizedService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
@@ -50,8 +51,10 @@ public class UserServiceConfiguration {
 
     service = new WriteLoggingService<>(service,
         getClass().getPackage().getName() + ".WriteLoggingService");
+    service = new TransactionalService<>(service, transactionManager);
+    service = new ReadWriteSynchronizedService<>(service);
 
-    return new TransactionalService<>(service, transactionManager);
+    return service;
   }
 
 }

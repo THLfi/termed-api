@@ -13,6 +13,7 @@ import fi.thl.termed.util.dao.AuthorizedDao;
 import fi.thl.termed.util.dao.SystemDao;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.DaoForwardingRepository;
+import fi.thl.termed.util.service.ReadWriteSynchronizedService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import java.util.UUID;
@@ -47,8 +48,10 @@ public class WebhookServiceConfiguration {
     Service<UUID, Webhook> service =
         new DaoForwardingRepository<>(
             new AuthorizedDao<>(dao, permissionEvaluator));
+    service = new TransactionalService<>(service, transactionManager);
+    service = new ReadWriteSynchronizedService<>(service);
 
-    return new TransactionalService<>(service, transactionManager);
+    return service;
   }
 
   @Bean

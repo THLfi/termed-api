@@ -36,6 +36,7 @@ import fi.thl.termed.util.permission.DaoPermissionEvaluator;
 import fi.thl.termed.util.permission.DisjunctionPermissionEvaluator;
 import fi.thl.termed.util.permission.PermissionEvaluator;
 import fi.thl.termed.util.service.ProfilingService;
+import fi.thl.termed.util.service.ReadWriteSynchronizedService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
 import fi.thl.termed.util.service.WriteLoggingService;
@@ -75,6 +76,7 @@ public class TypeServiceConfiguration {
     service = new ProfilingService<>(service,
         getClass().getPackage().getName() + ".ProfilingService", 500);
     service = new InitializingTypeService(service);
+    service = new ReadWriteSynchronizedService<>(service);
 
     return service;
   }

@@ -1,6 +1,9 @@
 package fi.thl.termed.web.type;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static fi.thl.termed.util.collect.SetUtils.toImmutableSet;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableSetAndClose;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.apache.jena.ext.com.google.common.collect.Sets.difference;
@@ -10,7 +13,7 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PostJsonMapping;
 import fi.thl.termed.util.spring.annotation.PutJsonMapping;
@@ -18,7 +21,6 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -74,22 +76,19 @@ public class TypeWriteController {
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
 
-    try (Stream<TypeId> typeIdStream = typeService
-        .keys(new Query<>(new TypesByGraphId(graphId)), user)) {
+    List<Type> typeList = types.map(
+        type -> Type.builder()
+            .id(type.getId(), graphId)
+            .copyOptionalsFrom(type).build())
+        .collect(toImmutableList());
 
-      List<Type> typeList = types.map(
-          type -> Type.builder()
-              .id(type.getId(), graphId)
-              .copyOptionalsFrom(type).build())
-          .collect(Collectors.toList());
+    Set<TypeId> oldTypeIds = toImmutableSetAndClose(
+        typeService.keys(Queries.query(TypesByGraphId.of(graphId)), user));
+    Set<TypeId> newTypeIds = typeList.stream().map(Type::identifier).collect(toImmutableSet());
 
-      Set<TypeId> oldTypes = typeIdStream.collect(toImmutableSet());
-      Set<TypeId> newTypes = typeList.stream().map(Type::identifier).collect(toImmutableSet());
-
-      typeService.saveAndDelete(
-          typeList.stream(), difference(oldTypes, newTypes).stream(),
-          saveMode(mode), opts(sync), user);
-    }
+    typeService.saveAndDelete(
+        typeList.stream(), difference(oldTypeIds, newTypeIds).stream(),
+        saveMode(mode), opts(sync), user);
   }
 
   @PutJsonMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -114,8 +113,9 @@ public class TypeWriteController {
       @PathVariable("graphId") UUID graphId,
       @RequestParam(name = "sync", defaultValue = "false") boolean sync,
       @AuthenticationPrincipal User user) {
-    typeService.delete(
-        typeService.keys(new Query<>(new TypesByGraphId(graphId)), user), opts(sync), user);
+    List<TypeId> graphTypeIds = toImmutableListAndClose(
+        typeService.keys(Queries.query(TypesByGraphId.of(graphId)), user));
+    typeService.delete(graphTypeIds.stream(), opts(sync), user);
   }
 
   @DeleteMapping(path = "/{id}")
