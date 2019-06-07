@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class ReadWriteSynchronizedService<K extends Serializable, V> implements Service<K, V> {
 
-  private final Logger log;
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final Service<K, V> delegate;
   private final Lock readLock;
@@ -35,7 +35,6 @@ public class ReadWriteSynchronizedService<K extends Serializable, V> implements 
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
-    this.log = LoggerFactory.getLogger(getClass());
     this.readLockTimeoutInSeconds = 10;
     this.writeLockTimeoutInSeconds = 10;
   }
