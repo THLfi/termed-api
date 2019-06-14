@@ -63,4 +63,19 @@ class NodeSpecificationParserTest {
         parser.apply("NOT properties.label:ab*^2 AND properties.note:ab*^3"));
   }
 
+  @Test
+  void shouldPropertyStringRangeQueries() {
+    assertEquals(
+        or(and(new NodesByPropertyStringRange("label", "", "A", "C"))),
+        parser.apply("properties.label.string:[A TO C]"));
+
+    assertEquals(
+        or(and(new NodesByPropertyStringRange("label", "", "A", null))),
+        parser.apply("properties.label.string:[A TO *]"));
+
+    assertEquals(
+        or(and(new NodesByPropertyStringRange("label", "fi", null, "C"))),
+        parser.apply("properties.label.fi.string:[* TO C]"));
+  }
+
 }
