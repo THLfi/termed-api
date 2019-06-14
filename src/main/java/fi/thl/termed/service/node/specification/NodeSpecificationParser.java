@@ -18,7 +18,6 @@ import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.jparsercombinator.Parser;
 import org.jparsercombinator.ParserCombinator;
@@ -79,6 +78,10 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
         regexMatchResult(
             "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:\"([^\"]*)\"")
             .map(m -> new NodesByPropertyStringPhrase(m.group(2), m.group(4), m.group(5)));
+    ParserCombinator<Specification<NodeId, Node>> propertyStringRangeParser =
+        regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:"
+            + "\\[(\\*|([^\\s]*)) TO (\\*|([^\\]]*))\\]").map(m ->
+            new NodesByPropertyStringRange(m.group(2), m.group(4), m.group(6), m.group(8)));
     ParserCombinator<Specification<NodeId, Node>> propertyStringPrefixParser =
         regexMatchResult(
             "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:([^\\s]*)\\*")
@@ -122,6 +125,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
             .or(typeIdParser)
             .or(typeUriParser)
             .or(propertyStringQuotedParser)
+            .or(propertyStringRangeParser)
             .or(propertyStringPrefixParser)
             .or(propertyStringParser)
             .or(propertyQuotedParser)

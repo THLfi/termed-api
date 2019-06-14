@@ -105,6 +105,8 @@ public class TypeBasedNodeSpecificationFilter implements
         .contains(((NodesByPropertyStringPrefix) s).getAttributeId()))
         || (s instanceof NodesByPropertyStringPhrase && acceptedTextAttrs
         .contains(((NodesByPropertyStringPhrase) s).getAttributeId()))
+        || (s instanceof NodesByPropertyStringRange && acceptedTextAttrs
+        .contains(((NodesByPropertyStringRange) s).getAttributeId()))
         || (s instanceof NodesByProperty && acceptedTextAttrs
         .contains(((NodesByProperty) s).getAttributeId()))
         || (s instanceof NodesByPropertyPrefix && acceptedTextAttrs
