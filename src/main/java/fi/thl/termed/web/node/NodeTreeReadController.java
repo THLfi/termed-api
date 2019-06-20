@@ -74,6 +74,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
+      @RequestParam(value = "htmlSafe", defaultValue = "true") boolean htmlSafe,
       @AuthenticationPrincipal User user,
       HttpServletResponse resp) throws IOException {
 
@@ -88,7 +89,7 @@ public class NodeTreeReadController {
     resp.setCharacterEncoding(UTF_8.toString());
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user);
-        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
+        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty, htmlSafe)) {
       NodeTreeToJsonStream.toJson(toTrees(nodes, selects, user).iterator(), writer);
     }
   }
@@ -101,6 +102,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
+      @RequestParam(value = "htmlSafe", defaultValue = "true") boolean htmlSafe,
       @AuthenticationPrincipal User user,
       HttpServletResponse resp) throws IOException {
 
@@ -121,7 +123,7 @@ public class NodeTreeReadController {
     resp.setCharacterEncoding(UTF_8.toString());
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user);
-        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
+        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty, htmlSafe)) {
       NodeTreeToJsonStream.toJson(toTrees(nodes, selects, user).iterator(), writer);
     }
   }
@@ -135,6 +137,7 @@ public class NodeTreeReadController {
       @RequestParam(value = "sort", defaultValue = EMPTY_LIST) List<String> sort,
       @RequestParam(value = "max", defaultValue = "50") Integer max,
       @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
+      @RequestParam(value = "htmlSafe", defaultValue = "true") boolean htmlSafe,
       @AuthenticationPrincipal User user,
       HttpServletResponse resp) throws IOException {
 
@@ -151,7 +154,7 @@ public class NodeTreeReadController {
     resp.setCharacterEncoding(UTF_8.toString());
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec, sorts, max), user);
-        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
+        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty, htmlSafe)) {
       NodeTreeToJsonStream.toJson(toTrees(nodes, selects, user).iterator(), writer);
     }
   }
@@ -163,6 +166,7 @@ public class NodeTreeReadController {
       @PathVariable("id") UUID id,
       @RequestParam(value = "select", defaultValue = EMPTY_LIST) List<String> select,
       @RequestParam(value = "pretty", defaultValue = "false") boolean pretty,
+      @RequestParam(value = "htmlSafe", defaultValue = "true") boolean htmlSafe,
       @AuthenticationPrincipal User user,
       HttpServletResponse resp) throws IOException {
 
@@ -185,7 +189,7 @@ public class NodeTreeReadController {
     resp.setCharacterEncoding(UTF_8.toString());
 
     try (Stream<Node> nodes = nodeService.values(new Query<>(selects, spec), user);
-        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty)) {
+        JsonWriter writer = JsonWriters.from(resp.getOutputStream(), pretty, htmlSafe)) {
       Node root = nodes.findFirst().orElseThrow(NotFoundException::new);
       NodeTreeToJsonStream.toJson(toTree(root, selects, user,
           CacheBuilder.newBuilder().softValues().build()), writer);

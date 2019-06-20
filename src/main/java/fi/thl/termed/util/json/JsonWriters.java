@@ -12,13 +12,15 @@ public final class JsonWriters {
   private JsonWriters() {
   }
 
-  public static JsonWriter from(OutputStream out, boolean pretty) {
+  public static JsonWriter from(OutputStream out, boolean pretty, boolean htmlSafe) {
     JsonWriter jsonWriter = new JsonWriter(
         new BufferedWriter(new OutputStreamWriter(out, UTF_8), 32 * 1024));
 
     if (pretty) {
       jsonWriter.setIndent("  ");
     }
+
+    jsonWriter.setHtmlSafe(htmlSafe);
 
     return jsonWriter;
   }
