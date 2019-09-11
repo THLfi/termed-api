@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node.select;
 
 import fi.thl.termed.util.query.AbstractSelectQualifiedField;
+import java.util.Objects;
 
 abstract class SelectWithDepth extends AbstractSelectQualifiedField {
 
@@ -28,6 +29,26 @@ abstract class SelectWithDepth extends AbstractSelectQualifiedField {
 
   public int getDepth() {
     return depth;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    SelectWithDepth that = (SelectWithDepth) o;
+    return depth == that.depth;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), depth);
   }
 
 }

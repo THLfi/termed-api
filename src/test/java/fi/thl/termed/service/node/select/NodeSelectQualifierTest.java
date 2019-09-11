@@ -377,4 +377,24 @@ class NodeSelectQualifierTest {
                 new SelectReferrer("member", 2))));
   }
 
+  @Test
+  void testSelectPropertiesAndReferrerWithTwoDepths() {
+    assertEquals(
+        of(
+            new SelectTypeQualifiedProperty(new TextAttributeId(collectionTypeId, "prefLabel")),
+            new SelectTypeQualifiedProperty(new TextAttributeId(conceptTypeId, "prefLabel")),
+            new SelectTypeQualifiedProperty(new TextAttributeId(termTypeId, "value")),
+            new SelectTypeQualifiedReferrer(new ReferenceAttributeId(conceptTypeId, "member"), 2),
+            new SelectTypeQualifiedReferrer(new ReferenceAttributeId(termTypeId, "prefLabelXl"))
+        ),
+        new NodeSelectQualifier(allTypes).apply(
+            of(termType),
+            of(
+                new SelectProperty("prefLabel"),
+                new SelectProperty("value"),
+                new SelectReferrer("prefLabelXl"),
+                new SelectReferrer("member", 1),
+                new SelectReferrer("member", 2))));
+  }
+
 }
