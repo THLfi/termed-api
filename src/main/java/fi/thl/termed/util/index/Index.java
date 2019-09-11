@@ -5,17 +5,9 @@ import fi.thl.termed.util.query.Specification;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface Index<K extends Serializable, V> {
-
-  /**
-   * Index values, may be processed parallel/async. If value provider gives an empty Optional, any
-   * previous values will be removed from this index.
-   */
-  void index(Supplier<Stream<K>> keyStreamProvider, Function<K, Optional<V>> valueProvider);
 
   void index(K key, V value);
 
@@ -28,8 +20,6 @@ public interface Index<K extends Serializable, V> {
   Stream<K> getKeys(Specification<K, V> specification, List<Sort> sort, int max);
 
   long count(Specification<K, V> spec);
-
-  Stream<V> get(List<K> ids);
 
   Optional<V> get(K id);
 

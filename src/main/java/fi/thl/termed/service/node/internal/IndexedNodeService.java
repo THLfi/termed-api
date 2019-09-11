@@ -81,19 +81,21 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
   @Subscribe
   public void initIndexOn(ApplicationReadyEvent e) {
     if (index.isEmpty()) {
-      asyncReindexAll();
-    } else {
-      // if app was shut down mid indexing, resume by indexing all queues
-      indexAllQueues();
+      log.info("No index found, adding all keys to indexing queue");
+      enqueueAll();
     }
+
+    // there can be queues if index was empty or app was shut down mid indexing
+    indexAllQueues();
   }
 
-  private void asyncReindexAll() {
-    log.info("No index found, indexing all on background");
-
-    index.index(
-        () -> super.keys(Queries.matchAll(), indexer),
-        key -> super.get(key, indexer));
+  private void enqueueAll() {
+    Long queueId = initQueue();
+    try (Stream<NodeId> ids = super.keys(Queries.matchAll(), indexer)) {
+      enqueue(queueId, ids);
+    } finally {
+      index(queueId);
+    }
   }
 
   private void indexAllQueues() {
@@ -101,7 +103,7 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
         nodeIndexingQueueDao.keys(Specifications.matchAll()));
 
     if (!queues.isEmpty()) {
-      log.info("Found {} indexing queues, resuming indexing", queues.size());
+      log.info("Found {} indexing queues, indexing", queues.size());
       queues.forEach(this::index);
     }
   }
@@ -187,6 +189,11 @@ public class IndexedNodeService extends ForwardingService<NodeId, Node> {
 
   private void enqueue(Long queueId, NodeId nodeId) {
     nodeIndexingQueueItemDao.insert(IndexingQueueItemId.of(nodeId, queueId), Empty.INSTANCE);
+  }
+
+  private void enqueue(Long queueId, Stream<NodeId> nodeIds) {
+    nodeIndexingQueueItemDao
+        .insert(nodeIds.map(id -> Tuple.of(IndexingQueueItemId.of(id, queueId), Empty.INSTANCE)));
   }
 
   private void index(Long queueId) {

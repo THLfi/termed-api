@@ -1,9 +1,6 @@
 package fi.thl.termed.util.index.lucene;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.util.concurrent.Futures.addCallback;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static fi.thl.termed.util.collect.FunctionUtils.toUnchecked;
 import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.collect.StreamUtils.toStreamWithTimeout;
@@ -12,14 +9,12 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.lucene.index.IndexWriterConfig.OpenMode.CREATE_OR_APPEND;
-import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 import fi.thl.termed.util.Converter;
 import fi.thl.termed.util.collect.ListUtils;
 import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.concurrent.ExecutorUtils;
-import fi.thl.termed.util.concurrent.FutureUtils;
 import fi.thl.termed.util.index.Index;
 import fi.thl.termed.util.query.LuceneSortField;
 import fi.thl.termed.util.query.LuceneSpecification;
@@ -109,13 +104,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
   }
 
   @Override
-  public void index(Supplier<Stream<K>> keySupplier, Function<K, Optional<V>> valueProvider) {
-    IndexingTask indexingTask = new IndexingTask(keySupplier, valueProvider);
-    addCallback(listeningDecorator(indexingExecutor).submit(indexingTask),
-        FutureUtils.errorHandler(t -> log.error("", t)), directExecutor());
-  }
-
-  @Override
   public void index(K key, V value) {
     Term documentIdTerm = new Term(DOCUMENT_ID, keyConverter.apply(key));
 
@@ -194,20 +182,6 @@ public class LuceneIndex<K extends Serializable, V> implements Index<K, V> {
       throw new LuceneException(e);
     } finally {
       tryRelease(searcher);
-    }
-  }
-
-  @Override
-  public Stream<V> get(List<K> ids) {
-    IndexSearcher searcher = null;
-    try {
-      BooleanQuery.Builder q = new BooleanQuery.Builder();
-      ids.forEach(k -> q.add(new TermQuery(new Term(DOCUMENT_ID, keyConverter.apply(k))), SHOULD));
-      searcher = tryAcquire();
-      return query(searcher, q.build(), ids.size(), emptyList(), documentConverter.inverse());
-    } catch (IOException e) {
-      tryRelease(searcher);
-      throw new LuceneException(e);
     }
   }
 
