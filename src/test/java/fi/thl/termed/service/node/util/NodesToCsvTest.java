@@ -1,88 +1,53 @@
 package fi.thl.termed.service.node.util;
 
-import static fi.thl.termed.util.UUIDs.nilUuid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableList;
-import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
-import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.TypeId;
+import fi.thl.termed.service.node.select.SelectProperty;
 import fi.thl.termed.util.csv.CsvOptions;
-import fi.thl.termed.util.query.Select;
-import fi.thl.termed.util.query.SelectAll;
-import java.io.ByteArrayInputStream;
+import fi.thl.termed.util.query.Selects;
 import java.io.ByteArrayOutputStream;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.UnsupportedEncodingException;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 class NodesToCsvTest {
 
-  private GraphId graphId = GraphId.random();
-  private TypeId typeId = TypeId.of("Type", graphId);
-  private TypeId unknownTypeId = TypeId.of("", nilUuid());
-
-  private CsvOptions defaultOpts = CsvOptions.builder().build();
-  private List<Select> selectAll = ImmutableList.of(new SelectAll());
-
-  private void assertNodesAreEqualAfterConvertingCsvAndBack(List<Node> nodes) {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    NodesToCsv.writeAsCsv(nodes.stream(), selectAll, defaultOpts, out);
-
-    List<Node> results = NodesToCsv
-        .readAsCsv(defaultOpts, new ByteArrayInputStream(out.toByteArray()))
-        .collect(Collectors.toList());
-
-    assertEquals(nodes, results);
-  }
-
   @Test
-  void shouldConvertSimpleNodesToCsvAndBack() {
-    List<Node> nodes = ImmutableList.of(
-        Node.builder()
-            .random(typeId)
-            .number(1L)
-            .addProperty("name", "John")
-            .addProperty("email", "john@example.org")
-            .build(),
-        Node.builder()
-            .random(typeId)
-            .number(2L)
-            .addProperty("name", "Jack")
-            .addProperty("email", "jack@example.org")
-            .build());
+  void shouldWriteNodesToCsv() throws UnsupportedEncodingException {
+    UUID graphId = UUID.randomUUID();
+    TypeId typeId = TypeId.of("Person", graphId);
 
-    assertNodesAreEqualAfterConvertingCsvAndBack(nodes);
-  }
+    Node node1 = Node.builder().random(typeId)
+        .code("example-node-1")
+        .number(1L)
+        .addProperty("firstName", "John")
+        .addProperty("email", "john@example.com")
+        .addProperty("email", "john@example.org")
+        .build();
 
-  @Test
-  void shouldConvertComplexNodesToCsvAndBack() {
-    List<Node> nodes = ImmutableList.of(
-        Node.builder()
-            .random(typeId)
-            .code("cat")
-            .uri("http://example.org/cat")
-            .number(1L)
-            .addProperty("prefLabel", "en", "Cat")
-            .addProperty("altLabel", "en", "Kitty")
-            .addProperty("altLabel", "en", "Kitten")
-            .addProperty("extId", "123")
-            .build(),
-        Node.builder()
-            .random(typeId)
-            .number(2L)
-            .addProperty("prefLabel", "en", "Dog")
-            .addProperty("altLabel", "en", "Doggy")
-            .addProperty("altLabel", "en", "Hound")
-            .addProperty("altLabel", "en", "Pup")
-            .addProperty("altLabel", "fi", "Hau|,veli")
-            .addProperty("altLabel", "fi", "Hauva,")
-            .addReference("related", NodeId.random(unknownTypeId))
-            .addReference("related", NodeId.random(unknownTypeId))
-            .build());
+    NodesToCsv nodesToCsv = new NodesToCsv();
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-    assertNodesAreEqualAfterConvertingCsvAndBack(nodes);
+    nodesToCsv.writeAsCsv(Stream.of(node1),
+        ImmutableList.of(
+            Selects.field("number"),
+            Selects.field("code"),
+            new SelectProperty("firstName"),
+            new SelectProperty("email")),
+        CsvOptions.builder().build(),
+        byteArrayOutputStream);
+
+    String csv = byteArrayOutputStream.toString("UTF-8");
+
+    String expectedCsv =
+        "code,number,properties.firstName,properties.email\n"
+            + "example-node-1,1,John,john@example.com|john@example.org\n";
+
+    assertEquals(expectedCsv, csv);
   }
 
 }

@@ -72,6 +72,9 @@ public class NodeCsvReadController {
       @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "download", defaultValue = "true") boolean download,
+      @RequestParam(name = "useLabeledReferences", defaultValue = "false") boolean useLabeledReferences,
+      @RequestParam(name = "labelAttribute", defaultValue = "prefLabel") String labelAttribute,
+      @RequestParam(name = "labelLang", defaultValue = "") String labelLang,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -105,7 +108,9 @@ public class NodeCsvReadController {
           .quoteAll(quoteAll)
           .charset(charset).build();
 
-      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
+      new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
+          (id) -> nodeService.get(id, user))
+          .writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 
@@ -122,6 +127,9 @@ public class NodeCsvReadController {
       @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "download", defaultValue = "true") boolean download,
+      @RequestParam(name = "useLabeledReferences", defaultValue = "false") boolean useLabeledReferences,
+      @RequestParam(name = "labelAttribute", defaultValue = "prefLabel") String labelAttribute,
+      @RequestParam(name = "labelLang", defaultValue = "") String labelLang,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -161,7 +169,9 @@ public class NodeCsvReadController {
           .quoteAll(quoteAll)
           .charset(charset).build();
 
-      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
+      new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
+          (id) -> nodeService.get(id, user))
+          .writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 
@@ -179,6 +189,9 @@ public class NodeCsvReadController {
       @RequestParam(value = "quoteAll", defaultValue = "false") boolean quoteAll,
       @RequestParam(value = "charset", defaultValue = "UTF-8") Charset charset,
       @RequestParam(name = "download", defaultValue = "true") boolean download,
+      @RequestParam(name = "useLabeledReferences", defaultValue = "false") boolean useLabeledReferences,
+      @RequestParam(name = "labelAttribute", defaultValue = "prefLabel") String labelAttribute,
+      @RequestParam(name = "labelLang", defaultValue = "") String labelLang,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -218,7 +231,9 @@ public class NodeCsvReadController {
           .quoteAll(quoteAll)
           .charset(charset).build();
 
-      NodesToCsv.writeAsCsv(nodes, selects, csvOptions, out);
+      new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
+          (id) -> nodeService.get(id, user))
+          .writeAsCsv(nodes, selects, csvOptions, out);
     }
   }
 

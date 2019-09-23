@@ -1,5 +1,8 @@
 package fi.thl.termed.web.node;
 
+import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
+
 import fi.thl.termed.domain.Graph;
 import fi.thl.termed.domain.GraphId;
 import fi.thl.termed.domain.Node;
@@ -7,11 +10,13 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.util.NodesToCsv;
+import fi.thl.termed.service.node.util.CsvToNodes;
 import fi.thl.termed.util.csv.CsvDelimiter;
 import fi.thl.termed.util.csv.CsvLineBreak;
 import fi.thl.termed.util.csv.CsvOptions;
 import fi.thl.termed.util.csv.CsvQuoteChar;
+import fi.thl.termed.util.query.Queries;
+import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.SaveMode;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.WriteOptions;
@@ -20,7 +25,11 @@ import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +67,12 @@ public class NodeCsvSaveController {
       @AuthenticationPrincipal User user,
       HttpServletRequest request) throws IOException {
 
+    List<Type> types = toImmutableListAndClose(typeService.values(Queries.matchAll(), user));
+    Function<Specification<NodeId, Node>, Optional<NodeId>> referenceIdResolver =
+        specification -> findFirstAndClose(nodeService.keys(Queries.query(specification), user));
+
     try (InputStream input = request.getInputStream()) {
-      Stream<Node> nodes = NodesToCsv.readAsCsv(
+      Stream<Node> nodes = new CsvToNodes(types, referenceIdResolver).parseNodesFromCsv(
           CsvOptions.builder()
               .delimiter(delimiter)
               .quoteChar(quoteChar)
@@ -98,8 +111,13 @@ public class NodeCsvSaveController {
       throw new NotFoundException();
     }
 
+    List<Type> types = toImmutableListAndClose(typeService.values(Queries.matchAll(), user));
+    Function<Specification<NodeId, Node>, Optional<NodeId>> referenceIdResolver =
+        specification -> findFirstAndClose(nodeService.keys(Queries.query(specification), user));
+
     try (InputStream input = request.getInputStream()) {
-      Stream<Node> nodes = NodesToCsv.readAsCsv(
+      Stream<Node> nodes = new CsvToNodes(types, referenceIdResolver).parseNodesFromCsv(
+          GraphId.of(graphId),
           CsvOptions.builder()
               .delimiter(delimiter)
               .quoteChar(quoteChar)
@@ -146,8 +164,13 @@ public class NodeCsvSaveController {
       throw new NotFoundException();
     }
 
+    List<Type> types = toImmutableListAndClose(typeService.values(Queries.matchAll(), user));
+    Function<Specification<NodeId, Node>, Optional<NodeId>> referenceIdResolver =
+        specification -> findFirstAndClose(nodeService.keys(Queries.query(specification), user));
+
     try (InputStream input = request.getInputStream()) {
-      Stream<Node> nodes = NodesToCsv.readAsCsv(
+      Stream<Node> nodes = new CsvToNodes(types, referenceIdResolver).parseNodesFromCsv(
+          type,
           CsvOptions.builder()
               .delimiter(delimiter)
               .quoteChar(quoteChar)
