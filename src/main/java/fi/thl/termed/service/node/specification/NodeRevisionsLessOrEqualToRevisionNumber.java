@@ -7,29 +7,28 @@ import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.AbstractSqlSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
-import java.util.Objects;
 
-public class NodeRevisionsLessOrEqualToRevision extends
+public class NodeRevisionsLessOrEqualToRevisionNumber extends
     AbstractSqlSpecification<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
-  private NodeId nodeId;
   private Long revision;
 
-  public NodeRevisionsLessOrEqualToRevision(RevisionId<NodeId> revisionId) {
-    this.nodeId = revisionId.getId();
-    this.revision = revisionId.getRevision();
+  public NodeRevisionsLessOrEqualToRevisionNumber(Long revision) {
+    this.revision = revision;
+  }
+
+  public static NodeRevisionsLessOrEqualToRevisionNumber of(Long revision) {
+    return new NodeRevisionsLessOrEqualToRevisionNumber(revision);
   }
 
   @Override
   public boolean test(RevisionId<NodeId> key, Tuple2<RevisionType, Node> value) {
-    return Objects.equals(key.getId(), nodeId) && key.getRevision() <= revision;
+    return key.getRevision() <= revision;
   }
 
   @Override
   public ParametrizedSqlQuery sql() {
-    return ParametrizedSqlQuery.of(
-        "graph_id = ? and type_id = ? and id = ? and revision <= ?",
-        nodeId.getTypeGraphId(), nodeId.getTypeId(), nodeId.getId(), revision);
+    return ParametrizedSqlQuery.of("revision <= ?", revision);
   }
 
 }

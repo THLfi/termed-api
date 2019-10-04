@@ -1,6 +1,7 @@
 package fi.thl.termed.web.node;
 
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.query.AndSpecification.and;
 import static java.util.Comparator.comparing;
 
 import fi.thl.termed.domain.Node;
@@ -10,10 +11,12 @@ import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.User;
-import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
-import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevision;
+import fi.thl.termed.service.node.specification.NodeRevisionsByGraphId;
+import fi.thl.termed.service.node.specification.NodeRevisionsById;
+import fi.thl.termed.service.node.specification.NodeRevisionsByTypeId;
+import fi.thl.termed.service.node.specification.NodeRevisionsLessOrEqualToRevisionNumber;
 import fi.thl.termed.util.collect.Tuple2;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.GetJsonMapping;
 import fi.thl.termed.util.spring.exception.NotFoundException;
@@ -43,9 +46,13 @@ public class NodeRevisionReadController {
       @PathVariable("id") UUID id,
       @AuthenticationPrincipal User user) {
     return toListAndClose(nodeRevisionService
-        .keys(new Query<>(new NodeRevisionsByNodeId(new NodeId(id, typeId, graphId))), user)
+        .keys(Queries.query(and(
+            NodeRevisionsById.of(id),
+            NodeRevisionsByTypeId.of(typeId),
+            NodeRevisionsByGraphId.of(graphId))), user)
         .map(revisionId -> {
-          Revision revision = revisionService.get(revisionId.getRevision(), user)
+          Revision revision = revisionService
+              .get(revisionId.getRevision(), user)
               .orElseThrow(IllegalStateException::new);
           return new ObjectRevision<>(revision, null, revisionId.getId());
         }));
@@ -58,6 +65,7 @@ public class NodeRevisionReadController {
       @PathVariable("id") UUID id,
       @PathVariable("number") Long number,
       @AuthenticationPrincipal User user) {
+
     RevisionId<NodeId> revisionId = RevisionId.of(new NodeId(id, typeId, graphId), number);
 
     if (nodeRevisionService.exists(revisionId, user)) {
@@ -69,7 +77,11 @@ public class NodeRevisionReadController {
     }
 
     try (Stream<RevisionId<NodeId>> revisionIds = nodeRevisionService
-        .keys(new Query<>(new NodeRevisionsLessOrEqualToRevision(revisionId)), user)) {
+        .keys(Queries.query(and(
+            NodeRevisionsById.of(id),
+            NodeRevisionsByTypeId.of(typeId),
+            NodeRevisionsByGraphId.of(graphId),
+            NodeRevisionsLessOrEqualToRevisionNumber.of(number))), user)) {
 
       RevisionId<NodeId> maxRevisionLessOrEqualToRequested = revisionIds
           .max(comparing(RevisionId::getRevision))

@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.internal;
 import static fi.thl.termed.domain.RevisionType.DELETE;
 import static fi.thl.termed.domain.RevisionType.INSERT;
 import static fi.thl.termed.domain.RevisionType.UPDATE;
+import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.query.OrSpecification.or;
 import static fi.thl.termed.util.query.Queries.query;
 import static java.util.Collections.singletonList;
@@ -17,7 +18,7 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.NodeDeletedEvent;
 import fi.thl.termed.domain.event.NodeSavedEvent;
 import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumber;
-import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionNumberAndType;
+import fi.thl.termed.service.node.specification.NodeRevisionsByRevisionType;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.query.Select;
@@ -118,9 +119,11 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
         .orElseThrow(() -> new IllegalStateException("Revision not initialized"));
 
     try (Stream<NodeId> savedIdsInRevision = nodeRevisionService
-        .keys(query(or(
-            NodeRevisionsByRevisionNumberAndType.of(revisionNumber, INSERT),
-            NodeRevisionsByRevisionNumberAndType.of(revisionNumber, UPDATE))), user)
+        .keys(query(and(
+            NodeRevisionsByRevisionNumber.of(revisionNumber),
+            or(
+                NodeRevisionsByRevisionType.of(INSERT),
+                NodeRevisionsByRevisionType.of(UPDATE)))), user)
         .map(RevisionId::getId)) {
 
       Iterators.partition(savedIdsInRevision.iterator(), 1000).forEachRemaining(
@@ -128,7 +131,9 @@ public class NodeWriteEventPostingService implements Service<NodeId, Node> {
     }
 
     try (Stream<NodeId> deletedIdsInRevision = nodeRevisionService
-        .keys(query(NodeRevisionsByRevisionNumberAndType.of(revisionNumber, DELETE)), user)
+        .keys(query(and(
+            NodeRevisionsByRevisionNumber.of(revisionNumber),
+            NodeRevisionsByRevisionType.of(DELETE))), user)
         .map(RevisionId::getId)) {
 
       Iterators.partition(deletedIdsInRevision.iterator(), 1000).forEachRemaining(

@@ -9,24 +9,27 @@ import fi.thl.termed.util.query.AbstractSqlSpecification;
 import fi.thl.termed.util.query.ParametrizedSqlQuery;
 import java.util.Objects;
 
-public class NodeRevisionsByNodeId extends
+public class NodeRevisionsByTypeId extends
     AbstractSqlSpecification<RevisionId<NodeId>, Tuple2<RevisionType, Node>> {
 
-  private NodeId nodeId;
+  private String typeId;
 
-  public NodeRevisionsByNodeId(NodeId nodeId) {
-    this.nodeId = nodeId;
+  public NodeRevisionsByTypeId(String typeId) {
+    this.typeId = typeId;
+  }
+
+  public static NodeRevisionsByTypeId of(String typeId) {
+    return new NodeRevisionsByTypeId(typeId);
   }
 
   @Override
   public boolean test(RevisionId<NodeId> revisionId, Tuple2<RevisionType, Node> revision) {
-    return Objects.equals(nodeId, revisionId.getId());
+    return Objects.equals(typeId, revisionId.getId().getTypeId());
   }
 
   @Override
   public ParametrizedSqlQuery sql() {
-    return ParametrizedSqlQuery.of("graph_id = ? and type_id = ? and id = ?",
-        nodeId.getTypeGraphId(), nodeId.getTypeId(), nodeId.getId());
+    return ParametrizedSqlQuery.of("type_id = ?", typeId);
   }
 
 }

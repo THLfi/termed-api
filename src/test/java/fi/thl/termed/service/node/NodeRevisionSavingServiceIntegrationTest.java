@@ -1,6 +1,7 @@
 package fi.thl.termed.service.node;
 
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.query.AndSpecification.and;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPDATE;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
@@ -15,7 +16,9 @@ import fi.thl.termed.domain.NodeId;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
 import fi.thl.termed.domain.StrictLangValue;
-import fi.thl.termed.service.node.specification.NodeRevisionsByNodeId;
+import fi.thl.termed.service.node.specification.NodeRevisionsByGraphId;
+import fi.thl.termed.service.node.specification.NodeRevisionsById;
+import fi.thl.termed.service.node.specification.NodeRevisionsByTypeId;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
@@ -50,7 +53,10 @@ class NodeRevisionSavingServiceIntegrationTest extends BaseNodeServiceIntegratio
     }
 
     assertEquals(numberOfRevisions,
-        nodeRevisionService.count(new NodeRevisionsByNodeId(nodeId), user));
+        nodeRevisionService.count(and(
+            NodeRevisionsById.of(nodeId.getId()),
+            NodeRevisionsByTypeId.of(nodeId.getTypeId()),
+            NodeRevisionsByGraphId.of(nodeId.getTypeGraphId())), user));
   }
 
   @Test
@@ -76,7 +82,11 @@ class NodeRevisionSavingServiceIntegrationTest extends BaseNodeServiceIntegratio
     nodeService.delete(nodeId, defaultOpts(), user);
 
     List<Tuple2<RevisionType, Node>> revisions = toListAndClose(
-        nodeRevisionService.values(new Query<>(new NodeRevisionsByNodeId(nodeId)), user));
+        nodeRevisionService.values(new Query<>(
+            and(
+                NodeRevisionsById.of(nodeId.getId()),
+                NodeRevisionsByTypeId.of(nodeId.getTypeId()),
+                NodeRevisionsByGraphId.of(nodeId.getTypeGraphId()))), user));
     assertEquals(3, revisions.size());
 
     assertEquals(nodeId, revisions.get(0)._2.identifier());
@@ -133,7 +143,11 @@ class NodeRevisionSavingServiceIntegrationTest extends BaseNodeServiceIntegratio
     nodeService.save(jackUpdatedAgain, UPDATE, defaultOpts(), user);
 
     List<Tuple2<RevisionType, Node>> jackRevisions = toListAndClose(
-        nodeRevisionService.values(new Query<>(new NodeRevisionsByNodeId(jackId)), user));
+        nodeRevisionService.values(new Query<>(
+            and(
+                NodeRevisionsById.of(jackId.getId()),
+                NodeRevisionsByTypeId.of(jackId.getTypeId()),
+                NodeRevisionsByGraphId.of(jackId.getTypeGraphId()))), user));
     assertEquals(3, jackRevisions.size());
 
     assertEquals(jackId, jackRevisions.get(0)._2.identifier());
