@@ -123,7 +123,7 @@ public class RevisionController {
             .map(idAndRevision -> nodeRevisionService
                 .get(RevisionId.of(idAndRevision.getKey(), idAndRevision.getValue()), user)
                 .map(t -> t._2)
-                .orElseThrow(IllegalStateException::new)),
+                .<IllegalStateException>orElseThrow(IllegalStateException::new)),
         SaveMode.UPSERT, WriteOptions.opts(sync), user);
 
     log.info("Done");
