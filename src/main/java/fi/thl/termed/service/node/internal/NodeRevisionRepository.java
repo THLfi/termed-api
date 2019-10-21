@@ -1,7 +1,7 @@
 package fi.thl.termed.service.node.internal;
 
-import static fi.thl.termed.domain.NodeTransformations.nodePropertiesToRows;
-import static fi.thl.termed.domain.NodeTransformations.nodeReferencesToRows;
+import static fi.thl.termed.service.node.util.NodeTransformations.nodePropertiesToRows;
+import static fi.thl.termed.service.node.util.NodeTransformations.nodeReferencesToRows;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.Comparator.comparing;
@@ -10,13 +10,13 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.domain.Node;
 import fi.thl.termed.domain.NodeAttributeValueId;
 import fi.thl.termed.domain.NodeId;
-import fi.thl.termed.domain.NodeTransformations;
+import fi.thl.termed.service.node.util.NodeTransformations;
 import fi.thl.termed.domain.Revision;
 import fi.thl.termed.domain.RevisionId;
 import fi.thl.termed.domain.RevisionType;
@@ -200,7 +200,7 @@ public class NodeRevisionRepository implements
               .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
                   mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
-      Multimap<String, StrictLangValue> properties = LinkedHashMultimap.create();
+      ImmutableMultimap.Builder<String, StrictLangValue> properties = ImmutableMultimap.builder();
 
       idMappedValueRevisions.forEach((attrId, valueRevs) -> {
         Optional<StrictLangValue> lastRevValue = valueRevs.stream()
@@ -210,7 +210,7 @@ public class NodeRevisionRepository implements
         lastRevValue.ifPresent(value -> properties.put(attrId.getAttributeId(), value));
       });
 
-      return properties;
+      return properties.build();
     }
   }
 
@@ -224,7 +224,7 @@ public class NodeRevisionRepository implements
               .collect(groupingBy(e -> e._1.getId(), LinkedHashMap::new,
                   mapping(e -> Tuple.of(e._1.getRevision(), e._2._2), toList())));
 
-      Multimap<String, NodeId> references = LinkedHashMultimap.create();
+      ImmutableMultimap.Builder<String, NodeId> references = ImmutableMultimap.builder();
 
       idMappedValueRevisions.forEach((attrId, valueRevs) -> {
         Optional<NodeId> lastRevValue = valueRevs.stream()
@@ -234,7 +234,7 @@ public class NodeRevisionRepository implements
         lastRevValue.ifPresent(value -> references.put(attrId.getAttributeId(), value));
       });
 
-      return references;
+      return references.build();
     }
   }
 

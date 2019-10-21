@@ -6,8 +6,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import fi.thl.termed.util.collect.Identifiable;
 import java.time.LocalDateTime;
@@ -312,10 +312,10 @@ public final class Node implements Identifiable<NodeId> {
 
     public Builder addProperty(String attributeId, Iterable<StrictLangValue> strictLangValues) {
       if (properties == null) {
-        properties = LinkedHashMultimap.create();
+        properties = ArrayListMultimap.create();
       }
       if (properties instanceof ImmutableMultimap) {
-        properties = LinkedHashMultimap.create(properties);
+        properties = ArrayListMultimap.create(properties);
       }
 
       properties.putAll(attributeId, strictLangValues);
@@ -337,10 +337,10 @@ public final class Node implements Identifiable<NodeId> {
 
     public Builder replaceProperty(String attributeId, Iterable<StrictLangValue> strictLangValues) {
       if (properties == null) {
-        properties = LinkedHashMultimap.create();
+        properties = ArrayListMultimap.create();
       }
       if (properties instanceof ImmutableMultimap) {
-        properties = LinkedHashMultimap.create(properties);
+        properties = ArrayListMultimap.create(properties);
       }
 
       properties.replaceValues(attributeId, strictLangValues);
@@ -354,10 +354,10 @@ public final class Node implements Identifiable<NodeId> {
 
     public Builder addReference(String attributeId, Iterable<NodeId> valueIds) {
       if (references == null) {
-        references = LinkedHashMultimap.create();
+        references = ArrayListMultimap.create();
       }
       if (references instanceof ImmutableMultimap) {
-        references = LinkedHashMultimap.create(references);
+        references = ArrayListMultimap.create(references);
       }
 
       references.putAll(attributeId, valueIds);
@@ -371,10 +371,10 @@ public final class Node implements Identifiable<NodeId> {
 
     public Builder replaceReference(String attributeId, Iterable<NodeId> valueIds) {
       if (references == null) {
-        references = LinkedHashMultimap.create();
+        references = ArrayListMultimap.create();
       }
       if (references instanceof ImmutableMultimap) {
-        references = LinkedHashMultimap.create(references);
+        references = ArrayListMultimap.create(references);
       }
 
       references.replaceValues(attributeId, valueIds);
@@ -384,10 +384,10 @@ public final class Node implements Identifiable<NodeId> {
 
     public Builder addReferrer(String attributeId, Iterable<NodeId> valueIds) {
       if (referrers == null) {
-        referrers = LinkedHashMultimap.create();
+        referrers = ArrayListMultimap.create();
       }
       if (referrers instanceof ImmutableMultimap) {
-        referrers = LinkedHashMultimap.create(referrers);
+        referrers = ArrayListMultimap.create(referrers);
       }
 
       referrers.putAll(attributeId, valueIds);

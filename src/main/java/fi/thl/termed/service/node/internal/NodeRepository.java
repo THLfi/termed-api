@@ -2,8 +2,8 @@ package fi.thl.termed.service.node.internal;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.difference;
-import static fi.thl.termed.domain.NodeTransformations.nodePropertiesToRows;
-import static fi.thl.termed.domain.NodeTransformations.nodeReferencesToRows;
+import static fi.thl.termed.service.node.util.NodeTransformations.nodePropertiesToRows;
+import static fi.thl.termed.service.node.util.NodeTransformations.nodeReferencesToRows;
 import static fi.thl.termed.domain.RevisionType.DELETE;
 import static fi.thl.termed.domain.RevisionType.INSERT;
 import static fi.thl.termed.domain.RevisionType.UPDATE;
