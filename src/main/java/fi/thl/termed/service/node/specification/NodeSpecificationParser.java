@@ -19,6 +19,7 @@ import fi.thl.termed.util.query.AndSpecification;
 import fi.thl.termed.util.query.OrSpecification;
 import fi.thl.termed.util.query.Specification;
 import java.time.LocalDateTime;
+import org.jparsercombinator.ParseException;
 import org.jparsercombinator.Parser;
 import org.jparsercombinator.ParserCombinator;
 import org.jparsercombinator.ParserCombinatorReference;
@@ -152,7 +153,11 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
 
   @Override
   public Specification<NodeId, Node> apply(String specification) {
-    return parser.apply(specification);
+    try {
+      return parser.apply(specification);
+    } catch (ParseException e) {
+      throw new NodeSpecificationParseException("Failed to parse node query", e);
+    }
   }
 
 }
