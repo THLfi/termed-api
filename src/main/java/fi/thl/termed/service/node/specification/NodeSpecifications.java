@@ -54,9 +54,17 @@ public final class NodeSpecifications {
     clauses.add(new NodesByTypeId(domain.getId()));
 
     if (!query.isEmpty()) {
-      clauses.add(new TypeBasedNodeSpecificationFilter(types).apply(domain,
+      Specification<NodeId, Node> rawSpec = queryParser.apply(query);
+
+      Specification<NodeId, Node> resolvedSpec =
           new NodeGraphAndTypeSpecificationResolver(graphs, types)
-              .apply(queryParser.apply(query))));
+              .apply(rawSpec);
+
+      Specification<NodeId, Node> resolvedFilteredSpec =
+          new TypeBasedNodeSpecificationFilter(types)
+              .apply(domain, resolvedSpec);
+
+      clauses.add(resolvedFilteredSpec);
     }
 
     return SpecificationUtils.simplify(AndSpecification.and(clauses));
