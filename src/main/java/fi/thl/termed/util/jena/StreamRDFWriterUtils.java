@@ -1,6 +1,7 @@
 package fi.thl.termed.util.jena;
 
 import java.io.OutputStream;
+import java.util.Map;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.system.StreamRDF;
@@ -12,11 +13,12 @@ public final class StreamRDFWriterUtils {
   private StreamRDFWriterUtils() {
   }
 
-  public static void writeAndCloseIterator(OutputStream out, ExtendedIterator<Triple> triples,
-      Lang lang) {
+  public static void writeAndCloseIterator(OutputStream out,
+      Map<String, String> namespacePrefixes, ExtendedIterator<Triple> triples, Lang lang) {
     try {
       StreamRDF rdfStream = StreamRDFWriter.getWriterStream(out, lang);
       rdfStream.start();
+      namespacePrefixes.forEach(rdfStream::prefix);
       while (triples.hasNext()) {
         rdfStream.triple(triples.next());
       }

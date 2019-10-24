@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -49,6 +50,9 @@ public class NodeRdfStreamReadController {
 
   @Autowired
   private Service<NodeId, Node> nodeService;
+
+  @Autowired
+  private Map<String, String> defaultNamespacePrefixes;
 
   @Value("${fi.thl.termed.defaultNamespace:}")
   private String defaultNamespace;
@@ -78,6 +82,7 @@ public class NodeRdfStreamReadController {
           s -> nodeService.values(new Query<>(s), user);
 
       StreamRDFWriterUtils.writeAndCloseIterator(out,
+          defaultNamespacePrefixes,
           new NodeRdfGraphWrapper(defaultNamespace, types, nodes).find(null, null, null),
           Lang.NTRIPLES);
     }
@@ -108,6 +113,7 @@ public class NodeRdfStreamReadController {
           s -> nodeService.values(new Query<>(s), user);
 
       StreamRDFWriterUtils.writeAndCloseIterator(out,
+          defaultNamespacePrefixes,
           new NodeRdfGraphWrapper(defaultNamespace, types, nodes).find(null, null, null),
           Lang.TURTLE);
     }
