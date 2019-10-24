@@ -173,5 +173,38 @@
         }
       ]
     }
+  },
+  {
+    "id": "configGraphHomeLayout",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: graph home default"
+        }
+      ]
+    }
+  },
+  {
+    "id": "configBrowsingRootNode",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: browsing root node"
+        }
+      ]
+    }
+  },
+  {
+    "id": "configHideFromTypeView",
+    "properties": {
+      "prefLabel": [
+        {
+          "lang": "en",
+          "value": "config: hide from type view"
+        }
+      ]
+    }
   }
 ]
