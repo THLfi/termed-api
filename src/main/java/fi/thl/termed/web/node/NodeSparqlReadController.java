@@ -2,6 +2,7 @@ package fi.thl.termed.web.node;
 
 import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyList;
 import static org.apache.jena.rdf.model.ModelFactory.createModelForGraph;
 import static org.apache.jena.riot.Lang.TURTLE;
 
@@ -77,7 +78,7 @@ public class NodeSparqlReadController {
     List<Type> types = toListAndClose(
         typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
     Function<Specification<NodeId, Node>, Stream<Node>> nodes =
-        s -> nodeService.values(new Query<>(s), user);
+        s -> nodeService.values(new Query<>(s, emptyList(), -1), user);
     return createModelForGraph(new NodeRdfGraphWrapper(defaultNamespace, types, nodes));
   }
 
