@@ -3,6 +3,7 @@ package fi.thl.termed.service.node.util;
 import static fi.thl.termed.domain.DefaultUris.propertyUri;
 import static fi.thl.termed.domain.DefaultUris.uri;
 import static fi.thl.termed.util.collect.FunctionUtils.memoize;
+import static fi.thl.termed.util.collect.FunctionUtils.memoizeSoft;
 import static java.util.Optional.ofNullable;
 import static org.apache.jena.graph.NodeFactory.createLiteral;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -27,6 +28,7 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
   private Function<TextAttributeId, String> textAttrResolver;
   private Function<ReferenceAttributeId, String> refAttrResolver;
   private Function<NodeId, String> nodeResolver;
+  private Function<String, org.apache.jena.graph.Node> createProperty;
 
   public NodeToTriples(
       String ns,
@@ -36,10 +38,12 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
       Function<NodeId, Optional<String>> nodeUris) {
     this.defaultNamespace = ns;
     // cache and add urn fallback to uri resolving functions
-    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(uri(ns, id)), 1000);
-    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(uri(ns, id)), 1000);
-    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(uri(ns, id)), 1000);
-    this.nodeResolver = memoize(id -> nodeUris.apply(id).orElse(uri(ns, id)), 100_000);
+    this.typeResolver = memoize(id -> typeUris.apply(id).orElse(uri(ns, id)));
+    this.textAttrResolver = memoize(id -> textAttrUris.apply(id).orElse(uri(ns, id)));
+    this.refAttrResolver = memoize(id -> refAttrUris.apply(id).orElse(uri(ns, id)));
+    this.nodeResolver = memoizeSoft(id -> nodeUris.apply(id).orElse(uri(ns, id)));
+    this.createProperty = memoize(
+        (propertyId) -> createURI(propertyUri(defaultNamespace, propertyId)));
   }
 
   @Override
@@ -81,11 +85,9 @@ public class NodeToTriples implements Function<Node, List<Triple>> {
     return triples;
   }
 
-  private Triple createTermedLiteral(org.apache.jena.graph.Node subject, String propertyUri,
+  private Triple createTermedLiteral(org.apache.jena.graph.Node subject, String propertyId,
       String literal) {
-    return create(subject,
-        createURI(propertyUri(defaultNamespace, propertyUri)),
-        createLiteral(literal));
+    return create(subject, createProperty.apply(propertyId), createLiteral(literal));
   }
 
 }
