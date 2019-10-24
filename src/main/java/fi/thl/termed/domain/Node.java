@@ -323,6 +323,36 @@ public final class Node implements Identifiable<NodeId> {
       return this;
     }
 
+    public Builder addUniqueProperty(String attributeId, String value) {
+      return addUniqueProperty(attributeId, new StrictLangValue(value));
+    }
+
+    public Builder addUniqueProperty(String attributeId, String lang, String value) {
+      return addUniqueProperty(attributeId, new StrictLangValue(lang, value));
+    }
+
+    public Builder addUniqueProperty(String attributeId, StrictLangValue... strictLangValues) {
+      return addUniqueProperty(attributeId, Arrays.asList(strictLangValues));
+    }
+
+    public Builder addUniqueProperty(String attributeId,
+        Iterable<StrictLangValue> strictLangValues) {
+      if (properties == null) {
+        properties = ArrayListMultimap.create();
+      }
+      if (properties instanceof ImmutableMultimap) {
+        properties = ArrayListMultimap.create(properties);
+      }
+
+      strictLangValues.forEach(v -> {
+        if (!properties.containsEntry(attributeId, v)) {
+          properties.put(attributeId, v);
+        }
+      });
+
+      return this;
+    }
+
     public Builder replaceProperty(String attributeId, String value) {
       return replaceProperty(attributeId, new StrictLangValue(value));
     }
@@ -361,6 +391,27 @@ public final class Node implements Identifiable<NodeId> {
       }
 
       references.putAll(attributeId, valueIds);
+
+      return this;
+    }
+
+    public Builder addUniqueReference(String attributeId, NodeId... valueIds) {
+      return addUniqueReference(attributeId, Arrays.asList(valueIds));
+    }
+
+    public Builder addUniqueReference(String attributeId, Iterable<NodeId> valueIds) {
+      if (references == null) {
+        references = ArrayListMultimap.create();
+      }
+      if (references instanceof ImmutableMultimap) {
+        references = ArrayListMultimap.create(references);
+      }
+
+      valueIds.forEach(v -> {
+        if (!references.containsEntry(attributeId, v)) {
+          references.put(attributeId, v);
+        }
+      });
 
       return this;
     }

@@ -1,6 +1,6 @@
 package fi.thl.termed.web.node;
 
-import static fi.thl.termed.util.collect.StreamUtils.toListAndClose;
+import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.opts;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -14,15 +14,16 @@ import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.service.node.util.RdfModelToNodes;
 import fi.thl.termed.service.type.specification.TypesByGraphId;
+import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.jena.JenaRdfModel;
-import fi.thl.termed.util.query.Query;
+import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.spring.annotation.PatchRdfMapping;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
-import fi.thl.termed.util.spring.exception.NotFoundException;
+import fi.thl.termed.util.spring.http.HttpPreconditions;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,20 +63,79 @@ public class NodeRdfWriteController {
       @RequestBody Model model,
       @AuthenticationPrincipal User user) {
 
-    if (!graphService.exists(new GraphId(graphId), user)) {
-      throw new NotFoundException();
-    }
+    HttpPreconditions.checkFound(
+        graphService.exists(GraphId.of(graphId), user),
+        "Graph not found.");
 
     log.info("Importing RDF-model {} (user: {})", graphId, user.getUsername());
 
-    Function<NodeId, Optional<Node>> nodeProvider = id -> nodeService.get(id, user);
-
-    List<Type> types = toListAndClose(
-        typeService.values(new Query<>(new TypesByGraphId(graphId)), user));
-    List<Node> nodes = new RdfModelToNodes(types, nodeProvider, importCodes)
+    List<Type> types = toImmutableListAndClose(
+        typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
+    List<Node> nodes = new RdfModelToNodes(types, id -> nodeService.get(id, user), importCodes)
         .apply(new JenaRdfModel(model));
 
     nodeService.save(nodes.stream(), saveMode(mode), opts(sync, generateCodes, generateUris), user);
+  }
+
+  @PatchRdfMapping(produces = {})
+  @ResponseStatus(NO_CONTENT)
+  private void patch(
+      @PathVariable("graphId") UUID graphId,
+      @RequestParam(name = "mode", defaultValue = "update") String mode,
+      @RequestParam(name = "sync", defaultValue = "false") boolean sync,
+      @RequestParam(name = "append", defaultValue = "true") boolean append,
+      @RequestParam(name = "lenient", defaultValue = "false") boolean lenient,
+      @RequestBody Model model,
+      @AuthenticationPrincipal User user) {
+
+    HttpPreconditions.checkRequestParam(
+        mode.matches("update|upsert"),
+        "Use mode \"update\" or \"upsert \" when patching existing nodes.");
+
+    HttpPreconditions.checkFound(
+        graphService.exists(GraphId.of(graphId), user),
+        "Graph not found.");
+
+    log.info("Patching RDF-model {} (user: {})", graphId, user.getUsername());
+
+    List<Type> types = toImmutableListAndClose(
+        typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
+    List<Node> nodes = new RdfModelToNodes(types, id -> nodeService.get(id, user), false)
+        .apply(new JenaRdfModel(model));
+
+    Stream<Node> patchedNodesStream = nodes.stream()
+        .map(patch -> Tuple.of(patch, nodeService.get(patch.identifier(), user)))
+        // in lenient mode, skip missing nodes
+        .filter(patchAndBaseNode -> {
+          if (lenient && !patchAndBaseNode._2.isPresent()) {
+            log.warn("Skipping patch for missing node {}", patchAndBaseNode._1.identifier());
+            return false;
+          } else {
+            return true;
+          }
+        })
+        .map(patchAndBaseNode -> {
+          Node patch = HttpPreconditions.checkRequestParamNotNull(
+              patchAndBaseNode._1,
+              "Each node in batch should have and ID.");
+          Node baseNode = HttpPreconditions.checkFound(
+              patchAndBaseNode._2,
+              () -> "Node " + patch.identifier() + " not found.");
+
+          Node.Builder patchedNode = Node.builderFromCopyOf(baseNode);
+
+          if (append) {
+            patch.getProperties().forEach(patchedNode::addUniqueProperty);
+            patch.getReferences().forEach(patchedNode::addUniqueReference);
+          } else {
+            patch.getProperties().asMap().forEach(patchedNode::replaceProperty);
+            patch.getReferences().asMap().forEach(patchedNode::replaceReference);
+          }
+
+          return patchedNode.build();
+        });
+
+    nodeService.save(patchedNodesStream, saveMode(mode), opts(sync), user);
   }
 
 }
