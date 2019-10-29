@@ -21,13 +21,17 @@ import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.query.Specification;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PatchJsonMapping;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.HttpPreconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,6 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class NodePatchController {
+
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   private Service<GraphId, Graph> graphService;
@@ -74,24 +80,40 @@ public class NodePatchController {
 
       Stream<Node> patchStream = JsonStream.readArray(gson, Node.class, input)
           .map(patch -> Tuple.of(patch, nodeService.get(NodeId.of(patch.getId(), type), user)))
-          .filter(patchAndBaseNode -> !lenient || patchAndBaseNode._2.isPresent())
+          // in lenient mode, skip missing nodes
+          .filter(patchAndBaseNode -> {
+            Node patch = patchAndBaseNode._1;
+            Optional<Node> optionalBaseNode = patchAndBaseNode._2;
+
+            if (optionalBaseNode.isPresent()) {
+              return true;
+            } else if (lenient) {
+              log.warn("Skipping patch for {} (user: {})", NodeId.of(patch.getId(), type),
+                  user.getUsername());
+              return false;
+            } else {
+              throw new NotFoundException(String.format(
+                  "Node not found for patch %s (user: %s)", NodeId.of(patch.getId(), type),
+                  user.getUsername()));
+            }
+          })
           .map(patchAndBaseNode -> {
-            Node patch = HttpPreconditions.checkRequestParamNotNull(patchAndBaseNode._1,
-                "Each node in batch should have and ID.");
-            Node baseNode = HttpPreconditions.checkFound(patchAndBaseNode._2,
-                () -> "Node " + NodeId.of(patch.getId(), type) + " not found.");
+            Node patch = patchAndBaseNode._1;
+            Node baseNode = patchAndBaseNode._2.orElseThrow(IllegalStateException::new);
 
             Node.Builder result = Node.builderFromCopyOf(baseNode);
 
             patch.getCode().ifPresent(result::code);
             patch.getUri().ifPresent(result::uri);
+
             if (append) {
-              patch.getProperties().forEach(result::addProperty);
-              patch.getReferences().forEach(result::addReference);
+              patch.getProperties().forEach(result::addUniqueProperty);
+              patch.getReferences().forEach(result::addUniqueReference);
             } else {
               patch.getProperties().asMap().forEach(result::replaceProperty);
               patch.getReferences().asMap().forEach(result::replaceReference);
             }
+
             return result.build();
           });
 
@@ -131,8 +153,8 @@ public class NodePatchController {
         patch.getUri().ifPresent(result::uri);
 
         if (append) {
-          patch.getProperties().forEach(result::addProperty);
-          patch.getReferences().forEach(result::addReference);
+          patch.getProperties().forEach(result::addUniqueProperty);
+          patch.getReferences().forEach(result::addUniqueReference);
         } else {
           patch.getProperties().asMap().forEach(result::replaceProperty);
           patch.getReferences().asMap().forEach(result::replaceReference);
@@ -166,8 +188,8 @@ public class NodePatchController {
     patch.getUri().ifPresent(result::uri);
 
     if (append) {
-      patch.getProperties().forEach(result::addProperty);
-      patch.getReferences().forEach(result::addReference);
+      patch.getProperties().forEach(result::addUniqueProperty);
+      patch.getReferences().forEach(result::addUniqueReference);
     } else {
       patch.getProperties().asMap().forEach(result::replaceProperty);
       patch.getReferences().asMap().forEach(result::replaceReference);
