@@ -20,8 +20,10 @@ import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.spring.annotation.PatchRdfMapping;
 import fi.thl.termed.util.spring.annotation.PostRdfMapping;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import fi.thl.termed.util.spring.http.HttpPreconditions;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.jena.rdf.model.Model;
@@ -71,7 +73,7 @@ public class NodeRdfWriteController {
 
     List<Type> types = toImmutableListAndClose(
         typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
-    List<Node> nodes = new RdfModelToNodes(types, id -> nodeService.get(id, user), importCodes)
+    List<Node> nodes = new RdfModelToNodes(types, q -> nodeService.keys(q, user), importCodes)
         .apply(new JenaRdfModel(model));
 
     nodeService.save(nodes.stream(), saveMode(mode), opts(sync, generateCodes, generateUris), user);
@@ -100,39 +102,40 @@ public class NodeRdfWriteController {
 
     List<Type> types = toImmutableListAndClose(
         typeService.values(Queries.query(TypesByGraphId.of(graphId)), user));
-    List<Node> nodes = new RdfModelToNodes(types, id -> nodeService.get(id, user), false)
+    List<Node> nodes = new RdfModelToNodes(types, q -> nodeService.keys(q, user), false)
         .apply(new JenaRdfModel(model));
 
     Stream<Node> patchedNodesStream = nodes.stream()
         .map(patch -> Tuple.of(patch, nodeService.get(patch.identifier(), user)))
-        // in lenient mode, skip missing nodes
         .filter(patchAndBaseNode -> {
-          if (lenient && !patchAndBaseNode._2.isPresent()) {
-            log.warn("Skipping patch for missing node {}", patchAndBaseNode._1.identifier());
+          Node patch = patchAndBaseNode._1;
+          Optional<Node> optionalBaseNode = patchAndBaseNode._2;
+
+          if (optionalBaseNode.isPresent()) {
+            return true;
+          } else if (lenient) {
+            log.warn("Skipping patch for {} (user: {})", patch.identifier(), user.getUsername());
             return false;
           } else {
-            return true;
+            throw new NotFoundException(String.format(
+                "Node not found for patch %s (user: %s)", patch.identifier(), user.getUsername()));
           }
         })
         .map(patchAndBaseNode -> {
-          Node patch = HttpPreconditions.checkRequestParamNotNull(
-              patchAndBaseNode._1,
-              "Each node in batch should have and ID.");
-          Node baseNode = HttpPreconditions.checkFound(
-              patchAndBaseNode._2,
-              () -> "Node " + patch.identifier() + " not found.");
+          Node patch = patchAndBaseNode._1;
+          Node baseNode = patchAndBaseNode._2.orElseThrow(IllegalStateException::new);
 
-          Node.Builder patchedNode = Node.builderFromCopyOf(baseNode);
+          Node.Builder result = Node.builderFromCopyOf(baseNode);
 
           if (append) {
-            patch.getProperties().forEach(patchedNode::addUniqueProperty);
-            patch.getReferences().forEach(patchedNode::addUniqueReference);
+            patch.getProperties().forEach(result::addUniqueProperty);
+            patch.getReferences().forEach(result::addUniqueReference);
           } else {
-            patch.getProperties().asMap().forEach(patchedNode::replaceProperty);
-            patch.getReferences().asMap().forEach(patchedNode::replaceReference);
+            patch.getProperties().asMap().forEach(result::replaceProperty);
+            patch.getReferences().asMap().forEach(result::replaceReference);
           }
 
-          return patchedNode.build();
+          return result.build();
         });
 
     nodeService.save(patchedNodesStream, saveMode(mode), opts(sync), user);
