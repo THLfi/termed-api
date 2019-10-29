@@ -20,6 +20,10 @@ public class NodesByUri
     this.uri = uri;
   }
 
+  public static NodesByUri of(String uri) {
+    return new NodesByUri(uri);
+  }
+
   @Override
   public boolean test(NodeId nodeId, Node node) {
     Preconditions.checkArgument(Objects.equals(nodeId, new NodeId(node)));
