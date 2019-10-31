@@ -1,20 +1,19 @@
 package fi.thl.termed;
 
 import static fi.thl.termed.util.io.ResourceUtils.resourceToString;
+import static fi.thl.termed.util.query.Specifications.matchAll;
+import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.SaveMode.UPSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import fi.thl.termed.domain.AppRole;
 import fi.thl.termed.domain.Property;
 import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
-import fi.thl.termed.util.UUIDs;
 import fi.thl.termed.util.collect.StreamUtils;
-import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.service.Service;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -23,7 +22,7 @@ import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,14 +38,13 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
-  @Value("${security.user.password:}")
-  private String defaultPassword;
-
   @Autowired
   private EventBus eventBus;
 
   @Autowired
   private Gson gson;
+  @Autowired
+  private SecurityProperties security;
   @Autowired
   private PasswordEncoder passwordEncoder;
 
@@ -55,7 +53,7 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   @Autowired
   private Service<String, Property> propertyService;
 
-  private User initializer = new User("initializer", "", AppRole.SUPERUSER);
+  private User initializer = User.newSuperuser("initializer", "");
 
   private Type propertyListType = new TypeToken<List<Property>>() {
   }.getType();
@@ -68,11 +66,16 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultUser() {
-    if (userService.count(new MatchAll<>(), initializer) == 0) {
-      String password = !defaultPassword.isEmpty() ? defaultPassword : UUIDs.randomUUIDString();
-      User admin = new User("admin", passwordEncoder.encode(password), AppRole.SUPERUSER);
-      userService.save(admin, UPSERT, defaultOpts(), initializer);
-      log.info("Created new admin user with password: {}", password);
+    if (userService.count(matchAll(), initializer) == 0) {
+      SecurityProperties.User defaultUser = security.getUser();
+
+      userService.save(
+          User.newSuperuser(
+              defaultUser.getName(),
+              passwordEncoder.encode(defaultUser.getPassword())),
+          INSERT, defaultOpts(), initializer);
+
+      log.warn("Created new default SUPERUSER: {}", defaultUser.getName());
     }
   }
 
