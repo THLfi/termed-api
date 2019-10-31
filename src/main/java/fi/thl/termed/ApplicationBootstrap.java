@@ -13,10 +13,12 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.event.ApplicationReadyEvent;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.util.UUIDs;
+import fi.thl.termed.util.collect.StreamUtils;
 import fi.thl.termed.util.query.MatchAll;
 import fi.thl.termed.util.service.Service;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,9 +77,19 @@ public class ApplicationBootstrap implements ApplicationListener<ContextRefreshe
   }
 
   private void saveDefaultProperties() {
-    List<Property> props = gson.fromJson(resourceToString("default/properties.json"),
-        propertyListType);
-    propertyService.save(props.stream(), UPSERT, defaultOpts(), initializer);
+    List<Property> propertyList = gson
+        .fromJson(resourceToString("default/properties.json"), propertyListType);
+
+    Stream<Property> properties = propertyList.stream();
+
+    Stream<Property> propertiesWithIndices = StreamUtils.zipIndex(
+        properties, (p, i) -> Property.builderFromCopyOf(p).index(i).build());
+
+    Stream<Property> modifiedOrMissingProperties =
+        propertiesWithIndices.filter(
+            p -> !p.equals(propertyService.get(p.getId(), initializer).orElse(null)));
+
+    propertyService.save(modifiedOrMissingProperties, UPSERT, defaultOpts(), initializer);
   }
 
   @PreDestroy
