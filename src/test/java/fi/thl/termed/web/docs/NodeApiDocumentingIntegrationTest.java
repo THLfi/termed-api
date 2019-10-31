@@ -23,6 +23,9 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
+import com.google.common.collect.ImmutableList;
+import fi.thl.termed.domain.Node;
+import java.util.List;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -244,18 +247,135 @@ class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTes
   }
 
   @Test
-  void documentDeleteNode() {
-    given(adminAuthorizedRequest)
-        .filter(document("delete-a-node", operationIntro(
-            "On success, operation will return `204` with an empty body.\n\n"
-                + "A node can't be deleted if it's referred by another node."),
+  void documentUpdateNodeUsingPatch() {
+    Node examplePatch = Node.builder()
+        .id(exampleNode0.identifier())
+        .addProperty("name", "Johnny")
+        .build();
+
+    given(adminAuthorizedJsonSaveRequest)
+        .filter(document("update-a-node-using-patch", operationIntro(
+            "Partially updating using `PATCH` is also supported. "
+                + "Node id is given as a path parameter.\n"
+                + "On success, operation will return the patched node."),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
                 parameterWithName("typeId")
                     .description("Type identifier (matches `" + CODE + "`)"),
                 parameterWithName("id")
-                    .description("Node identifier"))))
+                    .description("Node identifier (UUID)")),
+            requestParameters(
+                parameterWithName("append").optional()
+                    .description("If append is `true`, new property (or reference) values are "
+                        + "appended to value arrays. Otherwise given values for given property "
+                        + "replace the previous values. Default value is `true` (due to original "
+                        + "behaviour of the patch method)."))))
+        .when()
+        .body(examplePatch)
+        .patch("/api/graphs/{graphId}/types/{typeId}/nodes/{id}",
+            exampleNode0.getTypeGraphId(),
+            exampleNode0.getTypeId(),
+            exampleNode0.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+  }
+
+  @Test
+  void documentUpdateTypeNodesUsingPatch() {
+    List<Node> examplePatches = ImmutableList.of(
+        Node.builder()
+            .id(exampleNode0.identifier())
+            .addProperty("name", "Johnny")
+            .build(),
+        Node.builder()
+            .id(exampleNode1.identifier())
+            .addProperty("name", "Janie")
+            .build());
+
+    given(adminAuthorizedJsonSaveRequest)
+        .filter(document("update-type-nodes-using-patch", operationIntro(
+            "Patch multiple nodes of same type. Request body contains an array of"
+                + " values where each must have an ID. On success, returns `204`."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("typeId")
+                    .description("Type identifier (matches `" + CODE + "`)")),
+            requestParameters(
+                parameterWithName("batch")
+                    .description("Currently, this must be `true`. Single value can be patched by "
+                        + "calling `PATCH` on full node identifying `URL`."),
+                parameterWithName("append").optional()
+                    .description("If append is `true`, new property (or reference) values are "
+                        + "appended to value arrays. Otherwise given values for given property "
+                        + "replace the previous values. Default value is `true` (due to original "
+                        + "behaviour of the patch method)."),
+                parameterWithName("lenient").optional()
+                    .description("If lenient is `true`, patching does not fail if target node is "
+                        + "missing. Default value is `false`."))))
+        .when()
+        .body(examplePatches)
+        .patch("/api/graphs/{graphId}/types/{typeId}/nodes?batch=true",
+            exampleNode0.getTypeGraphId(),
+            exampleNode0.getTypeId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  @Test
+  void documentUpdateSpecificNodesUsingPatch() {
+    Node examplePatch = Node.builder()
+        .id(exampleNode0.identifier())
+        .addProperty("name", "Patched")
+        .build();
+
+    given(adminAuthorizedJsonSaveRequest)
+        .filter(document("update-specific-nodes-using-patch", operationIntro(
+            "Patch multiple nodes of same type specified by `where`. Request body contains "
+                + "a single node that is applied against all matching nodes. Possible ID of the "
+                + "given node is ignored. On success, returns `204`."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("typeId")
+                    .description("Type identifier (matches `" + CODE + "`)")),
+            requestParameters(
+                parameterWithName("where")
+                    .description("Required query to specify which nodes should be patched. "
+                        + "Empty where means that all nodes (of type) should be updated."),
+                parameterWithName("append").optional()
+                    .description("If append is `true`, new property (or reference) values are "
+                        + "appended to value arrays. Otherwise given values for given property "
+                        + "replace the previous values. Default value is `true` (due to original "
+                        + "behaviour of the patch method)."))))
+        .when()
+        .body(examplePatch)
+        .patch("/api/graphs/{graphId}/types/{typeId}/nodes?where=properties.name:J*",
+            exampleNode0.getTypeGraphId(),
+            exampleNode0.getTypeId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  @Test
+  void documentDeleteNode() {
+    given(adminAuthorizedRequest)
+        .filter(document("delete-a-node", operationIntro(
+            "On success, operation will return `204` with an empty body.\n\n"
+                + "A node can't be deleted if it's referred by another node unless disconnect "
+                + "is set true."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("typeId")
+                    .description("Type identifier (matches `" + CODE + "`)"),
+                parameterWithName("id")
+                    .description("Node identifier")),
+            requestParameters(
+                parameterWithName("disconnect").optional()
+                    .description("If disconnect is `true`, remove all references to this node "
+                        + "before deleting. Default value is `false`."))))
         .when()
         .delete("/api/graphs/{graphId}/types/{typeId}/nodes/{id}",
             exampleNode0Id.getTypeGraphId(),

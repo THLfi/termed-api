@@ -34,15 +34,17 @@ include::{snippets}/get-all-graphs/operation-intro.adoc[]
 
 operation::get-all-graphs[snippets='curl-request,response-body']
 
-=== Save a Graph
+=== Post a Graph
 
 include::{snippets}/save-a-graph/operation-intro.adoc[]
 
 operation::save-a-graph[snippets='request-parameters,request-fields,curl-request']
 
-==== Saving using PUT
+=== Put a Graph
 
 include::{snippets}/save-a-graph-using-put/operation-intro.adoc[]
+
+operation::save-a-graph-using-put[snippets='path-parameters,curl-request']
 
 === Delete a Graph
 
@@ -87,7 +89,7 @@ include::{snippets}/get-all-types/operation-intro.adoc[]
 
 operation::get-all-types[snippets='curl-request']
 
-=== Save a Type
+=== Post a Type
 
 include::{snippets}/save-a-type/operation-intro.adoc[]
 
@@ -103,9 +105,11 @@ include::{snippets}/save-a-type-reference-attribute/request-fields.adoc[]
 
 operation::save-a-type[snippets='curl-request']
 
-==== Saving using PUT
+=== Put a Type
 
 include::{snippets}/save-a-type-using-put/operation-intro.adoc[]
+
+operation::save-a-type-using-put[snippets='path-parameters,curl-request']
 
 === Delete a Type
 
@@ -133,7 +137,7 @@ include::{snippets}/get-type-nodes/operation-intro.adoc[]
 
 operation::get-type-nodes[snippets='curl-request']
 
-=== Get Nodes in Graph
+=== Get Nodes of Graph
 
 include::{snippets}/get-graph-nodes/operation-intro.adoc[]
 
@@ -143,17 +147,37 @@ operation::get-graph-nodes[snippets='curl-request']
 
 include::{snippets}/get-all-nodes/operation-intro.adoc[]
 
-operation::get-all-node[snippets='curl-request']
+operation::get-all-nodes[snippets='curl-request']
 
-=== Save a Node
+=== Post a Node
 
 include::{snippets}/save-a-node/operation-intro.adoc[]
 
 operation::save-a-node[snippets='path-parameters,request-parameters,request-fields,curl-request']
 
-==== Saving using PUT
+=== Put a Node
 
 include::{snippets}/save-a-node-using-put/operation-intro.adoc[]
+
+operation::save-a-node-using-put[snippets='path-parameters,curl-request']
+
+=== Patch a Node
+
+include::{snippets}/update-a-node-using-patch/operation-intro.adoc[]
+
+operation::update-a-node-using-patch[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Patch Nodes of Type
+
+include::{snippets}/update-type-nodes-using-patch/operation-intro.adoc[]
+
+operation::update-type-nodes-using-patch[snippets='path-parameters,request-parameters,curl-request']
+
+=== Patch matching Nodes with given patch
+
+include::{snippets}/update-specific-nodes-using-patch/operation-intro.adoc[]
+
+operation::update-specific-nodes-using-patch[snippets='path-parameters,request-parameters,curl-request']
 
 === Delete a Node
 
@@ -179,7 +203,7 @@ include::{snippets}/get-all-users/operation-intro.adoc[]
 
 operation::get-all-users[snippets='curl-request']
 
-=== Save a User
+=== Post a User
 
 include::{snippets}/save-a-user/operation-intro.adoc[]
 
