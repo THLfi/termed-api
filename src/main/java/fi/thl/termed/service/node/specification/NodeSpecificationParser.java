@@ -78,7 +78,7 @@ public class NodeSpecificationParser implements Parser<Specification<NodeId, Nod
     ParserCombinator<Specification<NodeId, Node>> propertyStringQuotedParser =
         regexMatchResult(
             "(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:\"([^\"]*)\"")
-            .map(m -> new NodesByPropertyStringPhrase(m.group(2), m.group(4), m.group(5)));
+            .map(m -> new NodesByPropertyString(m.group(2), m.group(4), m.group(5)));
     ParserCombinator<Specification<NodeId, Node>> propertyStringRangeParser =
         regexMatchResult("(properties|props|p)\\.(" + CODE + ")(\\.([a-z]{2}))?\\.string:"
             + "\\[(\\*|([^\\s]*)) TO (\\*|([^\\]]*))\\]").map(m ->
