@@ -183,8 +183,25 @@ operation::update-specific-nodes-using-patch[snippets='path-parameters,request-p
 
 include::{snippets}/delete-a-node/operation-intro.adoc[]
 
-operation::delete-a-node[snippets='path-parameters,curl-request']
+operation::delete-a-node[snippets='path-parameters,request-parameters,curl-request']
 
+=== Delete Nodes by ID
+
+include::{snippets}/delete-nodes-by-id/operation-intro.adoc[]
+
+operation::delete-nodes-by-id[snippets='request-parameters,curl-request']
+
+=== Delete Nodes of Type
+
+include::{snippets}/delete-type-nodes/operation-intro.adoc[]
+
+operation::delete-type-nodes[snippets='path-parameters,request-parameters,curl-request']
+
+=== Delete Nodes of Graph
+
+include::{snippets}/delete-graph-nodes/operation-intro.adoc[]
+
+operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-request']
 
 [[resources-users]]
 == Users

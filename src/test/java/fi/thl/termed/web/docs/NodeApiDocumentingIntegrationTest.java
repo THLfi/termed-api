@@ -385,4 +385,85 @@ class NodeApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTes
         .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
+  @Test
+  void documentNodesById() {
+    given(adminAuthorizedRequest)
+        .filter(document("delete-nodes-by-id", operationIntro(
+            "Deletes node by ID or IDs given in request body.\n\n"
+                + "On success, operation will return `204` with an empty body.\n\n"
+                + "A node can't be deleted if it's referred by another node unless disconnect "
+                + "is set true. Note that body in delete request might not be supported on all "
+                + "clients."),
+            requestParameters(
+                parameterWithName("batch").optional()
+                    .description("If batch is `true`, list of node IDs is expected in "
+                        + "request body. If batch is `false` one node ID is expected in body. "
+                        + "Default value is `false`."),
+                parameterWithName("disconnect").optional()
+                    .description("If disconnect is `true`, remove all references to this node "
+                        + "before deleting. If graph does not reference other graphs, disconnect is "
+                        + "not needed. Default value is `false`."))))
+        .when()
+        .body(exampleNode0Id)
+        .delete("/api/nodes")
+        .then()
+        // rest assured ignores body payload on delete and api does not accept an empty body here
+        // so bad request is expected.
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  void documentDeleteTypeNodes() {
+    given(adminAuthorizedRequest)
+        .filter(document("delete-type-nodes", operationIntro(
+            "On success, operation will return `204` with an empty body.\n\n"
+                + "A node can't be deleted if it's referred by another node unless disconnect "
+                + "is set true."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)"),
+                parameterWithName("typeId")
+                    .description("Type identifier (matches `" + CODE + "`)")),
+            requestParameters(
+                parameterWithName("batch").optional()
+                    .description("If batch is `true`, list of node IDs is expected in "
+                        + "request body. If batch is `false` all instances of type are deleted. "
+                        + "Default value is `false`."),
+                parameterWithName("disconnect").optional()
+                    .description("If disconnect is `true`, remove all references to this node "
+                        + "before deleting. Default value is `false`."))))
+        .when()
+        .delete("/api/graphs/{graphId}/types/{typeId}/nodes",
+            exampleNode0Id.getTypeGraphId(),
+            exampleNode0Id.getTypeId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  @Test
+  void documentGraphTypeNodes() {
+    given(adminAuthorizedRequest)
+        .filter(document("delete-graph-nodes", operationIntro(
+            "On success, operation will return `204` with an empty body.\n\n"
+                + "A node can't be deleted if it's referred by another node unless disconnect "
+                + "is set true."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier (UUID)")),
+            requestParameters(
+                parameterWithName("batch").optional()
+                    .description("If batch is `true`, list of node IDs is expected in "
+                        + "request body. If batch is `false` all nodes in graph are deleted. "
+                        + "Default value is `false`."),
+                parameterWithName("disconnect").optional()
+                    .description("If disconnect is `true`, remove all references to this node "
+                        + "before deleting. If graph does not reference other graphs, disconnect is "
+                        + "not needed. Default value is `false`."))))
+        .when()
+        .delete("/api/graphs/{graphId}/nodes",
+            exampleNode0Id.getTypeGraphId())
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
 }
