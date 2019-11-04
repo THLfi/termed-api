@@ -82,7 +82,7 @@ public class RevisionController {
     return max > 0 ? revisions.limit(max) : revisions;
   }
 
-  @PostJsonMapping(value = "/graphs/{graphId}", produces = {}, params = "targetRevision")
+  @PostJsonMapping(value = "/graphs/{graphId}/nodes", produces = {}, params = "targetRevision")
   @ResponseStatus(NO_CONTENT)
   public void revertGraphNodesToRevision(
       @PathVariable("graphId") UUID graphId,

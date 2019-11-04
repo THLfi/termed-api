@@ -262,3 +262,9 @@ Node revisions are automatically created on each node modification. Purging revi
 all entries from history tables. Operation may take several minutes to complete.
 
 include::{snippets}/delete-revisions/operation-intro.adoc[]
+
+=== Revert graph nodes to past revision
+
+include::{snippets}/revert-graph-nodes-to-revisions/operation-intro.adoc[]
+
+operation::revert-graph-nodes-to-revisions[snippets='path-parameters,request-parameters,curl-request']

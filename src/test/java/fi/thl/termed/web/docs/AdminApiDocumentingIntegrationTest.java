@@ -9,6 +9,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
 import org.apache.http.HttpStatus;
@@ -82,6 +83,31 @@ class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTe
         .when()
         .delete("/api/revisions")
         .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
+  }
+
+  @Test
+  void revertGraphNodesToRevision() {
+    given(adminAuthorizedJsonSaveRequest).filter(
+        document("revert-graph-nodes-to-revisions",
+            operationIntro(
+                "Request to to copy all graph nodes from given revision to current revision. "
+                    + "Reverting might fail if types have been changed since given revision. "
+                    + "This can be worked around by first manually reverting types. "
+                    + "Reverting might also not work if graph refers to another graphs. "
+                    + "Finally, if full revert to past state is needed, `DELETE /api/graphs/{id}/nodes` "
+                    + "might need to be called first."),
+            pathParameters(
+                parameterWithName("graphId")
+                    .description("Graph identifier")),
+            requestParameters(
+                parameterWithName("targetRevision")
+                    .description(
+                        "Required number telling the revision from which nodes are copied."))))
+        .when()
+        .post("/api/graphs/{graphId}/nodes?targetRevision=25", exampleGraphId.getId())
+        .then()
+        .log().all()
         .statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
