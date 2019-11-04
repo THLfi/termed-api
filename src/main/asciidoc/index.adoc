@@ -203,6 +203,96 @@ include::{snippets}/delete-graph-nodes/operation-intro.adoc[]
 
 operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-request']
 
+
+[[resources-node-trees]]
+== Node Trees
+
+=== Node Tree Query Language
+
+Node Tree API supports complex `select` and `where` parameters to limit and format requested nodes.
+Also `sort` and `max` parameters are supported.
+
+==== Select clause
+
+Select clauses define what fields are select.
+
+To select all fields, use `select=*`.
+
+Simple select is done for example using `select=id,type,uri,lastModifiedBy`.
+
+Properties are selected by `select=properties.prefLabel`. All properties can be selected by
+`select=properties.*`. Selected properties can be qualified by type. E.g.
+`select=Person.properties.name` would only select name in Person type. Finally, shorthand `p` for
+`properties` can be used, e.g. `select=p.name`.
+
+References are selected by `select=references.broader`. All references can be selected by
+`select=references.*`. Selecting can be recursive so that referred values' fields will be
+recursively expanded. Recursive select is done by giving max recursion depth after selected attribute
+e.g. `select=references.broader:2`. Selects can also be qualified by type:
+`select=Concept.references.broader`. Finally, shorthand `r` for `references` can be used,
+e.g. `select=r.broader`.
+
+Referrers select work similarly to references select.
+
+==== Where clause
+
+Where queries are modelled after Lucene queries.
+
+Properties can be queried by many different ways. Exact property match is done by
+`where=properties.name:John`. Value must not contain whitespace. Phrase is matched by
+`where=properties.name:"John Smith"`. Prefix search can be done with `\*` symbol, e.g.
+`where=properties.name:Jo*`. Localized field is matched with `where=properties.prefLabel.en:Cat`.
+
+Property fields in format `properties.<attr-id>` contain tokenized values. If un-tokenized match is
+needed, field `properties.<attr-id>.string` can be used. For example exact match with property
+containing exactly and only the queried value can be done with `properties.description.en.string:"Foo Bar"`.
+When using tokenized match without `.string` suffix, `properties.description.en:"Foo Bar"` would
+also match labels such as "Foo Bar Baz". Un-tokenized field can also be used in range queries such
+as `properties.publishDate.string:[* TO 2019-08-01]` given field `publishDate` contains ISO-formatted
+dates.
+
+Boolean queries are also supported. Supported operators are `AND`, `OR` and `NOT` with `(` and `)`
+for grouping. E.g. `where=(properties.name:John OR properties.name:Lisa) AND NOT properties.name:Jack`.
+Exactly one space should be used as whitespace.
+
+==== Sort clause
+
+Select clauses define what fields are select. By default, sort is relevance based. Common
+requirement is to sort by some property value. Sorting by for example `prefLabel` in `en` locale
+would be done by `sort=properties.prefLabel.en`. Descending sort can be requested using `+desc`
+suffix (e.g. `sort=properties.prefLabel.en+desc`).
+
+==== Max clause
+
+Max parameter limits the number of results returned. Default value is typically `25` or `50`. Special
+value `-1` returns all results.
+
+
+=== Get a Node Tree
+
+include::{snippets}/get-a-node-tree/operation-intro.adoc[]
+
+operation::get-a-node-tree[snippets='path-parameters,request-parameters,response-fields,curl-request,response-body']
+
+=== Get Node Trees of Type
+
+include::{snippets}/get-type-node-trees/operation-intro.adoc[]
+
+operation::get-type-node-trees[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Get Node Trees of Graph
+
+include::{snippets}/get-graph-node-trees/operation-intro.adoc[]
+
+operation::get-graph-node-trees[snippets='path-parameters,request-parameters,curl-request']
+
+=== Get Node Trees in any Graph
+
+include::{snippets}/get-all-node-trees/operation-intro.adoc[]
+
+operation::get-all-node-trees[snippets='request-parameters,curl-request']
+
+
 [[resources-users]]
 == Users
 
