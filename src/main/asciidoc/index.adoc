@@ -22,6 +22,11 @@ Termed API is service for storing data in graph structure.
 [[resources-graphs]]
 == Graphs
 
+A Graph contains Types and Nodes. Termed instance typically contains many graphs. Graph is analog to
+database or schema in RDBMS. Types define fields for Nodes. Nodes contain the actual data. Graphs
+themselves contain `properties` (multimap of localized text values), list of `roles` and map of
+`permissions`. Only users with application role `ADMIN` or `SUPERUSER` can create new graphs.
+
 === Get a Graph
 
 include::{snippets}/get-a-graph/operation-intro.adoc[]
@@ -238,22 +243,35 @@ Referrers select work similarly to references select.
 
 Where queries are modelled after Lucene queries.
 
-Properties can be queried by many different ways. Exact property match is done by
-`where=properties.name:John`. Value must not contain whitespace. Phrase is matched by
-`where=properties.name:"John Smith"`. Prefix search can be done with `\*` symbol, e.g.
-`where=properties.name:Jo*`. Localized field is matched with `where=properties.prefLabel.en:Cat`.
+Properties can be queried by many different ways. Simple property match is done by
+`where=properties.name:John`. Value part after the colon must not contain whitespace.
+Phrase is matched by `where=properties.name:"John Smith"`. Prefix search can be done with
+`\*` symbol, e.g. `where=properties.name:Jo*`. Localized field is matched with
+`where=properties.prefLabel.en:Cat`. Shorthand `p.` can be used for `properties.`.
 
-Property fields in format `properties.<attr-id>` contain tokenized values. If un-tokenized match is
-needed, field `properties.<attr-id>.string` can be used. For example exact match with property
-containing exactly and only the queried value can be done with `properties.description.en.string:"Foo Bar"`.
-When using tokenized match without `.string` suffix, `properties.description.en:"Foo Bar"` would
-also match labels such as "Foo Bar Baz". Un-tokenized field can also be used in range queries such
-as `properties.publishDate.string:[* TO 2019-08-01]` given field `publishDate` contains ISO-formatted
-dates.
+Property fields `properties.<attr-id>` contain tokenized values. If un-tokenized fields are needed
+for exact matching use `properties.<attr-id>.string`.
+
+Un-tokenized properties can be queried similarly to tokenized (e.g. `properties.name.string:"John Smith"`).
+Difference is that `properties.name:"John Smith"` would also match names such as "George John Smith".
+Un-tokenized field can also be used in range queries such as `properties.publishDate.string:[* TO 2019-08-01]`
+if field `publishDate` contains ISO-formatted dates.
 
 Boolean queries are also supported. Supported operators are `AND`, `OR` and `NOT` with `(` and `)`
 for grouping. E.g. `where=(properties.name:John OR properties.name:Lisa) AND NOT properties.name:Jack`.
 Exactly one space should be used as whitespace.
+
+Query (or part of it) can be boosted with `properties.name:John^2`. This means that boosted field
+is weighted more in the query.
+
+References are queried with `references.<attr-id>.id:<uuid>`. For example
+`references.knows.id:02ae45a7-df3b-4433-8d59-6c83ee20c46b`. Nodes that do not refer anything
+via some reference can be found with e.g. `references.knows.id:null`. Path based querying is also
+possible but it should be noted that it can be very inefficient. Path based queries are done
+like `references.knows.references.knows.id:<uuid>` or `references.broader.uri:<uri>` or
+`references.broader.properties.prefLabel:Animal`. Shorthand `r.` can be used for `references.`.
+
+Referrers are not supported in queries.
 
 ==== Sort clause
 
