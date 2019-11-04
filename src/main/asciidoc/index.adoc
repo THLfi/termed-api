@@ -212,14 +212,45 @@ operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-
 [[resources-node-trees]]
 == Node Trees
 
+Node Tree API supports `select`, `where`, `sort` and `max` parameters to narrow and sort requested
+nodes.
+
+Node Tree API is can be used for as follows:
+
+....
+GET /api/node-trees?select=<fields>&where=<criteria>&sort=<fields>&max=<number>
+....
+
+Usually reads are limited to some graph or type:
+
+....
+GET /api/graphs/{graphId}/node-trees
+GET /api/graphs/{graphId}/types/{typeId}/node-trees
+....
+
+A single tree can be loaded with:
+
+....
+GET /api/graphs/{graphId}/types/{typeId}/node-trees/{id}
+....
+
+If only node counts are needed `/api/node-count?where=<criteria>` can be used. Supported API for
+counting is very similar to Node Tree API except it returns integers. API can be used as follows:
+
+....
+GET /api/node-count?where=<criteria>
+GET /api/graphs/{graphId}/node-count?where=<criteria>
+GET /api/graphs/{graphId}/types/{typeId}/node-count?where=<criteria>
+....
+
+If where criteria is not provided or is empty, full node count is returned.
+
+
 === Node Tree Query Language
 
-Node Tree API supports complex `select` and `where` parameters to limit and format requested nodes.
-Also `sort` and `max` parameters are supported.
+==== Select
 
-==== Select clause
-
-Select clauses define what fields are select.
+Select lists fields that are returned on result objects.
 
 To select all fields, use `select=*`.
 
@@ -239,7 +270,7 @@ e.g. `select=r.broader`.
 
 Referrers select work similarly to references select.
 
-==== Where clause
+==== Where
 
 Where queries are modelled after Lucene queries.
 
@@ -273,14 +304,13 @@ like `references.knows.references.knows.id:<uuid>` or `references.broader.uri:<u
 
 Referrers are not supported in queries.
 
-==== Sort clause
+==== Sort
 
-Select clauses define what fields are select. By default, sort is relevance based. Common
-requirement is to sort by some property value. Sorting by for example `prefLabel` in `en` locale
-would be done by `sort=properties.prefLabel.en`. Descending sort can be requested using `+desc`
-suffix (e.g. `sort=properties.prefLabel.en+desc`).
+Sort lists what fields are used to sort result list. By default, sort is relevance based. Sorting by
+for example `prefLabel` with `en` language would be done by `sort=properties.prefLabel.en`.
+Descending sort can be used with `+desc` suffix (e.g. `sort=properties.prefLabel.en+desc`).
 
-==== Max clause
+==== Max
 
 Max parameter limits the number of results returned. Default value is typically `25` or `50`. Special
 value `-1` returns all results.
