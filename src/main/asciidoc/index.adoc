@@ -410,6 +410,34 @@ GET /api/graphs/{graphId}/types/{typeId}/node-count?where=<criteria>
 If where criteria is not provided or is empty, full node count is returned.
 
 
+[[resources-dump]]
+== Dump
+
+=== Get Dump of Graph
+
+include::{snippets}/get-a-graph-dump/operation-intro.adoc[]
+
+operation::get-a-graph-dump[snippets='path-parameters,curl-request,response-body']
+
+=== Get Dump of all graphs
+
+include::{snippets}/get-a-dump/operation-intro.adoc[]
+
+operation::get-a-dump[snippets='request-parameters,curl-request']
+
+=== Post a Dump
+
+include::{snippets}/post-a-dump/operation-intro.adoc[]
+
+operation::post-a-dump[snippets='request-parameters,curl-request']
+
+=== Copy a Dump
+
+include::{snippets}/copy-a-dump/operation-intro.adoc[]
+
+operation::copy-a-dump[snippets='path-parameters,request-parameters,curl-request']
+
+
 [[resources-users]]
 == Users
 
