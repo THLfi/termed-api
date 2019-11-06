@@ -213,44 +213,60 @@ operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-
 == Node Trees
 
 Node Tree API supports `select`, `where`, `sort` and `max` parameters to narrow and sort requested
-nodes.
+nodes: `GET /api/node-trees?select=<fields>&where=<criteria>&sort=<fields>&max=<number>`.
 
-Node Tree API is can be used for as follows:
-
-....
-GET /api/node-trees?select=<fields>&where=<criteria>&sort=<fields>&max=<number>
-....
-
-Usually reads are limited to some graph or type:
-
+Typically queries are limited to some graph or type or single tree with:
 ....
 GET /api/graphs/{graphId}/node-trees
 GET /api/graphs/{graphId}/types/{typeId}/node-trees
-....
-
-A single tree can be loaded with:
-
-....
 GET /api/graphs/{graphId}/types/{typeId}/node-trees/{id}
 ....
 
-If only node counts are needed `/api/node-count?where=<criteria>` can be used. Supported API for
-counting is very similar to Node Tree API except it returns integers. API can be used as follows:
-
-....
-GET /api/node-count?where=<criteria>
-GET /api/graphs/{graphId}/node-count?where=<criteria>
-GET /api/graphs/{graphId}/types/{typeId}/node-count?where=<criteria>
-....
-
-If where criteria is not provided or is empty, full node count is returned.
-
-
 === Node Tree Query Language
+
+Node Tree Query Language specifies the syntax of `select`, `where`, `sort` and `max` parameters.
 
 ==== Select
 
-Select lists fields that are returned on result objects.
+Select controls fields that are returned on result objects.
+
+.Syntax for select
+----
+select               = "" | "*" | field-names
+
+
+field-names          = field-name | field-names "," field-name
+field-name           = "id" | "type" | "number" | "code" | "uri"
+                     | "createdBy" | "createdDate"
+                     | "lastModifiedBy" | "lastModifiedDate"
+                     | q-prop-field-w-depth
+                     | q-ref-field-w-depth
+                     | q-refr-field-w-depth
+
+
+q-prop-field-w-depth = q-prop-field ":" max-depth
+                     | q-prop-field
+q-prop-field         = graph-id "." type-id "." prop-field
+                     | type-id "." prop-field
+                     | prop-field
+prop-field           = ("p." | "props." | "properties.") ("*" | text-attribute-id)
+
+
+q-ref-field-w-depth  = q-ref-field ":" max-depth
+                     | q-ref-field
+q-ref-field          = graph-id "." type-id "." ref-field
+                     | type-id "." ref-field
+                     | ref-field
+ref-field            = ("r." | "refs." | "references.") ("*" | reference-attribute-id)
+
+
+q-refr-field-w-depth = q-refr-field ":" max-depth
+                     | q-refr-field
+q-refr-field         = graph-id "." type-id "." refr-field
+                     | type-id "." refr-field
+                     | refr-field
+refr-field           = ("refrs." | "referrers.") ("*" | reference-attribute-id)
+----
 
 To select all fields, use `select=*`.
 
@@ -273,6 +289,46 @@ Referrers select work similarly to references select.
 ==== Where
 
 Where queries are modelled after Lucene queries.
+
+.Syntax for where
+----
+where             = "" | boolean-query
+
+boolean-query     = term " OR " term | term
+term              = factor " AND " factor | factor
+factor            = "NOT " factor | node-query | (" boolean-query ")" | factor "^" boost
+
+node-query        = node-id-query
+                  | node-prop-query
+                  | node-ref-query
+
+node-id-query     = ("id" | "node.id" | "nodeId" | "urn:uuid") ":" uuid
+                  | "code:" code
+                  | "uri:" uri
+                  | ("number" | "n") ":" integer
+                  | "createdDate:[" (iso-date | "*") " TO " (iso-date | "*") "]"
+                  | "lastModifiedDate:[" (iso-date | "*") " TO " (iso-date | "*") "]"
+                  | ("type.graph.id" | "graph.id" | "graphId") ":" uuid
+                  | ("type.graph.code" | "graph.code" | "graphCode") ":" code
+                  | ("type.graph.uri" | "graph.uri" | "graphUri") ":" uri
+                  | ("type.code" | "typeCode") ":" code
+                  | ("type.uri" | "typeUri") ":" uri
+
+node-prop-query   = prop-lang-str-key ":\"" string "\""
+                  | prop-lang-key ".string:[" (string | "*") " TO " (string | "*") ")"
+                  | prop-lang-str-key ":" string "*"
+                  | prop-lang-str-key ":" string
+
+prop-lang-str-key = prop-lang-key ".string" | prop-lang-key
+prop-lang-key     = prop-key "." lang-code | prop-key
+prop-key          = ("properties" | "props" | "p") "." text-attr-id
+
+node-ref-query    = ref-key ".id:" uuid
+                  | ref-key ".id:null"
+                  | ref-key ":" node-query
+
+ref-key           = ("references" | "refs" | "r") "." reference-attr-id
+----
 
 Properties can be queried by many different ways. Simple property match is done by
 `where=properties.name:John`. Value part after the colon must not contain whitespace.
@@ -339,6 +395,19 @@ operation::get-graph-node-trees[snippets='path-parameters,request-parameters,cur
 include::{snippets}/get-all-node-trees/operation-intro.adoc[]
 
 operation::get-all-node-trees[snippets='request-parameters,curl-request']
+
+=== Get Node Counts
+
+If only counts are needed `/api/node-count?where=<criteria>` can be used. Supported API for
+counting is very similar to Node Tree API except it returns integers. API can be used as follows:
+
+....
+GET /api/node-count?where=<criteria>
+GET /api/graphs/{graphId}/node-count?where=<criteria>
+GET /api/graphs/{graphId}/types/{typeId}/node-count?where=<criteria>
+....
+
+If where criteria is not provided or is empty, full node count is returned.
 
 
 [[resources-users]]
