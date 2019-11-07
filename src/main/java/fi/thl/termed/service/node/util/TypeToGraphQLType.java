@@ -114,7 +114,7 @@ public class TypeToGraphQLType implements Function<Type, GraphQLType> {
 
   private GraphQLFieldDefinition buildReferrersField(Type type) {
     List<ReferenceAttribute> referringAttributes =
-        referenceAttributesByRange.get(type.identifier());
+        referenceAttributesByRange.getOrDefault(type.identifier(), ImmutableList.of());
 
     return newFieldDefinition()
         .name("referrers")

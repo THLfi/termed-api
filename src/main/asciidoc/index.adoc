@@ -124,7 +124,7 @@ operation::delete-a-type[snippets='path-parameters,curl-request']
 
 
 [[resources-nodes]]
-== Nodes (CRUD API)
+== Nodes (CRUD)
 
 Applications typically operate mostly on Node API. There are two main APIs for nodes. CRUD API and
 Tree API. The former is simple create-read-update-delete API for nodes. The latter is read-only
@@ -408,6 +408,67 @@ GET /api/graphs/{graphId}/types/{typeId}/node-count?where=<criteria>
 ....
 
 If where criteria is not provided or is empty, full node count is returned.
+
+
+[[resources-node-graphql]]
+== Node GraphQL
+
+For reading complex nodes of given type a GraphQL API is available at
+
+....
+POST /api/graphs/{graphId}/types/{typeId}/nodes/graphql
+....
+
+This API is especially useful for reading objects that compose from multiple other objects.
+
+In GraphQL-query, the root level node-object supports `where`, `sort` and `max` arguments
+specified in Node Trees API. For example:
+....
+{
+  nodes(where: "props.name:J*", max: 20) {
+    id
+    properties {
+      name { value }
+    }
+  }
+}
+....
+
+To load deep trees, define nested structures as needed. Query is somewhat verbose due to Termed Node
+properties/references structure but still using is straightforward. For example:
+
+....
+{
+  nodes(where: "id:13c1c775-08ca-4c57-9118-feb543ee9a4b") {
+    id
+    properties {
+      name { value }
+    }
+    references {
+      address {
+        properties {
+          street { value }
+        }
+        references {
+          city {
+            properties {
+              name { value }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+....
+
+Structure of the data, i.e. GraphQL Type definitions are direct conversions of Termed Types.
+
+=== Get Nodes by GraphQL
+
+include::{snippets}/get-nodes-by-graphql/operation-intro.adoc[]
+
+operation::get-nodes-by-graphql[snippets='path-parameters,request-parameters,curl-request,response-body']
 
 
 [[resources-dump]]
