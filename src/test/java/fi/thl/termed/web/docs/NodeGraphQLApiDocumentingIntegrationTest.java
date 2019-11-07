@@ -38,9 +38,8 @@ class NodeGraphQLApiDocumentingIntegrationTest extends BaseNodeApiDocumentingInt
                 parameterWithName("unwrapResults").optional()
                     .description(
                         "Optional boolean parameter to specify whether or not to remove outer "
-                            + "`data.nodes` structure (data.<root-query-object> structure is "
-                            + "defined by GraphQL). Default value is `true` meaning that response "
-                            + "body is an array of Termed Nodes.")),
+                            + "`data.nodes` structure. Default value is `true` meaning that "
+                            + "response body is an array of Termed Nodes.")),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
