@@ -471,6 +471,28 @@ include::{snippets}/get-nodes-by-graphql/operation-intro.adoc[]
 operation::get-nodes-by-graphql[snippets='path-parameters,request-parameters,curl-request,response-body']
 
 
+[[resources-node-csv]]
+== Node CSV
+
+=== Get Nodes of Type in CSV
+
+include::{snippets}/get-type-nodes-in-csv/operation-intro.adoc[]
+
+operation::get-type-nodes-in-csv[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Get Nodes of Graph in CSV
+
+include::{snippets}/get-graph-nodes-in-csv/operation-intro.adoc[]
+
+operation::get-graph-nodes-in-csv[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Get Nodes in any Graph in CSV
+
+include::{snippets}/get-nodes-in-csv/operation-intro.adoc[]
+
+operation::get-nodes-in-csv[snippets='request-parameters,curl-request,response-body']
+
+
 [[resources-dump]]
 == Dump
 
