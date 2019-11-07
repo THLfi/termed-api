@@ -296,7 +296,7 @@ where             = "" | boolean-query
 
 boolean-query     = term " OR " term | term
 term              = factor " AND " factor | factor
-factor            = "NOT " factor | node-query | (" boolean-query ")" | factor "^" boost
+factor            = "NOT " factor | node-query | "(" boolean-query ")" | factor "^" boost
 
 node-query        = node-id-query
                   | node-prop-query
