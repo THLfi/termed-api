@@ -510,7 +510,7 @@ operation::get-a-dump[snippets='request-parameters,curl-request']
 
 === Post a Dump
 
-include::{snippets}/post-a-dump/operation-intro.adoc[]
+include::{snippets}/save-a-dump/operation-intro.adoc[]
 
 operation::post-a-dump[snippets='request-parameters,curl-request']
 
@@ -519,6 +519,12 @@ operation::post-a-dump[snippets='request-parameters,curl-request']
 include::{snippets}/copy-a-dump/operation-intro.adoc[]
 
 operation::copy-a-dump[snippets='path-parameters,request-parameters,curl-request']
+
+=== Copy remote Dump
+
+include::{snippets}/copy-remote-dump/operation-intro.adoc[]
+
+operation::copy-remote-dump[snippets='request-parameters,request-fields,curl-request']
 
 
 [[resources-users]]

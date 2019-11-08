@@ -12,14 +12,19 @@ import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
+import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.documentationConfiguration;
 
 import fi.thl.termed.domain.Dump;
+import fi.thl.termed.domain.UrlWithCredentials;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.http.HttpStatus;
@@ -127,7 +132,7 @@ class DumpApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTes
         Stream.of(exampleNode0, exampleNode1));
 
     given(adminAuthorizedJsonSaveRequest)
-        .filter(document("post-a-dump",
+        .filter(document("save-a-dump",
             operationIntro("Restore a dump. Tries to save all graphs, types and nodes in the dump. "
                 + "Graphs, types and nodes are each saved atomically but whole dump is not. I.e. "
                 + "error on saving nodes leaves updated graphs and types."),
@@ -196,6 +201,48 @@ class DumpApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTes
         .delete("/api/graphs/{id}", targetGraphId)
         .then()
         .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  @Test
+  void documentCopyRemoteDump() {
+    UrlWithCredentials urlWithCredentials = new UrlWithCredentials(
+        "http://example.org/termed/api/dump",
+        "remote-instance-username",
+        "remote-instance-password");
+
+    given(userAuthorizedRequest)
+        .filter(document("copy-remote-dump",
+            operationIntro("Copy graph, types and nodes from remote instance to this Termed."),
+            requestHeaders(
+                headerWithName("Authorization")
+                    .description("Basic authentication credentials")),
+            requestParameters(
+                parameterWithName("remote")
+                    .description("Required parameter, must be `true` to trigger remote copying."),
+                parameterWithName("mode").optional()
+                    .description("Optional save mode. Supported modes are `insert`, `update`, "
+                        + "`upsert`. Default values is `upsert`. If only new graphs are expected "
+                        + "from the remote, use mode `insert` to avoid accidental overwriting."),
+                parameterWithName("generateUris").optional()
+                    .description("Optional parameter to define whether missing URIs are "
+                        + "automatically generated. Default value is `false`."),
+                parameterWithName("generateCodes").optional()
+                    .description("Optional parameter to define whether missing codes are "
+                        + "automatically generated. Default value is `false`.")),
+            requestFields(
+                fieldWithPath("url")
+                    .description("Remote Termed dump endpoint URL. "
+                        + "I.e. given URL should return data in JSON format matching the dump structure."),
+                fieldWithPath("username")
+                    .description("Remote Termed username."),
+                fieldWithPath("password")
+                    .description("Remote Termed password"))))
+        .when()
+        .contentType("application/json")
+        .body(urlWithCredentials)
+        .post("/api/dump?remote=true")
+        .then()
+        .statusCode(HttpStatus.SC_FORBIDDEN);
   }
 
 }
