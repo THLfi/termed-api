@@ -4,7 +4,6 @@ import static com.google.common.base.Charsets.UTF_8;
 import static fi.thl.termed.domain.User.newAdmin;
 import static fi.thl.termed.domain.User.newSuperuser;
 import static fi.thl.termed.domain.User.newUser;
-import static fi.thl.termed.util.RandomUtils.randomAlphanumericString;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static io.restassured.config.EncoderConfig.encoderConfig;
@@ -59,11 +58,11 @@ public abstract class BaseApiIntegrationTest {
   private int serverPort;
 
   private String testUserUsername = "test-user";
+  private String testUserPassword = "test-user";
   private String testAdminUsername = "test-admin";
+  private String testAdminPassword = "test-admin";
   private String testSuperuserUsername = "test-superuser";
-  private String testUserPassword = randomAlphanumericString(20);
-  private String testAdminPassword = randomAlphanumericString(20);
-  private String testSuperuserPassword = randomAlphanumericString(20);
+  private String testSuperuserPassword = "test-superuser";
 
   @BeforeEach
   public void configRestAssured() {
