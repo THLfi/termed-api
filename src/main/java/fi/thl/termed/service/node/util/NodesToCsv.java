@@ -103,7 +103,7 @@ public final class NodesToCsv {
       map.put("uri", node.getUri().orElse(null));
     }
     if (s.contains(new SelectAll()) || s.contains(Selects.field("number"))) {
-      map.put("number", String.valueOf(node.getNumber()));
+      map.put("number", node.getNumber() != null ? node.getNumber().toString() : "");
     }
 
     return map;

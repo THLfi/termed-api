@@ -421,7 +421,7 @@ POST /api/graphs/{graphId}/types/{typeId}/nodes/graphql
 
 This API is especially useful for reading objects that compose from multiple other objects.
 
-In GraphQL-query, the root level node-object supports `where`, `sort` and `max` arguments
+In GraphQL-query, the root level nodes-object supports `where`, `sort` and `max` arguments
 specified in Node Trees API. For example:
 ....
 {
@@ -491,6 +491,24 @@ operation::get-graph-nodes-in-csv[snippets='path-parameters,request-parameters,c
 include::{snippets}/get-nodes-in-csv/operation-intro.adoc[]
 
 operation::get-nodes-in-csv[snippets='request-parameters,curl-request,response-body']
+
+=== Post Nodes of Type in CSV
+
+include::{snippets}/save-type-nodes-in-csv/operation-intro.adoc[]
+
+operation::save-type-nodes-in-csv[snippets='path-parameters,request-parameters,curl-request']
+
+=== Post Nodes of Graph in CSV
+
+include::{snippets}/save-graph-nodes-in-csv/operation-intro.adoc[]
+
+operation::save-graph-nodes-in-csv[snippets='path-parameters,request-parameters,curl-request']
+
+=== Post Nodes in any Graph in CSV
+
+include::{snippets}/save-nodes-in-csv/operation-intro.adoc[]
+
+operation::save-nodes-in-csv[snippets='request-parameters,curl-request']
 
 
 [[resources-dump]]

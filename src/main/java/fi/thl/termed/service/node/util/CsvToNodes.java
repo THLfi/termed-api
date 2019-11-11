@@ -119,7 +119,7 @@ public final class CsvToNodes {
         .id(nodeId)
         .code(emptyToNull(row.get("code")))
         .uri(emptyToNull(row.get("uri")))
-        .number(row.containsKey("number") ? Long.valueOf(row.get("number")) : null);
+        .number(emptyToNull(row.get("number")) != null ? Long.valueOf(row.get("number")) : null);
 
     row.forEach((k, vs) -> {
       Matcher m = PROPERTY_KEY.matcher(k);
