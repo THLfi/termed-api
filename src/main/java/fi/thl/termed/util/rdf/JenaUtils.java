@@ -22,4 +22,10 @@ public final class JenaUtils {
     return stringWriter.toString();
   }
 
+  public static String toRdfTtlString(Model model) {
+    Writer stringWriter = new StringWriter();
+    model.write(stringWriter, "TTL");
+    return stringWriter.toString();
+  }
+
 }

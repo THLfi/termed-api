@@ -124,7 +124,7 @@ operation::delete-a-type[snippets='path-parameters,curl-request']
 
 
 [[resources-nodes]]
-== Nodes (CRUD)
+== Nodes CRUD
 
 Applications typically operate mostly on Node API. There are two main APIs for nodes. CRUD API and
 Tree API. The former is simple create-read-update-delete API for nodes. The latter is read-only
@@ -470,6 +470,27 @@ include::{snippets}/get-nodes-by-graphql/operation-intro.adoc[]
 
 operation::get-nodes-by-graphql[snippets='path-parameters,request-parameters,curl-request,response-body']
 
+
+[[resources-node-rdf]]
+== Node RDF
+
+=== Get Nodes of Graph in RDF
+
+include::{snippets}/get-graph-nodes-in-rdf/operation-intro.adoc[]
+
+operation::get-graph-nodes-in-rdf[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Get Nodes of Graph in RDF by SPARQL
+
+include::{snippets}/get-graph-nodes-in-rdf-by-sparql/operation-intro.adoc[]
+
+operation::get-graph-nodes-in-rdf-by-sparql[snippets='path-parameters,request-parameters,curl-request,response-body']
+
+=== Post Nodes of Graph in RDF
+
+include::{snippets}/save-graph-nodes-in-rdf/operation-intro.adoc[]
+
+operation::save-graph-nodes-in-rdf[snippets='path-parameters,request-parameters,curl-request']
 
 [[resources-node-csv]]
 == Node CSV

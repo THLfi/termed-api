@@ -18,10 +18,7 @@ public abstract class BaseApiDocumentingIntegrationTest extends BaseApiIntegrati
       RestDocumentationContextProvider restDocumentation) {
 
     Filter documentationConfiguration =
-        documentationConfiguration(restDocumentation)
-            .operationPreprocessors()
-            .withRequestDefaults(Preprocessors.modifyUris().port(8080))
-            .withResponseDefaults(Preprocessors.modifyUris().port(8080));
+        documentationConfiguration(restDocumentation);
 
     userAuthorizedRequest.filter(documentationConfiguration);
     adminAuthorizedRequest.filter(documentationConfiguration);
