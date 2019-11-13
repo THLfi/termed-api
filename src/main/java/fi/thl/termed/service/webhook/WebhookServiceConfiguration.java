@@ -16,6 +16,7 @@ import fi.thl.termed.util.service.DaoForwardingRepository;
 import fi.thl.termed.util.service.ReadWriteSynchronizedService;
 import fi.thl.termed.util.service.Service;
 import fi.thl.termed.util.service.TransactionalService;
+import fi.thl.termed.util.service.WriteLoggingService;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,8 @@ public class WebhookServiceConfiguration {
         new DaoForwardingRepository<>(
             new AuthorizedDao<>(dao, permissionEvaluator));
     service = new TransactionalService<>(service, transactionManager);
+    service = new WriteLoggingService<>(service,
+        getClass().getPackage().getName() + ".WebhookService");
     service = new ReadWriteSynchronizedService<>(service);
 
     return service;

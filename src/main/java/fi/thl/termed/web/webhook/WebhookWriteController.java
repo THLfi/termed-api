@@ -1,5 +1,6 @@
 package fi.thl.termed.web.webhook;
 
+import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
@@ -10,12 +11,10 @@ import fi.thl.termed.domain.User;
 import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.specification.WebhookByUrl;
 import fi.thl.termed.util.query.Queries;
-import fi.thl.termed.util.query.Query;
 import fi.thl.termed.util.service.Service;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,12 +34,10 @@ public class WebhookWriteController {
 
   @PostMapping(params = "url")
   public UUID post(@RequestParam("url") URI url, @AuthenticationPrincipal User user) {
-    try (Stream<Webhook> hooks = webhookService.values(new Query<>(new WebhookByUrl(url)), user)) {
-      return hooks.findFirst()
-          .map(Webhook::getId)
-          .orElseGet(() ->
-              webhookService.save(new Webhook(randomUUID(), url), INSERT, defaultOpts(), user));
-    }
+    return findFirstAndClose(webhookService.values(Queries.query(new WebhookByUrl(url)), user))
+        .map(Webhook::getId)
+        .orElseGet(() ->
+            webhookService.save(new Webhook(randomUUID(), url), INSERT, defaultOpts(), user));
   }
 
   @DeleteMapping("/{id}")
