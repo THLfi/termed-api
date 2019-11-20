@@ -566,6 +566,45 @@ include::{snippets}/copy-remote-dump/operation-intro.adoc[]
 operation::copy-remote-dump[snippets='request-parameters,request-fields,curl-request']
 
 
+[[resources-webhooks]]
+== Webhooks
+
+Webhooks can be registered and deleted with this API. Hooks are automatically called after
+successful Node save and delete operations.
+
+Webhook API operations are permitted only for admins and superusers.
+
+=== Get a Webhook
+
+include::{snippets}/get-a-webhook/operation-intro.adoc[]
+
+operation::get-a-webhook[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get all Webhooks
+
+include::{snippets}/get-all-webhooks/operation-intro.adoc[]
+
+operation::get-all-webhooks[snippets='curl-request']
+
+=== Post a Webhook
+
+include::{snippets}/save-a-webhook/operation-intro.adoc[]
+
+operation::save-a-webhook[snippets='request-parameters,request-fields,curl-request']
+
+=== Delete a Webhook
+
+include::{snippets}/delete-a-webhook/operation-intro.adoc[]
+
+operation::delete-a-webhook[snippets='path-parameters,curl-request']
+
+=== Delete all Webhooks
+
+include::{snippets}/delete-all-webhooks/operation-intro.adoc[]
+
+operation::delete-all-webhooks[snippets='curl-request']
+
+
 [[resources-users]]
 == Users
 

@@ -3,6 +3,7 @@ package fi.thl.termed.web.webhook;
 import static fi.thl.termed.util.collect.StreamUtils.findFirstAndClose;
 import static fi.thl.termed.util.collect.StreamUtils.toImmutableListAndClose;
 import static fi.thl.termed.util.service.SaveMode.INSERT;
+import static fi.thl.termed.util.service.SaveMode.saveMode;
 import static fi.thl.termed.util.service.WriteOptions.defaultOpts;
 import static java.util.UUID.randomUUID;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -12,14 +13,18 @@ import fi.thl.termed.domain.Webhook;
 import fi.thl.termed.service.webhook.specification.WebhookByUrl;
 import fi.thl.termed.util.query.Queries;
 import fi.thl.termed.util.service.Service;
+import fi.thl.termed.util.spring.annotation.PostJsonMapping;
+import fi.thl.termed.util.spring.exception.NotFoundException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,6 +43,15 @@ public class WebhookWriteController {
         .map(Webhook::getId)
         .orElseGet(() ->
             webhookService.save(new Webhook(randomUUID(), url), INSERT, defaultOpts(), user));
+  }
+
+  @PostJsonMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public Webhook post(
+      @RequestBody Webhook webhook,
+      @RequestParam(name = "mode", defaultValue = "upsert") String mode,
+      @AuthenticationPrincipal User user) {
+    UUID id = webhookService.save(webhook, saveMode(mode), defaultOpts(), user);
+    return webhookService.get(id, user).orElseThrow(NotFoundException::new);
   }
 
   @DeleteMapping("/{id}")

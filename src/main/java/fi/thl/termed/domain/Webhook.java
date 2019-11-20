@@ -3,17 +3,35 @@ package fi.thl.termed.domain;
 import com.google.common.base.MoreObjects;
 import fi.thl.termed.util.collect.Identifiable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.UUID;
 
 public final class Webhook implements Identifiable<UUID> {
 
-  private UUID id;
-  private URI url;
+  private final UUID id;
+  private final URI url;
+
+  public Webhook(URI url) {
+    this(UUID.randomUUID(), url);
+  }
 
   public Webhook(UUID id, URI url) {
     this.id = id;
     this.url = url;
+  }
+
+  public Webhook(String urlString) {
+    this(UUID.randomUUID(), urlString);
+  }
+
+  public Webhook(UUID id, String urlString) {
+    this.id = id;
+    try {
+      this.url = new URI(urlString);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public UUID getId() {
