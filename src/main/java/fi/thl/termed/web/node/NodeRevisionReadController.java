@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -44,6 +45,7 @@ public class NodeRevisionReadController {
       @PathVariable("graphId") UUID graphId,
       @PathVariable("typeId") String typeId,
       @PathVariable("id") UUID id,
+      @RequestParam(value = "max", defaultValue = "-1") int max,
       @AuthenticationPrincipal User user) {
     return toListAndClose(nodeRevisionService
         .keys(Queries.query(and(
@@ -55,7 +57,8 @@ public class NodeRevisionReadController {
               .get(revisionId.getRevision(), user)
               .orElseThrow(IllegalStateException::new);
           return new ObjectRevision<>(revision, null, revisionId.getId());
-        }));
+        })
+        .limit(max > 0 ? max : Integer.MAX_VALUE));
   }
 
   @GetJsonMapping("/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions/{number}")

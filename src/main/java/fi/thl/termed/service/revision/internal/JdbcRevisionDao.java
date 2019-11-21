@@ -33,7 +33,7 @@ public class JdbcRevisionDao extends AbstractJdbcDao<Long, Revision> {
   @Override
   protected <E> Stream<E> get(SqlSpecification<Long, Revision> specification, RowMapper<E> mapper) {
     return jdbcTemplate.queryForStream(
-        String.format("select * from revision where %s order by revision desc",
+        String.format("select * from revision where %s order by number desc",
             specification.sqlQueryTemplate()),
         specification.sqlQueryParameters(), mapper);
   }

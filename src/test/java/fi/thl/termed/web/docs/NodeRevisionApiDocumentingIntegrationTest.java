@@ -13,8 +13,11 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
 
+import fi.thl.termed.domain.Revision;
+import java.util.stream.Stream;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -25,14 +28,15 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
     // do an extra update to populate revision history
     given(adminAuthorizedJsonSaveRequest)
         .body(exampleNode0)
-        .post("/api/graphs/{graphId}/nodes?mode=update", exampleGraphId.getId())
+        .post("/api/graphs/{graphId}/nodes", exampleGraphId.getId())
         .then()
         .statusCode(HttpStatus.SC_OK);
 
     given(adminAuthorizedJsonGetRequest)
         .filter(document("get-node-revisions",
-            operationIntro("Get an array of node revisions by node id. Objects in array contain "
-                + "only the \"metadata\". Complete revisions need to be loaded separately."),
+            operationIntro("Get an array of node revisions by Node ID. Revisions are returned in "
+                + "descending order. Objects in the array contain only the \"metadata\". Complete "
+                + "revisions need to be loaded separately."),
             pathParameters(
                 parameterWithName("graphId")
                     .description("Graph identifier (UUID)"),
@@ -43,6 +47,10 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
+            requestParameters(
+                parameterWithName("max")
+                    .description("Optional parameter for limiting the number returned revisions. "
+                        + "Default value is `-1` returning all node revisions.")),
             responseFields(
                 fieldWithPath("[].number")
                     .description("Revision number, integer."),
@@ -53,7 +61,7 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
                 subsectionWithPath("[].object")
                     .description("Object revision, in this case just the Node identifier."))))
         .when()
-        .get("/api/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions",
+        .get("/api/graphs/{graphId}/types/{typeId}/nodes/{id}/revisions?max=3",
             exampleNode0Id.getTypeGraphId(),
             exampleNode0Id.getTypeId(),
             exampleNode0Id.getId())
@@ -63,6 +71,20 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
 
   @Test
   void documentGetNodeRevision() {
+    Revision[] revisionArray = given(superuserAuthorizedRequest)
+        .when()
+        .get("/api/revisions")
+        .then()
+        .log().all()
+        .extract()
+        .as(Revision[].class);
+
+    long greatestRevisionNumber = Stream.of(revisionArray)
+        .map(Revision::getNumber)
+        .mapToLong(Long::longValue)
+        .max()
+        .orElse(1L);
+
     given(adminAuthorizedJsonGetRequest)
         .filter(document("get-a-node-revision",
             operationIntro("Get a node revisions by node id and revision number."),
@@ -98,7 +120,7 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
             exampleNode0Id.getTypeGraphId(),
             exampleNode0Id.getTypeId(),
             exampleNode0Id.getId(),
-            1)
+            greatestRevisionNumber)
         .then()
         .statusCode(HttpStatus.SC_OK);
   }

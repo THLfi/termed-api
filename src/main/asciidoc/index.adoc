@@ -216,7 +216,7 @@ operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-
 
 include::{snippets}/get-node-revisions/operation-intro.adoc[]
 
-operation::get-node-revisions[snippets='path-parameters,response-fields,curl-request,response-body']
+operation::get-node-revisions[snippets='path-parameters,request-parameters,response-fields,curl-request,response-body']
 
 === Get Node Revision by Node ID and Number
 
