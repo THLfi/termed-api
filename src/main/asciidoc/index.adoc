@@ -209,6 +209,22 @@ include::{snippets}/delete-graph-nodes/operation-intro.adoc[]
 operation::delete-graph-nodes[snippets='path-parameters,request-parameters,curl-request']
 
 
+[[resources-node-revisions]]
+== Node Revisions
+
+=== Get Node Revisions by Node ID
+
+include::{snippets}/get-node-revisions/operation-intro.adoc[]
+
+operation::get-node-revisions[snippets='path-parameters,response-fields,curl-request,response-body']
+
+=== Get Node Revision by Node ID and Number
+
+include::{snippets}/get-a-node-revision/operation-intro.adoc[]
+
+operation::get-a-node-revision[snippets='path-parameters,response-fields,curl-request,response-body']
+
+
 [[resources-node-trees]]
 == Node Trees
 
