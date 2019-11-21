@@ -127,7 +127,10 @@ class NodeApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIntegratio
   void documentSaveNode() {
     given(adminAuthorizedJsonSaveRequest)
         .filter(document("save-a-node",
-            operationIntro("On success, operation returns the saved node."),
+            operationIntro("Note that `POST` is also supported for paths: "
+                + "`/api/graphs/{graphId}/nodes` and `/api/nodes`.\n\n"
+                + "On success, operation returns the saved node, for batch operations an empty "
+                + "body with status `204` is returned."),
             requestHeaders(
                 headerWithName("Authorization")
                     .description("Basic authentication credentials")),
@@ -144,7 +147,17 @@ class NodeApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIntegratio
                     .description("Optional boolean flag for batch mode. If batch is `true`, an "
                         + "array of type objects is expected. Multiple node are saved in one "
                         + "transaction. On success `204` is returned with an empty body. "
-                        + "If parameter is not specified, `false` is assumed.")),
+                        + "If parameter is not specified, `false` is assumed."),
+                parameterWithName("generateUris").optional()
+                    .description("Optional parameter to define whether missing URIs are "
+                        + "automatically generated. Default value is `true`."),
+                parameterWithName("uriNamespace").optional()
+                    .description("Optional parameter to give URI namespace for generated URIs. "
+                        + "By default Graph URI is used, and if not present, configuration property "
+                        + "`fi.thl.termed.defaultNamespace` is used."),
+                parameterWithName("generateCodes").optional()
+                    .description("Optional parameter to define whether missing codes are "
+                        + "automatically generated. Default value is `true`.")),
             requestFields(
                 fieldWithPath("id")
                     .description("Node identifier (UUID). Typically a random ID is generated if ID "
