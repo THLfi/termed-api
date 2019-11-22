@@ -112,7 +112,6 @@ class NodeDeleteApiIntegrationTest extends BaseApiIntegrationTest {
         .body(ImmutableList.of(term0, term1, concept0, concept1))
         .post("/api/graphs/" + graphId + "/nodes?batch=true")
         .then()
-        .log().body()
         .statusCode(HttpStatus.SC_NO_CONTENT);
 
     // delete nodes in batch with disconnect

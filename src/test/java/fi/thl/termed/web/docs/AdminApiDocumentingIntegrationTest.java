@@ -107,7 +107,6 @@ class AdminApiDocumentingIntegrationTest extends BaseApiDocumentingIntegrationTe
         .when()
         .post("/api/graphs/{graphId}/nodes?targetRevision=25", exampleGraphId.getId())
         .then()
-        .log().all()
         .statusCode(HttpStatus.SC_FORBIDDEN);
   }
 

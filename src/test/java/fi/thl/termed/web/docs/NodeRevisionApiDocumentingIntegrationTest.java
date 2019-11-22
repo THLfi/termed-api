@@ -75,7 +75,6 @@ class NodeRevisionApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIn
         .when()
         .get("/api/revisions")
         .then()
-        .log().all()
         .extract()
         .as(Revision[].class);
 
