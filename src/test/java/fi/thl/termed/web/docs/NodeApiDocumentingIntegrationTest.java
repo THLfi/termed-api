@@ -152,9 +152,14 @@ class NodeApiDocumentingIntegrationTest extends BaseNodeApiDocumentingIntegratio
                     .description("Optional parameter to define whether missing URIs are "
                         + "automatically generated. Default value is `true`."),
                 parameterWithName("uriNamespace").optional()
-                    .description("Optional parameter to give URI namespace for generated URIs. "
-                        + "By default Graph URI is used, and if not present, configuration property "
-                        + "`fi.thl.termed.defaultNamespace` is used."),
+                    .description("Optional parameter to give URI namespace for generated URIs.\n\n"
+                        + "Note that URI local names are generated differently when URI namespace "
+                        + "is given (and node has no `code` value to be used for local name): "
+                        + "local name number part is generated from a sequence specific to given "
+                        + "namespace. Numbering applies to URI only, node will still have `number` "
+                        + "and `code` fields generated as usual.\n\n"
+                        + "Default value is empty and Graph URI is used as namespace. If Graph has "
+                        + "no URI, configuration property `fi.thl.termed.defaultNamespace` is used."),
                 parameterWithName("generateCodes").optional()
                     .description("Optional parameter to define whether missing codes are "
                         + "automatically generated. Default value is `true`.")),
