@@ -16,6 +16,13 @@ public final class JenaUtils {
     return model;
   }
 
+  public static Model fromRdfTtlString(String rdfXml) {
+    Reader stringReader = new StringReader(rdfXml);
+    Model model = ModelFactory.createDefaultModel();
+    model.read(stringReader, "", "TTL");
+    return model;
+  }
+
   public static String toRdfXmlString(Model model) {
     Writer stringWriter = new StringWriter();
     model.write(stringWriter, "RDF/XML");

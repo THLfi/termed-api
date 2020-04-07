@@ -1,5 +1,7 @@
 package fi.thl.termed.service.node.internal;
 
+import static com.google.common.base.Strings.emptyToNull;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
@@ -67,10 +69,10 @@ public class DocumentToNode implements Function<Document, Node> {
           number = Long.valueOf(fieldValue);
           continue;
         case "uri":
-          uri = fieldValue;
+          uri = emptyToNull(fieldValue);
           continue;
         case "code":
-          code = fieldValue;
+          code = emptyToNull(fieldValue);
           continue;
         case "createdBy":
           createdBy = fieldValue;
