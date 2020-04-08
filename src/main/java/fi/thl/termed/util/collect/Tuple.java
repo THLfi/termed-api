@@ -1,10 +1,11 @@
 package fi.thl.termed.util.collect;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface Tuple {
+public interface Tuple extends Serializable {
 
   static <T1, T2> Stream<Tuple2<T1, T2>> entriesAsTuples(Map<T1, T2> map) {
     return map.entrySet().stream().map(Tuple::of);

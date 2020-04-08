@@ -25,13 +25,13 @@ import fi.thl.termed.domain.Type;
 import fi.thl.termed.domain.TypeId;
 import fi.thl.termed.domain.event.ApplicationShutdownEvent;
 import fi.thl.termed.service.node.internal.AttributeValueInitializingNodeService;
-import fi.thl.termed.service.node.internal.NodeMetadataInitializingService;
 import fi.thl.termed.service.node.internal.DocumentToNode;
 import fi.thl.termed.service.node.internal.IdInitializingNodeService;
 import fi.thl.termed.service.node.internal.IndexedNodeService;
 import fi.thl.termed.service.node.internal.JdbcNodeDao;
 import fi.thl.termed.service.node.internal.JdbcNodeIndexingQueueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeIndexingQueueItemDao;
+import fi.thl.termed.service.node.internal.JdbcNodeNamespaceSequenceDao;
 import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcNodeReferenceAttributeValueRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcNodeRevisionDao;
@@ -44,6 +44,7 @@ import fi.thl.termed.service.node.internal.JdbcPostgresNodeReferenceAttributeVal
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeRevisionDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueDao;
 import fi.thl.termed.service.node.internal.JdbcPostgresNodeTextAttributeValueRevisionDao;
+import fi.thl.termed.service.node.internal.NodeMetadataInitializingService;
 import fi.thl.termed.service.node.internal.NodeRepository;
 import fi.thl.termed.service.node.internal.NodeRevisionRepository;
 import fi.thl.termed.service.node.internal.NodeToDocument;
@@ -86,6 +87,8 @@ public class NodeServiceConfiguration {
   @Autowired
   private PlatformTransactionManager transactionManager;
 
+  @Autowired
+  private PermissionEvaluator<GraphId> graphEvaluator;
   @Autowired
   private PermissionEvaluator<TypeId> typeEvaluator;
   @Autowired
@@ -132,7 +135,7 @@ public class NodeServiceConfiguration {
     service = new RevisionInitializingNodeService(service, revisionSeqService, revisionService);
 
     service = new NodeMetadataInitializingService(service, nodeSequenceService(),
-        typeService::get, graphService::get, ns);
+        nodeNamespaceSequenceService(), typeService::get, graphService::get, ns);
     service = new AttributeValueInitializingNodeService(service, typeService::get);
     service = new ProfilingService<>(service, packageName + ".ProfilingService", 500);
 
@@ -186,6 +189,27 @@ public class NodeServiceConfiguration {
     return sequenceService;
   }
 
+  private NamedSequenceService<Tuple2<GraphId, String>> nodeNamespaceSequenceService() {
+    NamedSequenceService<Tuple2<GraphId, String>> sequenceService =
+        new DaoNamedSequenceService<>(
+            new AuthorizedDao<>(
+                nodeNamespaceSequenceSystemDao(),
+                nodeNamespaceSequenceEvaluator()));
+
+    sequenceService = new CachedNamedSequenceService<>(sequenceService);
+    sequenceService = new ForwardingNamedSequenceService<Tuple2<GraphId, String>>(sequenceService) {
+      @Subscribe
+      public void discardCachesOn(ApplicationShutdownEvent e) {
+        close();
+      }
+    };
+    eventBus.register(sequenceService);
+    sequenceService = new TransactionalNamedSequenceService<>(sequenceService, transactionManager);
+    sequenceService = new SynchronizedNamedSequenceService<>(sequenceService);
+
+    return sequenceService;
+  }
+
   private Service<RevisionId<NodeId>, Tuple2<RevisionType, Node>> nodeRevisionRepository() {
     return new NodeRevisionRepository(
         new AuthorizedDao<>(nodeRevSysDao(), nodeRevEvaluator()),
@@ -196,6 +220,11 @@ public class NodeServiceConfiguration {
 
   private PermissionEvaluator<TypeId> nodeSequenceEvaluator() {
     return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(), typeEvaluator);
+  }
+
+  private PermissionEvaluator<Tuple2<GraphId, String>> nodeNamespaceSequenceEvaluator() {
+    return new DisjunctionPermissionEvaluator<>(appAdminEvaluator(),
+        ((u, o, p) -> graphEvaluator.hasPermission(u, o._1, p)));
   }
 
   private PermissionEvaluator<NodeId> nodeEvaluator() {
@@ -239,6 +268,10 @@ public class NodeServiceConfiguration {
 
   private SystemDao<TypeId, Long> nodeSequenceSystemDao() {
     return new JdbcNodeSequenceDao(dataSource);
+  }
+
+  private SystemDao<Tuple2<GraphId, String>, Long> nodeNamespaceSequenceSystemDao() {
+    return new JdbcNodeNamespaceSequenceDao(dataSource);
   }
 
   private SystemDao<NodeId, Node> nodeSystemDao() {

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class NodeUriSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTest {
 
   @Test
-  void shouldGenerateUriUsingGivenNamespace() {
+  void shouldGenerateUriUsingGivenNamespaceAndCode() {
     NodeId nodeId0 = NodeId.random("Person", graphId);
     Node node0 = Node.builder()
         .id(nodeId0)
@@ -29,6 +29,55 @@ class NodeUriSavingServiceIntegrationTest extends BaseNodeServiceIntegrationTest
 
     assertEquals("http://example.org/example-code-0",
         nodeService.get(nodeId0, user)
+            .orElseThrow(AssertionError::new)
+            .getUri()
+            .orElseThrow(AssertionError::new));
+  }
+
+  @Test
+  void shouldGenerateUriUsingGivenNamespace() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+
+    nodeService.save(node0, INSERT,
+        opts(false, "http://example.org/", true, true), user);
+
+    assertEquals("http://example.org/person-0",
+        nodeService.get(nodeId0, user)
+            .orElseThrow(AssertionError::new)
+            .getUri()
+            .orElseThrow(AssertionError::new));
+  }
+
+  @Test
+  void shouldGenerateUrisWithDifferentCountersForEachNamespace() {
+    NodeId nodeId0 = NodeId.random("Person", graphId);
+    Node node0 = Node.builder()
+        .id(nodeId0)
+        .build();
+    NodeId nodeId1 = NodeId.random("Person", graphId);
+    Node node1 = Node.builder()
+        .id(nodeId1)
+        .build();
+
+    assertFalse(nodeService.exists(nodeId0, user));
+
+    nodeService.save(node0, INSERT,
+        opts(false, "http://example.org/", true, true), user);
+    nodeService.save(node1, INSERT,
+        opts(false, "http://foobar.com/", true, true), user);
+
+    assertEquals("http://example.org/person-0",
+        nodeService.get(nodeId0, user)
+            .orElseThrow(AssertionError::new)
+            .getUri()
+            .orElseThrow(AssertionError::new));
+    assertEquals("http://foobar.com/person-0",
+        nodeService.get(nodeId1, user)
             .orElseThrow(AssertionError::new)
             .getUri()
             .orElseThrow(AssertionError::new));

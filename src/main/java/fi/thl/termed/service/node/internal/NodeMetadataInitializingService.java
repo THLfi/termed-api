@@ -15,6 +15,7 @@ import fi.thl.termed.service.node.specification.NodesByCode;
 import fi.thl.termed.service.node.specification.NodesByGraphId;
 import fi.thl.termed.service.node.specification.NodesByTypeId;
 import fi.thl.termed.service.node.specification.NodesByUri;
+import fi.thl.termed.util.collect.Tuple;
 import fi.thl.termed.util.collect.Tuple2;
 import fi.thl.termed.util.service.NamedSequenceService;
 import fi.thl.termed.util.service.Service;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 public class NodeMetadataInitializingService extends PreSaveNodeInitializingService {
 
   private NamedSequenceService<TypeId> nodeSequenceService;
+  private NamedSequenceService<Tuple2<GraphId, String>> nodeNsSeqService;
   private BiFunction<TypeId, User, Type> types;
   private BiFunction<GraphId, User, Graph> graphs;
   private String defaultNs;
@@ -36,11 +38,13 @@ public class NodeMetadataInitializingService extends PreSaveNodeInitializingServ
   public NodeMetadataInitializingService(
       Service<NodeId, Node> delegate,
       NamedSequenceService<TypeId> nodeSequenceService,
+      NamedSequenceService<Tuple2<GraphId, String>> nodeNamespaceSequenceService,
       BiFunction<TypeId, User, Optional<Type>> typeSource,
       BiFunction<GraphId, User, Optional<Graph>> graphSource,
       String defaultNs) {
     super(delegate);
     this.nodeSequenceService = nodeSequenceService;
+    this.nodeNsSeqService = nodeNamespaceSequenceService;
     this.types = (typeId, user) -> typeSource.apply(typeId, user)
         .orElseThrow(IllegalStateException::new);
     this.graphs = (graphId, user) -> graphSource.apply(graphId, user)
@@ -61,8 +65,19 @@ public class NodeMetadataInitializingService extends PreSaveNodeInitializingServ
       // generate code once (and only once) if needed
       Supplier<String> codeGen = memoize(() -> codeGenerator.apply(node.getType(), number));
       String code = node.getCode().orElseGet(() -> opts.isGenerateCodes() ? codeGen.get() : null);
-      String uri = node.getUri().orElseGet(() -> opts.isGenerateUris() ?
-          uriGenerator.apply(node.getTypeGraph(), ofNullable(code).orElseGet(codeGen)) : null);
+      String uri = node.getUri().orElseGet(() -> {
+        if (!opts.isGenerateUris()) {
+          return null;
+        } else if (opts.getUriNamespace().isPresent() && !node.getCode().isPresent()) {
+          // generate URI, not based on generated code, but with namespace specific counter
+          String localNamePrefix = types.apply(node.getType(), user).getNodeCodePrefixOrDefault();
+          Long localNameNumber = nodeNsSeqService.getAndAdvance(
+              Tuple.of(node.getTypeGraph(), opts.getUriNamespace().get()), user);
+          return uriGenerator.apply(node.getTypeGraph(), localNamePrefix + localNameNumber);
+        } else {
+          return uriGenerator.apply(node.getTypeGraph(), ofNullable(code).orElseGet(codeGen));
+        }
+      });
 
       return Node.builderFromCopyOf(node)
           .number(number)
@@ -123,8 +138,19 @@ public class NodeMetadataInitializingService extends PreSaveNodeInitializingServ
 
         Supplier<String> codeGen = memoize(() -> codeGenerator.apply(node.getType(), number));
         String code = node.getCode().orElseGet(() -> opts.isGenerateCodes() ? codeGen.get() : null);
-        String uri = node.getUri().orElseGet(() -> opts.isGenerateUris() ?
-            uriGenerator.apply(node.getTypeGraph(), ofNullable(code).orElseGet(codeGen)) : null);
+        String uri = node.getUri().orElseGet(() -> {
+          if (!opts.isGenerateUris()) {
+            return null;
+          } else if (opts.getUriNamespace().isPresent() && !node.getCode().isPresent()) {
+            // generate URI, not based on generated code, but with namespace specific counter
+            String localNamePrefix = types.apply(node.getType(), user).getNodeCodePrefixOrDefault();
+            Long localNameNumber = nodeNsSeqService.getAndAdvance(
+                Tuple.of(node.getTypeGraph(), opts.getUriNamespace().get()), user);
+            return uriGenerator.apply(node.getTypeGraph(), localNamePrefix + localNameNumber);
+          } else {
+            return uriGenerator.apply(node.getTypeGraph(), ofNullable(code).orElseGet(codeGen));
+          }
+        });
 
         return Node.builderFromCopyOf(node)
             .number(number)
