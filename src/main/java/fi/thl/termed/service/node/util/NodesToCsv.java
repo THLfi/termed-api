@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.opencsv.CSVWriter;
@@ -27,14 +28,18 @@ import fi.thl.termed.util.query.SelectAll;
 import fi.thl.termed.util.query.Selects;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.apache.jena.atlas.logging.Log;
 
 /**
  * Write stream of nodes to OutputStream or Writer as CSV. This operation is not actually streaming
@@ -70,6 +75,17 @@ public final class NodesToCsv {
         toTable(nodes.map(n -> nodeToRowMap(n, selectsSet)).collect(toList())).stream());
   }
 
+  public void writeAsTranslationCsv(Stream<Node> nodes, List<Select> selects, CsvOptions csvOpts,
+  OutputStream out) {
+
+    Set<String> translateFields = new HashSet<String>();
+    translateFields.add("properties.prefLabel");
+
+    Set<Select> selectsSet = ImmutableSet.copyOf(selects);
+    writeCsv(out, csvOpts,
+        toTable(nodes.map(n -> nodeToCsvRowMap(n, selectsSet)).collect(toList())).stream());
+}
+
   private Map<String, String> nodeToRowMap(Node node, Set<Select> s) {
     Map<String, String> row = new LinkedHashMap<>();
 
@@ -85,6 +101,60 @@ public final class NodesToCsv {
 
     return row;
   }
+
+private Map<String, String> nodeToCsvRowMap(Node node, Set<Select> s) {
+  Map<String, String> row = new LinkedHashMap<>();
+
+  row.putAll(identifiersToMap(node, s));
+  row.putAll(auditInfoToMap(node, s));
+  row.putAll(propertiesToMap(node.getProperties(), s));
+
+  if (useLabeledReferences) {
+    row.putAll(referencesToLabeledMap(node.getReferences(), s));
+  } else {
+    row.putAll(referencesToMap(node.getReferences(), s));
+  }
+
+  LinkedHashSet<String> columnOrder = new LinkedHashSet<String>();
+  columnOrder.add("id");
+  columnOrder.add("properties.prefLabel");
+  columnOrder.add("properties.altLabel");
+  columnOrder.add("properties.avoidableLabel");
+  columnOrder.add("properties.deprecatedLabel");
+  columnOrder.add("properties.definition");
+  columnOrder.add("properties.note");
+  columnOrder.add("type.graph.id");
+
+  LinkedHashSet<String>langOrder = new LinkedHashSet<String>();
+  langOrder.add("fi");
+  langOrder.add("sv");
+  langOrder.add("en");  
+
+  row.entrySet().removeIf(entry -> {
+   return !(columnOrder.contains(entry.getKey().toString()) || entry.getKey().startsWith("properties", 0));
+  });
+  
+  Map<String, String> orderedRow = new LinkedHashMap<>();
+
+  columnOrder.forEach(csvColumn -> {
+    
+    if (csvColumn.startsWith("properties.", 0)) {
+      langOrder.forEach(lang -> {
+        if(row.get(csvColumn + "." + lang) == null) {
+          orderedRow.put(csvColumn + "." + lang, "");
+        } else {
+          orderedRow.put(csvColumn + "." + lang, row.get(csvColumn + "." + lang));
+        }
+      });
+    } else {
+      orderedRow.put(csvColumn, row.get(csvColumn));
+    }
+
+  });
+
+  return orderedRow;
+}
+
 
   private Map<String, String> identifiersToMap(Node node, Set<Select> s) {
     Map<String, String> map = new LinkedHashMap<>();
@@ -134,30 +204,32 @@ public final class NodesToCsv {
       Multimap<String, StrictLangValue> properties,
       Set<Select> s) {
 
-    Multimap<String, StrictLangValue> selectedProperties =
-        filterKeys(properties, key -> s.contains(new SelectAll())
-            || s.contains(new SelectAllProperties())
-            || s.contains(new SelectProperty(key)));
+      Multimap<String, StrictLangValue> selectedProperties =
+          filterKeys(properties, key -> s.contains(new SelectAll())
+              || s.contains(new SelectAllProperties())
+              || s.contains(new SelectProperty(key)));
 
-    return selectedProperties.asMap().entrySet().stream()
-        .flatMap(entry -> {
-          String attrId = entry.getKey();
-          Collection<StrictLangValue> langValues = entry.getValue();
+      return selectedProperties.asMap().entrySet().stream()
+          .flatMap(entry -> {
+            String attrId = entry.getKey();
+            Collection<StrictLangValue> langValues = entry.getValue();
 
-          return langValues.stream()
-              .collect(groupingBy(
-                  StrictLangValue::getLang,
-                  LinkedHashMap::new,
-                  mapping(StrictLangValue::getValue, toList())))
-              .entrySet().stream()
-              .map(e -> {
-                String lang = e.getKey();
-                String key = "properties." + attrId + (lang.isEmpty() ? "" : "." + lang);
-                String value = toInlineCsv(e.getValue());
-                return MapUtils.entry(key, value);
-              });
-        })
-        .collect(MapUtils.toImmutableMap());
+            return langValues.stream()
+                .collect(groupingBy(
+                    StrictLangValue::getLang,
+                    LinkedHashMap::new,
+                    mapping(StrictLangValue::getValue, toList())))
+                .entrySet().stream()
+                .map(e -> {
+                  
+                  String lang = e.getKey();
+                  String key = "properties." + attrId + (lang.isEmpty() ? "" : "." + lang);
+                  String value = toInlineCsv(e.getValue());
+
+                  return MapUtils.entry(key, value);
+                });
+          })
+          .collect(MapUtils.toImmutableMap());
   }
 
   private Map<String, String> referencesToMap(
