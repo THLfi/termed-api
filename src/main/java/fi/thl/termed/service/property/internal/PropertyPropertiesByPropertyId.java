@@ -9,7 +9,7 @@ import java.util.Objects;
 public class PropertyPropertiesByPropertyId
     extends AbstractSqlSpecification<PropertyValueId<String>, LangValue> {
 
-  private String propertyId;
+  private final String propertyId;
 
   PropertyPropertiesByPropertyId(String propertyId) {
     this.propertyId = propertyId;

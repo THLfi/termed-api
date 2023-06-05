@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 public class Query<K extends Serializable, V> {
 
-  private List<Select> select;
-  private Specification<K, V> where;
-  private List<Sort> sort;
-  private int max;
+  private final List<Select> select;
+  private final Specification<K, V> where;
+  private final List<Sort> sort;
+  private final int max;
 
   public Query(Specification<K, V> where) {
     this.select = singletonList(new SelectAll());

@@ -28,8 +28,8 @@ import java.util.stream.Stream;
 
 public class PropertyRepository extends AbstractRepository<String, Property> {
 
-  private Dao<String, Property> propertyDao;
-  private Dao<PropertyValueId<String>, LangValue> propertyValueDao;
+  private final Dao<String, Property> propertyDao;
+  private final Dao<PropertyValueId<String>, LangValue> propertyValueDao;
 
   public PropertyRepository(Dao<String, Property> propertyDao,
       Dao<PropertyValueId<String>, LangValue> propertyValueDao) {

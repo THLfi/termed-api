@@ -61,8 +61,8 @@ public final class CsvToNodes {
 
   private static final TypeId unknownTypeId = TypeId.of("", nilUuid());
 
-  private Map<TypeId, Map<String, TypeId>> typeReferenceAttributeRangeIndex;
-  private Function<Specification<NodeId, Node>, Optional<NodeId>> referenceIdResolver;
+  private final Map<TypeId, Map<String, TypeId>> typeReferenceAttributeRangeIndex;
+  private final Function<Specification<NodeId, Node>, Optional<NodeId>> referenceIdResolver;
 
   public CsvToNodes() {
     this(emptyList(), (s) -> Optional.empty());

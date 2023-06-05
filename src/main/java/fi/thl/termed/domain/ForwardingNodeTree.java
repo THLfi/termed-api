@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class ForwardingNodeTree implements NodeTree {
 
-  private NodeTree delegate;
+  private final NodeTree delegate;
 
   public ForwardingNodeTree(NodeTree delegate) {
     this.delegate = delegate;

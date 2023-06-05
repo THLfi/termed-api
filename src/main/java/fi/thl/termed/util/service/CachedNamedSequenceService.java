@@ -9,9 +9,9 @@ public class CachedNamedSequenceService<K extends Serializable> implements Named
 
   private static final long DEFAULT_MIN_INCREMENT = 1000L;
 
-  private NamedSequenceService<K> delegate;
-  private long minIncrement;
-  private Map<K, Long> cache = new HashMap<>();
+  private final NamedSequenceService<K> delegate;
+  private final long minIncrement;
+  private final Map<K, Long> cache = new HashMap<>();
 
   public CachedNamedSequenceService(NamedSequenceService<K> delegate) {
     this(delegate, DEFAULT_MIN_INCREMENT);
@@ -55,6 +55,7 @@ public class CachedNamedSequenceService<K extends Serializable> implements Named
     delegate.set(sequenceId, value, user);
   }
 
+  @Override
   public void close() {
     User cacheDestructor = User.newAdmin("cache-destructor");
     // backtrack delegate to actual latest value

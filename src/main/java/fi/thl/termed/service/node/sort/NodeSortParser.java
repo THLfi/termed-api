@@ -13,7 +13,7 @@ import org.jparsercombinator.ParserCombinator;
 
 class NodeSortParser implements Parser<List<Sort>> {
 
-  private Parser<List<Sort>> parser;
+  private final Parser<List<Sort>> parser;
 
   NodeSortParser() {
     ParserCombinator<Sort> sortNumberParser =
