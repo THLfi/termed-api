@@ -16,9 +16,9 @@ import org.springframework.security.access.AccessDeniedException;
 
 public class AuthorizedDao<K extends Serializable, V> implements Dao<K, V> {
 
-  private SystemDao<K, V> delegate;
+  private final SystemDao<K, V> delegate;
 
-  private PermissionEvaluator<K> evaluator;
+  private final PermissionEvaluator<K> evaluator;
 
   public AuthorizedDao(SystemDao<K, V> delegate, PermissionEvaluator<K> evaluator) {
     this.delegate = delegate;

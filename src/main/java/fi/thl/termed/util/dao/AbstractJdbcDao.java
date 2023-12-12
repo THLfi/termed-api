@@ -25,9 +25,9 @@ public abstract class AbstractJdbcDao<K extends Serializable, V> implements Syst
 
   protected StreamingJdbcTemplate jdbcTemplate;
 
-  private RowMapper<K> keyMapper;
-  private RowMapper<V> valueMapper;
-  private RowMapper<Tuple2<K, V>> entryMapper;
+  private final RowMapper<K> keyMapper;
+  private final RowMapper<V> valueMapper;
+  private final RowMapper<Tuple2<K, V>> entryMapper;
 
   public AbstractJdbcDao(DataSource dataSource) {
     this.jdbcTemplate = new StreamingJdbcTemplate(dataSource);

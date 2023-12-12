@@ -14,7 +14,7 @@ import org.jparsercombinator.ParserCombinator;
 
 class NodeSelectParser implements Parser<List<Select>> {
 
-  private Parser<List<Select>> parser;
+  private final Parser<List<Select>> parser;
 
   NodeSelectParser() {
     String qualifier = "(" + UUID + "\\." + CODE + "\\.|" + CODE + "\\.|)";
