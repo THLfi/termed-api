@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -192,6 +193,7 @@ public class NodeCsvReadController {
       @RequestParam(name = "useLabeledReferences", defaultValue = "false") boolean useLabeledReferences,
       @RequestParam(name = "labelAttribute", defaultValue = "prefLabel") String labelAttribute,
       @RequestParam(name = "labelLang", defaultValue = "") String labelLang,
+      @RequestParam(name = "translate", defaultValue = "false") boolean translate,
       @AuthenticationPrincipal User user,
       HttpServletResponse response) throws IOException {
 
@@ -231,10 +233,17 @@ public class NodeCsvReadController {
           .quoteAll(quoteAll)
           .charset(charset).build();
 
-      new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
-          (id) -> nodeService.get(id, user))
-          .writeAsCsv(nodes, selects, csvOptions, out);
+      if (translate) {
+        new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
+        (id) -> nodeService.get(id, user))
+        .writeAsTranslationCsv(nodes, selects, csvOptions, out);
+      } else {
+        new NodesToCsv(useLabeledReferences, labelAttribute, labelLang,
+        (id) -> nodeService.get(id, user))
+        .writeAsCsv(nodes, selects, csvOptions, out);
+      }
     }
+
   }
 
 }
