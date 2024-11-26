@@ -112,7 +112,7 @@ public class RdfModelToNodes implements Function<RdfModel, List<Node>> {
             node.addReference(refAttribute.getId(), object.identifier());
           }
         } else {
-          Optional<NodeId> objectId = findExistingIdForUri(type.identifier(), objectUri);
+          Optional<NodeId> objectId = findExistingIdForUri(refAttribute.getRange(), objectUri);
           objectId.ifPresent(o -> node.addReference(refAttribute.getId(), o));
         }
       }
