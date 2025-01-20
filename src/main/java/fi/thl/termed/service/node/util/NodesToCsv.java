@@ -123,13 +123,14 @@ private Map<String, String> nodeToCsvRowMap(Node node, Set<Select> s) {
   columnOrder.add("properties.deprecatedLabel");
   columnOrder.add("properties.definition");
   columnOrder.add("properties.note");
+  columnOrder.add("properties.link");
   columnOrder.add("properties.definitionOld");
   columnOrder.add("properties.noteOld");
   columnOrder.add("properties.conceptDiagram");
-  columnOrder.add("properties.status");
-  columnOrder.add("properties.broader");
-  columnOrder.add("properties.partOf");
-  columnOrder.add("properties.related");
+  columnOrder.add("references.status");
+  columnOrder.add("references.broader");
+  columnOrder.add("references.partOf");
+  columnOrder.add("references.related");
   columnOrder.add("type.graph.id");
 
   LinkedHashSet<String>langOrder = new LinkedHashSet<String>();
