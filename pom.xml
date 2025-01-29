@@ -6,7 +6,7 @@
 
     <groupId>fi.thl</groupId>
     <artifactId>termed-api</artifactId>
-    <version>3.3</version>
+    <version>3.4.0</version>
     <packaging>jar</packaging>
 
     <parent>
